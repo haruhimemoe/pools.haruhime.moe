@@ -2,8 +2,9 @@
  * @file src/components/check/CheckScreen.tsx
  * @desc The check page: paste beatmap IDs or links, a pool, or a pack key (read in that order of
  *       precedence: key, pool, IDs), then the summary and a row per map. What couldn't be read
- *       or checked is said, with a retry for maps osu! didn't answer. Never blocks anything, and
- *       always says it's a guide, not a ruling.
+ *       or checked is said. Every press of Check asks again, even for the same paste, and "Check
+ *       again" shows after a failed check (429, network error, 5xx) and for maps osu! didn't
+ *       answer. Never blocks anything, and always says it's a guide, not a ruling.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -29,6 +30,7 @@ export function CheckScreen({ rules }: { rules: Rules }) {
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setInput(readCheckInput(text));
+    retry();
   };
   return (
     <div className="flex flex-col gap-6">
@@ -59,9 +61,14 @@ export function CheckScreen({ rules }: { rules: Rules }) {
       ) : null}
       {check.status === "loading" ? <p className="text-c3 text-sm">Checking…</p> : null}
       {check.status === "error" ? (
-        <Notice tone="error" live>
-          {check.message}
-        </Notice>
+        <>
+          <Notice tone="error" live>
+            {check.message}
+          </Notice>
+          <Button variant="secondary" className="self-start" onClick={retry}>
+            Check again
+          </Button>
+        </>
       ) : null}
       {check.status === "ready" && input && input.kind !== "empty" ? (
         <>

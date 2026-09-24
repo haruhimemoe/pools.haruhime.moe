@@ -2,8 +2,9 @@
  * @file tests/components/check/CheckScreen.test.tsx
  * @desc The check page: pasted IDs are sent sorted in one request; the summary and each row's
  *       verdict, notes (https links only) and pool usage show; a damaged key shows its error and
- *       sends nothing; maps that couldn't be checked get a "Check again" button; the page always
- *       says it's guidance, not a ruling.
+ *       sends nothing; maps that couldn't be checked get a "Check again" button, and so does a
+ *       failed check (429, network error, an HTML 502), where Check again or Check with the same
+ *       paste asks again; the page always says it's guidance, not a ruling.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -69,6 +70,44 @@ describe("CheckScreen", () => {
     expect(rows[1]).toHaveTextContent("Kenji Ninuma - DISCOPRINCE [Normal]");
     expect(rows[1]).toHaveTextContent("Used in 3 pools (latest 2023)");
     expect(rows[2]).toHaveTextContent("Couldn't check");
+    expect(screen.getByRole("button", { name: "Check again" })).toBeInTheDocument();
+  });
+
+  it("after a 429, Check again sends a second request and shows the answer", async () => {
+    fetchMock.mockImplementationOnce(async () =>
+      Response.json(
+        { error: { code: "rate_limited", message: "Too many requests. Try again in 10 seconds." } },
+        { status: 429 },
+      ),
+    );
+    const user = await paste("1002 75 555");
+    expect(
+      await screen.findByText("Too many requests. Try again in 10 seconds."),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Check again" }));
+    expect(await screen.findByText("1 map needs a closer look.")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenLastCalledWith("/api/check?ids=75,555,1002", expect.anything());
+    expect(screen.queryByText(/Too many requests/)).not.toBeInTheDocument();
+  });
+
+  it("after a failed check, pressing Check with the same paste asks again", async () => {
+    fetchMock.mockImplementationOnce(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    const user = await paste("1002 75 555");
+    expect(await screen.findByText(/The check didn't load/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Check" }));
+    expect(await screen.findByText("1 map needs a closer look.")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("an HTML 502 shows the retry message and Check again", async () => {
+    fetchMock.mockImplementationOnce(
+      async () => new Response("<html>Bad gateway</html>", { status: 502 }),
+    );
+    await paste("75");
+    expect(await screen.findByText(/The check didn't load/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Check again" })).toBeInTheDocument();
   });
 
