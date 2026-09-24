@@ -1,7 +1,10 @@
 /**
  * @file tests/components/admin/PoolEditForm.test.tsx
  * @desc The pool edit form sends the fields as JSON (an empty year as unknown), then says what
- *       happened to the pack, and shows the route's error when the save is refused.
+ *       happened to the pack, and shows the route's error when the save is refused. A field follows
+ *       its stored value after a refresh (the tournament-wide badged form saving on the same page),
+ *       so the next save never sends a stale badged back, while unsaved typing and the save message
+ *       stay.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -72,5 +75,47 @@ describe("PoolEditForm", () => {
     );
     await user.click(screen.getByRole("button", { name: "Save" }));
     expect(await screen.findByText("The tournament needs a name.")).toBeInTheDocument();
+  });
+  it("takes a badged the tournament-wide form saved, so the next save doesn't undo it", async () => {
+    fetchMock.mockImplementation(async () =>
+      Response.json({ pool: {}, sync: { status: "not-needed" } }),
+    );
+    const user = userEvent.setup();
+    const { rerender } = render(<PoolEditForm poolId="otdb-1" initial={FIELDS} />);
+    await user.clear(screen.getByLabelText("Round"));
+    await user.type(screen.getByLabelText("Round"), "Semifinals");
+    rerender(<PoolEditForm poolId="otdb-1" initial={{ ...FIELDS, badged: true }} />);
+    expect(screen.getByLabelText("Badged tournament")).toHaveValue("yes");
+    expect(screen.getByLabelText("Round")).toHaveValue("Semifinals");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("Saved. The pack didn't need an update.")).toBeInTheDocument();
+    const [, init] = fetchMock.mock.calls[0] ?? [];
+    expect(JSON.parse(String(init?.body))).toEqual({
+      ...FIELDS,
+      round: "Semifinals",
+      badged: true,
+    });
+  });
+
+  it("keeps the save message when the refresh brings the saved values back", async () => {
+    fetchMock.mockImplementation(async () =>
+      Response.json({ pool: {}, sync: { status: "sent", state: "updated", error: null } }),
+    );
+    const user = userEvent.setup();
+    const { rerender } = render(<PoolEditForm poolId="otdb-1" initial={FIELDS} />);
+    await user.clear(screen.getByLabelText("Tournament"));
+    await user.type(screen.getByLabelText("Tournament"), "  Autumn Cup ");
+    await user.selectOptions(screen.getByLabelText("Badged tournament"), "no");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("Saved. packs updated the pack.")).toBeInTheDocument();
+    rerender(
+      <PoolEditForm
+        poolId="otdb-1"
+        initial={{ ...FIELDS, tournament: "Autumn Cup", badged: false }}
+      />,
+    );
+    expect(screen.getByText("Saved. packs updated the pack.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tournament")).toHaveValue("Autumn Cup");
+    expect(screen.getByLabelText("Badged tournament")).toHaveValue("no");
   });
 });

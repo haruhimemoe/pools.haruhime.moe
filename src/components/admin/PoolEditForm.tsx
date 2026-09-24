@@ -1,7 +1,10 @@
 /**
  * @file src/components/admin/PoolEditForm.tsx
  * @desc The admin's pool form: tournament, round, year, notes, hidden and badged. Saving sends the
- *       fields to PATCH /api/admin/pools/[id] and says what happened to the pool's pack.
+ *       fields to PATCH /api/admin/pools/[id] and says what happened to the pool's pack. Each field
+ *       follows its stored value: when a refresh brings a new one (this form's save, or the
+ *       tournament-wide badged form on the same page), the field takes it, so a save never sends a
+ *       stale value back. Fields whose stored value didn't change keep what the admin typed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -41,14 +44,31 @@ const outcomeText = (sync: Outcome): string => {
 
 const BADGED_VALUES = { unknown: null, yes: true, no: false } as const;
 
+/**
+ * A form field's state that follows its stored value. App Router keeps client state across
+ * router.refresh(), so without this the field would keep the value it mounted with.
+ * @function useStoredField
+ * @param stored {T} the field's value as the server has it now
+ * @returns {[T, (value: T) => void]} the field's value and its setter
+ */
+function useStoredField<T>(stored: T): [T, (value: T) => void] {
+  const [value, setValue] = useState(stored);
+  const [seen, setSeen] = useState(stored);
+  if (!Object.is(seen, stored)) {
+    setSeen(stored);
+    setValue(stored);
+  }
+  return [value, setValue];
+}
+
 export function PoolEditForm({ poolId, initial }: { poolId: string; initial: Fields }) {
   const router = useRouter();
-  const [tournament, setTournament] = useState(initial.tournament);
-  const [round, setRound] = useState(initial.round ?? "");
-  const [year, setYear] = useState(initial.year === null ? "" : String(initial.year));
-  const [notes, setNotes] = useState(initial.notes);
-  const [hidden, setHidden] = useState(initial.hidden);
-  const [badged, setBadged] = useState<keyof typeof BADGED_VALUES>(
+  const [tournament, setTournament] = useStoredField(initial.tournament);
+  const [round, setRound] = useStoredField(initial.round ?? "");
+  const [year, setYear] = useStoredField(initial.year === null ? "" : String(initial.year));
+  const [notes, setNotes] = useStoredField(initial.notes);
+  const [hidden, setHidden] = useStoredField(initial.hidden);
+  const [badged, setBadged] = useStoredField<keyof typeof BADGED_VALUES>(
     initial.badged === null ? "unknown" : initial.badged ? "yes" : "no",
   );
   const [pending, setPending] = useState(false);
