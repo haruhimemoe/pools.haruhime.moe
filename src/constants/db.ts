@@ -1,7 +1,8 @@
 /**
  * @file src/constants/db.ts
  * @desc Collection names in the pools database, the session TTL index name, how long a public
- *       read may run (the cluster is a shared free M0), and the index names searches hint.
+ *       read and a batch read (importer, admin) may run (the cluster is a shared free M0), and
+ *       the index names searches hint.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -41,3 +42,6 @@ export const MAP_INDEXES = Object.freeze({
   set: "setId_1",
   metaSource: "metaSource_1",
 });
+
+/** maxTimeMS for the importer's and the admin's batch reads over every pool or map. */
+export const BATCH_QUERY_MS = 60_000;
