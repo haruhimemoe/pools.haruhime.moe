@@ -29,6 +29,7 @@ const PUBLIC_PAGES = [
   "src/app/maps/[id]/page.tsx",
   "src/app/credits/page.tsx",
   "src/app/legal/[doc]/page.tsx",
+  "src/app/search/page.tsx",
 ];
 
 const notFoundDigest = async (promise: Promise<unknown>): Promise<string | undefined> => {
