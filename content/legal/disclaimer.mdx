@@ -1,0 +1,21 @@
+pools.haruhime.moe is a fan-made tool. It isn't affiliated with or endorsed by ppy Pty Ltd or the osu! Tournament Committee. osu! is a trademark of ppy Pty Ltd.
+
+## The pool data
+
+Pools come from the public export of [otdb](https://otdb.sheppsu.me), by Sheppsu, used with his permission. Each pool page links the pool there. We read a pool's tournament, round and year from its name, so some are wrong, and about two in three pools have no year. Admins fix what they find.
+
+## Star ratings
+
+Every star rating on this site is the map's rating without mods, even in HR, DT or EZ slots. A pool's star range uses the same ratings, so it can differ from the range packs shows for the same pool.
+
+## The compliance check
+
+The check reads each beatmapset's details from the osu! API and applies the content rules for officially supported tournaments, as the osu! Mappool Compliance project writes them. Its results are guidance, not rulings: the osu! Tournament Committee decides. A map the check couldn't read is marked as such, never passed.
+
+## How our requests identify themselves
+
+Our server sends `pools.haruhime.moe (+https://pools.haruhime.moe; contact@haruhime.moe)` as its User-Agent on every request it makes: to the osu! API (for the check, with pools' own osu! app), to the hinai mirror and to otdb (when an admin runs an import), and to packs.haruhime.moe (to keep each pool's pack up to date).
+
+## Contact
+
+Write to contact@haruhime.moe.

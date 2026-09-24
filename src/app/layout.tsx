@@ -1,7 +1,7 @@
 /**
  * @file src/app/layout.tsx
  * @desc Root layout: Nunito font variable, site metadata, dark osu!-web body, and the library
- *       PageShell frame.
+ *       PageShell frame around the pools header and footer.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -11,6 +11,8 @@ import { PageShell } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import type { ReactNode } from "react";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 import { SITE } from "@/constants/site";
 import "./globals.css";
 
@@ -29,7 +31,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={nunito.variable}>
       <body className="bg-b5 font-sans text-c2 antialiased">
-        <PageShell>{children}</PageShell>
+        <PageShell header={<Header />} footer={<Footer />}>
+          {children}
+        </PageShell>
       </body>
     </html>
   );

@@ -1,7 +1,8 @@
 /**
  * @file tests/components/app/RootLayout.test.tsx
- * @desc Root layout frame: the Nunito variable on <html>, the dark body, a skip link first, and
- *       the page inside the #main landmark.
+ * @desc Root layout frame: the Nunito variable on <html>, the dark body, a skip link first, the
+ *       page inside the #main landmark, and the header (main nav) and footer (links, legal pages,
+ *       the otdb credit and no-mod stars).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -38,5 +39,26 @@ describe("RootLayout", () => {
     const page = renderLayout();
     expect(page.getByRole("link", { name: "Skip to content" })).toHaveAttribute("href", "#main");
     expect(page.getByRole("main")).toHaveTextContent("hello pools");
+  });
+});
+
+describe("RootLayout header and footer", () => {
+  it("links the pages, credits otdb and names the legal pages", () => {
+    const page = renderLayout();
+    const header = page.getByRole("banner");
+    const nav = within(header).getByRole("navigation", { name: "Main" });
+    expect(within(nav).getByRole("link", { name: "Search" })).toHaveAttribute("href", "/search");
+    expect(within(nav).getByRole("link", { name: "Check a pool" })).toHaveAttribute(
+      "href",
+      "/check",
+    );
+    const footer = page.getByRole("contentinfo");
+    expect(within(footer).getByRole("navigation", { name: "Legal" })).toBeInTheDocument();
+    expect(within(footer).getByRole("link", { name: "Credits" })).toHaveAttribute(
+      "href",
+      "/credits",
+    );
+    expect(footer).toHaveTextContent("Pool data from otdb by Sheppsu.");
+    expect(footer).toHaveTextContent("Star ratings are without mods.");
   });
 });

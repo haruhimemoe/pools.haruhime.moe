@@ -1,0 +1,25 @@
+This page says what pools.haruhime.moe stores, why, and for how long.
+
+## If you visit
+
+We set no cookies and run no analytics.
+
+To stop floods, we count search and check requests per IP address (an IPv6 address by its /64) in counters that are deleted automatically within about two minutes. The check also counts, the same way, how many osu! API calls each IP address caused.
+
+The check keeps what the osu! API says about each beatmapset it looked up (status, artist, title, source, tags, Featured Artist track and download availability) for 24 hours, so the next check is faster. That's about the maps, not about you.
+
+## If you're an admin
+
+Only admins can sign in, with osu!. For them we store the osu! user ID, username, avatar URL and country osu! sends, a record linking the account to osu! (never osu! tokens), and session records that keep them signed in, with the IP address and browser User-Agent each session started from. Signing in sets a session cookie, and a short-lived one while sign-in runs. Sessions last 7 days, and expired ones are deleted automatically.
+
+## What we never do
+
+We don't sell or share any of this, and we don't host beatmap files.
+
+## Requests our server makes
+
+The [disclaimer](/legal/disclaimer) lists them.
+
+## Contact
+
+Write to contact@haruhime.moe.
