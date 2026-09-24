@@ -1,0 +1,1 @@
+pools: osu! mappools for tournament hosts

@@ -1,0 +1,18 @@
+/*
+ * @file src/app/globals.css
+ * @desc Tailwind entry + the @haruhimemoe/ui theme: the hue-driven osu!-web-style palette
+ *       (b = backgrounds, c = content, h = highlight), Nunito as the sans font, the focus ring.
+ * @author David @dvhsh (https://dvh.sh)
+ * @created Thu Sep 24, 2026
+ * @modified Thu Sep 24, 2026
+ */
+
+@import "tailwindcss";
+@import "@haruhimemoe/ui/theme.css";
+
+/* pools is blue. Pinned here so a new library default can't recolor the site. At hue 200 white
+   text on h2 needs h2 at 42% lightness for 4.5:1 (the ui README). */
+:root {
+  --hue: 200;
+  --h2-l: 42%;
+}
