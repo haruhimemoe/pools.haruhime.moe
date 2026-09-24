@@ -1,8 +1,9 @@
 /**
  * @file tests/integration/lib/db.test.ts
  * @desc connectDb against the in-memory server: the "pools" database whatever the URI says, the
- *       TTL indexes for sessions and rate-limit counters, and the privilege check refusing a user
- *       that can reach another database (a failure isn't cached: the next call tries again).
+ *       TTL indexes for sessions and rate-limit counters, the setFacts TTL and difficulty-id
+ *       indexes, and the privilege check refusing a user that can reach another database (a
+ *       failure isn't cached: the next call tries again).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -36,6 +37,12 @@ describe("connectDb", () => {
     expect(counters.find((index) => index.key.expiresAt === 1)).toMatchObject({
       expireAfterSeconds: 0,
     });
+  });
+
+  it("creates the setFacts TTL and difficulty-id indexes", async () => {
+    await connectDb();
+    const names = (await getDb().collection("setFacts").indexes()).map((index) => index.name);
+    expect(names).toEqual(expect.arrayContaining(["setFacts_fetchedAt_ttl", "beatmapIds_1"]));
   });
 
   it("refuses a user that can reach another database, then tries again next time", async () => {

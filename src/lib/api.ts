@@ -2,14 +2,16 @@
  * @file src/lib/api.ts
  * @desc Shared pieces for our JSON route handlers: { error: { code, message } } responses,
  *       no-store, body parsing (application/json only, so a cross-site form can't send it
- *       without a CORS preflight, and at most 16 KB), and the same-origin guard every admin
- *       mutation runs.
+ *       without a CORS preflight, and at most 16 KB), the same-origin guard every admin
+ *       mutation runs, and the /check ids parser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
+import { beatmapIdSchema } from "@haruhimemoe/pool";
 import type { z } from "zod";
+import { MAX_CHECK_IDS } from "@/constants/compliance";
 import { SITE } from "@/constants/site";
 
 /** An admin edit is well under 3 KB of JSON. */
@@ -122,4 +124,26 @@ export const refuseCrossSite = (request: Request): Response | null => {
   const fetchSite = request.headers.get("sec-fetch-site");
   const foreignFetch = fetchSite !== null && FOREIGN_FETCH_SITES.has(fetchSite);
   return foreignOrigin || foreignFetch ? jsonError(403, CROSS_SITE_REFUSED) : null;
+};
+
+export const BAD_CHECK_IDS = `Pass 1 to ${MAX_CHECK_IDS} beatmap IDs as ?ids=1,2,3.`;
+
+/** The longest valid id (10 digits) plus a comma; a longer ?ids= is refused unread. */
+const MAX_IDS_QUERY_LENGTH = MAX_CHECK_IDS * 11;
+
+/**
+ * @function parseBeatmapIds
+ * @param raw {string | null} the `ids` query value, comma-separated
+ * @returns {number[] | null} 1 to 64 valid beatmap ids as sent, or null
+ */
+export const parseBeatmapIds = (raw: string | null): number[] | null => {
+  if (raw === null || raw.length > MAX_IDS_QUERY_LENGTH) return null;
+  const parts = raw.split(",");
+  if (parts.some((part) => !/^\d{1,10}$/.test(part))) return null;
+  const ids = parts.map(Number);
+  const valid =
+    ids.length > 0 &&
+    ids.length <= MAX_CHECK_IDS &&
+    ids.every((id) => beatmapIdSchema.safeParse(id).success);
+  return valid ? ids : null;
 };

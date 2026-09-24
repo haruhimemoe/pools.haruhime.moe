@@ -1,0 +1,127 @@
+/**
+ * @file tests/integration/services/compliance.test.ts
+ * @desc The check against osu! (msw) and the in-memory cache: one verdict per beatmapset with the
+ *       package's wording (ok and ranked, artist, a closer look with notes, a DMCA'd ranked map),
+ *       unknown ids missing; a second check answered from the cache with no osu! call, found by
+ *       difficulty id or through pools' own maps; stale facts asked again; a spent global budget
+ *       or IP share, an osu! failure and a database outage leave maps unchecked, never guessed.
+ * @author David @dvhsh (https://dvh.sh)
+ * @created Thu Sep 24, 2026
+ * @modified Thu Sep 24, 2026
+ */
+
+import { HttpResponse, http } from "msw";
+import { beforeEach, describe, expect, it } from "vitest";
+import { RATE_LIMITS_COLLECTION, SET_FACTS_COLLECTION } from "@/constants/db";
+import { getDb } from "@/lib/db";
+import { osuBudgetWindow, osuSubjectWindow } from "@/lib/osu-budget";
+import { mapsCollection } from "@/models/Map";
+import { checkCompliance } from "@/services/compliance";
+import { setupTestDb } from "../../helpers/db";
+import { setupMsw } from "../../helpers/msw";
+import { osuCalls, osuHandlers } from "../../helpers/osu-server";
+import { makeMap } from "../../helpers/records";
+
+setupTestDb();
+const server = setupMsw(...osuHandlers);
+beforeEach(() => {
+  osuCalls.beatmaps = 0;
+});
+
+// Real time: the TTL monitor deletes facts older than a day by the real clock.
+const NOW = Date.now();
+const now = () => NOW;
+
+describe("checkCompliance", () => {
+  it("gives one verdict per beatmapset, with the package's wording", async () => {
+    const result = await checkCompliance([1004, 75, 1002, 1003, 1001, 999_999, 75], { now });
+    expect(result.missing).toEqual([999_999]);
+    expect(result.unchecked).toEqual([]);
+    expect(result.sets).toEqual([
+      { setId: 1, beatmapIds: [75], status: "ok", text: "Allowed", ranked: true },
+      {
+        setId: 101,
+        beatmapIds: [1001, 1004],
+        status: "disallowed",
+        reason: "artist",
+        text: "This artist doesn't allow their music in osu!",
+        ranked: false,
+      },
+      expect.objectContaining({
+        setId: 102,
+        beatmapIds: [1002],
+        status: "potential",
+        notes: expect.any(String),
+        ranked: false,
+      }),
+      expect.objectContaining({
+        setId: 103,
+        beatmapIds: [1003],
+        status: "disallowed",
+        reason: "dmca",
+        ranked: true,
+      }),
+    ]);
+    expect(osuCalls.beatmaps).toBe(1);
+  });
+
+  it("answers a second check from the cache, by difficulty or through pools' maps", async () => {
+    await checkCompliance([75, 1001], { now });
+    await (await mapsCollection()).insertOne(makeMap({ _id: 1005, setId: 101 }));
+    osuCalls.beatmaps = 0;
+    const again = await checkCompliance([75, 1001, 1005], { now });
+    expect(osuCalls.beatmaps).toBe(0);
+    expect(again.sets.map((set) => [set.setId, set.beatmapIds])).toEqual([
+      [1, [75]],
+      [101, [1001, 1005]],
+    ]);
+    const cached = await getDb()
+      .collection(SET_FACTS_COLLECTION)
+      .findOne({ _id: 101 as never });
+    expect(cached).toMatchObject({ artist: "Igorrr", beatmapIds: [1001] });
+  });
+
+  it("asks osu! again once the facts are a day old", async () => {
+    await checkCompliance([75], { now: () => NOW - 25 * 3600 * 1000 });
+    osuCalls.beatmaps = 0;
+    await checkCompliance([75], { now });
+    expect(osuCalls.beatmaps).toBe(1);
+  });
+
+  it("leaves maps unchecked when the global budget or the IP's share is spent", async () => {
+    const counters = getDb().collection(RATE_LIMITS_COLLECTION);
+    const global = osuBudgetWindow(NOW);
+    await counters.insertOne({ _id: global.id as never, count: 50, expiresAt: global.expiresAt });
+    expect(await checkCompliance([75], { now })).toEqual({
+      sets: [],
+      missing: [],
+      unchecked: [75],
+    });
+    await counters.deleteMany({});
+    const share = osuSubjectWindow("203.0.113.7", NOW);
+    await counters.insertOne({ _id: share.id as never, count: 20, expiresAt: share.expiresAt });
+    expect(await checkCompliance([75], { now, subject: "203.0.113.7" })).toEqual({
+      sets: [],
+      missing: [],
+      unchecked: [75],
+    });
+    expect(osuCalls.beatmaps).toBe(0);
+  });
+
+  it("leaves maps unchecked when osu! fails or the database is down", async () => {
+    server.use(
+      http.get("https://osu.ppy.sh/api/v2/beatmaps", () => HttpResponse.json({}, { status: 500 })),
+    );
+    expect(await checkCompliance([75, 1001], { now })).toEqual({
+      sets: [],
+      missing: [],
+      unchecked: [75, 1001],
+    });
+    const down = () => Promise.reject(new Error("down"));
+    expect(await checkCompliance([75], { now, db: down })).toEqual({
+      sets: [],
+      missing: [],
+      unchecked: [75],
+    });
+  });
+});

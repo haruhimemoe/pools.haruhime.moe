@@ -1,0 +1,84 @@
+{
+  "beatmaps": [
+    {
+      "id": 75,
+      "beatmapset_id": 1,
+      "beatmapset": {
+        "id": 1,
+        "status": "ranked",
+        "artist": "Kenji Ninuma",
+        "title": "DISCOPRINCE",
+        "artist_unicode": "Kenji Ninuma",
+        "title_unicode": "DISCOPRINCE",
+        "source": "",
+        "tags": "katamari",
+        "track_id": null,
+        "availability": { "download_disabled": false, "more_information": null }
+      }
+    },
+    {
+      "id": 1001,
+      "beatmapset_id": 101,
+      "beatmapset": {
+        "id": 101,
+        "status": "graveyard",
+        "artist": "Igorrr",
+        "title": "Very Noise",
+        "artist_unicode": "Igorrr",
+        "title_unicode": "Very Noise",
+        "source": "",
+        "tags": "",
+        "track_id": null,
+        "availability": { "download_disabled": false, "more_information": null }
+      }
+    },
+    {
+      "id": 1004,
+      "beatmapset_id": 101,
+      "beatmapset": {
+        "id": 101,
+        "status": "graveyard",
+        "artist": "Igorrr",
+        "title": "Very Noise",
+        "artist_unicode": "Igorrr",
+        "title_unicode": "Very Noise",
+        "source": "",
+        "tags": "",
+        "track_id": null,
+        "availability": { "download_disabled": false, "more_information": null }
+      }
+    },
+    {
+      "id": 1002,
+      "beatmapset_id": 102,
+      "beatmapset": {
+        "id": 102,
+        "status": "pending",
+        "artist": "Frums",
+        "title": "Credits",
+        "artist_unicode": "Frums",
+        "title_unicode": "Credits",
+        "source": "",
+        "tags": "",
+        "track_id": null,
+        "availability": { "download_disabled": false, "more_information": null }
+      }
+    },
+    {
+      "id": 1003,
+      "beatmapset_id": 103,
+      "beatmapset": {
+        "id": 103,
+        "status": "ranked",
+        "artist": "Some Artist",
+        "title": "Taken Down",
+        "artist_unicode": "Some Artist",
+        "title_unicode": "Taken Down",
+        "source": "",
+        "tags": "",
+        "track_id": null,
+        "availability": { "download_disabled": true, "more_information": null }
+      }
+    }
+  ]
+}

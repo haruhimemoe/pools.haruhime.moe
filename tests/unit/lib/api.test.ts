@@ -3,7 +3,7 @@
  * @desc JSON errors ({ error: { code, message } }), body parsing (JSON only, 16 KB, schema
  *       errors as 400 with the first message), no-store, and the same-origin guard (a foreign
  *       Origin or a cross-site or same-site Sec-Fetch-Site is refused; our own origin, previews
- *       and server calls pass).
+ *       and server calls pass), and the /check ids parser (1 to 64 valid beatmap ids, or null).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -11,7 +11,14 @@
 
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { CROSS_SITE_REFUSED, jsonError, noStore, parseJsonBody, refuseCrossSite } from "@/lib/api";
+import {
+  CROSS_SITE_REFUSED,
+  jsonError,
+  noStore,
+  parseBeatmapIds,
+  parseJsonBody,
+  refuseCrossSite,
+} from "@/lib/api";
 
 const post = (
   body: string,
@@ -85,5 +92,24 @@ describe("refuseCrossSite", () => {
   it("lets a preview deployment call itself", () => {
     const url = "https://pools-git-x.vercel.app/api/admin/x";
     expect(refuseCrossSite(request({ origin: "https://pools-git-x.vercel.app" }, url))).toBeNull();
+  });
+});
+
+describe("parseBeatmapIds", () => {
+  it("reads 1 to 64 beatmap ids", () => {
+    expect(parseBeatmapIds("75,129891")).toEqual([75, 129891]);
+  });
+
+  it.each([
+    null,
+    "",
+    "abc",
+    "0",
+    "1,,2",
+    "2147483648",
+    Array.from({ length: 65 }, (_, i) => i + 1).join(","),
+    "1".repeat(800),
+  ])("refuses %j", (raw) => {
+    expect(parseBeatmapIds(raw)).toBeNull();
   });
 });
