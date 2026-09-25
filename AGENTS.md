@@ -64,6 +64,8 @@ Dates match `date "+%a %b %-d, %Y"`. Update `@modified` on edits, never `@create
 
 osu!-web look from `@haruhimemoe/ui`: `src/app/globals.css` imports its theme and pins `--hue: 200` (pools' hue) and `--h2-l: 42%` (4.5:1 for white on h2 at that hue). Dark only. Font: Nunito. Page titles go through `PageHeader`; tables sit in an `overflow-x-auto` wrapper so phones scroll them. Every star rating says it's without mods.
 
+`NEXT_PUBLIC_POOLS_BETA=true` (read by `isBeta()` in `src/lib/beta.ts`, written into the build by Next.js) shows a "beta" pill beside the header wordmark on every page. The pill sits outside the wordmark link, so the link's accessible name stays "pools" (the wordmark's dot is `aria-hidden`). It changes nothing else: no robots or `noindex`, no title template change.
+
 ## 7. Legal copy and docs
 
 - Legal pages are `content/legal/*.mdx`, registered in `src/constants/legal.ts`; bump `lastUpdated` with any wording change. `tests/unit/content/legal-content.test.ts` guards the clauses.

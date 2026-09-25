@@ -29,4 +29,8 @@ describe(".env.example", () => {
   it("leaves POOLS_ALLOW_SHARED_DB_USER empty, so a copy keeps the strict database check", () => {
     expect(text).toMatch(/^POOLS_ALLOW_SHARED_DB_USER=$/m);
   });
+
+  it("documents NEXT_PUBLIC_POOLS_BETA, off", () => {
+    expect(text).toMatch(/^NEXT_PUBLIC_POOLS_BETA=$/m);
+  });
 });

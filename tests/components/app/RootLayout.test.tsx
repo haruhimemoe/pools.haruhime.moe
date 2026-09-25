@@ -2,15 +2,17 @@
  * @file tests/components/app/RootLayout.test.tsx
  * @desc Root layout frame: the Nunito variable on <html>, the dark body, a skip link first, the
  *       page inside the #main landmark, and the header (main nav) and footer (links, legal pages,
- *       the otdb credit and no-mod stars).
+ *       the otdb credit and no-mod stars). NEXT_PUBLIC_POOLS_BETA=true adds a "beta" tag beside
+ *       the wordmark (text, read once, outside the link, whose name stays "pools"); the page
+ *       title template and robots don't change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { within } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/font/google", () => ({ Nunito: () => ({ variable: "font-nunito" }) }));
 
@@ -60,5 +62,40 @@ describe("RootLayout header and footer", () => {
     );
     expect(footer).toHaveTextContent("Pool data from otdb by Sheppsu.");
     expect(footer).toHaveTextContent("Star ratings are without mods.");
+  });
+});
+
+describe("RootLayout beta tag", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("shows a beta tag beside the wordmark while NEXT_PUBLIC_POOLS_BETA is true", () => {
+    vi.stubEnv("NEXT_PUBLIC_POOLS_BETA", "true");
+    const header = within(renderLayout().getByRole("banner"));
+    const wordmark = header.getByRole("link", { name: "pools" });
+    expect(wordmark).toHaveAttribute("href", "/");
+    const tags = header.getAllByText("beta");
+    expect(tags).toHaveLength(1);
+    expect(wordmark).not.toContainElement(tags[0] ?? null);
+    expect(tags[0]).not.toHaveAttribute("aria-hidden");
+  });
+
+  it.each([undefined, "", "1", "false"])("hides it for %j", (value) => {
+    vi.stubEnv("NEXT_PUBLIC_POOLS_BETA", value);
+    const header = within(renderLayout().getByRole("banner"));
+    expect(header.getByRole("link", { name: "pools" })).toBeInTheDocument();
+    expect(header.queryByText("beta")).toBeNull();
+  });
+
+  it("keeps the title template and robots as they are in a beta build", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POOLS_BETA", "true");
+    vi.resetModules();
+    const { metadata } = await import("@/app/layout");
+    expect(metadata.title).toEqual({
+      default: "pools.haruhime.moe",
+      template: "%s · pools.haruhime.moe",
+    });
+    expect(metadata.robots).toBeUndefined();
   });
 });

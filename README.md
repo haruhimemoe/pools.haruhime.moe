@@ -24,6 +24,7 @@ To run your own copy you need Bun 1.4+, Node 24+ and a MongoDB database. Copy `.
 
 - **Database user:** give pools a MongoDB user with readWrite on the `pools` database only. pools reads the user's privileges when it connects and refuses to run if they reach any other database.
 - **Sharing a database user:** to run pools on a user another app also uses (like packs), set `POOLS_ALLOW_SHARED_DB_USER=true`. The user still needs readWrite on `pools`, and pools logs a warning naming the other databases it can reach. A bug in pools or a leaked credential could then change the other app's data too, so a user of its own is safer.
+- **Beta tag:** set `NEXT_PUBLIC_POOLS_BETA=true` to show a small "beta" tag beside the wordmark on every page. Next.js reads it when it builds the site, so changing it needs a new build.
 
 ## Stack
 
