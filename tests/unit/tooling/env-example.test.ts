@@ -1,10 +1,10 @@
 /**
  * @file tests/unit/tooling/env-example.test.ts
  * @desc .env.example documents every server variable and every optional one, and ships no secret
- *       values.
+ *       values. A copy of it starts with the strict database check and no beta tag.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -25,4 +25,8 @@ describe(".env.example", () => {
       expect(text).toMatch(new RegExp(`^${key}=$`, "m"));
     },
   );
+
+  it("leaves POOLS_ALLOW_SHARED_DB_USER empty, so a copy keeps the strict database check", () => {
+    expect(text).toMatch(/^POOLS_ALLOW_SHARED_DB_USER=$/m);
+  });
 });

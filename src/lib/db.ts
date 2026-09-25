@@ -3,20 +3,21 @@
  * @desc One MongoClient per process, built on first use (never at import, so builds and pages
  *       without a database need no env). The database is always "pools", whatever the URI says.
  *       The first connect checks the user's privileges (src/lib/db-privileges.ts) and refuses to
- *       go on when they reach another database, then creates the raw indexes. better-auth reads
+ *       go on when they reach another database (unless POOLS_ALLOW_SHARED_DB_USER=true, which
+ *       still needs readWrite on pools and warns), then creates the raw indexes. better-auth reads
  *       getDb(); Mongoose models live on getModelConnection(), attached to the same client. State
  *       sits on globalThis so dev reloads don't leak clients; a failed connect is never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import "server-only";
 import { type Db, MongoClient } from "mongodb";
 import mongoose, { type Connection } from "mongoose";
-import { getDatabaseUri } from "@/env";
+import { getAllowSharedDbUser, getDatabaseUri } from "@/env";
 import { ensureIndexes } from "@/lib/db-indexes";
-import { assertOnlyDatabase, readConnectionStatus } from "@/lib/db-privileges";
+import { checkDatabasePrivileges, readConnectionStatus } from "@/lib/db-privileges";
 
 export const DB_NAME = "pools";
 
@@ -72,12 +73,14 @@ export const getModelConnection = (): Connection => state().models;
  * @function connectDb
  * @returns {Promise<void>} resolves once the client is connected, its privileges checked,
  *          Mongoose attached, and the raw indexes exist
- * @throws {DatabasePrivilegeError} when the user can reach another database
+ * @throws {DatabasePrivilegeError} when the user can reach another database (or, with
+ *         POOLS_ALLOW_SHARED_DB_USER=true, can't write to pools)
  */
 export const connectDb = async (): Promise<void> => {
   const current = state();
   current.ready ??= current.client.connect().then(async () => {
-    assertOnlyDatabase(await readConnectionStatus(current.client), DB_NAME);
+    const status = await readConnectionStatus(current.client);
+    checkDatabasePrivileges(status, DB_NAME, getAllowSharedDbUser());
     if (current.base.readyState === 0) current.base.setClient(current.client);
     await ensureIndexes(current.client.db(DB_NAME));
   });

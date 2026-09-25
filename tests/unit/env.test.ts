@@ -4,10 +4,10 @@
  *       SKIP_ENV_VALIDATION escape hatch and its production guard (VERCEL_ENV decides on Vercel).
  *       The optional variables are read on every call by their own getters: ADMIN_OSU_IDS (the
  *       admins), PACKS_URL and POOLS_SERVICE_TOKEN (the packs service), and a bad value only
- *       breaks what uses it.
+ *       breaks what uses it. POOLS_ALLOW_SHARED_DB_USER is on only for "true".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -16,6 +16,7 @@ import {
   DEFAULT_PACKS_URL,
   EnvError,
   getAdminOsuIds,
+  getAllowSharedDbUser,
   getPacksService,
   isEnvValidationSkipped,
   OPTIONAL_ENV_KEYS,
@@ -202,5 +203,28 @@ describe("getPacksService", () => {
   it("refuses a token under 32 characters without printing it", () => {
     vi.stubEnv("POOLS_SERVICE_TOKEN", "short-token");
     expect(() => getPacksService()).toThrow(invalid("POOLS_SERVICE_TOKEN"));
+  });
+});
+
+describe("getAllowSharedDbUser", () => {
+  it("is off when unset or blank", () => {
+    vi.stubEnv("POOLS_ALLOW_SHARED_DB_USER", undefined);
+    expect(getAllowSharedDbUser()).toBe(false);
+    vi.stubEnv("POOLS_ALLOW_SHARED_DB_USER", "");
+    expect(getAllowSharedDbUser()).toBe(false);
+  });
+
+  it("is on for true (around spaces), read fresh on every call", () => {
+    vi.stubEnv("POOLS_ALLOW_SHARED_DB_USER", "true");
+    expect(getAllowSharedDbUser()).toBe(true);
+    vi.stubEnv("POOLS_ALLOW_SHARED_DB_USER", " true\n");
+    expect(getAllowSharedDbUser()).toBe(true);
+    vi.stubEnv("POOLS_ALLOW_SHARED_DB_USER", "");
+    expect(getAllowSharedDbUser()).toBe(false);
+  });
+
+  it.each(["TRUE", "True", "1", "yes", "on", "false", "truee"])("is off for %j", (value) => {
+    vi.stubEnv("POOLS_ALLOW_SHARED_DB_USER", value);
+    expect(getAllowSharedDbUser()).toBe(false);
   });
 });

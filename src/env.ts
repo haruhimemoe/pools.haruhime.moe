@@ -5,12 +5,12 @@
  *       missing values for placeholders nothing connects with; a production server
  *       (VERCEL_ENV=production when VERCEL_ENV is set, else NODE_ENV=production; never during
  *       `next build`) refuses that when a secret would be one of these public placeholders.
- *       ADMIN_OSU_IDS, PACKS_URL and POOLS_SERVICE_TOKEN are read on every call by their own
- *       getters, so a missing or bad value only breaks what uses it, and a removed admin id
- *       stops working at the next request.
+ *       ADMIN_OSU_IDS, PACKS_URL, POOLS_SERVICE_TOKEN and POOLS_ALLOW_SHARED_DB_USER are read on
+ *       every call by their own getters, so a missing or bad value only breaks what uses it, and
+ *       a removed admin id stops working at the next request.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import "server-only";
@@ -31,11 +31,13 @@ export const SERVER_ENV_KEYS = Object.keys(serverEnvSchema.shape) as (keyof Serv
 export const ADMIN_OSU_IDS_KEY = "ADMIN_OSU_IDS";
 export const PACKS_URL_KEY = "PACKS_URL";
 export const POOLS_SERVICE_TOKEN_KEY = "POOLS_SERVICE_TOKEN";
+export const POOLS_ALLOW_SHARED_DB_USER_KEY = "POOLS_ALLOW_SHARED_DB_USER";
 /** Read on every call by their own getters, never part of getServerEnv. */
 export const OPTIONAL_ENV_KEYS = [
   ADMIN_OSU_IDS_KEY,
   PACKS_URL_KEY,
   POOLS_SERVICE_TOKEN_KEY,
+  POOLS_ALLOW_SHARED_DB_USER_KEY,
 ] as const;
 
 export const DEFAULT_PACKS_URL = "https://packs.haruhime.moe";
@@ -222,3 +224,12 @@ export const getPacksService = (): PacksService | null => {
   if (token.length < 32) throw invalid(POOLS_SERVICE_TOKEN_KEY);
   return { url, token };
 };
+
+/**
+ * @function getAllowSharedDbUser
+ * @returns {boolean} true only when POOLS_ALLOW_SHARED_DB_USER is "true" (read now, trimmed):
+ *          the start-up check then allows a database user that reaches other databases too.
+ *          Unset, blank or any other value keeps the strict check.
+ */
+export const getAllowSharedDbUser = (): boolean =>
+  readOptional(POOLS_ALLOW_SHARED_DB_USER_KEY) === "true";

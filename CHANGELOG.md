@@ -15,3 +15,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A compliance check for pasted beatmap IDs, links, pools and pack keys, against the content rules for officially supported tournaments.
 - An admin area for listed osu! accounts: import reports, pool edits, badged tournaments, pack sync retries and a refresh of the public pages after an import.
 - Credits, disclaimer and privacy pages, a sitemap and llms.txt.
+- `POOLS_ALLOW_SHARED_DB_USER`: set it to `true` to run on a database user that other apps share, like packs'. pools still needs readWrite on `pools` and logs a warning naming the other databases. Unset, pools keeps refusing any user that reaches another database.

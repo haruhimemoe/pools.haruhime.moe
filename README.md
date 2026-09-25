@@ -18,6 +18,13 @@ Every star rating on the site is without mods.
 
 Pools come from [otdb](https://otdb.sheppsu.me), by Sheppsu, used with his permission. Map details and star ratings come from the hinai mirror, and the check reads the osu! API. The [credits page](https://pools.haruhime.moe/credits) has the full list.
 
+## Setup
+
+To run your own copy you need Bun 1.4+, Node 24+ and a MongoDB database. Copy `.env.example` to `.env.local` and fill it in: every variable has a comment there. [CONTRIBUTING.md](CONTRIBUTING.md) has the rest (the dev server, tests and the importer).
+
+- **Database user:** give pools a MongoDB user with readWrite on the `pools` database only. pools reads the user's privileges when it connects and refuses to run if they reach any other database.
+- **Sharing a database user:** to run pools on a user another app also uses (like packs), set `POOLS_ALLOW_SHARED_DB_USER=true`. The user still needs readWrite on `pools`, and pools logs a warning naming the other databases it can reach. A bug in pools or a leaked credential could then change the other app's data too, so a user of its own is safer.
+
 ## Stack
 
 Next.js 16 (App Router), React 19, TypeScript 7, Tailwind CSS v4 and MDX, on Bun. MongoDB with Mongoose and zod, and better-auth with osu! sign-in for admins. Tests run on Vitest, lint and format on Biome.

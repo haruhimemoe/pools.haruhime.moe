@@ -5,15 +5,21 @@
  *       count as another database); any other database, "any database" and anyResource are
  *       refused by name; an unauthenticated local server passes; a signed-in user whose
  *       privileges aren't listed, and an answer that doesn't say who is signed in, are refused.
+ *       checkDatabasePrivileges adds the shared mode (POOLS_ALLOW_SHARED_DB_USER): other
+ *       databases are allowed with one warning that names them (never a URI), but the user must
+ *       still read and write every collection in "pools", and the answers strict mode can't read
+ *       are still refused. Strict stays the default.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   assertOnlyDatabase,
   type ConnectionStatus,
+  canWriteDatabase,
+  checkDatabasePrivileges,
   DatabasePrivilegeError,
   otherDatabases,
 } from "@/lib/db-privileges";
@@ -126,5 +132,150 @@ describe("assertOnlyDatabase", () => {
     expect(() => assertOnlyDatabase(status, "pools")).toThrow(
       'The database user can reach every database, "packs", not only "pools". Give it readWrite on "pools" only.',
     );
+  });
+});
+
+const PACKS_READ_WRITE: Privileges = [
+  { resource: { db: "packs", collection: "" }, actions: READ_WRITE },
+];
+
+/** A user that can reach only "packs", or read "pools" without writing to it. */
+const withoutPoolsWrite = (poolsActions: string[]): ConnectionStatus => ({
+  authInfo: {
+    authenticatedUsers: [{ user: "packs-app", db: "admin" }],
+    authenticatedUserPrivileges: [
+      ...PACKS_READ_WRITE,
+      ...(poolsActions.length > 0
+        ? [{ resource: { db: "pools", collection: "" }, actions: poolsActions }]
+        : []),
+    ],
+  },
+});
+
+describe("canWriteDatabase", () => {
+  it("is true for readWrite on the database, and for readWrite on every database", () => {
+    expect(canWriteDatabase(atlasUser(), "pools")).toBe(true);
+    const anyDatabase: ConnectionStatus = {
+      authInfo: {
+        authenticatedUsers: [{ user: "app", db: "admin" }],
+        authenticatedUserPrivileges: [
+          { resource: { db: "", collection: "" }, actions: READ_WRITE },
+        ],
+      },
+    };
+    expect(canWriteDatabase(anyDatabase, "pools")).toBe(true);
+  });
+
+  it("adds up actions from several privileges on the database", () => {
+    const split: ConnectionStatus = {
+      authInfo: {
+        authenticatedUsers: [{ user: "app", db: "admin" }],
+        authenticatedUserPrivileges: [
+          { resource: { db: "pools", collection: "" }, actions: ["find", "insert"] },
+          {
+            resource: { db: "pools", collection: "" },
+            actions: ["update", "remove", "createIndex"],
+          },
+        ],
+      },
+    };
+    expect(canWriteDatabase(split, "pools")).toBe(true);
+  });
+
+  it("is false for read only, another database, or one collection", () => {
+    expect(canWriteDatabase(withoutPoolsWrite(["find", "listCollections"]), "pools")).toBe(false);
+    expect(canWriteDatabase(withoutPoolsWrite([]), "pools")).toBe(false);
+    const oneCollection: ConnectionStatus = {
+      authInfo: {
+        authenticatedUsers: [{ user: "app", db: "admin" }],
+        authenticatedUserPrivileges: [
+          { resource: { db: "pools", collection: "maps" }, actions: READ_WRITE },
+        ],
+      },
+    };
+    expect(canWriteDatabase(oneCollection, "pools")).toBe(false);
+  });
+});
+
+describe("checkDatabasePrivileges", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const sharedUser = () => atlasUser(PACKS_READ_WRITE);
+
+  it("is strict by default: a user shared with packs is refused, naming packs", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(() => checkDatabasePrivileges(sharedUser(), "pools", false)).toThrow(
+      'The database user can reach "packs", not only "pools". Give it readWrite on "pools" only.',
+    );
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("passes the scoped user in both modes without a warning", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(() => checkDatabasePrivileges(atlasUser(), "pools", false)).not.toThrow();
+    expect(() => checkDatabasePrivileges(atlasUser(), "pools", true)).not.toThrow();
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("allows a shared user when shared, with one warning naming the other databases", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(() => checkDatabasePrivileges(sharedUser(), "pools", true)).not.toThrow();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(
+      'POOLS_ALLOW_SHARED_DB_USER is on, so pools runs on a database user that can also reach "packs". A bug in pools or a leaked credential could change data there.',
+    );
+  });
+
+  it("names every database for a user with readWrite on any database", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const anyDatabase: ConnectionStatus = {
+      authInfo: {
+        authenticatedUsers: [{ user: "app", db: "admin" }],
+        authenticatedUserPrivileges: [
+          { resource: { db: "", collection: "" }, actions: READ_WRITE },
+          { resource: { db: "packs", collection: "" }, actions: READ_WRITE },
+        ],
+      },
+    };
+    expect(() => checkDatabasePrivileges(anyDatabase, "pools", true)).not.toThrow();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toContain('also reach every database, "packs".');
+  });
+
+  it.each([
+    ["read only on pools", ["find", "listCollections"]],
+    ["nothing on pools", []],
+  ])("still refuses a shared user with %s", (_case, poolsActions) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(() => checkDatabasePrivileges(withoutPoolsWrite(poolsActions), "pools", true)).toThrow(
+      `The database user can't read and write every collection in "pools". Give it readWrite on "pools".`,
+    );
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["no authInfo", {}],
+    ["no user list", { authInfo: { authenticatedUserPrivileges: PACKS_READ_WRITE } }],
+  ])("still refuses an answer with %s", (_case, status) => {
+    expect(() => checkDatabasePrivileges(status, "pools", true)).toThrow(DatabasePrivilegeError);
+    expect(() => checkDatabasePrivileges(status, "pools", true)).toThrow(
+      `The database server didn't say which user is signed in, so pools can't tell whether it can write to "pools". Give it readWrite on "pools".`,
+    );
+  });
+
+  it("still refuses a signed-in user whose privileges aren't listed", () => {
+    const status = { authInfo: { authenticatedUsers: [{ user: "packs-app", db: "admin" }] } };
+    expect(() => checkDatabasePrivileges(status, "pools", true)).toThrow(
+      `The database server didn't list the user's privileges, so pools can't tell whether it can write to "pools". Give it readWrite on "pools".`,
+    );
+  });
+
+  it("passes a local server without access control when shared, without a warning", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const local = { authInfo: { authenticatedUsers: [], authenticatedUserPrivileges: [] } };
+    expect(() => checkDatabasePrivileges(local, "pools", true)).not.toThrow();
+    expect(warn).not.toHaveBeenCalled();
   });
 });
