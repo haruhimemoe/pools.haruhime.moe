@@ -2,7 +2,8 @@
  * @file src/app/api/search/route.ts
  * @desc GET /api/search?tab=pools|maps&...: one page of pool or map results (the query string
  *       src/utils/search-params.ts reads and writes). Counts 60 requests a minute per IP; the CDN
- *       keeps successful answers 5 minutes, so repeats never reach the database or the counter.
+ *       keeps successful answers 5 minutes and never serves them stale, so repeats never reach
+ *       the database or the counter and a pool an admin hides is gone within 5 minutes.
  *       Never reads a cookie. A bad "contains map" is 400; a database failure is 503; neither is
  *       cached.
  * @author David @dvhsh (https://dvh.sh)

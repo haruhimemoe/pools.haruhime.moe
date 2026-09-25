@@ -1,10 +1,11 @@
 /**
  * @file tests/components/admin/PoolEditForm.test.tsx
  * @desc The pool edit form sends the fields as JSON (an empty year as unknown), then says what
- *       happened to the pack, and shows the route's error when the save is refused. A field follows
- *       its stored value after a refresh (the tournament-wide badged form saving on the same page),
- *       so the next save never sends a stale badged back, while unsaved typing and the save message
- *       stay.
+ *       happened to the pack (and, when the save hid the pool, that search and the check can still
+ *       show it for up to 5 minutes), and shows the route's error when the save is refused. A
+ *       field follows its stored value after a refresh (the tournament-wide badged form saving on
+ *       the same page), so the next save never sends a stale badged back, while unsaved typing
+ *       and the save message stay.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -35,7 +36,7 @@ const FIELDS = {
 };
 
 describe("PoolEditForm", () => {
-  it("sends the fields and says the pack was updated", async () => {
+  it("sends the fields, says the pack was updated, and how long search can still show a pool it hid", async () => {
     fetchMock.mockImplementation(async () =>
       Response.json({ pool: {}, sync: { status: "sent", state: "updated", error: null } }),
     );
@@ -44,7 +45,11 @@ describe("PoolEditForm", () => {
     await user.clear(screen.getByLabelText("Year"));
     await user.click(screen.getByLabelText("Hidden"));
     await user.click(screen.getByRole("button", { name: "Save" }));
-    expect(await screen.findByText("Saved. packs updated the pack.")).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        "Saved. packs updated the pack. Search and the check can still show this pool for up to 5 minutes.",
+      ),
+    ).toBeInTheDocument();
     const [url, init] = fetchMock.mock.calls[0] ?? [];
     expect(url).toBe("/api/admin/pools/otdb-1");
     expect(init?.method).toBe("PATCH");

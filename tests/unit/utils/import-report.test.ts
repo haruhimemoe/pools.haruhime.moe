@@ -2,7 +2,8 @@
  * @file tests/unit/utils/import-report.test.ts
  * @desc The runner's arguments (source, --dry-run, --file, --no-sync, --resync rejected, and
  *       every way they can be wrong), report text made safe for a terminal, the printed report
- *       (counts, skipped pools with reasons, merges, moves, maps, sync, stats) and the stored row.
+ *       (counts, skipped pools with reasons, merges, moves, maps, sync, stats) and the stored row,
+ *       with why a run stopped when it threw.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -150,6 +151,30 @@ describe("formatImportReport", () => {
       skipped: plan.skipped,
       text,
     });
+  });
+
+  it("stores why a real run stopped, made safe for a terminal", () => {
+    const summary: ImportSummary = {
+      source: "otdb",
+      read: 3,
+      dryRun: false,
+      plan,
+      maps: { seeded: 2, asked: 2, filled: 2, missing: 0, error: null },
+      usage: null,
+      sync: null,
+      stats: null,
+    };
+    const startedAt = new Date("2026-09-24T12:00:00.000Z");
+    const finishedAt = new Date("2026-09-24T12:01:00.000Z");
+    const row = importReportRow(summary, {
+      startedAt,
+      finishedAt,
+      ok: false,
+      error: "operation exceeded time limit\u001b[2J",
+    });
+    expect(row).toMatchObject({ ok: false, counts: { created: 1 }, sync: null });
+    expect(row.text.startsWith(formatImportReport(summary))).toBe(true);
+    expect(row.text.endsWith("\n\nStopped: operation exceeded time limit\uFFFD[2J")).toBe(true);
   });
 
   it("says when the sync was skipped or stopped", () => {

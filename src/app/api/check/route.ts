@@ -3,8 +3,10 @@
  * @desc GET /api/check?ids=1,2,3 (1 to 64 beatmap ids): each map's beatmapset verdict against the
  *       content rules for officially supported tournaments, the ids with none (missing,
  *       unchecked), and what pools knows about each map. 30 checks a minute per IP, and every
- *       osu! call spends the global budget and the IP's share. A complete answer stays a day on
- *       the CDN; a partial one is never cached. Reads no cookies.
+ *       osu! call spends the global budget and the IP's share. A complete answer stays 5 minutes
+ *       on the CDN (the map labels and usage come from pools, so a hidden pool leaves it within 5
+ *       minutes); a partial one, or one whose maps lookup failed, is never cached. Reads no
+ *       cookies.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -28,8 +30,9 @@ export async function GET(request: Request) {
   const limited = await refuseOverLimit(RATE_LIMITS.check, subject);
   if (limited) return limited;
   const [result, maps] = await Promise.all([checkCompliance(ids, { subject }), checkMaps(ids)]);
-  const body: CheckResponse = { ...result, maps };
+  const body: CheckResponse = { ...result, maps: maps ?? {} };
+  const complete = result.unchecked.length === 0 && maps !== null;
   return Response.json(body, {
-    headers: { "Cache-Control": result.unchecked.length === 0 ? CHECK_CACHE : "no-store" },
+    headers: { "Cache-Control": complete ? CHECK_CACHE : "no-store" },
   });
 }

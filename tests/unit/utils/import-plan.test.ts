@@ -5,7 +5,9 @@
  *       (nothing to write), a rename at the source (edits, hidden and badged kept), a changed
  *       pool (a new record inheriting hidden, badged and edited; the old one superseded once no
  *       source is left, its credit kept), ids never reused, a changed source leaving a record
- *       that keeps another source, revival of a superseded fingerprint, a move into another
+ *       that keeps another source (named by its next source), a merged record keeping its name
+ *       while its lowest source is skipped or missing, revival of a superseded fingerprint, a
+ *       record superseded and revived in one run reported as neither, a move into another
  *       record, stored records absent from the run, and skipped pools carried through.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -195,6 +197,58 @@ describe("planImport", () => {
     expect(plan.updates[0]?.pool).toMatchObject({ id: "otdb-71", supersededBy: null });
     expect(plan.updates[0]?.pool.sources.map((source) => source.id)).toEqual(["71"]);
     expect(plan.superseded).toEqual([]);
+  });
+
+  it("names a record from its next source once the lowest one leaves", () => {
+    const stored = recordOf(USC, "otdb-71", {
+      sources: [
+        { ...otdbSource(71), importedAt: NOW },
+        { ...otdbSource(418), importedAt: NOW },
+      ],
+    });
+    const changed = pool(71, "United States Cup 2017 Quarter Finals", [10, 12]);
+    const plan = planImport([changed, USA], [], [stored], LATER);
+    const byId = new Map(plan.updates.map(({ pool: record }) => [record.id, record]));
+    expect(byId.get("otdb-71")).toMatchObject({
+      name: "USA States Cup 2017 Quarterfinals",
+      sources: [{ id: "418" }],
+    });
+  });
+
+  it.each([
+    ["missing from the run", [] as const],
+    ["skipped in the run", [{ kind: "otdb", id: "71", name: "US Cup", reason: "Bad label." }]],
+  ] as const)("keeps a merged record's name when its lowest source is %s", (_case, skipped) => {
+    const stored = recordOf(USC, "otdb-71", {
+      sources: [
+        { ...otdbSource(71), importedAt: NOW },
+        { ...otdbSource(418), importedAt: NOW },
+      ],
+    });
+    const plan = planImport([USA], [...skipped], [stored], LATER);
+    expect(plan.updates).toEqual([]);
+    expect(plan.unchanged).toEqual(["otdb-71"]);
+    const back = planImport([USC, USA], [], applied([stored], plan), LATER);
+    expect(back.updates).toEqual([]);
+    expect(back.unchanged).toEqual(["otdb-71"]);
+  });
+
+  it("reports a record superseded and revived in the same run as neither", () => {
+    const stored = recordOf(USC, "otdb-71");
+    const changed = pool(71, "United States Cup 2017 Quarter Finals", [10, 12]);
+    const again = pool(900, "US Cup 2017 Quarterfinals", [10, 11]);
+    const plan = planImport([changed, again], [], [stored], LATER);
+    expect(plan.creates.map(({ pool: record }) => record.id)).toEqual(["otdb-71-2"]);
+    expect(plan.updates[0]?.pool).toMatchObject({
+      id: "otdb-71",
+      name: "US Cup 2017 Quarterfinals",
+      supersededBy: null,
+      sources: [{ id: "900", importedAt: LATER }],
+      formerSources: [{ id: "71", importedAt: NOW, leftAt: LATER }],
+    });
+    expect(plan.moved).toEqual([{ source: otdbSource(71), from: "otdb-71", to: "otdb-71-2" }]);
+    expect(plan.superseded).toEqual([]);
+    expect(plan.revived).toEqual([]);
   });
 
   it("revives a superseded record when its maps come back", () => {

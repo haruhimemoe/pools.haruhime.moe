@@ -5,9 +5,11 @@
  *       export (downloaded, or --file), plans against the stored pools, and on a dry run prints
  *       the plan and writes nothing. A real run writes the pools, seeds and fills maps from the
  *       mirror, rebuilds stats and usage, syncs packs (unless --no-sync) and runs the stats
- *       backfill, stores a report in `imports` and prints it. Rerunning is safe. Exit codes:
- *       0 done (skipped pools included), 1 a fatal error or a sync configuration error, 2 bad
- *       arguments. Every outside call is injectable, so tests never reach otdb, the mirror or
+ *       backfill, stores a report in `imports` and prints it, then points at Refresh public pages
+ *       on /admin (the runner can't revalidate the site). A real run that throws partway still
+ *       stores a report (what it did so far, ok false, and the error). Rerunning is safe. Exit
+ *       codes: 0 done (skipped pools included), 1 a fatal error or a sync configuration error, 2
+ *       bad arguments. Every outside call is injectable, so tests never reach otdb, the mirror or
  *       packs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -48,6 +50,10 @@ export type ImportDeps = {
   packsService?: () => PacksService | null;
   sleep?: (ms: number) => Promise<void>;
 };
+
+/** Printed after a real run: the lists only rebuild on their own within the hour or the day. */
+export const REFRESH_HINT =
+  "Press Refresh public pages on /admin so the home page, sitemap and llms.txt show this import now.";
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
@@ -106,6 +112,9 @@ export const runImport = async (
   }
   const { source, dryRun, file, noSync, resyncRejected } = parsed.args;
   const startedAt = now();
+  /** A real run's summary, once it's past the dry-run branch; stored even when the run throws. */
+  let real: ImportSummary | null = null;
+  let reported = false;
   try {
     const raw: unknown =
       file === null ? await downloadOtdbExport(doFetch) : JSON.parse(await read(file));
@@ -131,6 +140,7 @@ export const runImport = async (
       log(formatImportReport(summary));
       return 0;
     }
+    real = summary;
     await applyImportPlan(plan, startedAt);
     const mapIds = normalized.pools.flatMap((pool) =>
       pool.pool.slots.map((slot) => slot.beatmapId),
@@ -176,13 +186,25 @@ export const runImport = async (
           });
       }
     }
+    reported = true;
     await writeImportReport(
       importReportRow(summary, { startedAt, finishedAt: now(), ok: code === 0 }),
     );
     log(formatImportReport(summary));
+    log(REFRESH_HINT);
     return code;
   } catch (error) {
-    warn(`import stopped: ${messageOf(error)}`);
+    const message = messageOf(error);
+    warn(`import stopped: ${message}`);
+    if (real && !reported) {
+      try {
+        await writeImportReport(
+          importReportRow(real, { startedAt, finishedAt: now(), ok: false, error: message }),
+        );
+      } catch (reportError) {
+        warn(`The report wasn't stored: ${messageOf(reportError)}`);
+      }
+    }
     return 1;
   }
 };

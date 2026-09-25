@@ -21,8 +21,11 @@ export const MAX_SEARCH_PAGE = 200;
 /** A "contains map" reference is cut to this many characters. */
 export const MAX_MAP_REF_LENGTH = 200;
 
-/** Successful answers: the CDN keeps them 5 minutes and serves them stale for an hour. */
-export const SEARCH_CACHE = "public, s-maxage=300, stale-while-revalidate=3600";
+/**
+ * Successful answers: the CDN keeps them 5 minutes and never serves them stale, so a pool an
+ * admin hides leaves search within 5 minutes (nothing can purge the CDN's copies).
+ */
+export const SEARCH_CACHE = "public, s-maxage=300";
 
 /** Quiet time after the last change before the URL is written. */
 export const URL_WRITE_MS = 300;

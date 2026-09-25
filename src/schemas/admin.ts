@@ -3,7 +3,8 @@
  * @desc What admin forms send. A pool edit: tournament (1 to 100 characters), round (up to 100; an
  *       empty one is none), year (2007 to 2099, or unknown), notes (up to 2000), hidden and badged,
  *       all text trimmed and through the content filter, nothing else. A badged change for every
- *       pool of a tournament key: one year, unknown years (null) or all. A sync retry.
+ *       pool of a tournament key: one year, unknown years (null) or all. A sync retry. A refresh
+ *       of the public pages (an empty object).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -54,3 +55,6 @@ export const badgedBodySchema = z.strictObject({
 export type BadgedBody = z.output<typeof badgedBodySchema>;
 
 export const syncBodySchema = z.strictObject({ includeRejected: z.boolean() });
+
+/** A refresh of the public pages takes nothing: an empty object. */
+export const revalidateBodySchema = z.strictObject({});

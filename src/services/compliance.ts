@@ -7,7 +7,7 @@
  *       per set, with its wording. Ids osu! doesn't know are missing; ids it couldn't answer
  *       (budget spent, an error) are unchecked, never guessed. Without a database nothing is
  *       checked: osu! is never called without a budget. Also what pools knows about each map
- *       (label and usage from current pools), for the rows.
+ *       (label and usage from current pools), for the rows, or null when that lookup fails.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -207,10 +207,13 @@ export const checkCompliance = async (
 /**
  * @function checkMaps
  * @param ids {readonly number[]} beatmap ids
- * @returns {Promise<Record<string, CheckMap>>} for each id pools has: its label when a pool that
- *          isn't hidden has it, and its usage (current pools only); empty on a database error
+ * @returns {Promise<Record<string, CheckMap> | null>} for each id pools has: its label when a
+ *          pool that isn't hidden has it, and its usage (current pools only); null on a database
+ *          error, so the answer isn't cached. Never rejects.
  */
-export const checkMaps = async (ids: readonly number[]): Promise<Record<string, CheckMap>> => {
+export const checkMaps = async (
+  ids: readonly number[],
+): Promise<Record<string, CheckMap> | null> => {
   try {
     const maps = await mapsCollection();
     const rows = await maps
@@ -231,6 +234,6 @@ export const checkMaps = async (ids: readonly number[]): Promise<Record<string, 
     );
   } catch (error) {
     console.error("[check] couldn't read maps", error);
-    return {};
+    return null;
   }
 };

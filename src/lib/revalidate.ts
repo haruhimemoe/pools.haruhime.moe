@@ -2,7 +2,9 @@
  * @file src/lib/revalidate.ts
  * @desc Marks the cached public pages an admin change touches as stale (the next visit rebuilds
  *       them): the pools' pages, their maps' pages, the home page, the sitemap and llms.txt. A
- *       badged change can touch many maps' history, so it marks every pool and map page.
+ *       badged change can touch many maps' history, so it marks every pool and map page, and so
+ *       does the refresh an admin runs after an import. The CDN's copies of /api/search and
+ *       /api/check answers can't be marked: they last 5 minutes and are never served stale.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026

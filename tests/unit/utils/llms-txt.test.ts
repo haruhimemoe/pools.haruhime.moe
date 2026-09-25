@@ -2,7 +2,8 @@
  * @file tests/unit/utils/llms-txt.test.ts
  * @desc /llms.txt: title, summary, the notes a reader needs first (otdb credit, no-mod stars, no
  *       file hosting, guidance not rulings, no API), the pages, every current pool and the most
- *       used maps it's given, the legal pages; empty sections left out.
+ *       used maps it's given, the legal pages; markdown in imported names escaped so a name can't
+ *       add a link or break one; empty sections left out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -44,11 +45,41 @@ describe("buildLlmsTxt", () => {
       "- [osu! World Cup 2023 Grand Finals](https://pools.haruhime.moe/pools/otdb-657): osu! World Cup · Grand Finals · 2023",
     );
     expect(text).toContain(
-      "- [xi - FREEDOM DiVE [FOUR DIMENSIONS]](https://pools.haruhime.moe/maps/129891): Used in 3 pools (latest 2023)",
+      "- [xi - FREEDOM DiVE \\[FOUR DIMENSIONS\\]](https://pools.haruhime.moe/maps/129891): Used in 3 pools \\(latest 2023\\)",
     );
     expect(text).toContain("- [Privacy](https://pools.haruhime.moe/legal/privacy)");
     expect(text.endsWith("\n")).toBe(true);
     expect(text).not.toContain("—");
+  });
+
+  it("escapes brackets, parentheses and angle brackets in imported names", () => {
+    const text = buildLlmsTxt(
+      llmsSections({
+        pools: [
+          {
+            _id: "otdb-9",
+            name: "OWC](https://evil.example/x) [",
+            tournament: "OWC](https://evil.example/y) <https://evil.example/z>",
+            round: null,
+            year: null,
+          },
+        ],
+        maps: [
+          {
+            _id: 5,
+            artist: "a\\b",
+            title: "Song",
+            version: "[Extra",
+            usage: { count: 1, lastYear: null },
+          },
+        ],
+      }),
+    );
+    expect(text).toContain(
+      "- [OWC\\]\\(https://evil.example/x\\) \\[](https://pools.haruhime.moe/pools/otdb-9): OWC\\]\\(https://evil.example/y\\) \\<https://evil.example/z\\>",
+    );
+    expect(text).toContain("- [a\\\\b - Song \\[\\[Extra\\]](https://pools.haruhime.moe/maps/5): ");
+    expect(text).not.toContain("](https://evil.example");
   });
 
   it("leaves out empty sections", () => {

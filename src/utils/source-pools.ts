@@ -322,8 +322,14 @@ export const normalizePool = (pool: SourcePool): NormalizeResult => {
   };
 };
 
-/** Numeric ids in number order, then everything else in text order. */
-const byId = (a: { id: string }, b: { id: string }): number => {
+/**
+ * @function bySourceId
+ * @param a {{ id: string }} a pool at a source
+ * @param b {{ id: string }} another
+ * @returns {number} negative when a comes first: numeric ids in number order, then everything
+ *          else in text order
+ */
+export const bySourceId = (a: { id: string }, b: { id: string }): number => {
   const [x, y] = [Number(a.id), Number(b.id)];
   const xNumber = Number.isInteger(x);
   const yNumber = Number.isInteger(y);
@@ -346,7 +352,7 @@ export const normalizePools = (
   const skipped: SkippedPool[] = [];
   const seen = new Set<string>();
   const ordered = pools.map((pool, position) => ({ pool, position }));
-  ordered.sort((a, b) => byId(a.pool.source, b.pool.source) || a.position - b.position);
+  ordered.sort((a, b) => bySourceId(a.pool.source, b.pool.source) || a.position - b.position);
   for (const { pool } of ordered) {
     if (seen.has(pool.source.id)) {
       skipped.push({

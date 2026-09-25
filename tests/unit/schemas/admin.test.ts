@@ -2,14 +2,20 @@
  * @file tests/unit/schemas/admin.test.ts
  * @desc What admin forms may send: a pool edit (trimmed text within limits and through the
  *       content filter, an empty round as none, a year from 2007, nothing else), a badged change
- *       for a tournament (one year, unknown years, or all), and a retry.
+ *       for a tournament (one year, unknown years, or all), a retry, and a refresh (an empty
+ *       object).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
 import { describe, expect, it } from "vitest";
-import { badgedBodySchema, poolEditBodySchema, syncBodySchema } from "@/schemas/admin";
+import {
+  badgedBodySchema,
+  poolEditBodySchema,
+  revalidateBodySchema,
+  syncBodySchema,
+} from "@/schemas/admin";
 
 const EDIT = {
   tournament: " osu! World Cup ",
@@ -60,5 +66,13 @@ describe("badgedBodySchema and syncBodySchema", () => {
       badgedBodySchema.safeParse({ tournamentKey: "", year: 2020, badged: true }).success,
     ).toBe(false);
     expect(syncBodySchema.parse({ includeRejected: true })).toEqual({ includeRejected: true });
+  });
+});
+
+describe("revalidateBodySchema", () => {
+  it("takes an empty object and nothing else", () => {
+    expect(revalidateBodySchema.parse({})).toEqual({});
+    expect(revalidateBodySchema.safeParse({ all: true }).success).toBe(false);
+    expect(revalidateBodySchema.safeParse(null).success).toBe(false);
   });
 });

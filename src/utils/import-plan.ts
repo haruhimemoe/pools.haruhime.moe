@@ -7,10 +7,13 @@
  *       new record "<kind>-<id>", then "-2", "-3"; ids are never reused, and a new record
  *       inherits hidden, badged and edited from the record the source left. A record is
  *       superseded once no source is left on it. A fingerprint seen twice in one run is one
- *       record with both sources. Each touched record takes its name, notes, labels, slots and
- *       buckets from the lowest source id pointing at it in the run. Stored records no source in
- *       the run points at are reported as absent, never touched. The importer never changes
- *       hidden, badged or edited on a stored record. Pure.
+ *       record with both sources. A record takes its name, notes, labels, slots and buckets from
+ *       its lowest source id, and only when that source is in the run: a record whose lowest
+ *       source is skipped or missing this time keeps what it has, so its name never flips to a
+ *       higher source's. Stored records no source in the run points at are reported as absent,
+ *       never touched. Superseded and revived list net changes only: a record superseded and
+ *       revived in the same run is neither. The importer never changes hidden, badged or edited
+ *       on a stored record. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -18,7 +21,12 @@
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import type { FormerSource, PoolEdits, PoolSource, SourceSlotRecord } from "@/schemas/pool";
-import type { NormalizedPool, SkippedPool, SourceRef } from "@/utils/source-pools";
+import {
+  bySourceId,
+  type NormalizedPool,
+  type SkippedPool,
+  type SourceRef,
+} from "@/utils/source-pools";
 
 /** A stored pool record, as planning needs it. */
 export type ExistingPool = {
@@ -90,6 +98,12 @@ const canonical = (value: unknown): unknown => {
   return value;
 };
 
+/** A record's sources, lowest id first (the kind breaks a tie). */
+const lowestSource = (sources: readonly PoolSource[]): PoolSource | undefined =>
+  [...sources].sort(
+    (a, b) => bySourceId(a, b) || (a.kind < b.kind ? -1 : a.kind > b.kind ? 1 : 0),
+  )[0];
+
 /** The fields the importer owns, as comparable text. */
 const importerView = (record: ExistingPool): string =>
   JSON.stringify(
@@ -139,7 +153,7 @@ export const planImport = (
     for (const source of record.sources) bySource.set(sourceKey(source), record.id);
   }
   const created = new Map<string, string | null>();
-  const named = new Set<string>();
+  const inRun = new Map(pools.map((pool) => [sourceKey(pool.source), pool]));
   const seen = new Set<string>();
   const plan: ImportPlan = {
     creates: [],
@@ -205,17 +219,22 @@ export const planImport = (
       bySource.set(key, targetId);
     }
     seen.add(targetId);
-    if (!named.has(targetId)) {
-      named.add(targetId);
-      const target = recordOf(targetId);
-      target.name = pool.name;
-      target.notes = pool.notes;
-      target.sourceSlots = pool.sourceSlots;
-      target.slots = pool.pool.slots;
-      if (pool.pool.buckets) target.buckets = pool.pool.buckets;
-      else delete target.buckets;
-    }
   }
+
+  for (const id of seen) {
+    const target = recordOf(id);
+    const lowest = lowestSource(target.sources);
+    const namer = lowest === undefined ? undefined : inRun.get(sourceKey(lowest));
+    if (!namer) continue;
+    target.name = namer.name;
+    target.notes = namer.notes;
+    target.sourceSlots = namer.sourceSlots;
+    target.slots = namer.pool.slots;
+    if (namer.pool.buckets) target.buckets = namer.pool.buckets;
+    else delete target.buckets;
+  }
+  plan.superseded = plan.superseded.filter(({ id }) => recordOf(id).supersededBy !== null);
+  plan.revived = plan.revived.filter((id) => (before.get(id)?.supersededBy ?? null) !== null);
 
   for (const [id, record] of work) {
     if (created.has(id)) {

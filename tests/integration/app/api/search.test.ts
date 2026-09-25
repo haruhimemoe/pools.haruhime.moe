@@ -1,9 +1,10 @@
 /**
  * @file tests/integration/app/api/search.test.ts
- * @desc GET /api/search: answers pools or maps with CDN caching, a 300-character paste of regex
- *       characters and full-width letters as 200, a bad map reference as 400 no-store, 60
- *       requests a minute per IP then 429 with Retry-After and no-store (another IP unaffected),
- *       and reads no cookies.
+ * @desc GET /api/search: answers pools or maps with 5 minutes of CDN caching and no stale
+ *       answers (so a pool an admin hides leaves search within 5 minutes), a 300-character paste
+ *       of regex characters and full-width letters as 200, a bad map reference as 400 no-store,
+ *       60 requests a minute per IP then 429 with Retry-After and no-store (another IP
+ *       unaffected), and reads no cookies.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -22,16 +23,14 @@ const get = (query: string, ip = "203.0.113.7") =>
   GET(new Request(`http://localhost:3000/api/search?${query}`, { headers: { "x-real-ip": ip } }));
 
 describe("GET /api/search", () => {
-  it("answers visible pools with CDN caching", async () => {
+  it("answers visible pools, cached 5 minutes on the CDN and never served stale", async () => {
     await (await poolsCollection()).insertMany([
       makePool({ _id: "otdb-1" }),
       makePool({ _id: "otdb-2", hidden: true, slots: [{ mod: "HD", index: 1, beatmapId: 5 }] }),
     ]);
     const response = await get("q=spring");
     expect(response.status).toBe(200);
-    expect(response.headers.get("cache-control")).toBe(
-      "public, s-maxage=300, stale-while-revalidate=3600",
-    );
+    expect(response.headers.get("cache-control")).toBe("public, s-maxage=300");
     const body = (await response.json()) as {
       tab: string;
       total: number;

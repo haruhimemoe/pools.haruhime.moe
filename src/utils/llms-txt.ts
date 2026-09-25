@@ -3,7 +3,8 @@
  * @desc /llms.txt (llmstxt.org): title, a one-paragraph summary, the notes a reader needs first
  *       (where the data comes from, no-mod stars, no file hosting, the check is guidance, no
  *       API), then the pages, every current pool, the most used maps and the legal pages.
- *       Sections with nothing in them are left out. Pure.
+ *       Link titles and descriptions come from sources, so their markdown is escaped. Sections
+ *       with nothing in them are left out. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -116,8 +117,20 @@ export const llmsSections = ({
 
 const oneLine = (text: string): string => text.replace(/\s+/g, " ").trim();
 
+/** Markdown that could open, close or add a link: backslashes, brackets, parentheses and <>. */
+const LINK_MARKDOWN = /[\\[\]()<>]/g;
+
+/**
+ * @function escapeLinkText
+ * @param text {string} text from a source (a pool name, a map's difficulty name)
+ * @returns {string} one line with every backslash, bracket, parenthesis and angle bracket
+ *          backslash-escaped, so it can't add a link or break the one it sits in
+ */
+export const escapeLinkText = (text: string): string =>
+  oneLine(text).replace(LINK_MARKDOWN, (mark) => `\\${mark}`);
+
 const linkLine = ({ title, url, description }: LlmsLink): string =>
-  `- [${oneLine(title)}](${url})${description ? `: ${oneLine(description)}` : ""}`;
+  `- [${escapeLinkText(title)}](${url})${description ? `: ${escapeLinkText(description)}` : ""}`;
 
 /**
  * @function buildLlmsTxt

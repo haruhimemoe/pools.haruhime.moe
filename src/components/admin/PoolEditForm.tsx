@@ -1,10 +1,12 @@
 /**
  * @file src/components/admin/PoolEditForm.tsx
  * @desc The admin's pool form: tournament, round, year, notes, hidden and badged. Saving sends the
- *       fields to PATCH /api/admin/pools/[id] and says what happened to the pool's pack. Each field
- *       follows its stored value: when a refresh brings a new one (this form's save, or the
- *       tournament-wide badged form on the same page), the field takes it, so a save never sends a
- *       stale value back. Fields whose stored value didn't change keep what the admin typed.
+ *       fields to PATCH /api/admin/pools/[id] and says what happened to the pool's pack, and, when
+ *       the save hid the pool, that search and the check can still show it for up to 5 minutes
+ *       (the CDN's copies can't be purged). Each field follows its stored value: when a refresh
+ *       brings a new one (this form's save, or the tournament-wide badged form on the same page),
+ *       the field takes it, so a save never sends a stale value back. Fields whose stored value
+ *       didn't change keep what the admin typed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -42,6 +44,9 @@ const outcomeText = (sync: Outcome): string => {
   return "Saved. packs updated the pack.";
 };
 
+/** The CDN keeps search and check answers 5 minutes, and nothing can purge them. */
+const STILL_LISTED = "Search and the check can still show this pool for up to 5 minutes.";
+
 const BADGED_VALUES = { unknown: null, yes: true, no: false } as const;
 
 /**
@@ -76,6 +81,7 @@ export function PoolEditForm({ poolId, initial }: { poolId: string; initial: Fie
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const hides = hidden && !initial.hidden;
     setPending(true);
     try {
       const response = await fetch(`/api/admin/pools/${poolId}`, {
@@ -93,7 +99,7 @@ export function PoolEditForm({ poolId, initial }: { poolId: string; initial: Fie
       const body = (await response.json()) as { sync?: Outcome; error?: { message?: string } };
       setMessage(
         response.ok && body.sync
-          ? outcomeText(body.sync)
+          ? `${outcomeText(body.sync)}${hides ? ` ${STILL_LISTED}` : ""}`
           : (body.error?.message ?? `The save failed (${response.status}).`),
       );
       if (response.ok) router.refresh();

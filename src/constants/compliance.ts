@@ -30,5 +30,9 @@ export const FACTS_FALLBACK_LIMIT = 10;
 /** A pool holds at most 64 maps. */
 export const MAX_CHECK_IDS = 64;
 
-/** A complete answer: a day on the CDN, a week stale. A partial one is never cached. */
-export const CHECK_CACHE = "public, s-maxage=86400, stale-while-revalidate=604800";
+/**
+ * A complete answer: 5 minutes on the CDN, never served stale. Its map labels and usage come from
+ * pools, so a pool an admin hides leaves /check within 5 minutes; the verdicts stay a day in
+ * setFacts either way. A partial answer, or one whose maps lookup failed, is never cached.
+ */
+export const CHECK_CACHE = "public, s-maxage=300";

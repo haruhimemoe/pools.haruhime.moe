@@ -3,7 +3,8 @@
  * @desc The start-up privilege check over connectionStatus answers shaped like Atlas's: a user
  *       with readWrite on "pools" passes (cluster-level and system collection resources don't
  *       count as another database); any other database, "any database" and anyResource are
- *       refused by name; an unauthenticated local server passes.
+ *       refused by name; an unauthenticated local server passes; a signed-in user whose
+ *       privileges aren't listed, and an answer that doesn't say who is signed in, are refused.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -76,6 +77,44 @@ describe("otherDatabases", () => {
 describe("assertOnlyDatabase", () => {
   it("passes the scoped user", () => {
     expect(() => assertOnlyDatabase(atlasUser(), "pools")).not.toThrow();
+  });
+
+  it("passes a local server without access control", () => {
+    expect(() =>
+      assertOnlyDatabase(
+        {
+          authInfo: {
+            authenticatedUsers: [],
+            authenticatedUserRoles: [],
+            authenticatedUserPrivileges: [],
+          },
+        },
+        "pools",
+      ),
+    ).not.toThrow();
+  });
+
+  it.each([
+    ["no privilege list", { authenticatedUsers: [{ user: "pools-app", db: "admin" }] }],
+    [
+      "an empty privilege list",
+      {
+        authenticatedUsers: [{ user: "pools-app", db: "admin" }],
+        authenticatedUserPrivileges: [],
+      },
+    ],
+  ])("refuses a signed-in user with %s", (_case, authInfo) => {
+    expect(() => assertOnlyDatabase({ authInfo }, "pools")).toThrow(DatabasePrivilegeError);
+    expect(() => assertOnlyDatabase({ authInfo }, "pools")).toThrow(
+      `The database server didn't list the user's privileges, so pools can't tell whether it reaches only "pools". Give it readWrite on "pools" only.`,
+    );
+  });
+
+  it.each([
+    ["no authInfo", {}],
+    ["no user list", { authInfo: { authenticatedUserPrivileges: [] } }],
+  ])("refuses an answer with %s", (_case, status) => {
+    expect(() => assertOnlyDatabase(status, "pools")).toThrow(DatabasePrivilegeError);
   });
 
   it("refuses, naming each database and never a URI", () => {

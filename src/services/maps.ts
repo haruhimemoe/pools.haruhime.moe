@@ -3,7 +3,8 @@
  * @desc Map reads for pages: one map (missing unless some pool that isn't hidden has it), its
  *       history (one indexed lookup of current pools by beatmap id, the one query a public
  *       request runs over pools' slots), and the used maps for the sitemap and llms.txt (most
- *       used first; empty under SKIP_ENV_VALIDATION or on a database error).
+ *       used first; empty under SKIP_ENV_VALIDATION, while at runtime a database error goes
+ *       through so ISR keeps the last good version).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -55,26 +56,23 @@ export const getMapHistory = async (id: number): Promise<HistoryRow[]> => {
 /**
  * @function listListedMaps
  * @param limit {number} most maps to return (default: all)
- * @returns {Promise<LlmsMap[]>} maps some current pool uses, most used first
+ * @returns {Promise<LlmsMap[]>} maps some current pool uses, most used first; empty under
+ *          SKIP_ENV_VALIDATION
+ * @throws {Error} on a database error (ISR keeps the last good sitemap and llms.txt)
  */
 export const listListedMaps = async (limit?: number): Promise<LlmsMap[]> => {
   if (isEnvValidationSkipped() || limit === 0) return [];
-  try {
-    const maps = await mapsCollection();
-    return await maps
-      .find(
-        { "usage.count": { $gte: 1 } },
-        {
-          projection: { artist: 1, title: 1, version: 1, usage: 1 },
-          sort: { "usage.count": -1, _id: 1 },
-          hint: MAP_INDEXES.used,
-          maxTimeMS: QUERY_TIME_MS,
-          ...(limit === undefined ? {} : { limit }),
-        },
-      )
-      .toArray();
-  } catch (error) {
-    console.error("maps: couldn't list used maps", error);
-    return [];
-  }
+  const maps = await mapsCollection();
+  return maps
+    .find(
+      { "usage.count": { $gte: 1 } },
+      {
+        projection: { artist: 1, title: 1, version: 1, usage: 1 },
+        sort: { "usage.count": -1, _id: 1 },
+        hint: MAP_INDEXES.used,
+        maxTimeMS: QUERY_TIME_MS,
+        ...(limit === undefined ? {} : { limit }),
+      },
+    )
+    .toArray();
 };

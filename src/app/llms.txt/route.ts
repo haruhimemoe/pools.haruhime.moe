@@ -1,7 +1,8 @@
 /**
  * @file src/app/llms.txt/route.ts
  * @desc GET /llms.txt: a map of the site for AI assistants (llmstxt.org), with every current pool
- *       and the most used maps. ISR, daily; a database outage leaves the lists out.
+ *       and the most used maps. ISR, daily (Refresh public pages on /admin rebuilds it at once);
+ *       a database error fails the render, so ISR keeps serving the last good one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026

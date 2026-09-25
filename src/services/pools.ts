@@ -3,8 +3,9 @@
  * @desc Pool reads for pages: one pool by id (admins see hidden ones; public reads never do),
  *       the maps a pool page shows, the home page's counts (current pools, used maps, sources),
  *       and every current pool for the sitemap and llms.txt. Every read has maxTimeMS; list
- *       reads hint their index. The home, sitemap and llms.txt reads never throw: under
- *       SKIP_ENV_VALIDATION or on a database error they come back empty.
+ *       reads hint their index. The home, sitemap and llms.txt reads come back empty under
+ *       SKIP_ENV_VALIDATION (the CI build, with no database); at runtime a database error goes
+ *       through, so ISR keeps serving the last good version instead of storing an empty one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -75,59 +76,47 @@ const NO_COUNTS: HomeCounts = { pools: 0, maps: 0, sources: [] };
 /**
  * @function loadHomeCounts
  * @returns {Promise<HomeCounts>} current pools, maps some current pool uses, and the sources
- *          current pools came from; zeros under SKIP_ENV_VALIDATION or on a database error
+ *          current pools came from; zeros under SKIP_ENV_VALIDATION
+ * @throws {Error} on a database error (ISR keeps the last good page)
  */
 export const loadHomeCounts = async (): Promise<HomeCounts> => {
   if (isEnvValidationSkipped()) return NO_COUNTS;
-  try {
-    const pools = await poolsCollection();
-    const maps = await mapsCollection();
-    const [poolCount, mapCount, kinds] = await Promise.all([
-      countMatching(
-        pools,
-        { visible: true },
-        { hint: POOL_INDEXES.year, maxTimeMS: QUERY_TIME_MS },
-      ),
-      countMatching(
-        maps,
-        { "usage.count": { $gte: 1 } },
-        { hint: MAP_INDEXES.used, maxTimeMS: QUERY_TIME_MS },
-      ),
-      pools.distinct("sources.kind", { visible: true }, { maxTimeMS: QUERY_TIME_MS }),
-    ]);
-    return {
-      pools: poolCount,
-      maps: mapCount,
-      sources: SOURCE_KINDS.filter((kind) => (kinds as unknown[]).includes(kind)),
-    };
-  } catch (error) {
-    console.error("home: couldn't count pools", error);
-    return NO_COUNTS;
-  }
+  const pools = await poolsCollection();
+  const maps = await mapsCollection();
+  const [poolCount, mapCount, kinds] = await Promise.all([
+    countMatching(pools, { visible: true }, { hint: POOL_INDEXES.year, maxTimeMS: QUERY_TIME_MS }),
+    countMatching(
+      maps,
+      { "usage.count": { $gte: 1 } },
+      { hint: MAP_INDEXES.used, maxTimeMS: QUERY_TIME_MS },
+    ),
+    pools.distinct("sources.kind", { visible: true }, { maxTimeMS: QUERY_TIME_MS }),
+  ]);
+  return {
+    pools: poolCount,
+    maps: mapCount,
+    sources: SOURCE_KINDS.filter((kind) => (kinds as unknown[]).includes(kind)),
+  };
 };
 
 /**
  * @function listCurrentPools
  * @returns {Promise<(LlmsPool & { updatedAt: Date })[]>} every current pool, newest year first;
- *          empty under SKIP_ENV_VALIDATION or on a database error
+ *          empty under SKIP_ENV_VALIDATION
+ * @throws {Error} on a database error (ISR keeps the last good sitemap and llms.txt)
  */
 export const listCurrentPools = async (): Promise<(LlmsPool & { updatedAt: Date })[]> => {
   if (isEnvValidationSkipped()) return [];
-  try {
-    const pools = await poolsCollection();
-    return await pools
-      .find(
-        { visible: true },
-        {
-          projection: { name: 1, tournament: 1, round: 1, year: 1, updatedAt: 1 },
-          sort: { year: -1, _id: 1 },
-          hint: POOL_INDEXES.year,
-          maxTimeMS: QUERY_TIME_MS,
-        },
-      )
-      .toArray();
-  } catch (error) {
-    console.error("pools: couldn't list current pools", error);
-    return [];
-  }
+  const pools = await poolsCollection();
+  return pools
+    .find(
+      { visible: true },
+      {
+        projection: { name: 1, tournament: 1, round: 1, year: 1, updatedAt: 1 },
+        sort: { year: -1, _id: 1 },
+        hint: POOL_INDEXES.year,
+        maxTimeMS: QUERY_TIME_MS,
+      },
+    )
+    .toArray();
 };

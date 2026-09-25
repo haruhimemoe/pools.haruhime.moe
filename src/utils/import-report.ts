@@ -3,9 +3,9 @@
  * @desc The import runner's arguments and its report: counts (new, updated, unchanged, the same
  *       pool twice, changed at the source, superseded, revived, not in this export, skipped),
  *       each skipped pool with its reason, what merged, moved and was superseded, the map fill,
- *       usage, the pack sync and the stats backfill; and the row stored in `imports`. Every
- *       piece of source text has its control characters replaced and is cut short, so an
- *       export can't drive the admin's terminal. Pure.
+ *       usage, the pack sync and the stats backfill; and the row stored in `imports` (with why
+ *       the run stopped, when it threw). Every piece of source text has its control characters
+ *       replaced and is cut short, so an export can't drive the admin's terminal. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -247,13 +247,19 @@ export type ImportReportRow = {
 
 /**
  * @function importReportRow
- * @param summary {ImportSummary} what the run did
- * @param run {{ startedAt: Date; finishedAt: Date; ok: boolean }} when, and whether it ended well
- * @returns {ImportReportRow} the row to store
+ * @param summary {ImportSummary} what the run did (so far, when it threw)
+ * @param run {{ startedAt: Date; finishedAt: Date; ok: boolean; error?: string }} when, whether
+ *        it ended well, and the error that stopped it, if one did
+ * @returns {ImportReportRow} the row to store; a stopped run's text ends with why
  */
 export const importReportRow = (
   summary: ImportSummary,
-  { startedAt, finishedAt, ok }: { startedAt: Date; finishedAt: Date; ok: boolean },
+  {
+    startedAt,
+    finishedAt,
+    ok,
+    error,
+  }: { startedAt: Date; finishedAt: Date; ok: boolean; error?: string },
 ): ImportReportRow => ({
   source: summary.source,
   startedAt,
@@ -265,5 +271,8 @@ export const importReportRow = (
   sync: summary.sync === "skipped" ? null : summary.sync,
   stats: summary.stats,
   ok,
-  text: formatImportReport(summary),
+  text:
+    error === undefined
+      ? formatImportReport(summary)
+      : `${formatImportReport(summary)}\n\nStopped: ${reportText(error)}`,
 });

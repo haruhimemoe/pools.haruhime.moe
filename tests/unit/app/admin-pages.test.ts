@@ -1,9 +1,10 @@
 /**
  * @file tests/unit/app/admin-pages.test.ts
  * @desc Admin pages ask for an admin (sign-in returns to the page asked for); /admin shows the
- *       sync-state counts and the import reports; /admin/pools lists every pool, reading a bad
- *       show or page as the defaults; the pool preview shows hidden pools (the public page 404s
- *       them) and 404s an unknown id; and nothing under /admin is indexed.
+ *       sync-state counts, the public pages refresh and the import reports; /admin/pools lists
+ *       every pool, reading a bad show or page as the defaults; the pool preview shows hidden
+ *       pools (the public page 404s them) and 404s an unknown id; and nothing under /admin is
+ *       indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -66,6 +67,7 @@ describe("admin pages", () => {
       "3 created · 0 updated · 0 unchanged · 1 rejected · 2 error · 0 gone · 5 never sent",
     );
     expect(html).toContain("No imports yet.");
+    expect(html).toContain("Refresh public pages");
     expect(page.metadata.robots).toEqual({ index: false });
   });
 

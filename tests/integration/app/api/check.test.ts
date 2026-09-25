@@ -1,16 +1,19 @@
 /**
  * @file tests/integration/app/api/check.test.ts
- * @desc GET /api/check: bad ids are 400; a complete answer is cached a day on the CDN and a
- *       partial one isn't; what pools knows about each map comes along (usage from current pools
- *       only, no label for a map only hidden pools have); 30 checks a minute per IP.
+ * @desc GET /api/check: bad ids are 400; a complete answer is cached 5 minutes on the CDN (its
+ *       map labels and usage come from pools, so a hidden pool leaves it within 5 minutes), a
+ *       partial one isn't, and neither is one whose maps lookup failed; what pools knows about
+ *       each map comes along (usage from current pools only, no label for a map only hidden pools
+ *       have); 30 checks a minute per IP.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
-import { describe, expect, it } from "vitest";
+import { Collection } from "mongodb";
+import { describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/check/route";
-import { RATE_LIMITS_COLLECTION } from "@/constants/db";
+import { MAPS_COLLECTION, RATE_LIMITS_COLLECTION } from "@/constants/db";
 import { getDb } from "@/lib/db";
 import { osuBudgetWindow } from "@/lib/osu-budget";
 import { mapsCollection } from "@/models/Map";
@@ -36,7 +39,7 @@ describe("GET /api/check", () => {
     },
   );
 
-  it("caches a complete answer and brings what pools knows about each map", async () => {
+  it("caches a complete answer 5 minutes and brings what pools knows about each map", async () => {
     await (await mapsCollection()).insertMany([
       makeMap({
         _id: 75,
@@ -48,14 +51,34 @@ describe("GET /api/check", () => {
       makeMap({ _id: 1001, usage: { count: 0, lastYear: null, playedAs: [], shown: false } }),
     ]);
     const response = await get("75,1001");
-    expect(response.headers.get("cache-control")).toBe(
-      "public, s-maxage=86400, stale-while-revalidate=604800",
-    );
+    expect(response.headers.get("cache-control")).toBe("public, s-maxage=300");
     const body = (await response.json()) as CheckResponse;
     expect(body.maps).toEqual({
       "75": { label: "Kenji Ninuma - DISCOPRINCE [Normal]", count: 3, lastYear: 2023 },
       "1001": { label: null, count: 0, lastYear: null },
     });
+  });
+
+  it("never caches an answer whose maps lookup failed", async () => {
+    const find = Collection.prototype.find;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(Collection.prototype, "find").mockImplementation(function (
+      this: Collection,
+      ...args: Parameters<Collection["find"]>
+    ) {
+      if (this.collectionName === MAPS_COLLECTION) throw new Error("operation exceeded time limit");
+      return find.apply(this, args);
+    } as Collection["find"]);
+    try {
+      const response = await get("75");
+      const body = (await response.json()) as CheckResponse;
+      expect(body.unchecked).toEqual([]);
+      expect(body.sets.map((set) => set.setId)).toEqual([1]);
+      expect(body.maps).toEqual({});
+      expect(response.headers.get("cache-control")).toBe("no-store");
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 
   it("never caches a partial answer", async () => {

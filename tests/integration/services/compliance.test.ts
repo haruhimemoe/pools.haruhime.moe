@@ -5,18 +5,20 @@
  *       unknown ids missing; a second check answered from the cache with no osu! call, found by
  *       difficulty id or through pools' own maps; stale facts asked again; a spent global budget
  *       or IP share, an osu! failure and a database outage leave maps unchecked, never guessed.
+ *       What pools knows about each map, or null when that lookup fails.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
  */
 
+import { Collection } from "mongodb";
 import { HttpResponse, http } from "msw";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RATE_LIMITS_COLLECTION, SET_FACTS_COLLECTION } from "@/constants/db";
 import { getDb } from "@/lib/db";
 import { osuBudgetWindow, osuSubjectWindow } from "@/lib/osu-budget";
 import { mapsCollection } from "@/models/Map";
-import { checkCompliance } from "@/services/compliance";
+import { checkCompliance, checkMaps } from "@/services/compliance";
 import { setupTestDb } from "../../helpers/db";
 import { setupMsw } from "../../helpers/msw";
 import { osuCalls, osuHandlers } from "../../helpers/osu-server";
@@ -123,5 +125,31 @@ describe("checkCompliance", () => {
       missing: [],
       unchecked: [75],
     });
+  });
+});
+
+describe("checkMaps", () => {
+  it("gives each map pools has its label and usage, and null when the lookup fails", async () => {
+    await (await mapsCollection()).insertOne(
+      makeMap({
+        _id: 75,
+        title: "DISCOPRINCE",
+        artist: "Kenji Ninuma",
+        version: "Normal",
+        usage: { count: 2, lastYear: 2022, playedAs: ["NM"], shown: true },
+      }),
+    );
+    expect(await checkMaps([75, 76])).toEqual({
+      "75": { label: "Kenji Ninuma - DISCOPRINCE [Normal]", count: 2, lastYear: 2022 },
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(Collection.prototype, "find").mockImplementation(() => {
+      throw new Error("operation exceeded time limit");
+    });
+    try {
+      expect(await checkMaps([75])).toBeNull();
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 });

@@ -5,7 +5,9 @@
  *       count command, never an aggregation), the sitemap and llms.txt lists leave hidden and
  *       superseded pools and unused maps out, a map whose pools are all hidden is missing while
  *       one whose pools are all superseded stays, and history lists only current pools, newest
- *       first, one row per slot.
+ *       first, one row per slot. The home, sitemap and llms.txt reads let a database error through
+ *       at runtime (so ISR keeps the last good version) and come back empty only under
+ *       SKIP_ENV_VALIDATION.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -161,5 +163,38 @@ describe("maps", () => {
     await seed();
     expect((await listListedMaps()).map((map) => map._id)).toEqual([1]);
     expect(await listListedMaps(0)).toEqual([]);
+  });
+});
+
+describe("home, sitemap and llms.txt reads", () => {
+  it("let a database error through at runtime, so ISR keeps the last good version", async () => {
+    await seed();
+    const fail = () => {
+      throw new Error("server selection timed out");
+    };
+    vi.spyOn(Collection.prototype, "find").mockImplementation(fail);
+    vi.spyOn(Collection.prototype, "distinct").mockImplementation(fail);
+    try {
+      await expect(loadHomeCounts()).rejects.toThrow("server selection timed out");
+      await expect(listCurrentPools()).rejects.toThrow("server selection timed out");
+      await expect(listListedMaps()).rejects.toThrow("server selection timed out");
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("come back empty under SKIP_ENV_VALIDATION (the CI build), without the database", async () => {
+    await seed();
+    vi.stubEnv("SKIP_ENV_VALIDATION", "true");
+    const find = vi.spyOn(Collection.prototype, "find");
+    try {
+      expect(await loadHomeCounts()).toEqual({ pools: 0, maps: 0, sources: [] });
+      expect(await listCurrentPools()).toEqual([]);
+      expect(await listListedMaps()).toEqual([]);
+      expect(find).not.toHaveBeenCalled();
+    } finally {
+      vi.restoreAllMocks();
+      vi.stubEnv("SKIP_ENV_VALIDATION", "");
+    }
   });
 });

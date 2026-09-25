@@ -3,8 +3,9 @@
  * @desc The whole import run on the sample export with otdb, the mirror and packs stood in by
  *       msw: bad arguments, a dry run that writes nothing, a real run (pools, filled maps,
  *       stats, usage, packs synced, a stored report), a second run that sends packs nothing,
- *       --no-sync, a missing token and a 401 (both exit 1 after writing the pools), and the
- *       download when --file isn't given.
+ *       --no-sync, a missing token and a 401 (both exit 1 after writing the pools), a run that
+ *       throws after writing (a report stored, exit 1), a run that throws before writing (no
+ *       report), and the download when --file isn't given.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
@@ -102,6 +103,7 @@ describe("runImport", () => {
       counts: { created: 17, merged: 2, skipped: 3 },
     });
     expect(first.out).toContain("Packs: 17 of 17 due sent. 17 created");
+    expect(first.out).toContain("Press Refresh public pages on /admin");
 
     calls.length = 0;
     const second = await run(["otdb", "--file", "sample.json"]);
@@ -133,6 +135,25 @@ describe("runImport", () => {
     const result = await run(["otdb", "--file", "sample.json"]);
     expect(result.code).toBe(1);
     expect(result.out).toContain("Stopped: packs refused the service token (401).");
+  });
+
+  it("stores a report when a real run stops partway, and still exits 1", async () => {
+    const result = await run(["otdb", "--file", "sample.json"], () => {
+      throw new Error("the service settings couldn't be read");
+    });
+    expect(result.code).toBe(1);
+    expect(result.err).toContain("import stopped: the service settings couldn't be read");
+    expect(await (await poolsCollection()).countDocuments()).toBe(17);
+    const reports = await listImportReports();
+    expect(reports).toHaveLength(1);
+    expect(reports[0]).toMatchObject({ ok: false, read: 22, counts: { created: 17 } });
+    expect(reports[0]?.text).toContain("Stopped: the service settings couldn't be read");
+  });
+
+  it("stores no report when a run stops before it writes anything", async () => {
+    const result = await run(["otdb", "--file", "missing.json"]);
+    expect(result.code).toBe(1);
+    expect(await listImportReports()).toEqual([]);
   });
 
   it("downloads the export when --file isn't given", async () => {

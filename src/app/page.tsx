@@ -1,7 +1,8 @@
 /**
  * @file src/app/page.tsx
- * @desc Home page: ISR, hourly (an import shows within the hour; admin saves revalidate it).
- *       Reads no cookies; the counts never throw.
+ * @desc Home page: ISR, hourly (an import shows within the hour, or at once with Refresh public
+ *       pages on /admin; admin saves revalidate it). Reads no cookies. A database error fails the
+ *       render, so ISR keeps serving the last good page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Thu Sep 24, 2026
