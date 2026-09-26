@@ -1,16 +1,18 @@
 /**
  * @file src/app/credits/page.tsx
- * @desc /credits: where pools' data and rules come from (otdb by Sheppsu, the hinai mirror, the
- *       osu! API, the osu! Mappool Compliance project and the osu! wiki pages behind it), the
+ * @desc /credits: where pools' data and rules come from (otdb by Sheppsu for some past pools,
+ *       the tournament hosts and community members who send the others, the osu! API, the hinai
+ *       mirror, the osu! Mappool Compliance project and the osu! wiki pages behind it), the
  *       packages it's built with, and the affiliation notice. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
 import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SITE } from "@/constants/site";
 
 export const metadata: Metadata = {
@@ -30,12 +32,17 @@ export default function CreditsPage() {
       <Prose className="mt-6">
         <h2>Pool data</h2>
         <p>
-          Every pool comes from <a href="https://otdb.sheppsu.me">otdb</a>, by Sheppsu, through its
-          public export, used with his permission. Each pool page links the pool on otdb.
+          Some past pools come from <a href="https://otdb.sheppsu.me">otdb</a>, by Sheppsu, through
+          its public export, used with his permission. Their pool pages link the pool on otdb.
+        </p>
+        <p>
+          Tournament hosts and community members send the others. Thank you to everyone who does:
+          each pool page names who sent it. To send one, see{" "}
+          <Link href="/submit">Submit a pool</Link>.
         </p>
         <h2>Map details</h2>
         <p>
-          Map details and star ratings come from the{" "}
+          Map details and star ratings come from the osu! API v2 and the{" "}
           <a href="https://mirror.hinamizawa.ai">hinai mirror</a>. Every star rating is without
           mods.
         </p>

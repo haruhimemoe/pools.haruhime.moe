@@ -1,21 +1,30 @@
 /**
  * @file src/components/home/HomeScreen.tsx
- * @desc The home page: what pools is, its counts, a pools search (a plain GET form), the maps
- *       search, and links to the full search and the check.
+ * @desc The home page: what pools is, its counts with a link to where pools come from (/data,
+ *       rather than naming one source), a pools search (a plain GET form), the maps search, and
+ *       links to the full search and the check.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { Button, ButtonLink, Card, PageHeader, TextInput } from "@haruhimemoe/ui";
+import Link from "next/link";
+import type { ReactNode } from "react";
 import { MapSearchForm } from "@/components/home/MapSearchForm";
-import { SOURCE_CREDITS } from "@/constants/pools";
 import type { HomeCounts } from "@/services/pools";
 
-const countsLine = ({ pools, maps, sources }: HomeCounts): string =>
-  pools === 0
-    ? "No pools yet."
-    : `${pools} pools · ${maps} maps · from ${sources.map((kind) => SOURCE_CREDITS[kind].label).join(", ")}`;
+const countsLine = ({ pools, maps }: HomeCounts): ReactNode =>
+  pools === 0 ? (
+    "No pools yet."
+  ) : (
+    <>
+      {`${pools} pools · ${maps} maps · `}
+      <Link href="/data#pools" className="underline transition-colors hover:text-c1">
+        where they come from
+      </Link>
+    </>
+  );
 
 export function HomeScreen({ counts }: { counts: HomeCounts }) {
   return (

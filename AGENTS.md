@@ -4,7 +4,7 @@ Rules for any agent (or human) working in this repo. Authoritative; `CLAUDE.md` 
 
 ## 1. What this is
 
-pools.haruhime.moe: past osu! tournament mappools in their own `pools` database, an importer that fills it from otdb's export and keeps a plain pack per pool on packs.haruhime.moe, and a read-only public site (pool and map search, map history, a compliance check) with an admin area. What users read lives in `README.md`, `/credits` and `content/legal/`; section 7 says what has to stay in step with the code.
+pools.haruhime.moe: past osu! tournament mappools in their own `pools` database, an importer that fills it from otdb's export and keeps a plain pack per pool on packs.haruhime.moe, and a read-only public site (pool and map search, map history, a compliance check) with an admin area. What users read lives in `README.md`, `/data`, `/submit`, `/credits` and `content/legal/`; section 7 says what has to stay in step with the code.
 
 **Hard rule: we never host files.** No `.osz`, audio, image or video bytes pass through or are stored by our code. "Open in packs" and the mirror link send people elsewhere.
 
@@ -69,7 +69,7 @@ osu!-web look from `@haruhimemoe/ui`: `src/app/globals.css` imports its theme an
 ## 7. Legal copy and docs
 
 - Legal pages are `content/legal/*.mdx`, registered in `src/constants/legal.ts`; bump `lastUpdated` with any wording change. `tests/unit/content/legal-content.test.ts` guards the clauses.
-- Every source (otdb today) is credited on each of its pools' pages, in the footer and on `/credits` (`SOURCE_CREDITS` in `src/constants/pools.ts`); a new source gets all three.
+- Every source (otdb today) is credited on each of its pools' pages and on `/credits` (`SOURCE_CREDITS` in `src/constants/pools.ts`), and `/data` says where pools come from; a new source gets all three. The footer credits no source: pools come from otdb, tournament hosts and community members, so copy never names otdb as the only source (`tests/unit/content/copy-rules.test.ts`).
 - A new per-IP counter goes in `privacy.mdx`. Every request our server makes to a third party is listed in `disclaimer.mdx` ("How our requests identify themselves").
 - A change people see updates the README's Features and, when it touches a page, `src/utils/llms-txt.ts`.
 - No em dashes in any copy (`tests/unit/content/copy-rules.test.ts`). osu! wiki text is CC BY-NC: paraphrase, never copy.

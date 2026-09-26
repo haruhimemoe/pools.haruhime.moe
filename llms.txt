@@ -1,6 +1,6 @@
 # pools.haruhime.moe
 
-> Source for https://pools.haruhime.moe, a site of past osu! tournament mappools: pool and map search, every tournament a map was played in, and a check of a pool against the content rules for officially supported tournaments. Pools come from otdb (by Sheppsu); an importer fills a MongoDB database from otdb's export and keeps a plain pack per pool on packs.haruhime.moe. Admins sign in with osu!. It never hosts beatmap files. Next.js 16, React 19, TypeScript 7 and MongoDB, run with Bun. MIT license. The live site serves its own llms.txt at https://pools.haruhime.moe/llms.txt; this file covers the repository.
+> Source for https://pools.haruhime.moe, a site of past osu! tournament mappools: pool and map search, every tournament a map was played in, and a check of a pool against the content rules for officially supported tournaments. Pools come from otdb's export (by Sheppsu), tournament hosts and community members; an importer fills a MongoDB database from otdb's export, and every pool gets a plain pack on packs.haruhime.moe. Admins sign in with osu!. It never hosts beatmap files. Next.js 16, React 19, TypeScript 7 and MongoDB, run with Bun. MIT license. The live site serves its own llms.txt at https://pools.haruhime.moe/llms.txt; this file covers the repository.
 
 ## Site
 
