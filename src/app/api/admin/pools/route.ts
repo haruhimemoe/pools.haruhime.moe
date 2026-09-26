@@ -4,11 +4,11 @@
  *       else gets the same 404, so the route never confirms it exists; then requests from other
  *       sites (a sibling *.haruhime.moe host included) are refused, and the body must be JSON.
  *       A form problem answers 400 with a message per field (`error.fields`). A new pool answers
- *       201, maps that joined a stored pool 200, both naming the pool and its admin page. Never
- *       cached.
+ *       201, maps that joined a stored pool 200 (`alreadyCredited` when that pool had the same
+ *       credit, so nothing was added), both naming the pool and its admin page. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { z } from "zod";

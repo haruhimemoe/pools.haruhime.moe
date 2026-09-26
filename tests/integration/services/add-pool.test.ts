@@ -6,13 +6,15 @@
  *       typed fields as edits, badged, search keys, blank map rows filled from the mirror at once
  *       (misses stay blank), stats, usage, and its pack. Maps identical to a stored otdb pool join
  *       it (name, notes, edits, badged and hidden kept; the form's fields dropped); maps identical
- *       to a superseded pool revive it. A generated id skips one already used. Maps that can't be
- *       read (a /p/ link, a damaged key, a slot twice, 65 maps) come back as a maps error and
- *       nothing is written. A packs /k link keeps the pack's custom slot. No packs token saves the
- *       pool and says the pack wasn't sent.
+ *       to a superseded pool revive it. Two merges planned from the same snapshot keep both
+ *       sources; a create that loses the race becomes a merge; a sender already credited with the
+ *       same link adds nothing and the answer says so. A generated id skips one already used.
+ *       Maps that can't be read (a /p/ link, a damaged key, a slot twice, 65 maps) come back as a
+ *       maps error and nothing is written. A packs /k link keeps the pack's custom slot. No packs
+ *       token saves the pool and says the pack wasn't sent.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
@@ -23,6 +25,7 @@ import { poolsCollection } from "@/models/Pool";
 import type { AddPoolBody } from "@/schemas/admin";
 import { parseStoredPool } from "@/schemas/pool";
 import { addPool } from "@/services/add-pool";
+import { loadExistingPools } from "@/services/import";
 import { setupTestDb } from "../../helpers/db";
 import { mirrorHandler, mirrorRow } from "../../helpers/hinai-server";
 import { setupMsw } from "../../helpers/msw";
@@ -202,6 +205,49 @@ describe("addPool", () => {
     const stored = parseStoredPool(await (await poolsCollection()).findOne({ _id: "otdb-71" }));
     expect(stored).toMatchObject({ supersededBy: null, visible: true });
     expect(stored?.name).toBe(old.name);
+  });
+
+  it("keeps both sources when two merges read the record before either wrote", async () => {
+    await (await poolsCollection()).insertOne(
+      makePool({ _id: "otdb-9", slots: [{ mod: "NM", index: 1, beatmapId: 129891 }] }),
+    );
+    const stale = await loadExistingPools();
+    await added({ maps: "NM1 129891", creditName: "First hosts" });
+    const second = await added(
+      { maps: "NM1 129891", creditName: "Second hosts" },
+      { loadExisting: async () => stale },
+    );
+    expect(second).toMatchObject({ outcome: "merged", alreadyCredited: false });
+    const stored = parseStoredPool(await (await poolsCollection()).findOne({ _id: "otdb-9" }));
+    const names = stored?.sources.map((entry) =>
+      "credit" in entry ? entry.credit.name : entry.kind,
+    );
+    expect(names).toEqual(["otdb", "First hosts", "Second hosts"]);
+  });
+
+  it("turns a create that lost the race into a merge", async () => {
+    const stale = await loadExistingPools();
+    const first = await added({ creditName: "First hosts" });
+    const second = await added({ creditName: "Second hosts" }, { loadExisting: async () => stale });
+    expect(second).toMatchObject({ outcome: "merged", pool: { id: first.pool.id } });
+    const pools = await poolsCollection();
+    expect(await pools.countDocuments()).toBe(1);
+    const stored = parseStoredPool(await pools.findOne({ _id: first.pool.id }));
+    expect(stored?.sources).toHaveLength(2);
+  });
+
+  it("adds nothing when the record already credits the same sender and link", async () => {
+    const first = await added({ creditUrl: "https://example.com/cup" });
+    const again = await added({ creditUrl: "https://example.com/cup" });
+    expect(again).toMatchObject({
+      outcome: "merged",
+      alreadyCredited: true,
+      pool: { id: first.pool.id },
+    });
+    const pools = await poolsCollection();
+    expect(parseStoredPool(await pools.findOne({ _id: first.pool.id }))?.sources).toHaveLength(1);
+    const otherLink = await added({ creditUrl: "https://example.com/other" });
+    expect(otherLink.alreadyCredited).toBe(false);
   });
 
   it("skips a generated id that's already used", async () => {
