@@ -3,11 +3,12 @@
  * @desc /data: where pools' data comes from and how it's kept, in four sections the footer
  *       links by anchor: #pools (otdb's export, tournament hosts, community members; merged by
  *       map list, each pool page names its sources), #maps (JSON from the osu! API and the hinai
- *       mirror, no files, no-mod stars), #rules (the check, guidance only) and #corrections
+ *       mirror, no files, no-mod stars), #rules (the check, guidance only; the all-maps search
+ *       can't see takedown notices on ranked and loved maps) and #corrections
  *       (Discord or email). Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -77,6 +78,11 @@ export default function DataPage() {
             <a href="https://github.com/haruhimemoe/compliance">@haruhimemoe/compliance</a>, which
             follows the <a href={UPSTREAM.repo}>osu! Mappool Compliance project</a>, and reads each
             beatmapset from the osu! API.
+          </p>
+          <p>
+            Searching every map uses the same rules on what the hinai mirror sends. For ranked and
+            loved maps, that search can't see takedown notices, so it may show one that has been
+            taken down. <Link href="/check">Check a pool</Link> runs the full check.
           </p>
           <p>
             The check can be wrong. Its results are guidance, not rulings: the osu! Tournament

@@ -3,8 +3,9 @@
  * @desc Searching every osu! map against a stand-in mirror (msw) and the database: sets that
  *       can't be used in officially supported tournaments are hidden and counted (a graveyard
  *       set by a disallowed artist, a taken-down ranked set); a set that needs a closer look
- *       shows "Check first" with the package's wording; a compact set shows as potential unless
- *       a fresh setFacts row decides it; unranked sets carry the tag; each difficulty says how
+ *       shows "Check first" with the package's wording; a compact ranked set is judged with no
+ *       takedown notice (ok, or what an override says); any other compact set shows as potential
+ *       unless a fresh setFacts row decides it; unranked sets carry the tag; each difficulty says how
  *       many pools played it (one maps lookup; null and not cacheable when it fails); a star
  *       range keeps the difficulties inside it (all of them when none are); a failed mirror is
  *       a failure.
@@ -59,8 +60,33 @@ describe("searchAllMaps", () => {
     });
   });
 
-  it("shows a compact set as potential unless a fresh setFacts row decides it", async () => {
-    answering([compactSet(500, 5000), compactSet(501, 5010), compactSet(502, 5020)]);
+  it("judges a compact ranked set with no badge, and a compact graveyard set as potential", async () => {
+    answering([compactSet(510, 5100), compactSet(511, 5110, { status: "graveyard" })]);
+    const { answer } = await search();
+    expect(answer.results.map((set) => [set.setId, set.check])).toEqual([
+      [510, null],
+      [511, { text: "Needs a closer look" }],
+    ]);
+    expect(answer.hidden).toBe(0);
+  });
+
+  it("lets an override decide a compact ranked set", async () => {
+    answering([
+      compactSet(520, 5200, { artist: "Lusumi", title: "execution_program" }),
+      compactSet(521, 5210),
+    ]);
+    const { answer } = await search();
+    expect(answer.results.map((set) => set.setId)).toEqual([521]);
+    expect(answer.hidden).toBe(1);
+  });
+
+  it("shows a compact unranked set as potential unless a fresh setFacts row decides it", async () => {
+    const graveyard = { status: "graveyard" };
+    answering([
+      compactSet(500, 5000, graveyard),
+      compactSet(501, 5010, graveyard),
+      compactSet(502, 5020, graveyard),
+    ]);
     const facts = (id: number, artist: string, fetchedAt: Date, status = "ranked") => ({
       _id: id as never,
       status,
@@ -81,7 +107,7 @@ describe("searchAllMaps", () => {
       .insertMany([
         facts(501, "Compact Artist", new Date()),
         facts(502, "Igorrr", new Date(), "graveyard"),
-        facts(500, "Compact Artist", new Date(Date.now() - 2 * 86_400_000)),
+        facts(500, "Compact Artist", new Date(Date.now() - 2 * 86_400_000), "graveyard"),
       ]);
     const { answer } = await search();
     expect(answer.results.map((set) => [set.setId, set.check])).toEqual([

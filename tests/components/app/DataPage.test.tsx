@@ -4,10 +4,11 @@
  *       #pools, #maps, #rules and #corrections anchors the footer links. Pools come from otdb
  *       (credited to Sheppsu), hosts and community members, merge by map list and name their
  *       sources; map details are JSON from the osu! API and the hinai mirror, never files, and
- *       stars are without mods; the check is guidance; corrections go to Discord or email.
+ *       stars are without mods; the check is guidance, and the all-maps search can't see
+ *       takedowns on ranked and loved maps; corrections go to Discord or email.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -75,6 +76,16 @@ describe("/data", () => {
     expect(rules).toHaveTextContent("officially supported tournaments");
     expect(rules).toHaveTextContent("can be wrong");
     expect(rules).toHaveTextContent("the osu! Tournament Committee decides");
+  });
+
+  it("says the all-maps search can't see takedowns on ranked and loved maps", () => {
+    render(<DataPage />);
+    const rules = section("Content rules");
+    expect(rules).toHaveTextContent(/for ranked and loved maps, that search can't see takedown/i);
+    expect(within(rules).getByRole("link", { name: "Check a pool" })).toHaveAttribute(
+      "href",
+      "/check",
+    );
   });
 
   it("takes corrections on Discord or by email", () => {

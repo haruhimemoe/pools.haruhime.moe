@@ -52,14 +52,21 @@ export const fixtureSet = (setId: number): Record<string, unknown> => {
  * @function compactSet
  * @param setId {number} a set id
  * @param beatmapId {number} its one difficulty
- * @returns {Record<string, unknown>} a set without availability, track_id or tags (can't be judged)
+ * @param extra {Record<string, unknown>} fields to change (status, artist, title)
+ * @returns {Record<string, unknown>} a ranked set without availability, track_id or tags, as the
+ *          mirror's own pages send it
  */
-export const compactSet = (setId: number, beatmapId: number): Record<string, unknown> => ({
+export const compactSet = (
+  setId: number,
+  beatmapId: number,
+  extra: Record<string, unknown> = {},
+): Record<string, unknown> => ({
   id: setId,
   status: "ranked",
   artist: "Compact Artist",
   title: "Compact Title",
   creator: "Mapper",
+  ...extra,
   beatmaps: [
     {
       id: beatmapId,

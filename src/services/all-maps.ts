@@ -2,8 +2,9 @@
  * @file src/services/all-maps.ts
  * @desc One page of every osu! map (src/lib/map-search.ts), judged and annotated. Each set goes
  *       through @haruhimemoe/compliance: facts from the mirror's set, or for a set too compact to
- *       judge, from a fresh setFacts row (one query by set id per page); else it shows as
- *       potential. Disallowed sets are left out and counted; potential ones say why to check
+ *       judge, from a fresh setFacts row (one query by set id per page); else a Ranked,
+ *       Approved or Loved set is judged with no takedown notice (the mirror's own pages carry
+ *       none, so only "Check a pool" can see one) and any other shows as potential. Disallowed sets are left out and counted; potential ones say why to check
  *       first; graveyard, pending and WIP sets are tagged unranked. Only osu!standard
  *       difficulties show, and with a star range only the ones inside it (all when none are:
  *       the mirror's ratings differ slightly from osu!'s). Each difficulty says how many current
@@ -82,6 +83,28 @@ const cachedFacts = async (
   }
 };
 
+/**
+ * Facts for a compact Ranked, Approved or Loved set (the mirror's own pages send these without
+ * availability or track_id): no takedown notice we can see, so the overrides rule still applies
+ * and rule 4 passes it. Any other compact set has none and stays potential.
+ */
+const leaderboardFacts = (set: MirrorSet): BeatmapsetFacts | null =>
+  isLeaderboardStatus(set.status)
+    ? {
+        setId: set.id,
+        status: set.status,
+        artist: set.artist,
+        title: set.title,
+        artistUnicode: set.artist_unicode ?? set.artist,
+        titleUnicode: set.title_unicode ?? set.title,
+        source: set.source ?? "",
+        tags: set.tags ?? "",
+        trackId: null,
+        downloadDisabled: false,
+        moreInformation: null,
+      }
+    : null;
+
 /** A set's difficulties to show: inside the star range when any are, else all. */
 const shownMaps = (set: MirrorSet, sr: Range | null) => {
   const sorted = [...set.beatmaps].sort((a, b) => a.stars - b.stars || a.id - b.id);
@@ -119,7 +142,7 @@ export const searchAllMaps = async (
   let hidden = 0;
   const results: AllMapSet[] = [];
   for (const set of sets) {
-    const facts = own.get(set.id) ?? cached.facts.get(set.id);
+    const facts = own.get(set.id) ?? cached.facts.get(set.id) ?? leaderboardFacts(set);
     const verdict = facts ? evaluateBeatmapset(facts) : { status: "potential" as const };
     if (verdict.status === "disallowed") {
       hidden++;
