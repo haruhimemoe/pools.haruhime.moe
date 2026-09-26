@@ -1,8 +1,9 @@
 /**
  * @file tests/components/app/RootLayout.test.tsx
  * @desc Root layout frame: the Nunito variable on <html>, the dark body, a skip link first, the
- *       page inside the #main landmark, and the header (main nav) and footer (links, legal pages,
- *       the otdb credit and no-mod stars). NEXT_PUBLIC_POOLS_BETA=true adds a "beta" tag beside
+ *       page inside the #main landmark, and the header (main nav with Submit a pool) and footer
+ *       (links, legal pages, the Discord link, no-mod stars, no otdb line; the Footer test has the
+ *       rest). NEXT_PUBLIC_POOLS_BETA=true adds a "beta" tag beside
  *       the wordmark (text, read once, outside the link, whose name stays "pools"); the page
  *       title template and robots don't change.
  * @author David @dvhsh (https://dvh.sh)
@@ -45,23 +46,32 @@ describe("RootLayout", () => {
 });
 
 describe("RootLayout header and footer", () => {
-  it("links the pages, credits otdb and names the legal pages", () => {
+  it("links the pages, Discord and the legal pages, with no otdb line in the footer", () => {
     const page = renderLayout();
     const header = page.getByRole("banner");
     const nav = within(header).getByRole("navigation", { name: "Main" });
-    expect(within(nav).getByRole("link", { name: "Search" })).toHaveAttribute("href", "/search");
-    expect(within(nav).getByRole("link", { name: "Check a pool" })).toHaveAttribute(
-      "href",
-      "/check",
-    );
+    expect(
+      within(nav)
+        .getAllByRole("link")
+        .map((link) => [link.textContent, link.getAttribute("href")]),
+    ).toEqual([
+      ["Home", "/"],
+      ["Search", "/search"],
+      ["Check a pool", "/check"],
+      ["Submit a pool", "/submit"],
+    ]);
     const footer = page.getByRole("contentinfo");
     expect(within(footer).getByRole("navigation", { name: "Legal" })).toBeInTheDocument();
     expect(within(footer).getByRole("link", { name: "Credits" })).toHaveAttribute(
       "href",
       "/credits",
     );
-    expect(footer).toHaveTextContent("Pool data from otdb by Sheppsu.");
+    expect(within(footer).getByRole("link", { name: "Discord" })).toHaveAttribute(
+      "href",
+      "https://discord.gg/bKy9kjMV4y",
+    );
     expect(footer).toHaveTextContent("Star ratings are without mods.");
+    expect(footer).not.toHaveTextContent("otdb");
   });
 });
 

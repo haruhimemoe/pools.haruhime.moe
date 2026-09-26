@@ -33,4 +33,5 @@ export const NAV_LINKS: readonly { href: string; label: string }[] = [
   { href: "/", label: "Home" },
   { href: "/search", label: "Search" },
   { href: "/check", label: "Check a pool" },
+  { href: "/submit", label: "Submit a pool" },
 ];

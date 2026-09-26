@@ -1,11 +1,12 @@
 /**
  * @file src/components/layout/Footer.tsx
- * @desc Site footer: the pools / About / Legal link columns, one line of fine print (the
- *       site-wide otdb credit, no-mod stars, the affiliation notice), and the row linking the
- *       parent brand and the haruhimemoe GitHub org.
+ * @desc Site footer: the pools / Data / About / Legal link columns, one line of fine print
+ *       (no-mod stars, the affiliation notice; no source credit, since pools come from more than
+ *       one place and each pool page and /credits name them), and the row linking the parent
+ *       brand, the Discord server and the haruhimemoe GitHub org.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { SiteFooter, type SiteFooterColumn } from "@haruhimemoe/ui";
@@ -18,6 +19,14 @@ export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
     items: [
       { href: "/search", label: "Search" },
       { href: "/check", label: "Check a pool" },
+      { href: "/submit", label: "Submit a pool" },
+    ],
+  },
+  {
+    title: "Data",
+    items: [
+      { href: "/data#pools", label: "Pool data" },
+      { href: "/data#maps", label: "Map data" },
       { href: "/credits", label: "Credits" },
     ],
   },
@@ -38,11 +47,10 @@ export function Footer() {
   return (
     <SiteFooter
       columns={FOOTER_COLUMNS}
-      finePrint={
-        <>Pool data from otdb by Sheppsu. Star ratings are without mods. {SITE.trademarkNotice}</>
-      }
+      finePrint={<>Star ratings are without mods. {SITE.trademarkNotice}</>}
       parentHref={SITE.parentUrl}
       githubHref={SITE.githubOrg}
+      discordHref={SITE.discordUrl}
     />
   );
 }
