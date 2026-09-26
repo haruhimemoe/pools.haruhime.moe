@@ -22,7 +22,9 @@ To fill a local database, run the importer against a copy of otdb's export witho
 bun run import otdb --file mappools-export.json --no-sync
 ```
 
-Add `--dry-run` to see the plan without writing anything.
+Add `--dry-run` to see the plan without writing anything. The importer reads otdb only; host and community pools are added one at a time by a signed-in admin at `/admin/pools/new`.
+
+Searching every osu! map calls the hinai mirror from the server, so the maps tab's All osu! maps needs network access in dev; Played in pools reads only your database.
 
 `bun install` also sets up a lefthook pre-commit hook that runs Biome on staged files.
 
@@ -30,7 +32,7 @@ Add `--dry-run` to see the plan without writing anything.
 
 1. Branch from `main` (`feat/<topic>`, `fix/<topic>`).
 2. Write a failing test in `tests/`, make it pass, and keep commits small.
-3. If people will see the change, update the copy that describes it in the same PR: the README, the credits page, the legal pages or llms.txt. AGENTS.md section 7 lists them.
+3. If people will see the change, update the copy that describes it in the same PR: the README, `/data`, `/submit`, the credits page, the legal pages or llms.txt. AGENTS.md section 7 lists them.
 4. Run the full check before opening a PR:
 
    ```sh
@@ -49,7 +51,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:
 - `tests/components/`: React components in jsdom.
 - `tests/integration/`: route handlers, services and the importer against an in-memory MongoDB (mongodb-memory-server). The first run downloads the MongoDB binary.
 
-Tests never reach osu!, the mirror, otdb or packs: msw stands in for them, with recorded fixtures in `tests/fixtures/`.
+Tests never reach osu!, the mirror (its batch lookup and its search), otdb or packs: msw stands in for them (`tests/helpers/*-server.ts`, `tests/helpers/mirror-search.ts`), with recorded fixtures in `tests/fixtures/`.
 
 ## Scripts
 

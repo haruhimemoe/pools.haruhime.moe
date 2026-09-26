@@ -2,10 +2,10 @@
  * @file tests/components/home/HomeScreen.test.tsx
  * @desc The home page: what pools is, its counts (or "No pools yet.") with a link to where pools
  *       come from instead of one source's name, a pools search that works without JavaScript,
- *       the maps search, and the links to search and check.
+ *       the maps search, the links to search, check and submit, and the pools added last.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -52,5 +52,34 @@ describe("HomeScreen", () => {
       "/search",
     );
     expect(screen.getByRole("link", { name: "Check a pool" })).toHaveAttribute("href", "/check");
+  });
+
+  it("lists the pools added last, linking their pages", () => {
+    render(
+      <HomeScreen
+        counts={{ pools: 2, maps: 3, sources: ["otdb", "host"] }}
+        recent={[
+          {
+            _id: "host-hz9y8x7w",
+            name: "Spring Cup 2026 Grand Finals",
+            tournament: "Spring Cup",
+            round: "Grand Finals",
+            year: 2026,
+            createdAt: new Date("2026-09-25T12:00:00.000Z"),
+          },
+        ]}
+      />,
+    );
+    const recent = screen.getByRole("region", { name: "Recently added" });
+    expect(
+      within(recent).getByRole("link", { name: "Spring Cup 2026 Grand Finals" }),
+    ).toHaveAttribute("href", "/pools/host-hz9y8x7w");
+    expect(recent).toHaveTextContent("Spring Cup · Grand Finals · 2026");
+    expect(screen.getByRole("link", { name: "Submit a pool" })).toHaveAttribute("href", "/submit");
+  });
+
+  it("leaves Recently added out when there's nothing to list", () => {
+    render(<HomeScreen counts={{ pools: 0, maps: 0, sources: [] }} />);
+    expect(screen.queryByRole("region", { name: "Recently added" })).toBeNull();
   });
 });

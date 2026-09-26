@@ -5,9 +5,10 @@
  *       any osu! id not in ADMIN_OSU_IDS, so nobody else gets a user row; the session hook checks
  *       again, so an id removed from the list can't start a session; and getAdminFromHeaders
  *       reads a session whose id is no longer listed as signed out. osu! tokens are never kept.
+ *       Errors with no page to return to go to /signin?error=<code>.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import "server-only";
@@ -62,6 +63,9 @@ const createAuth = () => {
     database: mongodbAdapter(getDb(), { client: getMongoClient(), transaction: false }),
     // Identity only ever comes from osu!.
     disabledPaths: ["/update-user"],
+    // A failure with no page to return to (a callback whose state can't be read) lands on
+    // /signin?error=<code>, which explains it, instead of better-auth's bare error page.
+    onAPIError: { errorURL: new URL("/signin", env.BETTER_AUTH_URL).toString() },
     user: {
       additionalFields: {
         osuId: { type: "number", required: true },

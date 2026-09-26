@@ -5,12 +5,13 @@
  *       count command, never an aggregation), the sitemap and llms.txt lists leave hidden and
  *       superseded pools and unused maps out, a map whose pools are all hidden is missing while
  *       one whose pools are all superseded stays, and history lists only current pools, newest
- *       first, one row per slot. The home, sitemap and llms.txt reads let a database error through
- *       at runtime (so ISR keeps the last good version) and come back empty only under
+ *       first, one row per slot. The home page's Recently added lists the 8 visible pools added
+ *       last on their own index. The home, sitemap and llms.txt reads let a database error
+ *       through at runtime (so ISR keeps the last good version) and come back empty only under
  *       SKIP_ENV_VALIDATION.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { Collection } from "mongodb";
@@ -25,6 +26,7 @@ import {
   getPoolById,
   getPublicPool,
   listCurrentPools,
+  listRecentPools,
   loadHomeCounts,
 } from "@/services/pools";
 import { recomputeUsage } from "@/services/usage";
@@ -116,6 +118,37 @@ describe("pools", () => {
     await seed();
     expect((await listCurrentPools()).map((pool) => pool._id)).toEqual(["otdb-1", "otdb-2"]);
   });
+
+  it("lists the 8 visible pools added last, newest first, on their own index", async () => {
+    const pools = await poolsCollection();
+    await pools.insertMany(
+      Array.from({ length: 10 }, (_, i) =>
+        makePool({
+          _id: `otdb-${10 + i}`,
+          slots: [{ mod: "NM", index: 1, beatmapId: 100 + i }],
+          createdAt: new Date(Date.UTC(2026, 8, 1 + i)),
+          hidden: i === 9,
+        }),
+      ),
+    );
+    const recent = await listRecentPools();
+    expect(recent.map((pool) => pool._id)).toEqual([
+      "otdb-18",
+      "otdb-17",
+      "otdb-16",
+      "otdb-15",
+      "otdb-14",
+      "otdb-13",
+      "otdb-12",
+      "otdb-11",
+    ]);
+    expect(recent[0]).toMatchObject({ name: "Spring Cup 2020 Finals", year: 2020 });
+    const plan = (await pools
+      .find({ visible: true }, { sort: { createdAt: -1, _id: 1 }, limit: 8 })
+      .hint(POOL_INDEXES.recent)
+      .explain()) as { queryPlanner: { winningPlan: unknown } };
+    expect(JSON.stringify(plan.queryPlanner.winningPlan)).toContain(POOL_INDEXES.recent);
+  });
 });
 
 describe("maps", () => {
@@ -177,6 +210,7 @@ describe("home, sitemap and llms.txt reads", () => {
     try {
       await expect(loadHomeCounts()).rejects.toThrow("server selection timed out");
       await expect(listCurrentPools()).rejects.toThrow("server selection timed out");
+      await expect(listRecentPools()).rejects.toThrow("server selection timed out");
       await expect(listListedMaps()).rejects.toThrow("server selection timed out");
     } finally {
       vi.restoreAllMocks();
@@ -190,6 +224,7 @@ describe("home, sitemap and llms.txt reads", () => {
     try {
       expect(await loadHomeCounts()).toEqual({ pools: 0, maps: 0, sources: [] });
       expect(await listCurrentPools()).toEqual([]);
+      expect(await listRecentPools()).toEqual([]);
       expect(await listListedMaps()).toEqual([]);
       expect(find).not.toHaveBeenCalled();
     } finally {

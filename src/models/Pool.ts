@@ -3,13 +3,14 @@
  * @desc The pools collection's Mongoose schema: the fields a pool record holds (src/schemas/pool.ts
  *       is the zod shape reads parse against) and every index, by the names src/constants/db.ts
  *       gives them: one current pool per fingerprint (partial unique over supersededBy null), one
- *       per public sort (each led by `visible`), beatmap id (map history and usage), sources,
- *       tournament key and year (badged edits), badged, and sync state. poolsCollection() hands
+ *       per public sort and the home page's Recently added (each led by `visible`), beatmap id
+ *       (map history and usage), sources, tournament key and year (badged edits), badged, and
+ *       sync state. poolsCollection() hands
  *       out the typed driver collection once the indexes exist, since searches hint them by name.
  *       Registered lazily on the shared connection.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import "server-only";
@@ -62,6 +63,7 @@ poolSchema.index(
 poolSchema.index({ visible: 1, year: -1, _id: 1 }, { name: POOL_INDEXES.year });
 poolSchema.index({ visible: 1, sortName: 1, _id: 1 }, { name: POOL_INDEXES.name });
 poolSchema.index({ visible: 1, "stats.count": -1, _id: 1 }, { name: POOL_INDEXES.maps });
+poolSchema.index({ visible: 1, createdAt: -1, _id: 1 }, { name: POOL_INDEXES.recent });
 poolSchema.index({ "slots.beatmapId": 1 }, { name: POOL_INDEXES.beatmap });
 poolSchema.index({ "sources.kind": 1, "sources.id": 1 }, { name: POOL_INDEXES.source });
 poolSchema.index({ tournamentKey: 1, year: 1 }, { name: POOL_INDEXES.tournament });

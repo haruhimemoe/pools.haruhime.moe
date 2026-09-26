@@ -1,6 +1,6 @@
 # pools.haruhime.moe
 
-> Source for https://pools.haruhime.moe, a site of past osu! tournament mappools: pool and map search, every tournament a map was played in, and a check of a pool against the content rules for officially supported tournaments. Pools come from otdb's export (by Sheppsu), tournament hosts and community members; an importer fills a MongoDB database from otdb's export, and every pool gets a plain pack on packs.haruhime.moe. Admins sign in with osu!. It never hosts beatmap files. Next.js 16, React 19, TypeScript 7 and MongoDB, run with Bun. MIT license. The live site serves its own llms.txt at https://pools.haruhime.moe/llms.txt; this file covers the repository.
+> Source for https://pools.haruhime.moe (in beta), a site of past osu! tournament mappools: pool search, a search of every osu! map (through the hinai mirror, leaving out sets officially supported tournaments can't use), search of the maps played in pools, every tournament a map was played in, and a check of a pool against the content rules for officially supported tournaments. Pools come from otdb's export (by Sheppsu), tournament hosts and community members; an importer fills a MongoDB database from otdb's export, admins add the pools hosts and community members send (in the Discord server or by email), and every pool gets a plain pack on packs.haruhime.moe. Admins sign in with osu!. It never hosts beatmap files. Next.js 16, React 19, TypeScript 7 and MongoDB, run with Bun. MIT license. The live site serves its own llms.txt at https://pools.haruhime.moe/llms.txt; this file covers the repository.
 
 ## Site
 
@@ -18,6 +18,8 @@
 
 - [src/utils/](https://github.com/haruhimemoe/pools.haruhime.moe/tree/main/src/utils): the pure code: name parsing, fingerprints, import planning, usage, the pack input, search params and queries
 - [src/lib/import-runner.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/lib/import-runner.ts): the import run
+- [src/services/add-pool.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/add-pool.ts): an admin adding a host or community pool through the importer's planner
+- [src/lib/map-search.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/lib/map-search.ts) and [src/services/all-maps.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/all-maps.ts): searching every osu! map and judging each set
 - [src/models/Pool.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/models/Pool.ts): the pool record's fields and indexes
 - [src/utils/llms-txt.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/utils/llms-txt.ts): builds the live /llms.txt
 - [.env.example](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/.env.example): every environment variable, with what it's for

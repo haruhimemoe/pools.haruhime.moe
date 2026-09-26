@@ -1,14 +1,15 @@
 /**
  * @file src/services/pools.ts
  * @desc Pool reads for pages: one pool by id (admins see hidden ones; public reads never do),
- *       the maps a pool page shows, the home page's counts (current pools, used maps, sources),
- *       and every current pool for the sitemap and llms.txt. Every read has maxTimeMS; list
+ *       the maps a pool page shows, the home page's counts (current pools, used maps, sources)
+ *       and Recently added (the 8 visible pools added last), and every current pool for the
+ *       sitemap and llms.txt. Every read has maxTimeMS; list
  *       reads hint their index. The home, sitemap and llms.txt reads come back empty under
  *       SKIP_ENV_VALIDATION (the CI build, with no database); at runtime a database error goes
  *       through, so ISR keeps serving the last good version instead of storing an empty one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import "server-only";
@@ -97,6 +98,39 @@ export const loadHomeCounts = async (): Promise<HomeCounts> => {
     maps: mapCount,
     sources: SOURCE_KINDS.filter((kind) => (kinds as unknown[]).includes(kind)),
   };
+};
+
+/** The home page's Recently added: this many pools. */
+export const RECENT_POOLS = 8;
+
+/** A pool as Recently added lists it. */
+export type RecentPool = Pick<
+  StoredPool,
+  "_id" | "name" | "tournament" | "round" | "year" | "createdAt"
+>;
+
+/**
+ * @function listRecentPools
+ * @returns {Promise<RecentPool[]>} the 8 visible pools added last, newest first (on the
+ *          visible_1_createdAt_-1__id_1 index); empty under SKIP_ENV_VALIDATION
+ * @throws {Error} on a database error (ISR keeps the last good page)
+ */
+export const listRecentPools = async (): Promise<RecentPool[]> => {
+  if (isEnvValidationSkipped()) return [];
+  const pools = await poolsCollection();
+  const rows = await pools
+    .find(
+      { visible: true },
+      {
+        projection: { name: 1, tournament: 1, round: 1, year: 1, createdAt: 1 },
+        sort: { createdAt: -1, _id: 1 },
+        limit: RECENT_POOLS,
+        hint: POOL_INDEXES.recent,
+        maxTimeMS: QUERY_TIME_MS,
+      },
+    )
+    .toArray();
+  return rows as RecentPool[];
 };
 
 /**

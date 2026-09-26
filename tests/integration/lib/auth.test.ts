@@ -4,9 +4,12 @@
  *       id from the profile and refuses anyone not in ADMIN_OSU_IDS (no user row, no session, the
  *       callback lands on the error page); an admin signs in (PKCE, our callback, no osu! tokens
  *       kept); an id removed from the list loses its session at once and can't sign in again.
+ *       Every failure lands on /signin with the error code: a refused osu! account back on the
+ *       page it came from, and a callback with a bad state (no state to read the page from) on
+ *       /signin?error=state_mismatch rather than better-auth's bare error page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -65,7 +68,7 @@ const signInWithOsu = async (profile: Record<string, unknown>): Promise<Response
       body: JSON.stringify({
         provider: "osu",
         callbackURL: "/admin",
-        errorCallbackURL: "/signin?error=oauth",
+        errorCallbackURL: "/signin?next=%2Fadmin",
       }),
     }),
   );
@@ -85,6 +88,18 @@ const signInWithOsu = async (profile: Record<string, unknown>): Promise<Response
     ),
   );
 };
+
+describe("sign-in errors", () => {
+  it("sends a callback with a bad state to /signin?error=state_mismatch, not a 500", async () => {
+    const callback = await GET(
+      new Request("http://localhost:3000/api/auth/callback/osu?code=abc&state=forged"),
+    );
+    expect(callback.status).toBe(302);
+    expect(callback.headers.get("location")).toBe(
+      "http://localhost:3000/signin?error=state_mismatch",
+    );
+  });
+});
 
 describe("the user hook", () => {
   it("sees the osu! id the profile maps to, and refuses anyone not listed", () => {
@@ -111,7 +126,9 @@ describe("osu! sign-in", () => {
 
   it("refuses anyone else: no user, no session, the error page", async () => {
     const callback = await signInWithOsu(PROFILE(2));
-    expect(callback.headers.get("location") ?? "").toContain("error");
+    expect(callback.headers.get("location")).toBe(
+      "/signin?next=%2Fadmin&error=unable_to_create_user",
+    );
     expect(await getDb().collection("user").countDocuments({ osuId: 2 })).toBe(0);
     expect(await getDb().collection("session").countDocuments()).toBe(0);
   });

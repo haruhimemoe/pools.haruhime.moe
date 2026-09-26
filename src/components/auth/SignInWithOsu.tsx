@@ -1,10 +1,10 @@
 /**
  * @file src/components/auth/SignInWithOsu.tsx
- * @desc "Sign in with osu!": starts the OAuth redirect, then lands on `next` (or the sign-in page's
- *       error when osu! or the admin check says no).
+ * @desc "Sign in with osu!": starts the OAuth redirect, then lands on `next`, or back on
+ *       /signin?next=<next>&error=<code> when osu! or the admin check says no.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 "use client";
@@ -25,7 +25,8 @@ export function SignInWithOsu({ next }: { next: string }) {
     const { error: failed } = await authClient.signIn.social({
       provider: OSU_PROVIDER_ID,
       callbackURL: next,
-      errorCallbackURL: "/signin?error=oauth",
+      // better-auth adds &error=<code>; /signin explains it and keeps where to go next.
+      errorCallbackURL: `/signin?next=${encodeURIComponent(next)}`,
     });
     if (failed) {
       setError(failed.message ?? FAILED);

@@ -1,18 +1,20 @@
 /**
  * @file src/components/home/HomeScreen.tsx
  * @desc The home page: what pools is, its counts with a link to where pools come from (/data,
- *       rather than naming one source), a pools search (a plain GET form), the maps search, and
- *       links to the full search and the check.
+ *       rather than naming one source), a pools search (a plain GET form), the maps search (all
+ *       osu! maps), links to the full search, the check and Submit a pool, and the pools added
+ *       last (left out when there are none).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { Button, ButtonLink, Card, PageHeader, TextInput } from "@haruhimemoe/ui";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { MapSearchForm } from "@/components/home/MapSearchForm";
-import type { HomeCounts } from "@/services/pools";
+import type { HomeCounts, RecentPool } from "@/services/pools";
+import { poolHeadline } from "@/utils/pool-text";
 
 const countsLine = ({ pools, maps }: HomeCounts): ReactNode =>
   pools === 0 ? (
@@ -26,7 +28,13 @@ const countsLine = ({ pools, maps }: HomeCounts): ReactNode =>
     </>
   );
 
-export function HomeScreen({ counts }: { counts: HomeCounts }) {
+export function HomeScreen({
+  counts,
+  recent = [],
+}: {
+  counts: HomeCounts;
+  recent?: readonly RecentPool[];
+}) {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
@@ -67,7 +75,24 @@ export function HomeScreen({ counts }: { counts: HomeCounts }) {
         <ButtonLink href="/check" variant="secondary">
           Check a pool
         </ButtonLink>
+        <ButtonLink href="/submit" variant="secondary">
+          Submit a pool
+        </ButtonLink>
       </div>
+      {recent.length > 0 ? (
+        <Card title="Recently added">
+          <ul className="flex flex-col gap-2">
+            {recent.map((pool) => (
+              <li key={pool._id}>
+                <Link href={`/pools/${pool._id}`} className="font-bold text-c1 hover:underline">
+                  {pool.name}
+                </Link>
+                <p className="text-c3 text-sm">{poolHeadline(pool)}</p>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
     </div>
   );
 }

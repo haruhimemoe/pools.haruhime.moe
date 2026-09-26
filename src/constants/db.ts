@@ -5,7 +5,7 @@
  *       the index names searches hint.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 export const POOLS_COLLECTION = "pools";
@@ -25,6 +25,8 @@ export const POOL_INDEXES = Object.freeze({
   year: "visible_1_year_-1__id_1",
   name: "visible_1_sortName_1__id_1",
   maps: "visible_1_stats.count_-1__id_1",
+  /** The home page's Recently added. */
+  recent: "visible_1_createdAt_-1__id_1",
   beatmap: "slots.beatmapId_1",
   source: "sources.kind_1_sources.id_1",
   tournament: "tournamentKey_1_year_1",

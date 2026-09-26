@@ -3,10 +3,11 @@
  * @desc Copy people read follows the house rules: no em dashes in the docs, the legal pages or the
  *       site's copy constants; nothing says every pool comes from otdb (hosts and community
  *       members send pools too), and the site description names no single source; the README
- *       stays a user doc (no maintainer notes); every doc ends with a newline.
+ *       stays a user doc (no maintainer notes) and starts with the banner; every doc ends with a
+ *       newline.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { readdirSync, readFileSync } from "node:fs";
@@ -92,6 +93,13 @@ describe("copy rules", () => {
 
   it.each(DOCS)("%s ends with a newline", (file) => {
     expect(readFileSync(file, "utf8").endsWith("\n")).toBe(true);
+  });
+
+  it("starts the README with the banner", () => {
+    const [first] = readFileSync("README.md", "utf8").split("\n");
+    expect(first).toBe(
+      '<p align="center"><a href="https://pools.haruhime.moe"><picture><source media="(prefers-color-scheme: light)" srcset="https://www.haruhime.moe/brand/repos/pools.haruhime.moe-banner-on-light.svg"><img alt="pools.haruhime.moe" src="https://www.haruhime.moe/brand/repos/pools.haruhime.moe-banner.svg" width="640"></picture></a></p>',
+    );
   });
 
   it("keeps the README for users", () => {

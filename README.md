@@ -1,22 +1,29 @@
+<p align="center"><a href="https://pools.haruhime.moe"><picture><source media="(prefers-color-scheme: light)" srcset="https://www.haruhime.moe/brand/repos/pools.haruhime.moe-banner-on-light.svg"><img alt="pools.haruhime.moe" src="https://www.haruhime.moe/brand/repos/pools.haruhime.moe-banner.svg" width="640"></picture></a></p>
+
 # pools.haruhime.moe
 
-Past osu! tournament mappools at **https://pools.haruhime.moe**. Search pools and the maps in them, see every tournament a map was played in, and check a pool you're building against the content rules for officially supported tournaments.
+Past osu! tournament mappools at **https://pools.haruhime.moe**. Search pools and the maps in them, search every osu! map for ones you can pool, see every tournament a map was played in, and check a pool you're building against the content rules for officially supported tournaments.
+
+pools is in beta: things can move around, and some pools are still missing. Tell us what's wrong in the [Discord server](https://discord.gg/bKy9kjMV4y) or at contact@haruhime.moe.
 
 The site never hosts beatmap files. "Open in packs" opens the pool on [packs.haruhime.moe](https://packs.haruhime.moe), which downloads each map from the beatmap mirror straight to your browser.
 
 ## Features
 
 - **Pool search:** by tournament, round or name, year, star rating, number of maps, whether the tournament was badged (once that's known), or a map the pool contains. Sort by year, name or size.
-- **Map search:** by title, artist, set host or difficulty name, star rating, length, BPM, AR, OD, CS, what the map was played as (NM, HD, HR, DT, FM, TB, EZ, HT, FL), how many pools used it and the last year one did.
-- **Pool pages:** every map with its slot, star rating, length and BPM, a Copy ID button for `!mp map`, the pool's notes, where it came from, and Open in packs.
+- **Search every osu! map:** by title, artist or mapper, status (Ranked, Loved, Qualified, Pending, Graveyard or Any), star rating, length and BPM. Sets that can't be used in officially supported tournaments are left out (the page says how many), sets to check first are marked, and graveyard and pending maps carry a warning. Each difficulty says how many pools played it. Explicit maps show only when you ask.
+- **Maps played in pools:** by title, artist, set host or difficulty name, star rating, length, BPM, AR, OD, CS, what the map was played as (NM, HD, HR, DT, FM, TB, EZ, HT, FL), how many pools used it and the last year one did.
+- **Pool pages:** every map with its slot, star rating, length and BPM, a Copy ID button for `!mp map`, the pool's notes, who it came from (otdb, the tournament's hosts or a community member, with their link), and Open in packs.
 - **Map pages:** the map's details and every pool that played it, newest first.
 - **Compliance check:** paste beatmap IDs or links, a pool, or a pack key, and each map's beatmapset is checked against the osu! content rules for officially supported tournaments. It's a guide, not a ruling: the osu! Tournament Committee decides.
+- **Home page:** counts, quick pool and map searches, and the pools added last.
+- **Submit a pool:** tournament hosts and community members send pools in the Discord server or by email (see [Submit a pool](https://pools.haruhime.moe/submit)). An admin checks each one by hand and adds it; a pool whose maps match one we have joins it instead of making a copy.
 
 Every star rating on the site is without mods.
 
 ## Where the data comes from
 
-Some past pools come from the public export of [otdb](https://otdb.sheppsu.me), by Sheppsu, used with his permission. Tournament hosts and community members send others, and each pool page names its sources. To send one, see [Submit a pool](https://pools.haruhime.moe/submit). Map details and star ratings come from the osu! API and the hinai mirror, and the check reads the osu! API. The [data page](https://pools.haruhime.moe/data) and the [credits page](https://pools.haruhime.moe/credits) have the rest.
+Some past pools come from the public export of [otdb](https://otdb.sheppsu.me), by Sheppsu, used with his permission. Tournament hosts and community members send others, and each pool page names its sources. To send one, see [Submit a pool](https://pools.haruhime.moe/submit). Map details and star ratings come from the osu! API and the hinai mirror, searching every osu! map asks the hinai mirror, and the check reads the osu! API. The [data page](https://pools.haruhime.moe/data) and the [credits page](https://pools.haruhime.moe/credits) have the rest.
 
 ## Setup
 
