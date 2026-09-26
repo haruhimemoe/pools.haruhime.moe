@@ -3,15 +3,18 @@
  * @desc Search state in the URL: defaults, every pools and maps param, and what's unreadable
  *       (bad page numbers, crossed or reversed ranges, unknown tabs, sorts, codes and badged
  *       values) read as unset, never an error; a page capped at 200, a query at 100 characters
- *       and a map reference at 200; ranges snapped to their sliders; and the URL round trip.
+ *       and a map reference at 200; ranges snapped to their sliders; and the URL round trip. The
+ *       maps tab's scope: all maps by default, played for old links with a played-only filter,
+ *       scope winning when given, all-maps status and Show explicit maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { describe, expect, it } from "vitest";
 import { YEAR_RANGE } from "@/constants/search";
 import {
+  EMPTY_ALL_MAP_FILTERS,
   EMPTY_MAP_FILTERS,
   EMPTY_POOL_FILTERS,
   parseLengthText,
@@ -53,6 +56,7 @@ describe("parseSearchState", () => {
       ),
     ).toEqual({
       tab: "maps",
+      scope: "played",
       page: 1,
       filters: {
         q: "dive",
@@ -87,6 +91,7 @@ describe("parseSearchState", () => {
     });
     expect(parseSearchState("tab=maps&sort=year&played=SD&len=abc")).toEqual({
       tab: "maps",
+      scope: "played",
       page: 1,
       filters: EMPTY_MAP_FILTERS,
     });
@@ -106,6 +111,7 @@ describe("serializeSearchState", () => {
   it("writes only what's set, in a fixed order, the query last", () => {
     const state: SearchState = {
       tab: "maps",
+      scope: "played",
       page: 2,
       filters: {
         ...EMPTY_MAP_FILTERS,
@@ -116,10 +122,10 @@ describe("serializeSearchState", () => {
       },
     };
     expect(serializeSearchState(state)).toBe(
-      "tab=maps&sr=6-&played=NM,HD&sort=last&page=2&q=freedom%20dive",
+      "tab=maps&scope=played&sr=6-&played=NM,HD&sort=last&page=2&q=freedom%20dive",
     );
     expect(searchHref(state)).toBe(
-      "/search?tab=maps&sr=6-&played=NM,HD&sort=last&page=2&q=freedom%20dive",
+      "/search?tab=maps&scope=played&sr=6-&played=NM,HD&sort=last&page=2&q=freedom%20dive",
     );
     expect(searchHref({ tab: "pools", page: 1, filters: EMPTY_POOL_FILTERS })).toBe("/search");
   });
@@ -140,6 +146,7 @@ describe("serializeSearchState", () => {
     },
     {
       tab: "maps",
+      scope: "played",
       page: 1,
       filters: {
         ...EMPTY_MAP_FILTERS,
@@ -173,5 +180,89 @@ describe("parseLengthText", () => {
     ["abc", null],
   ])("reads %j as %s", (text, seconds) => {
     expect(parseLengthText(text)).toBe(seconds);
+  });
+});
+
+describe("the maps tab's scope", () => {
+  it("reads a maps search with no scope and no played-only filter as all maps", () => {
+    expect(parseSearchState("tab=maps&q=dive&sr=6-7&len=90-&bpm=180-")).toEqual({
+      tab: "maps",
+      scope: "all",
+      page: 1,
+      filters: {
+        ...EMPTY_ALL_MAP_FILTERS,
+        q: "dive",
+        sr: [6, 7],
+        len: [90, null],
+        bpm: [180, null],
+      },
+    });
+    expect(parseSearchState("tab=maps")).toEqual({
+      tab: "maps",
+      scope: "all",
+      page: 1,
+      filters: EMPTY_ALL_MAP_FILTERS,
+    });
+  });
+
+  it.each(["ar=9-", "od=8-", "cs=4-", "played=DT", "used=2-", "last=2020-", "sort=title"])(
+    "keeps an old link with %s on maps played in pools",
+    (param) => {
+      expect(parseSearchState(`tab=maps&${param}`)).toMatchObject({ scope: "played" });
+    },
+  );
+
+  it("lets scope win, and reads a bad scope as unset", () => {
+    expect(parseSearchState("tab=maps&scope=played")).toMatchObject({ scope: "played" });
+    expect(parseSearchState("tab=maps&scope=all&ar=9-&sort=title")).toEqual({
+      tab: "maps",
+      scope: "all",
+      page: 1,
+      filters: EMPTY_ALL_MAP_FILTERS,
+    });
+    expect(parseSearchState("tab=maps&scope=every")).toMatchObject({ scope: "all" });
+  });
+
+  it("reads a status and Show explicit maps, and ignores a status it doesn't know", () => {
+    expect(parseSearchState("tab=maps&status=graveyard&explicit=show")).toMatchObject({
+      scope: "all",
+      filters: { status: "graveyard", explicit: true },
+    });
+    expect(parseSearchState("tab=maps&status=wip&explicit=only")).toMatchObject({
+      filters: { status: "ranked", explicit: false },
+    });
+  });
+
+  it("writes scope=played for a played search and never scope=all", () => {
+    const played: SearchState = {
+      tab: "maps",
+      scope: "played",
+      page: 1,
+      filters: EMPTY_MAP_FILTERS,
+    };
+    expect(serializeSearchState(played)).toBe("tab=maps&scope=played");
+    const all: SearchState = { tab: "maps", scope: "all", page: 1, filters: EMPTY_ALL_MAP_FILTERS };
+    expect(serializeSearchState(all)).toBe("tab=maps");
+  });
+
+  it("round-trips an all-maps search", () => {
+    const state: SearchState = {
+      tab: "maps",
+      scope: "all",
+      page: 3,
+      filters: {
+        q: "freedom dive",
+        status: "loved",
+        sr: [6.5, null],
+        len: [60, 300],
+        bpm: [200, null],
+        explicit: true,
+      },
+    };
+    const text = serializeSearchState(state);
+    expect(text).toBe(
+      "tab=maps&status=loved&sr=6.5-&len=60-300&bpm=200-&explicit=show&page=3&q=freedom%20dive",
+    );
+    expect(parseSearchState(text)).toEqual(state);
   });
 });

@@ -8,7 +8,7 @@
  *       with nothing in them are left out. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
@@ -75,7 +75,7 @@ export const llmsSections = ({
         title: "Search",
         url: at("/search"),
         description:
-          "Search and filter pools and maps; filters, sort and page live in the query string.",
+          "Search and filter pools, every osu! map (sets not allowed in officially supported tournaments left out) or the maps played in pools; filters, sort and page live in the query string.",
       },
       {
         title: "Check a pool",

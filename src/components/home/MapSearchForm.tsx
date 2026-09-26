@@ -1,10 +1,11 @@
 /**
  * @file src/components/home/MapSearchForm.tsx
  * @desc The home page's maps search: a beatmap ID or link opens the map's page, anything else
- *       searches maps. Without JavaScript the form still submits to /search?tab=maps.
+ *       searches all osu! maps (the maps tab's default scope). Without JavaScript the form still
+ *       submits to /search?tab=maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 "use client";
@@ -35,7 +36,7 @@ export function MapSearchForm() {
       <TextInput
         id="home-maps"
         name="q"
-        label="Title, artist, set host, or a beatmap ID or link"
+        label="Any osu! map: title, artist, mapper, or a beatmap ID or link"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         autoComplete="off"

@@ -1,10 +1,12 @@
 /**
  * @file src/constants/search.ts
- * @desc Search limits and options: paging, caching, slider bounds, sorts and labels, shared by
+ * @desc Search limits and options: paging, caching, slider bounds, sorts and labels, the maps
+ *       tab's scope (all osu! maps or maps played in pools), the all-maps statuses, the mirror's
+ *       search endpoint and its timeout, and the fixed copy the all-maps search shows. Shared by
  *       the page, the route and the queries.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { FIRST_YEAR } from "@/constants/pools";
@@ -94,3 +96,50 @@ export const MAP_SORT_LABELS: Readonly<Record<MapSort, string>> = Object.freeze(
   length: "Length, longest first",
   title: "Title, A to Z",
 });
+
+/** The maps tab searches every osu! map (the mirror) or the maps played in pools (ours). */
+export const MAP_SCOPES = ["all", "played"] as const;
+export type MapScope = (typeof MAP_SCOPES)[number];
+export const MAP_SCOPE_LABELS: Readonly<Record<MapScope, string>> = Object.freeze({
+  all: "All osu! maps",
+  played: "Played in pools",
+});
+
+/** All-maps status chips, one at a time (the mirror filters on one). Ranked includes approved. */
+export const MAP_STATUSES = [
+  "ranked",
+  "loved",
+  "qualified",
+  "pending",
+  "graveyard",
+  "any",
+] as const;
+export type MapStatus = (typeof MAP_STATUSES)[number];
+export const DEFAULT_MAP_STATUS: MapStatus = "ranked";
+export const MAP_STATUS_LABELS: Readonly<Record<MapStatus, string>> = Object.freeze({
+  ranked: "Ranked",
+  loved: "Loved",
+  qualified: "Qualified",
+  pending: "Pending",
+  graveyard: "Graveyard",
+  any: "Any",
+});
+
+/** The hinai mirror's search, called from our server only. */
+export const MIRROR_SEARCH_URL = "https://mirror.hinamizawa.ai/v3/osu/beatmaps/search/v2";
+export const MIRROR_SEARCH_TIMEOUT_MS = 10_000;
+/** osu! reports at most this many results for a search the mirror passes on to it. */
+export const MIRROR_TOTAL_CAP = 10_000;
+
+export const ALL_MAPS_FAILED =
+  "Searching all osu! maps isn't working right now. Maps played in pools still work.";
+export const UNRANKED_WARNING =
+  "Unranked maps can change or disappear after you pool them. Check the map before your round.";
+
+/**
+ * @function hiddenSetsText
+ * @param count {number} sets left out of this page
+ * @returns {string} "12 hidden: not allowed in officially supported tournaments"
+ */
+export const hiddenSetsText = (count: number): string =>
+  `${count} hidden: not allowed in officially supported tournaments`;

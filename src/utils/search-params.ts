@@ -4,11 +4,15 @@
  *       page (1 to 200) and each tab's filters, read from query params where anything that can't
  *       be read counts as unset (never an error), and written back with only what's set, in a
  *       fixed order, so equal searches share one URL (and one CDN entry). Ranges snap to their
- *       slider (open at the edges; a range covering the whole slider is no filter). Also the
+ *       slider (open at the edges; a range covering the whole slider is no filter). The maps tab
+ *       has a scope: all osu! maps (the default) or maps played in pools. `scope` wins when
+ *       given; without it, a link carrying a played-only filter (ar, od, cs, played, used,
+ *       last, or a sort) reads as played, so links from before the scope still work. A played
+ *       search always writes scope=played; an all-maps search never writes a scope. Also the
  *       answer shapes the route sends. Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { PLAYED_AS_CODES, type PlayedAsCode } from "@/constants/pools";
@@ -19,15 +23,19 @@ import {
   BPM_RANGE,
   CS_RANGE,
   DEFAULT_MAP_SORT,
+  DEFAULT_MAP_STATUS,
   DEFAULT_POOL_SORT,
   type FilterBounds,
   LENGTH_RANGE,
   MAP_COUNT_RANGE,
   MAP_SORTS,
+  MAP_STATUSES,
   MAX_MAP_REF_LENGTH,
   MAX_QUERY_LENGTH,
   MAX_SEARCH_PAGE,
+  type MapScope,
   type MapSort,
+  type MapStatus,
   OD_RANGE,
   POOL_SORTS,
   type PoolSort,
@@ -88,9 +96,45 @@ export const EMPTY_MAP_FILTERS: MapFilters = Object.freeze({
   sort: DEFAULT_MAP_SORT,
 }) as MapFilters;
 
+/** Searching every osu! map through the mirror. */
+export type AllMapFilters = {
+  q: string;
+  status: MapStatus;
+  sr: Range | null;
+  len: Range | null;
+  bpm: Range | null;
+  /** Show explicit maps (the mirror hides them unless asked). */
+  explicit: boolean;
+};
+
+export const EMPTY_ALL_MAP_FILTERS: AllMapFilters = Object.freeze({
+  q: "",
+  status: DEFAULT_MAP_STATUS,
+  sr: null,
+  len: null,
+  bpm: null,
+  explicit: false,
+}) as AllMapFilters;
+
 export type SearchState =
   | { tab: "pools"; page: number; filters: PoolFilters }
-  | { tab: "maps"; page: number; filters: MapFilters };
+  | { tab: "maps"; scope: "played"; page: number; filters: MapFilters }
+  | { tab: "maps"; scope: "all"; page: number; filters: AllMapFilters };
+
+/** Params only a played-in-pools search has: a link carrying one predates the scope. */
+const PLAYED_ONLY_PARAMS = ["ar", "od", "cs", "played", "used", "last", "sort"] as const;
+
+/**
+ * @function mapScopeOf
+ * @param params {URLSearchParams} a maps search's params
+ * @returns {MapScope} scope when it's all or played; else played for a link carrying a
+ *          played-only filter, all otherwise
+ */
+export const mapScopeOf = (params: URLSearchParams): MapScope => {
+  const scope = params.get("scope");
+  if (scope === "all" || scope === "played") return scope;
+  return PLAYED_ONLY_PARAMS.some((name) => (params.get(name) ?? "") !== "") ? "played" : "all";
+};
 
 const round = (n: number, decimals: number): number => {
   const scale = 10 ** decimals;
@@ -190,15 +234,31 @@ const parsePlayed = (raw: string | null): PlayedAsCode[] => {
 /**
  * @function parseSearchState
  * @param search {string | URLSearchParams} a query string (with or without "?") or its params
- * @returns {SearchState} the tab, page and that tab's filters
+ * @returns {SearchState} the tab (and the maps tab's scope), page and its filters
  */
 export const parseSearchState = (search: string | URLSearchParams): SearchState => {
   const params = typeof search === "string" ? new URLSearchParams(search) : search;
   const page = parsePageParam(params.get("page"));
   const q = (params.get("q") ?? "").trim().slice(0, MAX_QUERY_LENGTH);
+  if (params.get("tab") === "maps" && mapScopeOf(params) === "all") {
+    return {
+      tab: "maps",
+      scope: "all",
+      page,
+      filters: {
+        q,
+        status: pick(params.get("status"), MAP_STATUSES, DEFAULT_MAP_STATUS),
+        sr: parseRange(params.get("sr"), STAR_RANGE),
+        len: parseLengthRange(params.get("len")),
+        bpm: parseRange(params.get("bpm"), BPM_RANGE),
+        explicit: params.get("explicit") === "show",
+      },
+    };
+  }
   if (params.get("tab") === "maps") {
     return {
       tab: "maps",
+      scope: "played",
       page,
       filters: {
         q,
@@ -242,17 +302,26 @@ const wellFormed = (text: string): string =>
 /**
  * @function serializeSearchState
  * @param state {SearchState} a search
- * @returns {string} the query string without "?": tab (maps only), the tab's filters, sort (when
- *          not the default), page (from 2), and q last; empty for the defaults. Never throws.
+ * @returns {string} the query string without "?": tab (maps only), scope (played only), the
+ *          tab's filters, sort or status (when not the default), page (from 2), and q last;
+ *          empty for the defaults. Never throws.
  */
 export const serializeSearchState = (state: SearchState): string => {
   const parts: string[] = [];
   const range = (name: string, value: Range | null) => {
     if (value) parts.push(`${name}=${rangeText(value)}`);
   };
-  if (state.tab === "maps") {
+  if (state.tab === "maps" && state.scope === "all") {
     const f = state.filters;
     parts.push("tab=maps");
+    if (f.status !== DEFAULT_MAP_STATUS) parts.push(`status=${f.status}`);
+    range("sr", f.sr);
+    range("len", f.len);
+    range("bpm", f.bpm);
+    if (f.explicit) parts.push("explicit=show");
+  } else if (state.tab === "maps") {
+    const f = state.filters;
+    parts.push("tab=maps&scope=played");
     range("sr", f.sr);
     range("len", f.len);
     range("bpm", f.bpm);
@@ -317,6 +386,16 @@ export const hasMapFilters = (filters: MapFilters): boolean =>
     filters.last,
   ].some((value) => value !== null) || filters.played.length > 0;
 
+/**
+ * @function hasAllMapFilters
+ * @param filters {AllMapFilters} all-maps filters
+ * @returns {boolean} whether any filter row is set (the text aside; Ranked is the default)
+ */
+export const hasAllMapFilters = (filters: AllMapFilters): boolean =>
+  filters.status !== DEFAULT_MAP_STATUS ||
+  filters.explicit ||
+  [filters.sr, filters.len, filters.bpm].some((value) => value !== null);
+
 /** A pool in search results. */
 export type PoolResult = {
   id: string;
@@ -341,6 +420,31 @@ export type MapResult = {
   usage: { count: number; lastYear: number | null; playedAs: PlayedAsCode[] };
 };
 
+/** One osu! difficulty in all-maps results. */
+export type AllMapDifficulty = {
+  id: number;
+  version: string;
+  stars: number;
+  length: number;
+  bpm: number;
+  /** Current pools that played it; null when that lookup failed. */
+  playedIn: number | null;
+};
+
+/** One beatmapset in all-maps results (disallowed ones never are). */
+export type AllMapSet = {
+  setId: number;
+  artist: string;
+  title: string;
+  creator: string;
+  status: string;
+  /** Graveyard, pending or WIP: it can change or disappear. */
+  unranked: boolean;
+  /** Null when nothing stands in its way; potential sets say why to check first. */
+  check: { text: string } | null;
+  maps: AllMapDifficulty[];
+};
+
 /** What GET /api/search answers. */
 export type SearchResponse =
   | {
@@ -354,9 +458,21 @@ export type SearchResponse =
     }
   | {
       tab: "maps";
+      scope: "played";
       page: number;
       pageCount: number;
       total: number;
       hiddenMissing: number;
       results: MapResult[];
+    }
+  | {
+      tab: "maps";
+      scope: "all";
+      page: number;
+      pageCount: number;
+      /** The mirror's total, when it gives one. */
+      total: number | null;
+      /** Sets on this page left out as not allowed in officially supported tournaments. */
+      hidden: number;
+      results: AllMapSet[];
     };

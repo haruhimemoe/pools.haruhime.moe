@@ -6,6 +6,10 @@ Pools come from a few places. Some past pools come from the public export of [ot
 
 A pool is only as right as its source. We read a pool's tournament, round and year from its name, so some are wrong, and about two in three pools from otdb have no year. Admins fix what they find.
 
+## Searching all osu! maps
+
+Searching all osu! maps asks the hinai mirror, which reads only map details (never files). We leave out sets the content rules don't allow in officially supported tournaments and mark the ones to check first, but the rules can be wrong and the osu! Tournament Committee decides. Graveyard and pending maps can change or disappear after you pool them.
+
 ## Star ratings
 
 Every star rating on this site is the map's rating without mods, even in HR, DT or EZ slots. A pool's star range uses the same ratings, so it can differ from the range packs shows for the same pool.
@@ -16,7 +20,7 @@ The check reads each beatmapset's details from the osu! API and applies the cont
 
 ## How our requests identify themselves
 
-Our server sends `pools.haruhime.moe (+https://pools.haruhime.moe; contact@haruhime.moe)` as its User-Agent on every request it makes: to the osu! API (for the check, with pools' own osu! app), to the hinai mirror and to otdb (when an admin runs an import), and to packs.haruhime.moe (to keep each pool's pack up to date).
+Our server sends `pools.haruhime.moe (+https://pools.haruhime.moe; contact@haruhime.moe)` as its User-Agent on every request it makes: to the osu! API (for the check, with pools' own osu! app), to the hinai mirror (when someone searches all osu! maps, and for map details when an admin runs an import or adds a pool), to otdb (when an admin runs an import), and to packs.haruhime.moe (to keep each pool's pack up to date).
 
 ## Contact
 

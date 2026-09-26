@@ -3,10 +3,14 @@
  * @desc The search page: it fetches the URL's search and lists the results with the count and
  *       "hidden, data missing"; typing writes the URL (once the typing stops); the badged row
  *       shows only when some pool knows it; the route's message shows under "contains map"; the
- *       maps tab lists maps with their usage; the pages link through the URL.
+ *       maps tab lists maps played in pools with their usage; the pages link through the URL.
+ *       All maps (the maps tab's default): the scope switch, sets with their difficulties and
+ *       how many pools played each, "Check first" and the unranked line, how many sets were
+ *       hidden and why, one status chip at a time, and the fixed failure sentence with a link
+ *       to the same search in maps played in pools.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { render, screen, waitFor } from "@testing-library/react";
@@ -94,11 +98,12 @@ describe("SearchScreen", () => {
     expect(await screen.findByText("That link is a whole beatmapset.")).toBeInTheDocument();
   });
 
-  it("lists maps with their usage on the maps tab", async () => {
-    current = new URLSearchParams("tab=maps");
+  it("lists maps with their usage on the maps tab's played scope", async () => {
+    current = new URLSearchParams("tab=maps&scope=played");
     fetchMock.mockImplementation(async () =>
       Response.json({
         tab: "maps",
+        scope: "played",
         page: 1,
         pageCount: 1,
         total: 1,
@@ -125,5 +130,120 @@ describe("SearchScreen", () => {
     expect(screen.getByText(/Used in 3 pools \(latest 2023\)/)).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Played as" })).toBeInTheDocument();
     expect(screen.getByText("1 map")).toBeInTheDocument();
+  });
+});
+
+const ALL = {
+  tab: "maps",
+  scope: "all",
+  page: 1,
+  pageCount: 2,
+  total: 60,
+  hidden: 2,
+  results: [
+    {
+      setId: 39804,
+      artist: "xi",
+      title: "FREEDOM DiVE",
+      creator: "Nakagawa-Kanon",
+      status: "ranked",
+      unranked: false,
+      check: null,
+      maps: [
+        { id: 129891, version: "FOUR DIMENSIONS", stars: 7.81, length: 258, bpm: 222, playedIn: 3 },
+        { id: 129892, version: "Another", stars: 5.2, length: 258, bpm: 222, playedIn: 0 },
+      ],
+    },
+    {
+      setId: 102,
+      artist: "Frums",
+      title: "Credits",
+      creator: "Mapper",
+      status: "pending",
+      unranked: true,
+      check: { text: "Needs a closer look" },
+      maps: [{ id: 1002, version: "Insane", stars: 5, length: 120, bpm: 180, playedIn: null }],
+    },
+  ],
+};
+
+describe("SearchScreen, all maps", () => {
+  it("searches every map by default and lists sets with their difficulties", async () => {
+    current = new URLSearchParams("tab=maps&q=dive");
+    fetchMock.mockImplementation(async () => Response.json(ALL));
+    render(<SearchScreen />);
+    expect(await screen.findByText("xi - FREEDOM DiVE")).toBeInTheDocument();
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/search?tab=maps&q=dive");
+    expect(screen.getByRole("link", { name: "All osu! maps" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("link", { name: "Played in pools" })).toHaveAttribute(
+      "href",
+      "/search?tab=maps&scope=played&q=dive",
+    );
+    expect(screen.getByRole("link", { name: "Played in 3 pools" })).toHaveAttribute(
+      "href",
+      "/maps/129891",
+    );
+    expect(screen.getByText("Not played in a pool yet")).toBeInTheDocument();
+    expect(
+      screen.getByText("2 hidden: not allowed in officially supported tournaments"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Check first")).toBeInTheDocument();
+    expect(screen.getByText("Needs a closer look")).toBeInTheDocument();
+    expect(screen.getByText("Unranked")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Unranked maps can change or disappear after you pool them. Check the map before your round.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps one status chip at a time and writes it to the URL", async () => {
+    current = new URLSearchParams("tab=maps");
+    fetchMock.mockImplementation(async () => Response.json(ALL));
+    const user = userEvent.setup();
+    render(<SearchScreen />);
+    const ranked = await screen.findByRole("button", { name: "Ranked" });
+    expect(ranked).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "Loved" }));
+    expect(screen.getByRole("button", { name: "Loved" })).toHaveAttribute("aria-pressed", "true");
+    expect(ranked).toHaveAttribute("aria-pressed", "false");
+    await user.click(screen.getByRole("button", { name: "Loved" }));
+    expect(screen.getByRole("button", { name: "Loved" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByLabelText("Show explicit maps"));
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith("/search?tab=maps&status=loved&explicit=show", {
+        scroll: false,
+      }),
+    );
+  });
+
+  it("says when searching all maps fails and links the same search in played maps", async () => {
+    current = new URLSearchParams("tab=maps&q=dive");
+    fetchMock.mockImplementation(async () =>
+      Response.json(
+        {
+          error: {
+            code: "mirror_unavailable",
+            message:
+              "Searching all osu! maps isn't working right now. Maps played in pools still work.",
+          },
+        },
+        { status: 503 },
+      ),
+    );
+    render(<SearchScreen />);
+    expect(
+      await screen.findByText(
+        "Searching all osu! maps isn't working right now. Maps played in pools still work.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Search maps played in pools" })).toHaveAttribute(
+      "href",
+      "/search?tab=maps&scope=played&q=dive",
+    );
+    expect(screen.queryByText(/0 maps/)).toBeNull();
   });
 });

@@ -7,7 +7,7 @@
  *       else comes back as a message for the person.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import "server-only";
@@ -28,7 +28,7 @@ import type {
 import { type BuiltQuery, mapQuery, poolQuery } from "@/utils/search-query";
 
 type PoolsAnswer = Omit<Extract<SearchResponse, { tab: "pools" }>, "tab">;
-type MapsAnswer = Omit<Extract<SearchResponse, { tab: "maps" }>, "tab">;
+type MapsAnswer = Omit<Extract<SearchResponse, { tab: "maps"; scope: "played" }>, "tab" | "scope">;
 
 const pageCountOf = (total: number): number =>
   Math.min(MAX_SEARCH_PAGE, Math.ceil(total / SEARCH_PAGE_SIZE));

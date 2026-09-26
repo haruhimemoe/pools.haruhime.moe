@@ -3,7 +3,7 @@
  * @desc The home page's map box: a beatmap ID or link opens the map, words search maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -24,7 +24,7 @@ describe("MapSearchForm", () => {
     const user = userEvent.setup();
     render(<MapSearchForm />);
     await user.type(
-      screen.getByLabelText("Title, artist, set host, or a beatmap ID or link"),
+      screen.getByLabelText("Any osu! map: title, artist, mapper, or a beatmap ID or link"),
       typed,
     );
     await user.click(screen.getByRole("button", { name: "Search maps" }));

@@ -4,20 +4,28 @@
  *       answers (so a pool an admin hides leaves search within 5 minutes), a 300-character paste
  *       of regex characters and full-width letters as 200, a bad map reference as 400 no-store,
  *       60 requests a minute per IP then 429 with Retry-After and no-store (another IP
- *       unaffected), and reads no cookies.
+ *       unaffected), and reads no cookies. All maps (a stand-in mirror, msw): sets that can't be
+ *       used hidden and counted, cached like any search; every way the mirror fails (an error
+ *       body with no sets, 400 invalid_explicit, 503, 429, Cloudflare HTML) as 503 no-store
+ *       with the fixed sentence, never "0 maps".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { readFileSync } from "node:fs";
+import { HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { GET } from "@/app/api/search/route";
+import { ALL_MAPS_FAILED } from "@/constants/search";
 import { poolsCollection } from "@/models/Pool";
 import { setupTestDb } from "../../../helpers/db";
+import { fixtureSet, mirrorSearchHandler, searchAnswer } from "../../../helpers/mirror-search";
+import { setupMsw } from "../../../helpers/msw";
 import { makePool } from "../../../helpers/records";
 
 setupTestDb();
+const server = setupMsw();
 
 const get = (query: string, ip = "203.0.113.7") =>
   GET(new Request(`http://localhost:3000/api/search?${query}`, { headers: { "x-real-ip": ip } }));
@@ -40,9 +48,9 @@ describe("GET /api/search", () => {
     expect(body.results.map((result) => result.id)).toEqual(["otdb-1"]);
   });
 
-  it("answers maps on the maps tab", async () => {
-    const body = (await (await get("tab=maps")).json()) as { tab: string };
-    expect(body.tab).toBe("maps");
+  it("answers maps played in pools on the maps tab's played scope", async () => {
+    const body = (await (await get("tab=maps&scope=played")).json()) as { scope: string };
+    expect(body).toMatchObject({ tab: "maps", scope: "played" });
   });
 
   it("answers a 300-character paste of regex characters and full-width letters, never a 500", async () => {
@@ -72,5 +80,53 @@ describe("GET /api/search", () => {
     expect(readFileSync("src/app/api/search/route.ts", "utf8")).not.toMatch(
       /cookies|getUserFromHeaders/,
     );
+  });
+});
+
+describe("GET /api/search, all maps", () => {
+  it("answers the page with hidden sets counted, cached like any search", async () => {
+    server.use(
+      mirrorSearchHandler(() =>
+        searchAnswer([fixtureSet(1), fixtureSet(101), fixtureSet(103)], { total_count: 3 }),
+      ),
+    );
+    const response = await get("tab=maps&status=any");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("public, s-maxage=300");
+    const body = (await response.json()) as { results: { setId: number }[] };
+    expect(body).toMatchObject({ tab: "maps", scope: "all", total: 3, hidden: 2 });
+    expect(body.results.map((set) => set.setId)).toEqual([1]);
+  });
+
+  it.each([
+    [
+      "an error body with no sets",
+      () => HttpResponse.json({ error: "All beatmap sources unavailable", sources_tried: [] }),
+    ],
+    [
+      "400 invalid_explicit",
+      () => HttpResponse.json({ error: "bad", code: "invalid_explicit" }, { status: 400 }),
+    ],
+    ["503", () => HttpResponse.json({ error: "degraded" }, { status: 503 })],
+    [
+      "429 with Retry-After",
+      () => new HttpResponse(null, { status: 429, headers: { "Retry-After": "30" } }),
+    ],
+    [
+      "Cloudflare HTML",
+      () =>
+        new HttpResponse("<html><body>Bad gateway</body></html>", {
+          status: 502,
+          headers: { "content-type": "text/html" },
+        }),
+    ],
+  ])("answers the fixed sentence, uncached, when the mirror sends %s", async (_label, answer) => {
+    server.use(mirrorSearchHandler(answer));
+    const response = await get("tab=maps&q=dive");
+    expect(response.status).toBe(503);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.json()).toEqual({
+      error: { code: "mirror_unavailable", message: ALL_MAPS_FAILED },
+    });
   });
 });

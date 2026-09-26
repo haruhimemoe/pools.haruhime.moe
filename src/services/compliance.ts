@@ -10,7 +10,7 @@
  *       (label and usage from current pools), for the rows, or null when that lookup fails.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import "server-only";
@@ -47,7 +47,12 @@ type Deps = {
   subject?: string;
 };
 
-const factsOf = (doc: SetFactsDoc): Facts => ({
+/**
+ * @function factsOf
+ * @param doc {SetFactsDoc} a setFacts row
+ * @returns {BeatmapsetFacts & { setId: number }} the facts the rules read, with the set id
+ */
+export const factsOf = (doc: SetFactsDoc): Facts => ({
   setId: doc._id,
   status: doc.status,
   artist: doc.artist,

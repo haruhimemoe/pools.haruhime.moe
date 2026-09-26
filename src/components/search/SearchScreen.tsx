@@ -3,10 +3,12 @@
  * @desc The search page: Pools and Maps tabs, the tab's filter bar, the results and pages. The
  *       URL is the state: it's read on load and on Back/Forward, and written (replaceState, a
  *       moment after the last change) as filters change, so a search can be shared. Results
- *       come from /api/search. Filter changes go back to page 1.
+ *       come from /api/search. Filter changes go back to page 1. The maps tab searches all osu!
+ *       maps by default (hidden sets counted, the unranked line, a failure linking the same
+ *       search in maps played in pools) or maps played in pools.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 "use client";
@@ -15,14 +17,17 @@ import { Notice, PageHeader, Pagination } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AllMapFilterPanel } from "@/components/search/AllMapFilterPanel";
+import { AllMapResultList } from "@/components/search/AllMapResultList";
 import { MapFilterPanel } from "@/components/search/MapFilterPanel";
 import { MapResultList } from "@/components/search/MapResultList";
+import { MapScopeSwitch, scopeHref } from "@/components/search/MapScopeSwitch";
 import { PoolFilterPanel } from "@/components/search/PoolFilterPanel";
 import { PoolResultList } from "@/components/search/PoolResultList";
-import { URL_WRITE_MS } from "@/constants/search";
+import { hiddenSetsText, UNRANKED_WARNING, URL_WRITE_MS } from "@/constants/search";
 import { useSearchResults } from "@/hooks/useSearchResults";
 import {
-  EMPTY_MAP_FILTERS,
+  EMPTY_ALL_MAP_FILTERS,
   EMPTY_POOL_FILTERS,
   parseSearchState,
   type SearchState,
@@ -30,10 +35,16 @@ import {
   serializeSearchState,
 } from "@/utils/search-params";
 
-const countText = (total: number, tab: SearchState["tab"]): string => {
-  const noun = tab === "pools" ? "pool" : "map";
+/** Pools, maps played in pools, or beatmapsets (all maps; the mirror may give no total). */
+const countText = (total: number | null, state: SearchState): string => {
+  if (total === null) return "Sets";
+  const noun = state.tab === "pools" ? "pool" : state.scope === "all" ? "set" : "map";
   return `${total} ${total === 1 ? noun : `${noun}s`}`;
 };
+
+/** The same kind of search as the answer: tab, and the maps tab's scope. */
+const kindOf = (value: { tab: string; scope?: string }): string =>
+  value.tab === "maps" ? `maps:${value.scope}` : value.tab;
 
 export function SearchScreen() {
   const router = useRouter();
@@ -63,8 +74,8 @@ export function SearchScreen() {
   }, [state, router]);
 
   const results = useSearchResults(state);
-  const data = results.data?.tab === state.tab ? results.data : null;
-  const count = data ? countText(data.total, state.tab) : "Loading…";
+  const data = results.data && kindOf(results.data) === kindOf(state) ? results.data : null;
+  const count = data ? countText(data.total, state) : "Loading…";
   const mapError =
     state.tab === "pools" && state.filters.map !== "" && results.status === "error"
       ? results.error
@@ -83,7 +94,12 @@ export function SearchScreen() {
             href={searchHref(
               tab === "pools"
                 ? { tab, page: 1, filters: { ...EMPTY_POOL_FILTERS, q: state.filters.q } }
-                : { tab, page: 1, filters: { ...EMPTY_MAP_FILTERS, q: state.filters.q } },
+                : {
+                    tab,
+                    scope: "all",
+                    page: 1,
+                    filters: { ...EMPTY_ALL_MAP_FILTERS, q: state.filters.q },
+                  },
             )}
             aria-current={state.tab === tab ? "page" : undefined}
             className={
@@ -103,25 +119,55 @@ export function SearchScreen() {
           mapError={mapError}
         />
       ) : (
-        <MapFilterPanel
-          filters={state.filters}
-          onChange={(filters) => setState({ tab: "maps", page: 1, filters })}
-          resultCount={count}
-        />
+        <>
+          <MapScopeSwitch scope={state.scope} filters={state.filters} />
+          {state.scope === "all" ? (
+            <AllMapFilterPanel
+              filters={state.filters}
+              onChange={(filters) => setState({ tab: "maps", scope: "all", page: 1, filters })}
+              resultCount={count}
+            />
+          ) : (
+            <MapFilterPanel
+              filters={state.filters}
+              onChange={(filters) => setState({ tab: "maps", scope: "played", page: 1, filters })}
+              resultCount={count}
+            />
+          )}
+        </>
       )}
       {results.status === "error" && mapError === null ? (
         <Notice tone="error" live>
           {results.error}
+          {state.tab === "maps" && state.scope === "all" ? (
+            <>
+              {" "}
+              <Link href={scopeHref("played", state.filters)} className="underline">
+                Search maps played in pools
+              </Link>
+            </>
+          ) : null}
         </Notice>
       ) : null}
-      {data && data.hiddenMissing > 0 ? (
+      {data && "hiddenMissing" in data && data.hiddenMissing > 0 ? (
         <p className="text-c3 text-sm">
           {data.hiddenMissing} more hidden: data missing for a filter.
         </p>
       ) : null}
+      {data && "hidden" in data && data.hidden > 0 ? (
+        <p className="text-c3 text-sm">{hiddenSetsText(data.hidden)}</p>
+      ) : null}
+      {data && "hidden" in data && data.results.some((set) => set.unranked) ? (
+        <p className="text-amber-200 text-sm">{UNRANKED_WARNING}</p>
+      ) : null}
       {data?.tab === "pools" ? <PoolResultList results={data.results} /> : null}
-      {data?.tab === "maps" ? <MapResultList results={data.results} /> : null}
-      {data && data.total === 0 ? (
+      {data?.tab === "maps" && data.scope === "played" ? (
+        <MapResultList results={data.results} />
+      ) : null}
+      {data?.tab === "maps" && data.scope === "all" ? (
+        <AllMapResultList results={data.results} />
+      ) : null}
+      {data && data.results.length === 0 && !("hidden" in data && data.hidden > 0) ? (
         <p className="text-c3">Nothing matches. Try fewer filters.</p>
       ) : null}
       {data ? (
