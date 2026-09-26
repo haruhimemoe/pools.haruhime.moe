@@ -2,7 +2,8 @@
  * @file tests/unit/content/legal-content.test.ts
  * @desc The legal pages keep the clauses that protect us and the promises the code keeps: not
  *       affiliated with ppy or the Tournament Committee, guidance not rulings, no-mod stars, the
- *       otdb credit beside the pools hosts and community members send, and the User-Agent
+ *       otdb credit beside the pools hosts and community members send (whose links are theirs,
+ *       not ours), and the User-Agent
  *       (disclaimer); no visitor cookies, per-IP counters, the 24-hour cache, admin sessions and
  *       no osu! tokens (privacy). No em dashes.
  * @author David @dvhsh (https://dvh.sh)
@@ -26,6 +27,7 @@ describe("legal pages", () => {
     "tournament hosts",
     "community members",
     "checks those by hand",
+    "those are their pages, not ours",
     "User-Agent",
   ])("the disclaimer says %j", (clause) => {
     expect(read("disclaimer")).toContain(clause);

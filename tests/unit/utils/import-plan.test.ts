@@ -8,23 +8,26 @@
  *       that keeps another source (named by its next source), a merged record keeping its name
  *       while its lowest source is skipped or missing, revival of a superseded fingerprint, a
  *       record superseded and revived in one run reported as neither, a move into another
- *       record, stored records absent from the run, and skipped pools carried through.
+ *       record, stored records absent from the run, and skipped pools carried through. Host and
+ *       community sources: a new one makes "<kind>-<id>" with its credit, one whose maps match an
+ *       otdb record joins it without taking its name, and one that leaves keeps its credit in
+ *       formerSources.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { describe, expect, it } from "vitest";
 import { type ExistingPool, type ImportPlan, nextPoolId, planImport } from "@/utils/import-plan";
 import { otdbSource } from "@/utils/otdb";
-import { type NormalizedPool, normalizePool } from "@/utils/source-pools";
+import { type NormalizedPool, normalizePool, type SourceRef } from "@/utils/source-pools";
 
 const NOW = new Date("2026-09-24T12:00:00.000Z");
 const LATER = new Date("2026-10-01T12:00:00.000Z");
 
-const pool = (id: number, name: string, maps: number[], notes = ""): NormalizedPool => {
+const pool = (id: number | SourceRef, name: string, maps: number[], notes = ""): NormalizedPool => {
   const result = normalizePool({
-    source: otdbSource(id),
+    source: typeof id === "number" ? otdbSource(id) : id,
     name,
     notes,
     slots: maps.map((beatmapId, i) => ({ label: `NM${i + 1}`, beatmapId })),
@@ -307,5 +310,51 @@ describe("planImport", () => {
       },
     ];
     expect(planImport([], skipped, [], NOW).skipped).toEqual(skipped);
+  });
+
+  describe("host and community sources", () => {
+    const HOSTS: SourceRef = {
+      kind: "host",
+      id: "hz9y8x7w",
+      credit: { name: "Spring Cup hosts", url: "https://example.com/sheet" },
+    };
+    const SENDER: SourceRef = { kind: "community", id: "ca1b2c3d", credit: { name: "peppy" } };
+
+    it("creates <kind>-<id> with the credit and no link key when there is none", () => {
+      const plan = planImport([pool(SENDER, "Autumn Cup 2026 Finals", [7, 8])], [], [], NOW);
+      expect(plan.creates.map(({ pool: record }) => record.id)).toEqual(["community-ca1b2c3d"]);
+      const [source] = plan.creates[0]?.pool.sources ?? [];
+      expect(source).toEqual({ ...SENDER, importedAt: NOW });
+      expect(source).not.toHaveProperty("credit.url");
+    });
+
+    it("joins a stored otdb record with the same maps and leaves its name alone", () => {
+      const stored = recordOf(OWC, "otdb-657");
+      const plan = planImport([pool(HOSTS, "OWC 2023 GF", [1, 2, 3])], [], [stored], LATER);
+      expect(plan.creates).toEqual([]);
+      expect(plan.merged).toEqual([{ source: HOSTS, into: "otdb-657" }]);
+      const [update] = plan.updates;
+      expect(update?.pool.name).toBe("osu! World Cup 2023 Grand Finals");
+      expect(update?.pool.sources).toEqual([
+        { ...OWC.source, importedAt: NOW },
+        { ...HOSTS, importedAt: LATER },
+      ]);
+    });
+
+    it("revives a superseded record whose maps a host pool matches", () => {
+      const old = recordOf(USC, "otdb-71", { sources: [], supersededBy: "otdb-71-2" });
+      const plan = planImport([pool(HOSTS, "US Cup QF", [10, 11])], [], [old], LATER);
+      expect(plan.revived).toEqual(["otdb-71"]);
+      expect(plan.updates[0]?.pool).toMatchObject({ id: "otdb-71", supersededBy: null });
+    });
+
+    it("keeps a credit that leaves in formerSources with leftAt", () => {
+      const first = planImport([pool(HOSTS, "Spring Cup 2026 Finals", [7, 8])], [], [], NOW);
+      const stored = applied([], first);
+      const plan = planImport([pool(HOSTS, "Spring Cup 2026 Finals", [7, 9])], [], stored, LATER);
+      const old = plan.updates.find(({ pool: record }) => record.id === "host-hz9y8x7w");
+      expect(old?.pool.formerSources).toEqual([{ ...HOSTS, importedAt: NOW, leftAt: LATER }]);
+      expect(plan.creates.map(({ pool: record }) => record.id)).toEqual(["host-hz9y8x7w-2"]);
+    });
   });
 });

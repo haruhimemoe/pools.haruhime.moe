@@ -9,10 +9,12 @@
  *       stored as no mod. The name, every label and the notes go through the content filter. A
  *       pool that fails any check is skipped with a reason, never half-imported. Each pool gets
  *       the canonical @haruhimemoe/pool shape (buckets only when not the default) and its
- *       fingerprint. Server code only (node:crypto through the fingerprint).
+ *       fingerprint. A source is otdb's (its id and link) or a host or community pool an admin
+ *       added (a generated id and its credit); either way it rides along unchanged. Server code
+ *       only (node:crypto through the fingerprint).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import {
@@ -34,13 +36,17 @@ import {
   slotTitle,
 } from "@haruhimemoe/pool";
 import { MAX_NOTES_LENGTH, type SourceKind } from "@/constants/pools";
-import type { SourceSlotRecord } from "@/schemas/pool";
+import type { PoolSource, SourceSlotRecord } from "@/schemas/pool";
 import { hasBlockedLanguage } from "@/utils/content-filter";
 import { poolFingerprint } from "@/utils/fingerprint";
 import { slotModsMap } from "@/utils/slot-mods";
 
-/** One pool at one source. */
-export type SourceRef = { kind: SourceKind; id: string; url: string };
+/** One pool at one source: a stored source without its importedAt. */
+export type SourceRef = PoolSource extends infer S
+  ? S extends PoolSource
+    ? Omit<S, "importedAt">
+    : never
+  : never;
 
 /** A map as a source lists it: its label, osu! difficulty id, and the mods it names, if any. */
 export type SourceSlot = { label: string; beatmapId: number; mods?: readonly string[] };
@@ -326,8 +332,9 @@ export const normalizePool = (pool: SourcePool): NormalizeResult => {
  * @function bySourceId
  * @param a {{ id: string }} a pool at a source
  * @param b {{ id: string }} another
- * @returns {number} negative when a comes first: numeric ids in number order, then everything
- *          else in text order
+ * @returns {number} negative when a comes first: numeric ids (otdb's) in number order, then
+ *          everything else in text order. Generated ids start with a letter, so a host or
+ *          community pool never sorts ahead of an otdb pool and takes over a merged record's name.
  */
 export const bySourceId = (a: { id: string }, b: { id: string }): number => {
   const [x, y] = [Number(a.id), Number(b.id)];

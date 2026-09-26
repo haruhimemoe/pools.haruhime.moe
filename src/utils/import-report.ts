@@ -5,23 +5,31 @@
  *       each skipped pool with its reason, what merged, moved and was superseded, the map fill,
  *       usage, the pack sync and the stats backfill; and the row stored in `imports` (with why
  *       the run stopped, when it threw). Every piece of source text has its control characters
- *       replaced and is cut short, so an export can't drive the admin's terminal. Pure.
+ *       replaced and is cut short, so an export can't drive the admin's terminal. The runner
+ *       reads IMPORT_SOURCES only (otdb): host and community pools come in through the admin
+ *       page, so naming them is refused like any unknown source. A report names an otdb pool
+ *       "otdb #58" and a host or community one by kind, id and credit. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
-import { SOURCE_CREDITS, SOURCE_KINDS, type SourceKind } from "@/constants/pools";
+import {
+  IMPORT_SOURCES,
+  type ImportSource,
+  SOURCE_CREDITS,
+  type SourceKind,
+} from "@/constants/pools";
 import { SYNC_STATES } from "@/schemas/pool";
 import type { ImportPlan } from "@/utils/import-plan";
-import type { SkippedPool } from "@/utils/source-pools";
+import type { SkippedPool, SourceRef } from "@/utils/source-pools";
 import type { BackfillResult, SyncSummary } from "@/utils/sync";
 
 export const IMPORT_USAGE =
   "Usage: bun run import otdb [--dry-run] [--file <path>] [--no-sync] [--resync rejected]";
 
 export type ImportArgs = {
-  source: SourceKind;
+  source: ImportSource;
   dryRun: boolean;
   file: string | null;
   noSync: boolean;
@@ -32,14 +40,15 @@ export type ImportArgs = {
  * @function parseImportArgs
  * @param argv {readonly string[]} the runner's arguments (after the script name)
  * @returns {{ ok: true; args: ImportArgs } | { ok: false; error: string }} the source and
- *          options, or what's wrong: a missing or unknown source, a repeated option, --file
+ *          options, or what's wrong: a missing source or one the runner doesn't read (anything
+ *          but IMPORT_SOURCES, host and community included), a repeated option, --file
  *          without a path, --resync with anything but "rejected", --resync with --no-sync, or
  *          an unknown option
  */
 export const parseImportArgs = (
   argv: readonly string[],
 ): { ok: true; args: ImportArgs } | { ok: false; error: string } => {
-  let source: SourceKind | null = null;
+  let source: ImportSource | null = null;
   let dryRun = false;
   let noSync = false;
   let file: string | null = null;
@@ -67,11 +76,11 @@ export const parseImportArgs = (
     } else if (source !== null) {
       return { ok: false, error: `Only one source at a time (got ${source} and ${arg}).` };
     } else {
-      const kind = SOURCE_KINDS.find((known) => known === arg);
+      const kind = IMPORT_SOURCES.find((known) => known === arg);
       if (!kind) {
         return {
           ok: false,
-          error: `Can't import from ${arg}. Sources: ${SOURCE_KINDS.join(", ")}.`,
+          error: `Can't import from ${arg}. Sources: ${IMPORT_SOURCES.join(", ")}.`,
         };
       }
       source = kind;
@@ -137,8 +146,15 @@ export const importCounts = (plan: ImportPlan) => ({
   skipped: plan.skipped.length,
 });
 
-const labelOf = (source: { kind: SourceKind; id: string }): string =>
-  `${SOURCE_CREDITS[source.kind].label} #${reportText(source.id)}`;
+/** "otdb #58", or a host or community pool's kind, id and credit: "host hz9y8x7w (Name)". */
+const labelOf = (source: SourceRef | SkippedPool): string => {
+  const { label } = SOURCE_CREDITS[source.kind];
+  const id = reportText(source.id);
+  if (source.kind === "otdb") return `${label} #${id}`;
+  return "credit" in source
+    ? `${label} ${id} (${reportText(source.credit.name)})`
+    : `${label} ${id}`;
+};
 
 const STOP_REASONS: Readonly<Record<BackfillResult["stopped"], string>> = {
   done: "every pack's stats are complete",

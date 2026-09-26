@@ -3,10 +3,12 @@
  * @desc Writing an import against the in-memory database: the sample export becomes 17 records
  *       (two pairs merged) with derived fields and notes; maps are seeded once from the export
  *       and a stored map is never overwritten; a second run writes nothing; an update keeps
- *       hidden, badged, edited and the pack state; a changed pool supersedes its record.
+ *       hidden, badged, edited and the pack state; a changed pool supersedes its record. A host
+ *       pool with no credit link round-trips through the database with the key left out (never
+ *       null), and one joining a stored otdb pool keeps both sources parseable.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -18,7 +20,7 @@ import { emptyPackSync, parseStoredPool } from "@/schemas/pool";
 import { applyImportPlan, loadExistingPools, seedMaps } from "@/services/import";
 import { planImport } from "@/utils/import-plan";
 import { readOtdbExport } from "@/utils/otdb";
-import { normalizePools } from "@/utils/source-pools";
+import { normalizePool, normalizePools, type SourceRef } from "@/utils/source-pools";
 import { setupTestDb } from "../../helpers/db";
 import { T0 } from "../../helpers/records";
 
@@ -152,5 +154,50 @@ describe("applyImportPlan and seedMaps", () => {
       visible: true,
       sources: [{ kind: "otdb", id: "58" }],
     });
+  });
+
+  it("round-trips a host pool with no credit link, the key left out", async () => {
+    const source: SourceRef = { kind: "host", id: "hz9y8x7w", credit: { name: "Spring hosts" } };
+    const normalized = normalizePool({
+      source,
+      name: "Spring Cup 2026 Finals",
+      notes: "",
+      slots: [
+        { label: "NM1", beatmapId: 9001 },
+        { label: "HD1", beatmapId: 9002 },
+      ],
+    });
+    if (!normalized.ok) throw new Error(normalized.skipped.reason);
+    await applyImportPlan(planImport([normalized.pool], [], await loadExistingPools(), T0), T0);
+    const pools = await poolsCollection();
+    const raw = await pools.findOne({ _id: "host-hz9y8x7w" });
+    expect(raw?.sources[0]).toEqual({ ...source, importedAt: T0 });
+    expect(raw?.sources[0]).not.toHaveProperty("credit.url");
+    expect(parseStoredPool(raw)?.sources).toEqual([{ ...source, importedAt: T0 }]);
+  });
+
+  it("keeps both sources parseable when a host pool joins a stored otdb pool", async () => {
+    const { plan } = await importExport(sample());
+    const owc = plan.creates.find(({ pool }) => pool.id === "otdb-657")?.pool;
+    if (!owc) throw new Error("otdb-657 wasn't created");
+    const source: SourceRef = {
+      kind: "host",
+      id: "ha1a1a1a",
+      credit: { name: "OWC staff", url: "https://example.com/owc" },
+    };
+    const normalized = normalizePool({
+      source,
+      name: "OWC GF",
+      notes: "",
+      slots: owc.sourceSlots.map(({ label, beatmapId }) => ({ label, beatmapId })),
+    });
+    if (!normalized.ok) throw new Error(normalized.skipped.reason);
+    const later = new Date("2026-09-25T12:00:00.000Z");
+    const joined = planImport([normalized.pool], [], await loadExistingPools(), later);
+    expect(joined.merged).toEqual([{ source, into: "otdb-657" }]);
+    await applyImportPlan(joined, later);
+    const stored = parseStoredPool(await (await poolsCollection()).findOne({ _id: "otdb-657" }));
+    expect(stored?.name).toBe(owc.name);
+    expect(stored?.sources.map(({ kind }) => kind)).toEqual(["otdb", "host"]);
   });
 });

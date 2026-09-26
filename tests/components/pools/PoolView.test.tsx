@@ -2,11 +2,12 @@
  * @file tests/components/pools/PoolView.test.tsx
  * @desc A pool page: name, headline (year or "year unknown"), badged only when known, notes,
  *       the slots (source label, map link, no-mod stars, length, BPM, Copy ID), the sources with
- *       the otdb credit (earlier versions too), "Replaced by" for a superseded pool, Open in
- *       packs, and the hidden notice only in the admin preview.
+ *       the otdb credit (earlier versions too), host and community credits (their link, when
+ *       there is one, marked nofollow ugc noopener), "Replaced by" for a superseded pool, Open
+ *       in packs, and the hidden notice only in the admin preview.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -112,6 +113,58 @@ describe("PoolView", () => {
     expect(screen.getByRole("region", { name: "Sources" })).toHaveTextContent(
       "Pool data from otdb by Sheppsu.",
     );
+  });
+
+  it("credits the hosts and community members who sent it, linking only a link they gave", () => {
+    view({
+      sources: [
+        ...POOL.sources,
+        {
+          kind: "host",
+          id: "hz9y8x7w",
+          credit: { name: "OWC 2023 staff", url: "https://osu.ppy.sh/wiki/Tournaments/OWC/2023" },
+          importedAt: T0,
+        },
+        { kind: "community", id: "ca1b2c3d", credit: { name: "peppy" }, importedAt: T0 },
+      ],
+      formerSources: [
+        {
+          kind: "community",
+          id: "cz0z0z0z",
+          credit: { name: "Old sender", url: "https://example.com/pool" },
+          importedAt: T0,
+          leftAt: T0,
+        },
+      ],
+    });
+    const sources = screen.getByRole("region", { name: "Sources" });
+    const hosts = within(sources).getByRole("link", { name: "OWC 2023 staff" });
+    expect(hosts).toHaveAttribute("href", "https://osu.ppy.sh/wiki/Tournaments/OWC/2023");
+    expect(hosts).toHaveAttribute("rel", "nofollow ugc noopener");
+    expect(hosts.closest("li")).toHaveTextContent("From the tournament's hosts: OWC 2023 staff");
+    expect(within(sources).queryByRole("link", { name: "peppy" })).toBeNull();
+    expect(within(sources).getByText("peppy").closest("li")).toHaveTextContent("Sent by peppy");
+    expect(within(sources).getByRole("link", { name: "Old sender" })).toHaveAttribute(
+      "rel",
+      "nofollow ugc noopener",
+    );
+    expect(sources).toHaveTextContent("Pool data from otdb by Sheppsu.");
+  });
+
+  it("names no otdb credit on a pool only hosts sent", () => {
+    view({
+      sources: [
+        {
+          kind: "host",
+          id: "hz9y8x7w",
+          credit: { name: "OWC 2023 staff" },
+          importedAt: T0,
+        },
+      ],
+    });
+    const sources = screen.getByRole("region", { name: "Sources" });
+    expect(sources).toHaveTextContent("From the tournament's hosts: OWC 2023 staff");
+    expect(sources).not.toHaveTextContent("otdb");
   });
 
   it("links the pool that replaced a superseded one", () => {

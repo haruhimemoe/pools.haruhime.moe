@@ -4,16 +4,21 @@
  *       (name, slots, buckets when not the default) plus tournament, round and year (effective:
  *       an admin's edit wins over the name), the edits themselves, the tournament key, badged,
  *       the source notes and labels, fingerprint, sources (and former ones), stats, versioning,
- *       visibility, the pack sync state, and search keys. Reads parse against it; a row that
- *       doesn't parse is left out, never shown half-broken.
+ *       visibility, the pack sync state, and search keys. Sources are one of three kinds: otdb
+ *       (its v1 shape, with the pool's otdb link) or host and community (a generated id and the
+ *       credit an admin typed: a name through the content filter and an optional https link,
+ *       whose key is left out when there is none, never stored as null). Reads parse against
+ *       it; a row that doesn't parse is left out, never shown half-broken.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { beatmapIdSchema, poolFields } from "@haruhimemoe/pool";
 import { z } from "zod";
-import { POOL_ID_PATTERN, SOURCE_KINDS } from "@/constants/pools";
+import { MAX_CREDIT_NAME_LENGTH, POOL_ID_PATTERN } from "@/constants/pools";
+import { hasBlockedLanguage } from "@/utils/content-filter";
+import { SOURCE_ID_PATTERN } from "@/utils/source-ids";
 
 /** Source links end up in hrefs: https only. */
 const httpsUrl = z.url({ protocol: /^https$/ });
@@ -64,17 +69,58 @@ export const emptyPackSync = (): PackSync => ({
   error: null,
 });
 
-export const poolSourceSchema = z.object({
-  kind: z.enum(SOURCE_KINDS),
+/**
+ * Who sent a host or community pool, as an admin typed it: a name (1 to 100 characters once
+ * trimmed, one line, through the content filter) and maybe an https link. With no link the key
+ * is left out: the MongoDB driver would store an undefined value as null, which this refuses.
+ */
+export const sourceCreditSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Give a name to credit.")
+    .max(MAX_CREDIT_NAME_LENGTH, `Keep the name to ${MAX_CREDIT_NAME_LENGTH} characters.`)
+    .refine((name) => !/\p{Cc}/u.test(name), "The name can't have line breaks.")
+    .refine((name) => !hasBlockedLanguage(name), "The name fails the content filter."),
+  url: httpsUrl.optional(),
+});
+
+export type SourceCreditRecord = z.infer<typeof sourceCreditSchema>;
+
+/** A pool in otdb's export, as v1 stored it. */
+const otdbSourceSchema = z.object({
+  kind: z.literal("otdb"),
   id: z.string().min(1),
   url: httpsUrl,
   importedAt: z.date(),
 });
 
+/** A pool an admin added for a host or a community member. */
+const creditedSource = <K extends "host" | "community">(kind: K) =>
+  z.object({
+    kind: z.literal(kind),
+    id: z.string().regex(SOURCE_ID_PATTERN),
+    credit: sourceCreditSchema,
+    importedAt: z.date(),
+  });
+
+const hostSourceSchema = creditedSource("host");
+const communitySourceSchema = creditedSource("community");
+
+export const poolSourceSchema = z.discriminatedUnion("kind", [
+  otdbSourceSchema,
+  hostSourceSchema,
+  communitySourceSchema,
+]);
+
 export type PoolSource = z.infer<typeof poolSourceSchema>;
 
 /** A source that pointed here until its pool changed there. */
-export const formerSourceSchema = poolSourceSchema.extend({ leftAt: z.date() });
+export const formerSourceSchema = z.discriminatedUnion("kind", [
+  otdbSourceSchema.extend({ leftAt: z.date() }),
+  hostSourceSchema.extend({ leftAt: z.date() }),
+  communitySourceSchema.extend({ leftAt: z.date() }),
+]);
 
 export type FormerSource = z.infer<typeof formerSourceSchema>;
 

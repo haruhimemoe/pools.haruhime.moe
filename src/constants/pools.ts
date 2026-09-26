@@ -1,25 +1,58 @@
 /**
  * @file src/constants/pools.ts
- * @desc Pool data constants: where pools come from (otdb for now) and how each source is
- *       credited, otdb's export and pool pages, the pool id pattern, text limits and the first
- *       year a pool can have, the "played as" codes a map can carry, the pack contract version
- *       the sync hash includes, and packs' public address.
+ * @desc Pool data constants: where pools come from (otdb's export, tournament hosts, community
+ *       members) and how each source is credited, which of them the import CLI reads, the
+ *       credit name limit, otdb's export and pool pages, the pool id pattern, text limits and
+ *       the first year a pool can have, the "played as" codes a map can carry, the pack contract
+ *       version the sync hash includes, and packs' public address.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
-/** Where pools come from. o!TR and wybin get their own importers later. */
-export const SOURCE_KINDS = ["otdb"] as const;
+/**
+ * Where pools come from: otdb's export, a tournament's own hosts, or anyone else who sends one.
+ * Open for later third parties (o!TR, wybin), which get their own kind and importer.
+ */
+export const SOURCE_KINDS = ["otdb", "host", "community"] as const;
 
 export type SourceKind = (typeof SOURCE_KINDS)[number];
 
-/** How each source is named and credited on pool pages, /credits and in import reports. */
-export const SOURCE_CREDITS: Readonly<
-  Record<SourceKind, { label: string; author: string; url: string }>
-> = Object.freeze({
-  otdb: { label: "otdb", author: "Sheppsu", url: "https://otdb.sheppsu.me" },
-});
+/** Kinds an admin adds by hand, each carrying the credit the admin typed (a name, maybe a link). */
+export const CREDITED_SOURCE_KINDS = ["host", "community"] as const;
+
+export type CreditedSourceKind = (typeof CREDITED_SOURCE_KINDS)[number];
+
+/** What `bun run import` reads. Host and community pools come in through /admin/pools/new. */
+export const IMPORT_SOURCES = ["otdb"] as const;
+
+export type ImportSource = (typeof IMPORT_SOURCES)[number];
+
+/** How a source kind is credited. */
+export type SourceCredit = {
+  /** Its short name: import reports, source links. */
+  label: string;
+  /** How a pool page introduces the name an admin typed (credited kinds only). */
+  lead: string | null;
+  /** Who made the source, when that's fixed (otdb's author). */
+  author: string | null;
+  /** The source's home, when it has one. */
+  url: string | null;
+};
+
+/**
+ * How each source is named and credited on pool pages, /credits and in import reports. otdb's
+ * credit is fixed; a host or community pool's name and link are its own (`credit` on the
+ * source), introduced by `lead`.
+ */
+export const SOURCE_CREDITS = Object.freeze({
+  otdb: { label: "otdb", lead: null, author: "Sheppsu", url: "https://otdb.sheppsu.me" },
+  host: { label: "host", lead: "From the tournament's hosts:", author: null, url: null },
+  community: { label: "community", lead: "Sent by", author: null, url: null },
+} as const) satisfies Readonly<Record<SourceKind, SourceCredit>>;
+
+/** A host or community credit's name: at most this many characters after trimming. */
+export const MAX_CREDIT_NAME_LENGTH = 100;
 
 /** otdb's public export of every pool (Sheppsu OK'd using it on 2026-09-23). */
 export const OTDB_EXPORT_URL = "https://otdb.sheppsu.me/static/mappools-export.json";

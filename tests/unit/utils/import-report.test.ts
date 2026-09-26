@@ -3,10 +3,12 @@
  * @desc The runner's arguments (source, --dry-run, --file, --no-sync, --resync rejected, and
  *       every way they can be wrong), report text made safe for a terminal, the printed report
  *       (counts, skipped pools with reasons, merges, moves, maps, sync, stats) and the stored row,
- *       with why a run stopped when it threw.
+ *       with why a run stopped when it threw. The CLI imports otdb only: host and community
+ *       pools come in through the admin page, so naming them is refused like any unknown
+ *       source; a report that lists one names it by kind, id and credit.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -19,7 +21,7 @@ import {
   reportText,
 } from "@/utils/import-report";
 import { otdbSource } from "@/utils/otdb";
-import { normalizePool } from "@/utils/source-pools";
+import { normalizePool, type SourceRef } from "@/utils/source-pools";
 import { emptySyncStates } from "@/utils/sync";
 
 describe("parseImportArgs", () => {
@@ -46,6 +48,8 @@ describe("parseImportArgs", () => {
   it.each([
     [[], "Name a source to import from."],
     [["otr"], "Can't import from otr. Sources: otdb."],
+    [["host"], "Can't import from host. Sources: otdb."],
+    [["community"], "Can't import from community. Sources: otdb."],
     [["otdb", "otdb"], "Only one source at a time (got otdb and otdb)."],
     [["otdb", "--dry-run", "--dry-run"], "--dry-run is given twice."],
     [["otdb", "--file"], "--file needs a path."],
@@ -68,9 +72,9 @@ describe("reportText", () => {
   });
 });
 
-const pool = (id: number, name: string, maps: number[]) => {
+const pool = (id: number | SourceRef, name: string, maps: number[]) => {
   const result = normalizePool({
-    source: otdbSource(id),
+    source: typeof id === "number" ? otdbSource(id) : id,
     name,
     notes: "",
     slots: maps.map((beatmapId, i) => ({ label: `NM${i + 1}`, beatmapId })),
@@ -113,6 +117,31 @@ describe("formatImportReport", () => {
     expect(text).toContain("  otdb #481  Lobby� 42: Slot DT1: DT1 appears more than once.");
     expect(text).toContain("  otdb #418 joins otdb-71");
     expect(text).not.toContain("Packs:");
+  });
+
+  it("names a host or community source by kind, id and credit", () => {
+    const hosts: SourceRef = {
+      kind: "host",
+      id: "hz9y8x7w",
+      credit: { name: "Spring\u001b Cup hosts" },
+    };
+    const joined = planImport(
+      [pool(hosts, "Spring Cup 2020 Finals", [1, 2])],
+      [],
+      plan.creates.map(({ pool: record }) => record),
+      new Date("2026-09-25T12:00:00.000Z"),
+    );
+    const text = formatImportReport({
+      source: "otdb",
+      read: 1,
+      dryRun: true,
+      plan: joined,
+      maps: null,
+      usage: null,
+      sync: null,
+      stats: null,
+    });
+    expect(text).toContain("  host hz9y8x7w (Spring� Cup hosts) joins otdb-71");
   });
 
   it("prints a real run's maps, sync and stats, and stores the row", () => {

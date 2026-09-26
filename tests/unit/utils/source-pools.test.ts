@@ -5,10 +5,11 @@
  *       source's mods (a rating mod every map under a label carries goes into the slot; a
  *       no-mod slot or maps without a slot whose mods can't be held skip the pool; the real EZ
  *       pools otdb #642 and #669), the content filter on the name, labels and notes, notes
- *       cleanup, and id order. (Blocked text below is a test input only.)
+ *       cleanup, and id order (otdb's numeric ids before the generated host and community ids,
+ *       whose credit rides along). (Blocked text below is a test input only.)
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -17,6 +18,7 @@ import { describe, expect, it } from "vitest";
 import { poolFingerprint } from "@/utils/fingerprint";
 import { otdbSource, readOtdbExport } from "@/utils/otdb";
 import {
+  bySourceId,
   modsFromSlotCode,
   normalizeNotes,
   normalizePool,
@@ -385,5 +387,32 @@ describe("normalizePools", () => {
     });
     const { pools } = normalizePools([named("b"), named("7"), named("a")]);
     expect(pools.map((pool) => pool.source.id)).toEqual(["7", "a", "b"]);
+  });
+
+  it("keeps a host or community pool's credit and normalizes it like any other", () => {
+    const result = normalizePool({
+      source: { kind: "host", id: "hz9y8x7w", credit: { name: "Spring Cup hosts" } },
+      name: "Spring Cup 2026 Finals",
+      notes: "",
+      slots: labelled("NM1", "HD1"),
+    });
+    expect(result.ok && result.pool.source).toEqual({
+      kind: "host",
+      id: "hz9y8x7w",
+      credit: { name: "Spring Cup hosts" },
+    });
+  });
+});
+
+describe("bySourceId", () => {
+  it("puts otdb's numeric ids before generated ones, which can't be all digits", () => {
+    const ids = ["hz9y8x7w", "657", "c0000000", "58", "a1b2c3d4"].map((id) => ({ id }));
+    expect([...ids].sort(bySourceId).map(({ id }) => id)).toEqual([
+      "58",
+      "657",
+      "a1b2c3d4",
+      "c0000000",
+      "hz9y8x7w",
+    ]);
   });
 });
