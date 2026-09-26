@@ -2,8 +2,9 @@
  * @file src/lib/auth.ts
  * @desc better-auth for admins only, built on first use: MongoDB adapter on the shared client,
  *       osu! generic OAuth (identify + public, PKCE, pools' own osu! app). The user hook refuses
- *       any osu! id not in ADMIN_OSU_IDS, so nobody else gets a user row; the session hook checks
- *       again, so an id removed from the list can't start a session; and getAdminFromHeaders
+ *       any osu! id not in ADMIN_OSU_IDS by throwing an APIError coded not_admin (better-auth
+ *       sends that code on to /signin as error=not_admin), so nobody else gets a user row; the
+ *       session hook checks again the same way, so an id removed from the list can't start a session; and getAdminFromHeaders
  *       reads a session whose id is no longer listed as signed out. osu! tokens are never kept.
  *       Errors with no page to return to go to /signin?error=<code>.
  * @author David @dvhsh (https://dvh.sh)
@@ -15,11 +16,13 @@ import "server-only";
 import { OSU_OAUTH, OSU_SIGN_IN_SCOPES, toOsuUser } from "@haruhimemoe/osu/shapes";
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
+import { APIError } from "better-auth/api";
 import { genericOAuth } from "better-auth/plugins";
 import { OSU_PROVIDER_ID } from "@/constants/auth";
 import { getServerEnv } from "@/env";
 import { isAdminOsuId, isAdminUserId } from "@/lib/admin";
 import { connectDb, getDb, getMongoClient } from "@/lib/db";
+import { NOT_ADMIN_ERROR } from "@/utils/signin-errors";
 
 /**
  * @function osuProfileToUser
@@ -38,14 +41,24 @@ export const osuProfileToUser = (raw: unknown) => {
   };
 };
 
+/** The refusal both hooks throw: its code reaches /signin as error=not_admin. */
+const notAdmin = () =>
+  new APIError("FORBIDDEN", {
+    code: NOT_ADMIN_ERROR,
+    message: "That osu! account isn't a pools admin.",
+  });
+
 /**
  * @function refuseNonAdminUser
  * @param user {Record<string, unknown>} the user better-auth is about to create (from
  *        osuProfileToUser)
- * @returns {false | undefined} false (refuse) unless its osu! id is an admin's
+ * @returns {undefined} nothing (go ahead) when its osu! id is an admin's
+ * @throws {APIError} coded not_admin for anyone else
  */
-export const refuseNonAdminUser = (user: Record<string, unknown>): false | undefined =>
-  isAdminOsuId(user.osuId) ? undefined : false;
+export const refuseNonAdminUser = (user: Record<string, unknown>): undefined => {
+  if (!isAdminOsuId(user.osuId)) throw notAdmin();
+  return undefined;
+};
 
 /** Drops OAuth tokens from an account write. */
 const withoutTokens = <T extends Record<string, unknown>>(account: T): T => ({
@@ -84,7 +97,9 @@ const createAuth = () => {
       },
       session: {
         create: {
-          before: async (session) => ((await isAdminUserId(session.userId)) ? undefined : false),
+          before: async (session) => {
+            if (!(await isAdminUserId(session.userId))) throw notAdmin();
+          },
         },
       },
     },

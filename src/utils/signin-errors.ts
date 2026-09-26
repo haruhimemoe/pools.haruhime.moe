@@ -1,8 +1,10 @@
 /**
  * @file src/utils/signin-errors.ts
  * @desc What /signin says for each error code better-auth sends back (every failure lands on
- *       /signin?...&error=<code>): a refused osu! account first, then a bad or stale state,
- *       sign-in cancelled on osu!, osu! not confirming it, and a plain line for anything else.
+ *       /signin?...&error=<code>): a refused osu! account first (not_admin, which our user and
+ *       session hooks throw, so it's never confused with a database failure), then couldn't
+ *       create the user or session (a database problem), a bad or stale state, sign-in
+ *       cancelled on osu!, osu! not confirming it, and a plain line for anything else.
  *       When a URL carries error twice (old ?error=oauth&error=<code> links), the last wins.
  *       Pure.
  * @author David @dvhsh (https://dvh.sh)
@@ -10,12 +12,20 @@
  * @modified Sat Sep 26, 2026
  */
 
+/** The code src/lib/auth.ts's hooks throw for an osu! id not in ADMIN_OSU_IDS. */
+export const NOT_ADMIN_ERROR = "not_admin";
+
 /** Error codes and what they mean, the admin refusal first. */
 export const SIGN_IN_ERRORS: readonly { codes: readonly string[]; text: string }[] = [
   {
     // The user hook (not listed) or the session hook (no longer listed) refused the account.
-    codes: ["unable_to_create_user", "unable_to_create_session"],
+    codes: [NOT_ADMIN_ERROR],
     text: "That osu! account isn't a pools admin.",
+  },
+  {
+    // better-auth's own codes when a user or session write fails (the database, not the list).
+    codes: ["unable_to_create_user", "unable_to_create_session"],
+    text: "Couldn't finish signing in. Try again, or tell us on Discord if it keeps happening.",
   },
   {
     codes: ["state_mismatch", "state_not_found", "please_restart_the_process"],

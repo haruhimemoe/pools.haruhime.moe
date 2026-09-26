@@ -2,11 +2,13 @@
  * @file tests/components/admin/AddPoolForm.test.tsx
  * @desc The add-a-pool form sends its fields to POST /api/admin/pools as JSON (an empty year as
  *       unknown, badged as null, true or false), then links the pool it created or the one the
- *       maps joined, with what happened to the pack; a refused save puts each error beside its
- *       field; a failed request says so.
+ *       maps joined ("already in", or already credited), with what happened to the pack, and
+ *       empties itself; a year that isn't four digits is refused beside its field and nothing is
+ *       sent; a refused save puts each error beside its field; a failed request says so; the
+ *       name hint offers "a community member" for a sender who'd rather not be named.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -75,6 +77,43 @@ describe("AddPoolForm", () => {
       notes: "",
       maps: "NM1 129891",
     });
+    // Emptied, so a second click can't add the same pool again.
+    expect(screen.getByLabelText("Name to credit")).toHaveValue("");
+    expect(screen.getByLabelText("Maps")).toHaveValue("");
+    expect(screen.getByLabelText("Sent by")).toHaveValue("host");
+  });
+
+  it("says when the pool already credits the sender, and adds nothing", async () => {
+    fetchMock.mockImplementation(async () =>
+      Response.json({
+        outcome: "merged",
+        revived: false,
+        alreadyCredited: true,
+        pool: { id: "otdb-657", name: "OWC 2023 GF", href: "/admin/pools/otdb-657" },
+        maps: { added: 0, asked: 0, filled: 0, missing: 0, error: null },
+        sync: { status: "not-needed" },
+      }),
+    );
+    await fill();
+    await screen.findByRole("link", { name: "OWC 2023 GF" });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "These maps are already in OWC 2023 GF, which already credits this sender with this link, so nothing was added.",
+    );
+  });
+
+  it("refuses a year that isn't four digits beside its field, sending nothing", async () => {
+    const user = userEvent.setup();
+    render(<AddPoolForm />);
+    await user.type(screen.getByLabelText("Year"), "20x6");
+    await user.click(screen.getByRole("button", { name: "Add pool" }));
+    expect(screen.getByLabelText("Year")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText(/four digits/)).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("offers a community member as the name for a sender who'd rather not be named", () => {
+    render(<AddPoolForm />);
+    expect(screen.getByText(/Write "a community member" when the sender/)).toBeInTheDocument();
   });
 
   it("names the pool the maps joined, and says the form's other fields were left out", async () => {
@@ -93,7 +132,7 @@ describe("AddPoolForm", () => {
       "/admin/pools/otdb-657",
     );
     expect(screen.getByRole("status")).toHaveTextContent(
-      "These maps are already OWC 2023 GF, so the source joined it and it's back from superseded. Its name, round, year and notes stay as they were: edit them there. The pack wasn't sent: POOLS_SERVICE_TOKEN isn't set.",
+      "These maps are already in OWC 2023 GF, so the source joined it and it's back from superseded. Its name, round, year and notes stay as they were: edit them there. The pack wasn't sent: POOLS_SERVICE_TOKEN isn't set.",
     );
   });
 

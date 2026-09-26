@@ -2,8 +2,8 @@
  * @file src/app/data/page.tsx
  * @desc /data: where pools' data comes from and how it's kept, in four sections the footer
  *       links by anchor: #pools (otdb's export, tournament hosts, community members; merged by
- *       map list, each pool page names its sources), #maps (JSON from the osu! API and the hinai
- *       mirror, no files, no-mod stars), #rules (the check, guidance only; the all-maps search
+ *       map list, each pool page names its sources), #maps (JSON from the hinai mirror, which
+ *       serves osu! API data; a map it doesn't have keeps its source's; no files, no-mod stars), #rules (the check, guidance only; the all-maps search
  *       can't see takedown notices on ranked and loved maps) and #corrections
  *       (Discord or email). Static.
  * @author David @dvhsh (https://dvh.sh)
@@ -58,10 +58,11 @@ export default function DataPage() {
           <h2 id="maps-title">Maps</h2>
           <p>
             Map details (artist, title, difficulty, length, BPM, AR, OD, CS and star rating) come
-            from the osu! API v2 and the <a href="https://mirror.hinamizawa.ai">hinai mirror</a>.
-            pools reads only their JSON. It never hosts or passes on <code>.osz</code> files, audio
-            or images: Open in packs takes you to <a href={PACKS_SITE_URL}>packs.haruhime.moe</a>,
-            which downloads each map from the mirror straight to your browser.
+            from the <a href="https://mirror.hinamizawa.ai">hinai mirror</a>, which serves osu! API
+            data. A map the mirror doesn't have keeps what its source gave. pools reads only JSON.
+            It never hosts or passes on <code>.osz</code> files, audio or images: Open in packs
+            takes you to <a href={PACKS_SITE_URL}>packs.haruhime.moe</a>, which downloads each map
+            from the mirror straight to your browser.
           </p>
           <p>Every star rating is without mods, even in HR, DT or EZ slots.</p>
           <p>

@@ -3,7 +3,8 @@
  * @desc /data: one h1, then the Pools, Maps, Content rules and Corrections sections at the
  *       #pools, #maps, #rules and #corrections anchors the footer links. Pools come from otdb
  *       (credited to Sheppsu), hosts and community members, merge by map list and name their
- *       sources; map details are JSON from the osu! API and the hinai mirror, never files, and
+ *       sources; map details are JSON from the hinai mirror (osu! API data; a map it doesn't have
+ *       keeps its source's), never files, and
  *       stars are without mods; the check is guidance, and the all-maps search can't see
  *       takedowns on ranked and loved maps; corrections go to Discord or email.
  * @author David @dvhsh (https://dvh.sh)
@@ -57,7 +58,8 @@ describe("/data", () => {
   it("says where map details come from, that no files are hosted and stars are without mods", () => {
     render(<DataPage />);
     const maps = section("Maps");
-    expect(maps).toHaveTextContent("osu! API v2");
+    expect(maps).toHaveTextContent("which serves osu! API data");
+    expect(maps).toHaveTextContent("A map the mirror doesn't have keeps what its source gave.");
     expect(within(maps).getByRole("link", { name: "hinai mirror" })).toHaveAttribute(
       "href",
       "https://mirror.hinamizawa.ai",

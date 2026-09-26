@@ -1,7 +1,8 @@
 /**
  * @file tests/unit/utils/signin-errors.test.ts
  * @desc What /signin says for each error code better-auth sends back: a refused osu! account
- *       first ("That osu! account isn't a pools admin."), a bad or stale state, sign-in cancelled
+ *       first (not_admin: "That osu! account isn't a pools admin."), a user or session write
+ *       that failed (a database problem, never read as a refusal), a bad or stale state, sign-in cancelled
  *       on osu!, osu! not confirming it, and anything else; no error, nothing. When a URL carries
  *       error twice (old ?error=oauth&error=<code> links), the last one wins.
  * @author David @dvhsh (https://dvh.sh)
@@ -10,13 +11,20 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { SIGN_IN_ERRORS, signInErrorText } from "@/utils/signin-errors";
+import { NOT_ADMIN_ERROR, SIGN_IN_ERRORS, signInErrorText } from "@/utils/signin-errors";
 
 describe("signInErrorText", () => {
   it("says a refused account isn't an admin, first", () => {
     expect(SIGN_IN_ERRORS[0]?.text).toBe("That osu! account isn't a pools admin.");
+    expect(NOT_ADMIN_ERROR).toBe("not_admin");
+    expect(signInErrorText("not_admin")).toBe("That osu! account isn't a pools admin.");
+  });
+
+  it("doesn't read a failed user or session write as a refusal", () => {
     for (const code of ["unable_to_create_user", "unable_to_create_session"]) {
-      expect(signInErrorText(code)).toBe("That osu! account isn't a pools admin.");
+      expect(signInErrorText(code)).toBe(
+        "Couldn't finish signing in. Try again, or tell us on Discord if it keeps happening.",
+      );
     }
   });
 

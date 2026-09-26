@@ -25,7 +25,7 @@ export const LEGAL_DOCS: Record<
   privacy: {
     title: "Privacy",
     description: "What pools.haruhime.moe stores, why, and for how long.",
-    lastUpdated: "2026-09-24",
+    lastUpdated: "2026-09-26",
   },
 };
 

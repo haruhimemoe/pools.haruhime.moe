@@ -23,7 +23,7 @@ Every star rating on the site is without mods.
 
 ## Where the data comes from
 
-Some past pools come from the public export of [otdb](https://otdb.sheppsu.me), by Sheppsu, used with his permission. Tournament hosts and community members send others, and each pool page names its sources. To send one, see [Submit a pool](https://pools.haruhime.moe/submit). Map details and star ratings come from the osu! API and the hinai mirror, searching every osu! map asks the hinai mirror, and the check reads the osu! API. The [data page](https://pools.haruhime.moe/data) and the [credits page](https://pools.haruhime.moe/credits) have the rest.
+Some past pools come from the public export of [otdb](https://otdb.sheppsu.me), by Sheppsu, used with his permission. Tournament hosts and community members send others, and each pool page names its sources. To send one, see [Submit a pool](https://pools.haruhime.moe/submit). Map details and star ratings come from the hinai mirror, which serves osu! API data (a map the mirror doesn't have keeps what its source gave), searching every osu! map asks the hinai mirror, and the check reads the osu! API. The [data page](https://pools.haruhime.moe/data) and the [credits page](https://pools.haruhime.moe/credits) have the rest.
 
 ## Setup
 

@@ -1,8 +1,8 @@
 /**
  * @file tests/integration/lib/auth.test.ts
  * @desc Admin-only osu! sign-in against in-memory Mongo, osu! stubbed: the user hook sees the osu!
- *       id from the profile and refuses anyone not in ADMIN_OSU_IDS (no user row, no session, the
- *       callback lands on the error page); an admin signs in (PKCE, our callback, no osu! tokens
+ *       id from the profile and refuses anyone not in ADMIN_OSU_IDS with a not_admin APIError (no
+ *       user row, no session, the callback lands on the error page with error=not_admin); an admin signs in (PKCE, our callback, no osu! tokens
  *       kept); an id removed from the list loses its session at once and can't sign in again.
  *       Every failure lands on /signin with the error code: a refused osu! account back on the
  *       page it came from, and a callback with a bad state (no state to read the page from) on
@@ -104,8 +104,11 @@ describe("sign-in errors", () => {
 describe("the user hook", () => {
   it("sees the osu! id the profile maps to, and refuses anyone not listed", () => {
     expect(refuseNonAdminUser(osuProfileToUser(PROFILE(ADMIN_OSU_ID)))).toBeUndefined();
-    expect(refuseNonAdminUser(osuProfileToUser(PROFILE(2)))).toBe(false);
-    expect(refuseNonAdminUser({})).toBe(false);
+    const refused = expect(() => refuseNonAdminUser(osuProfileToUser(PROFILE(2))));
+    refused.toThrow(
+      expect.objectContaining({ body: expect.objectContaining({ code: "not_admin" }) }),
+    );
+    expect(() => refuseNonAdminUser({})).toThrow();
   });
 });
 
@@ -126,8 +129,8 @@ describe("osu! sign-in", () => {
 
   it("refuses anyone else: no user, no session, the error page", async () => {
     const callback = await signInWithOsu(PROFILE(2));
-    expect(callback.headers.get("location")).toBe(
-      "/signin?next=%2Fadmin&error=unable_to_create_user",
+    expect(callback.headers.get("location")).toMatch(
+      /^\/signin\?next=%2Fadmin&error=not_admin(&|$)/,
     );
     expect(await getDb().collection("user").countDocuments({ osuId: 2 })).toBe(0);
     expect(await getDb().collection("session").countDocuments()).toBe(0);
@@ -140,7 +143,7 @@ describe("osu! sign-in", () => {
     vi.stubEnv("ADMIN_OSU_IDS", "1");
     expect(await getAdminFromHeaders(headers)).toBeNull();
     const again = await signInWithOsu(PROFILE(ADMIN_OSU_ID));
-    expect(again.headers.get("location") ?? "").toContain("error");
+    expect(again.headers.get("location") ?? "").toContain("error=not_admin");
     expect(await getDb().collection("session").countDocuments()).toBe(1);
   });
 

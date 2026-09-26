@@ -2,12 +2,15 @@
  * @file src/components/admin/AddPoolForm.tsx
  * @desc The admin's add-a-pool form: who sent it (the tournament's hosts or a community member),
  *       the name to credit and an optional link, tournament, round, year, badged, notes and the
- *       maps (a packs link, a pack key, or slot lines and IDs). Saving sends JSON to POST
- *       /api/admin/pools, then links the pool it created or the one the maps joined, with what
- *       happened to the pack; a refused save puts each error beside its field.
+ *       maps (a packs link, a pack key, or slot lines and IDs). A year that isn't four digits is
+ *       refused beside its field before anything is sent. Saving sends JSON to POST
+ *       /api/admin/pools, then links the pool it created or the one the maps joined (or says
+ *       that pool already credits the sender), with what happened to the pack, and empties the
+ *       form so a second click can't send it again; a refused save puts each error beside its
+ *       field.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 "use client";
@@ -25,6 +28,7 @@ type Sync =
 type Answer = {
   outcome: "created" | "merged";
   revived: boolean;
+  alreadyCredited: boolean;
   pool: { id: string; name: string; href: string };
   sync: Sync;
 };
@@ -32,6 +36,8 @@ type Answer = {
 type Refusal = { error?: { message?: string; fields?: Record<string, string> } };
 
 const BADGED_VALUES = { unknown: null, yes: true, no: false } as const;
+
+const YEAR_FORMAT = "Type the year as four digits, like 2024, or leave it empty.";
 
 const syncText = (sync: Sync): string => {
   if (sync.status === "not-needed") return "Its pack didn't need an update.";
@@ -50,9 +56,14 @@ const syncText = (sync: Sync): string => {
 const outcomeText = (answer: Answer): { before: string; after: string } => {
   if (answer.outcome === "created")
     return { before: "Added ", after: `. ${syncText(answer.sync)}` };
+  if (answer.alreadyCredited)
+    return {
+      before: "These maps are already in ",
+      after: ", which already credits this sender with this link, so nothing was added.",
+    };
   const back = answer.revived ? " and it's back from superseded" : "";
   return {
-    before: "These maps are already ",
+    before: "These maps are already in ",
     after: `, so the source joined it${back}. Its name, round, year and notes stay as they were: edit them there. ${syncText(answer.sync)}`,
   };
 };
@@ -72,10 +83,28 @@ export function AddPoolForm() {
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [message, setMessage] = useState("");
 
+  /** Back to an empty form, so the same pool can't be sent twice by a second click. */
+  const reset = () => {
+    setKind("host");
+    setCreditName("");
+    setCreditUrl("");
+    setTournament("");
+    setRound("");
+    setYear("");
+    setBadged("unknown");
+    setNotes("");
+    setMaps("");
+  };
+
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setPending(true);
     setAnswer(null);
+    if (year.trim() !== "" && !/^\d{4}$/u.test(year.trim())) {
+      setErrors({ year: YEAR_FORMAT });
+      setMessage("Fix the fields marked above.");
+      return;
+    }
+    setPending(true);
     try {
       const response = await fetch("/api/admin/pools", {
         method: "POST",
@@ -86,7 +115,7 @@ export function AddPoolForm() {
           creditUrl,
           tournament,
           round: round.trim() === "" ? null : round,
-          year: year.trim() === "" ? null : Number(year),
+          year: year.trim() === "" ? null : Number(year.trim()),
           badged: BADGED_VALUES[badged],
           notes,
           maps,
@@ -97,6 +126,7 @@ export function AddPoolForm() {
         setErrors({});
         setAnswer(body);
         setMessage("");
+        reset();
       } else {
         const fields = body.error?.fields ?? {};
         setErrors(fields);
@@ -128,7 +158,7 @@ export function AddPoolForm() {
       <TextInput
         id="add-credit-name"
         label="Name to credit"
-        hint="The hosts or the sender, as the pool page should name them. Use community submission when the sender would rather not be named."
+        hint='The hosts or the sender, as the pool page should name them. Write "a community member" when the sender would rather not be named.'
         value={creditName}
         error={errors.creditName}
         onChange={(event) => setCreditName(event.target.value)}
