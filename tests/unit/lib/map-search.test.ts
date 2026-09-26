@@ -6,7 +6,7 @@
  *       ignored, a set that doesn't parse dropped and non-standard difficulties left out; every
  *       way the mirror fails (an error body with no sets, 400 invalid_explicit, 503, 429 with
  *       Retry-After, Cloudflare HTML, a dropped connection, a timeout) as a failure, never as
- *       0 maps; and page counts from total_count, from osu!'s capped total, or with no total,
+ *       0 maps; a 429 or 503's Retry-After (at most a minute) skips the mirror meanwhile; and page counts from total_count, from osu!'s capped total, or with no total,
  *       one more after any page with sets and none after an empty one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
@@ -14,10 +14,15 @@
  */
 
 import { delay, HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MIRROR_SEARCH_URL } from "@/constants/search";
 import { SERVER_USER_AGENT } from "@/constants/site";
-import { mirrorPageCount, mirrorSearchUrl, searchMirror } from "@/lib/map-search";
+import {
+  mirrorPageCount,
+  mirrorSearchUrl,
+  resetMirrorCooldown,
+  searchMirror,
+} from "@/lib/map-search";
 import { EMPTY_ALL_MAP_FILTERS } from "@/utils/search-params";
 import {
   compactSet,
@@ -29,6 +34,7 @@ import {
 import { setupMsw } from "../../helpers/msw";
 
 const server = setupMsw();
+beforeEach(resetMirrorCooldown);
 
 describe("mirrorSearchUrl", () => {
   it("asks for osu!standard ranked maps, 50 from the mirror's page 0, explicit ones hidden", () => {
@@ -161,6 +167,40 @@ describe("searchMirror", () => {
     expect(await searchMirror(EMPTY_ALL_MAP_FILTERS, 1)).toMatchObject({ total: 10_000 });
     server.use(mirrorSearchHandler(() => searchAnswer([], { source: "osu.direct" })));
     expect(await searchMirror(EMPTY_ALL_MAP_FILTERS, 1)).toMatchObject({ total: null });
+  });
+});
+
+describe("searchMirror after Retry-After", () => {
+  beforeEach(() => vi.useFakeTimers({ toFake: ["Date"], now: 1_000_000 }));
+  afterEach(() => vi.useRealTimers());
+
+  const busy = (status: number, retryAfter: string) => () =>
+    new HttpResponse(null, { status, headers: { "Retry-After": retryAfter } });
+
+  it.each([429, 503])("skips the mirror while a %i's Retry-After runs", async (status) => {
+    const calls: SearchCall[] = [];
+    server.use(mirrorSearchHandler(busy(status, "30"), calls));
+    expect(await searchMirror(EMPTY_ALL_MAP_FILTERS, 1)).toMatchObject({ ok: false });
+    server.use(mirrorSearchHandler(() => searchAnswer([fixtureSet(1)]), calls));
+    vi.advanceTimersByTime(29_000);
+    expect(await searchMirror(EMPTY_ALL_MAP_FILTERS, 1)).toMatchObject({ ok: false });
+    expect(calls).toHaveLength(1);
+    vi.advanceTimersByTime(1_001);
+    expect(await searchMirror(EMPTY_ALL_MAP_FILTERS, 1)).toMatchObject({ ok: true });
+    expect(calls).toHaveLength(2);
+  });
+
+  it("waits at most a minute, and not at all without Retry-After or on other errors", async () => {
+    const calls: SearchCall[] = [];
+    server.use(mirrorSearchHandler(busy(429, "3600"), calls));
+    await searchMirror(EMPTY_ALL_MAP_FILTERS, 1);
+    vi.advanceTimersByTime(60_001);
+    server.use(mirrorSearchHandler(() => new HttpResponse(null, { status: 429 }), calls));
+    await searchMirror(EMPTY_ALL_MAP_FILTERS, 1);
+    server.use(mirrorSearchHandler(busy(500, "30"), calls));
+    await searchMirror(EMPTY_ALL_MAP_FILTERS, 1);
+    await searchMirror(EMPTY_ALL_MAP_FILTERS, 1);
+    expect(calls).toHaveLength(4);
   });
 });
 

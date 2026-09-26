@@ -124,6 +124,8 @@ export const MAP_STATUS_LABELS: Readonly<Record<MapStatus, string>> = Object.fre
 /** The hinai mirror's search, called from our server only. */
 export const MIRROR_SEARCH_URL = "https://mirror.hinamizawa.ai/v3/osu/beatmaps/search/v2";
 export const MIRROR_SEARCH_TIMEOUT_MS = 10_000;
+/** The longest we skip the mirror's search after it answers 429 or 503 with Retry-After. */
+export const MIRROR_COOLDOWN_MAX_MS = 60_000;
 /** osu! reports at most this many results for a search the mirror passes on to it. */
 export const MIRROR_TOTAL_CAP = 10_000;
 

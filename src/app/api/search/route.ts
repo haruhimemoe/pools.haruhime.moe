@@ -7,8 +7,9 @@
  *       keeps successful answers 5 minutes and never serves them stale, so repeats never reach
  *       the database or the counter and a pool an admin hides is gone within 5 minutes.
  *       Never reads a cookie. A bad "contains map" is 400; a database failure is 503; a failed
- *       mirror is 503 with the fixed sentence; none of them is cached, nor is an all-maps page
- *       whose played-in lookup failed.
+ *       mirror is 503 with the fixed sentence (so is every all-maps search while a Retry-After
+ *       the mirror sent on a 429 or 503 runs, without asking it); none of them is cached, nor is
+ *       an all-maps page whose played-in lookup failed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Sat Sep 26, 2026

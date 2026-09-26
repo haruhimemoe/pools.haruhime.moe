@@ -7,7 +7,8 @@
  *       unaffected), and reads no cookies. All maps (a stand-in mirror, msw): sets that can't be
  *       used hidden and counted, cached like any search; every way the mirror fails (an error
  *       body with no sets, 400 invalid_explicit, 503, 429, Cloudflare HTML) as 503 no-store
- *       with the fixed sentence, never "0 maps".
+ *       with the fixed sentence, never "0 maps"; while a Retry-After the mirror sent runs,
+ *       the same answer without asking it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Sat Sep 26, 2026
@@ -15,17 +16,24 @@
 
 import { readFileSync } from "node:fs";
 import { HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { GET } from "@/app/api/search/route";
 import { ALL_MAPS_FAILED } from "@/constants/search";
+import { resetMirrorCooldown } from "@/lib/map-search";
 import { poolsCollection } from "@/models/Pool";
 import { setupTestDb } from "../../../helpers/db";
-import { fixtureSet, mirrorSearchHandler, searchAnswer } from "../../../helpers/mirror-search";
+import {
+  fixtureSet,
+  mirrorSearchHandler,
+  type SearchCall,
+  searchAnswer,
+} from "../../../helpers/mirror-search";
 import { setupMsw } from "../../../helpers/msw";
 import { makePool } from "../../../helpers/records";
 
 setupTestDb();
 const server = setupMsw();
+beforeEach(resetMirrorCooldown);
 
 const get = (query: string, ip = "203.0.113.7") =>
   GET(new Request(`http://localhost:3000/api/search?${query}`, { headers: { "x-real-ip": ip } }));
@@ -128,5 +136,22 @@ describe("GET /api/search, all maps", () => {
     expect(await response.json()).toEqual({
       error: { code: "mirror_unavailable", message: ALL_MAPS_FAILED },
     });
+  });
+
+  it("answers the fixed sentence without asking the mirror while its Retry-After runs", async () => {
+    const calls: SearchCall[] = [];
+    server.use(
+      mirrorSearchHandler(
+        () => new HttpResponse(null, { status: 429, headers: { "Retry-After": "30" } }),
+        calls,
+      ),
+    );
+    expect((await get("tab=maps&q=dive")).status).toBe(503);
+    server.use(mirrorSearchHandler(() => searchAnswer([fixtureSet(1)]), calls));
+    const response = await get("tab=maps&q=blue");
+    expect(response.status).toBe(503);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.json()).toMatchObject({ error: { message: ALL_MAPS_FAILED } });
+    expect(calls).toHaveLength(1);
   });
 });

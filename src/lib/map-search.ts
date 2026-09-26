@@ -8,19 +8,23 @@
  *       kept. Anything but a 200 with a list of sets (an error body, a 4xx or 5xx, Cloudflare
  *       HTML, a dropped connection, a timeout) is a failure, never an empty page. Totals come
  *       from total_count (the mirror's own pages), osu!'s total (capped at 10000) or not at all
- *       (osu.direct). Lives here, not in @haruhimemoe/hinai, until a second app needs it.
+ *       (osu.direct). A 429 or 503 with Retry-After makes this process skip the mirror that
+ *       long (at most a minute) and fail at once meanwhile. Lives here, not in
+ *       @haruhimemoe/hinai, until a second app needs it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
  * @modified Sat Sep 26, 2026
  */
 
 import "server-only";
+import { parseRetryAfter } from "@haruhimemoe/hinai";
 import { z } from "zod";
 import {
   BPM_RANGE,
   type FilterBounds,
   LENGTH_RANGE,
   MAX_SEARCH_PAGE,
+  MIRROR_COOLDOWN_MAX_MS,
   MIRROR_SEARCH_TIMEOUT_MS,
   MIRROR_SEARCH_URL,
   MIRROR_TOTAL_CAP,
@@ -119,6 +123,25 @@ export type MirrorSearch =
     }
   | { ok: false; reason: string };
 
+/** Until when (ms since the epoch) this process leaves the mirror's search alone. */
+let coolUntil = 0;
+
+/**
+ * @function resetMirrorCooldown
+ * @returns {void} forgets a Retry-After the mirror sent (tests)
+ */
+export const resetMirrorCooldown = (): void => {
+  coolUntil = 0;
+};
+
+/** A 429 or 503 with Retry-After: skip the mirror that long, at most MIRROR_COOLDOWN_MAX_MS. */
+const noteRetryAfter = (response: Response, now: number): void => {
+  if (response.status !== 429 && response.status !== 503) return;
+  const wait = parseRetryAfter(response.headers.get("Retry-After"), now);
+  if (wait === null || wait <= 0) return;
+  coolUntil = Math.max(coolUntil, now + Math.min(wait, MIRROR_COOLDOWN_MAX_MS));
+};
+
 /** A set that parses, with only the osu!standard difficulties that parse. */
 const readSet = (raw: unknown): MirrorSet | null => {
   const parsed = setSchema.safeParse(raw);
@@ -134,9 +157,10 @@ const readSet = (raw: unknown): MirrorSet | null => {
  * @function searchMirror
  * @param filters {AllMapFilters} the search
  * @param page {number} pools' page, from 1
- * @param deps {{ fetch?: typeof fetch; timeoutMs?: number }} fetch and timeout (tests)
- * @returns {Promise<MirrorSearch>} the page's sets and totals, or why the search failed. Never
- *          rejects.
+ * @param deps {{ fetch?: typeof fetch; timeoutMs?: number; now?: () => number }} fetch, timeout
+ *        and clock (tests)
+ * @returns {Promise<MirrorSearch>} the page's sets and totals, or why the search failed (without
+ *          asking the mirror while a Retry-After it sent still runs). Never rejects.
  */
 export const searchMirror = async (
   filters: AllMapFilters,
@@ -144,15 +168,20 @@ export const searchMirror = async (
   {
     fetch: doFetch = globalThis.fetch,
     timeoutMs = MIRROR_SEARCH_TIMEOUT_MS,
-  }: { fetch?: typeof fetch; timeoutMs?: number } = {},
+    now = Date.now,
+  }: { fetch?: typeof fetch; timeoutMs?: number; now?: () => number } = {},
 ): Promise<MirrorSearch> => {
+  if (now() < coolUntil) return { ok: false, reason: "The mirror asked us to wait (Retry-After)." };
   let body: unknown;
   try {
     const response = await doFetch(mirrorSearchUrl(filters, page), {
       headers: { Accept: "application/json", "User-Agent": SERVER_USER_AGENT },
       signal: AbortSignal.timeout(timeoutMs),
     });
-    if (!response.ok) return { ok: false, reason: `The mirror answered ${response.status}.` };
+    if (!response.ok) {
+      noteRetryAfter(response, now());
+      return { ok: false, reason: `The mirror answered ${response.status}.` };
+    }
     body = await response.json();
   } catch (error) {
     return { ok: false, reason: error instanceof Error ? error.message : String(error) };

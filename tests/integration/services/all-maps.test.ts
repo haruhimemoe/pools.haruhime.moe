@@ -15,9 +15,10 @@
  */
 
 import { HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { SET_FACTS_COLLECTION } from "@/constants/db";
 import { getDb } from "@/lib/db";
+import { resetMirrorCooldown } from "@/lib/map-search";
 import { mapsCollection } from "@/models/Map";
 import { searchAllMaps } from "@/services/all-maps";
 import { EMPTY_ALL_MAP_FILTERS } from "@/utils/search-params";
@@ -33,6 +34,7 @@ import { makeMap } from "../../helpers/records";
 
 setupTestDb();
 const server = setupMsw();
+beforeEach(resetMirrorCooldown);
 
 const answering = (sets: unknown[], extra = {}) =>
   server.use(mirrorSearchHandler(() => searchAnswer(sets, extra)));
