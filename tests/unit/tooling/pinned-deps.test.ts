@@ -1,16 +1,27 @@
 /**
  * @file tests/unit/tooling/pinned-deps.test.ts
  * @desc Every dependency is pinned to an exact version (no ^, ~, ranges or tags), so a new
- *       release (ours on npm included) never lands without a deliberate bump.
+ *       release (ours on npm included) never lands without a deliberate bump, and the shared
+ *       @haruhimemoe packages sit at the versions pools is built and tested against.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { describe, expect, it } from "vitest";
 import pkg from "../../../package.json";
 
 const EXACT = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
+
+/** The shared packages and the versions pools uses (ui 0.3.0 brings the footer's Discord link). */
+const SHARED: Readonly<Record<string, string>> = {
+  "@haruhimemoe/ui": "0.3.0",
+  "@haruhimemoe/osu": "0.2.0",
+  "@haruhimemoe/hinai": "0.2.0",
+  "@haruhimemoe/pool": "0.1.0",
+  "@haruhimemoe/compliance": "0.1.0",
+  "@haruhimemoe/brand": "0.3.0",
+};
 
 describe("package.json", () => {
   it.each([
@@ -19,5 +30,13 @@ describe("package.json", () => {
   ])("pins every entry in %s", (_, deps) => {
     const loose = Object.entries(deps).filter(([, version]) => !EXACT.test(version));
     expect(loose).toEqual([]);
+  });
+
+  it("pins the shared packages at the versions pools is built for", () => {
+    const all: Record<string, string> = { ...pkg.dependencies, ...pkg.devDependencies };
+    const shared = Object.fromEntries(
+      Object.entries(all).filter(([name]) => name.startsWith("@haruhimemoe/")),
+    );
+    expect(shared).toEqual(SHARED);
   });
 });

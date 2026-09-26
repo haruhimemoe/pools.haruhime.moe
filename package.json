@@ -25,10 +25,10 @@
   },
   "dependencies": {
     "@haruhimemoe/compliance": "0.1.0",
-    "@haruhimemoe/hinai": "0.1.0",
-    "@haruhimemoe/osu": "0.1.0",
+    "@haruhimemoe/hinai": "0.2.0",
+    "@haruhimemoe/osu": "0.2.0",
     "@haruhimemoe/pool": "0.1.0",
-    "@haruhimemoe/ui": "0.1.0",
+    "@haruhimemoe/ui": "0.3.0",
     "@mdx-js/loader": "3.1.1",
     "@mdx-js/react": "3.1.1",
     "@next/mdx": "16.3.6",
