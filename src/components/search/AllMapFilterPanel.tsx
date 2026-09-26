@@ -1,7 +1,7 @@
 /**
  * @file src/components/search/AllMapFilterPanel.tsx
  * @desc Filters for searching every osu! map: the text, one status at a time (Ranked by
- *       default, which includes approved; Loved, Qualified, Pending, Graveyard, Any), star rating
+ *       default, which includes approved; Loved, Qualified, Pending, Graveyard), star rating
  *       (no mod), length and BPM ranges, and Show explicit maps (hidden unless ticked).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026

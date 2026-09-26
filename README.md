@@ -11,7 +11,7 @@ The site never hosts beatmap files. "Open in packs" opens the pool on [packs.har
 ## Features
 
 - **Pool search:** by tournament, round or name, year, star rating, number of maps, whether the tournament was badged (once that's known), or a map the pool contains. Sort by year, name or size.
-- **Search every osu! map:** by title, artist or mapper, status (Ranked, Loved, Qualified, Pending, Graveyard or Any), star rating, length and BPM. Sets that can't be used in officially supported tournaments are left out (the page says how many), sets to check first are marked, and graveyard and pending maps carry a warning. Each difficulty says how many pools played it. Explicit maps show only when you ask.
+- **Search every osu! map:** by title, artist or mapper, status (Ranked, Loved, Qualified, Pending or Graveyard), star rating, length and BPM. Sets that can't be used in officially supported tournaments are left out (the page says how many), sets to check first are marked, and graveyard and pending maps carry a warning. Each difficulty says how many pools played it. Explicit maps show only when you ask.
 - **Maps played in pools:** by title, artist, set host or difficulty name, star rating, length, BPM, AR, OD, CS, what the map was played as (NM, HD, HR, DT, FM, TB, EZ, HT, FL), how many pools used it and the last year one did.
 - **Pool pages:** every map with its slot, star rating, length and BPM, a Copy ID button for `!mp map`, the pool's notes, who it came from (otdb, the tournament's hosts or a community member, with their link), and Open in packs.
 - **Map pages:** the map's details and every pool that played it, newest first.

@@ -1,7 +1,7 @@
 /**
  * @file src/lib/map-search.ts
  * @desc The hinai mirror's search (GET /v3/osu/beatmaps/search/v2), called from our server only
- *       with pools' User-Agent and a 10 s timeout: osu!standard, one status (none for Any), the
+ *       with pools' User-Agent and a 10 s timeout: osu!standard, one status (always sent), the
  *       star, BPM and length ranges, explicit maps only when asked, 50 a page from the mirror's
  *       page 0. Answers are JSON metadata only (never files), parsed with zod: unknown fields are
  *       ignored, a set that doesn't parse is dropped, and only osu!standard difficulties are
@@ -91,7 +91,7 @@ export const mirrorSearchUrl = (filters: AllMapFilters, page: number): string =>
   const params = new URLSearchParams();
   if (filters.q !== "") params.set("query", filters.q);
   params.set("mode", "0");
-  if (filters.status !== "any") params.set("status", filters.status);
+  params.set("status", filters.status);
   /** A bottom end at the slider's minimum is no lower limit. */
   const range = (low: string, high: string, value: Range | null, bounds: FilterBounds) => {
     if (!value) return;
@@ -112,7 +112,7 @@ export type MirrorSearch =
       ok: true;
       /** The sets that parsed, in the mirror's order. */
       sets: MirrorSet[];
-      /** How many sets the mirror sent, parsed or not (a full page means there may be more). */
+      /** How many sets the mirror sent, parsed or not (with no total, any means maybe more). */
       received: number;
       /** Results in all, when the mirror says; osu!'s capped at 10000. */
       total: number | null;
@@ -172,7 +172,8 @@ export const searchMirror = async (
  * @function mirrorPageCount
  * @param answer {{ total: number | null; received: number; page: number }} a page's totals
  * @returns {number} pages from the total (at most MAX_SEARCH_PAGE); with no total, one past this
- *          page after a full page, else this page
+ *          page whenever this one had sets (osu.direct's pages hold 48 to 50 at limit=50, so a
+ *          short page isn't the end), else this page: an empty page is the end
  */
 export const mirrorPageCount = ({
   total,
@@ -184,10 +185,6 @@ export const mirrorPageCount = ({
   page: number;
 }): number => {
   const pages =
-    total === null
-      ? received >= SEARCH_PAGE_SIZE
-        ? page + 1
-        : page
-      : Math.ceil(total / SEARCH_PAGE_SIZE);
+    total === null ? (received > 0 ? page + 1 : page) : Math.ceil(total / SEARCH_PAGE_SIZE);
   return Math.min(pages, MAX_SEARCH_PAGE);
 };

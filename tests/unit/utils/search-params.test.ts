@@ -233,6 +233,12 @@ describe("the maps tab's scope", () => {
     });
   });
 
+  it("reads an old status=any link as the default status", () => {
+    expect(parseSearchState("tab=maps&status=any")).toMatchObject({
+      filters: { status: "ranked" },
+    });
+  });
+
   it("writes scope=played for a played search and never scope=all", () => {
     const played: SearchState = {
       tab: "maps",

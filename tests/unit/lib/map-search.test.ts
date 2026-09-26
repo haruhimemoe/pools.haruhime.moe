@@ -1,12 +1,13 @@
 /**
  * @file tests/unit/lib/map-search.test.ts
  * @desc The mirror's search, never the real one (msw): the request (osu!standard, the status
- *       unless Any, star, BPM and length ranges, explicit=show only when asked, pools' page 1 as
+ *       always, star, BPM and length ranges, explicit=show only when asked, pools' page 1 as
  *       the mirror's page 0, 50 a page, pools' User-Agent); answers parsed with unknown fields
  *       ignored, a set that doesn't parse dropped and non-standard difficulties left out; every
  *       way the mirror fails (an error body with no sets, 400 invalid_explicit, 503, 429 with
  *       Retry-After, Cloudflare HTML, a dropped connection, a timeout) as a failure, never as
- *       0 maps; and page counts from total_count, from osu!'s capped total, or from a full page.
+ *       0 maps; and page counts from total_count, from osu!'s capped total, or with no total,
+ *       one more after any page with sets and none after an empty one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
  * @modified Sat Sep 26, 2026
@@ -40,12 +41,12 @@ describe("mirrorSearchUrl", () => {
     });
   });
 
-  it("sends the text, ranges and Show explicit maps, and no status for Any", () => {
+  it("sends the text, the status, ranges and Show explicit maps", () => {
     const url = new URL(
       mirrorSearchUrl(
         {
           q: "freedom dive",
-          status: "any",
+          status: "pending",
           sr: [6.5, null],
           len: [60, 300],
           bpm: [180, 240],
@@ -57,6 +58,7 @@ describe("mirrorSearchUrl", () => {
     expect(Object.fromEntries(url.searchParams)).toEqual({
       query: "freedom dive",
       mode: "0",
+      status: "pending",
       min_stars: "6.5",
       min_length: "60",
       max_length: "300",
@@ -169,9 +171,16 @@ describe("mirrorPageCount", () => {
     expect(mirrorPageCount({ total: 0, received: 0, page: 1 })).toBe(0);
   });
 
-  it("offers one more page after a full page when there's no total", () => {
+  it("offers one more page after any page with sets when there's no total", () => {
     expect(mirrorPageCount({ total: null, received: 50, page: 4 })).toBe(5);
-    expect(mirrorPageCount({ total: null, received: 12, page: 4 })).toBe(4);
+    // osu.direct's pages hold 48 to 50 sets at limit=50: a short page isn't the end.
+    expect(mirrorPageCount({ total: null, received: 48, page: 4 })).toBe(5);
+    expect(mirrorPageCount({ total: null, received: 1, page: 4 })).toBe(5);
     expect(mirrorPageCount({ total: null, received: 50, page: 200 })).toBe(200);
+  });
+
+  it("ends at an empty page when there's no total", () => {
+    expect(mirrorPageCount({ total: null, received: 0, page: 4 })).toBe(4);
+    expect(mirrorPageCount({ total: null, received: 0, page: 1 })).toBe(1);
   });
 });

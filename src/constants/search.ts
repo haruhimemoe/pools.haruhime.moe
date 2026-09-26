@@ -6,7 +6,7 @@
  *       the page, the route and the queries.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 import { FIRST_YEAR } from "@/constants/pools";
@@ -105,15 +105,12 @@ export const MAP_SCOPE_LABELS: Readonly<Record<MapScope, string>> = Object.freez
   played: "Played in pools",
 });
 
-/** All-maps status chips, one at a time (the mirror filters on one). Ranked includes approved. */
-export const MAP_STATUSES = [
-  "ranked",
-  "loved",
-  "qualified",
-  "pending",
-  "graveyard",
-  "any",
-] as const;
+/**
+ * All-maps status chips, one at a time (the mirror filters on one). Ranked includes approved.
+ * No "Any": the mirror has no value for every status (status=any, or none, answers osu!'s
+ * default of ranked and qualified), so an old status=any link reads as the default.
+ */
+export const MAP_STATUSES = ["ranked", "loved", "qualified", "pending", "graveyard"] as const;
 export type MapStatus = (typeof MAP_STATUSES)[number];
 export const DEFAULT_MAP_STATUS: MapStatus = "ranked";
 export const MAP_STATUS_LABELS: Readonly<Record<MapStatus, string>> = Object.freeze({
@@ -122,7 +119,6 @@ export const MAP_STATUS_LABELS: Readonly<Record<MapStatus, string>> = Object.fre
   qualified: "Qualified",
   pending: "Pending",
   graveyard: "Graveyard",
-  any: "Any",
 });
 
 /** The hinai mirror's search, called from our server only. */
