@@ -2,10 +2,11 @@
  * @file src/hooks/useSearchResults.ts
  * @desc Fetches /api/search for a search state, a moment after it last changed, dropping an
  *       answer that arrives after a newer search started. Keeps the last results while a new
- *       search loads; an error keeps them too and carries the route's message.
+ *       search loads; an error keeps them too and carries the route's message and code (null
+ *       when the request didn't reach it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sat Sep 26, 2026
  */
 
 "use client";
@@ -18,6 +19,8 @@ export type SearchResults = {
   status: "loading" | "ready" | "error";
   data: SearchResponse | null;
   error: string | null;
+  /** The route's error code ("mirror_unavailable", "rate_limited", ...), when it sent one. */
+  code: string | null;
 };
 
 const NETWORK_ERROR = "Search didn't load. Check your connection and try again.";
@@ -32,31 +35,40 @@ export const useSearchResults = (state: SearchState): SearchResults => {
     status: "loading",
     data: null,
     error: null,
+    code: null,
   });
   const query = serializeSearchState(state);
   useEffect(() => {
     const controller = new AbortController();
-    setResults((previous) => ({ ...previous, status: "loading", error: null }));
+    setResults((previous) => ({ ...previous, status: "loading", error: null, code: null }));
     const timer = setTimeout(async () => {
       try {
         const response = await fetch(query === "" ? "/api/search" : `/api/search?${query}`, {
           signal: controller.signal,
         });
-        const body = (await response.json()) as SearchResponse | { error?: { message?: string } };
+        const body = (await response.json()) as
+          | SearchResponse
+          | { error?: { message?: string; code?: string } };
         if (controller.signal.aborted) return;
         if (!response.ok || !("results" in body)) {
-          const message = "error" in body ? body.error?.message : undefined;
+          const error = "error" in body ? body.error : undefined;
           setResults((previous) => ({
             ...previous,
             status: "error",
-            error: message ?? NETWORK_ERROR,
+            error: error?.message ?? NETWORK_ERROR,
+            code: error?.code ?? null,
           }));
           return;
         }
-        setResults({ status: "ready", data: body, error: null });
+        setResults({ status: "ready", data: body, error: null, code: null });
       } catch {
         if (controller.signal.aborted) return;
-        setResults((previous) => ({ ...previous, status: "error", error: NETWORK_ERROR }));
+        setResults((previous) => ({
+          ...previous,
+          status: "error",
+          error: NETWORK_ERROR,
+          code: null,
+        }));
       }
     }, FETCH_DELAY_MS);
     return () => {

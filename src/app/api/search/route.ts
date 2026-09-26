@@ -16,7 +16,7 @@
  */
 
 import { RATE_LIMITS } from "@/constants/api";
-import { ALL_MAPS_FAILED, SEARCH_CACHE } from "@/constants/search";
+import { ALL_MAPS_FAILED, MIRROR_UNAVAILABLE_CODE, SEARCH_CACHE } from "@/constants/search";
 import { jsonError, noStore } from "@/lib/api";
 import { refuseOverLimit } from "@/lib/rate-limit";
 import { searchAllMaps } from "@/services/all-maps";
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
   try {
     if (state.tab === "maps" && state.scope === "all") {
       const result = await searchAllMaps(state.filters, state.page);
-      if (!result.ok) return noStore(jsonError(503, ALL_MAPS_FAILED, "mirror_unavailable"));
+      if (!result.ok) return noStore(jsonError(503, ALL_MAPS_FAILED, MIRROR_UNAVAILABLE_CODE));
       const body = Response.json({ tab: "maps", scope: "all", ...result.answer });
       if (!result.cacheable) return noStore(body);
       body.headers.set("Cache-Control", SEARCH_CACHE);

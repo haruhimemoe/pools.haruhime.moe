@@ -1,7 +1,8 @@
 /**
  * @file src/components/search/AllMapFilterPanel.tsx
- * @desc Filters for searching every osu! map: the text, one status at a time (Ranked by
- *       default, which includes approved; Loved, Qualified, Pending, Graveyard), star rating
+ * @desc Filters for searching every osu! map: the text, one status at a time as a radio group
+ *       (Ranked by default, which includes approved; Loved, Qualified, Pending, Graveyard), star
+ *       rating
  *       (no mod), length and BPM ranges, and Show explicit maps (hidden unless ticked).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
@@ -10,23 +11,14 @@
 
 "use client";
 
-import {
-  Checkbox,
-  ChipGroup,
-  FilterPanel,
-  FilterRow,
-  RangeSlider,
-  TextInput,
-} from "@haruhimemoe/ui";
+import { Checkbox, FilterPanel, FilterRow, RangeSlider, TextInput } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
+import { StatusChips } from "@/components/search/StatusChips";
 import {
   BPM_RANGE,
   type FilterBounds,
   LENGTH_RANGE,
-  MAP_STATUS_LABELS,
-  MAP_STATUSES,
   MAX_QUERY_LENGTH,
-  type MapStatus,
   STAR_RANGE,
 } from "@/constants/search";
 import { formatDuration, formatStars } from "@/utils/format";
@@ -73,10 +65,6 @@ const RANGES: readonly {
   { key: "bpm", row: "BPM", label: "BPM", bounds: BPM_RANGE },
 ];
 
-/** The chip just switched on, or the one already on (a chip can't be switched off alone). */
-const pickedStatus = (values: readonly string[], current: MapStatus): MapStatus =>
-  MAP_STATUSES.find((status) => status !== current && values.includes(status)) ?? current;
-
 export function AllMapFilterPanel({ filters, onChange, resultCount }: Props) {
   const setRange = (key: RangeKey, value: Range | null) => onChange({ ...filters, [key]: value });
   return (
@@ -96,17 +84,9 @@ export function AllMapFilterPanel({ filters, onChange, resultCount }: Props) {
         />
       </FilterRow>
       <FilterRow label="Status">
-        <ChipGroup
-          label="Status"
-          hideLabel
-          options={MAP_STATUSES.map((status) => ({
-            value: status,
-            label: MAP_STATUS_LABELS[status],
-          }))}
-          value={[filters.status]}
-          onChange={(values) =>
-            onChange({ ...filters, status: pickedStatus(values, filters.status) })
-          }
+        <StatusChips
+          value={filters.status}
+          onChange={(status) => onChange({ ...filters, status })}
         />
       </FilterRow>
       {RANGES.map(({ key, row, label, bounds, format, parse }) => (

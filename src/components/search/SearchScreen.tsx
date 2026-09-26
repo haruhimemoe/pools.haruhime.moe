@@ -4,8 +4,10 @@
  *       URL is the state: it's read on load and on Back/Forward, and written (replaceState, a
  *       moment after the last change) as filters change, so a search can be shared. Results
  *       come from /api/search. Filter changes go back to page 1. The maps tab searches all osu!
- *       maps by default (hidden sets counted, the unranked line, a failure linking the same
- *       search in maps played in pools) or maps played in pools.
+ *       maps by default (hidden sets counted, the unranked line, both also read out with the
+ *       live count; a failure shows no stale sets and, when the mirror is down, links the same
+ *       search in maps played in pools) or maps played in pools. A failed search's count says
+ *       so instead of "Loading…"; with no total the count says the page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Sat Sep 26, 2026
@@ -24,7 +26,13 @@ import { MapResultList } from "@/components/search/MapResultList";
 import { MapScopeSwitch, scopeHref } from "@/components/search/MapScopeSwitch";
 import { PoolFilterPanel } from "@/components/search/PoolFilterPanel";
 import { PoolResultList } from "@/components/search/PoolResultList";
-import { hiddenSetsText, UNRANKED_WARNING, URL_WRITE_MS } from "@/constants/search";
+import {
+  hiddenSetsText,
+  MIRROR_UNAVAILABLE_CODE,
+  SEARCH_FAILED_COUNT,
+  UNRANKED_WARNING,
+  URL_WRITE_MS,
+} from "@/constants/search";
 import { useSearchResults } from "@/hooks/useSearchResults";
 import {
   EMPTY_ALL_MAP_FILTERS,
@@ -35,9 +43,9 @@ import {
   serializeSearchState,
 } from "@/utils/search-params";
 
-/** Pools, maps played in pools, or beatmapsets (all maps; the mirror may give no total). */
-const countText = (total: number | null, state: SearchState): string => {
-  if (total === null) return "Sets";
+/** Pools, maps played in pools, or beatmapsets (all maps; with no total, the page). */
+const countText = (total: number | null, page: number, state: SearchState): string => {
+  if (total === null) return `Page ${page}`;
   const noun = state.tab === "pools" ? "pool" : state.scope === "all" ? "set" : "map";
   return `${total} ${total === 1 ? noun : `${noun}s`}`;
 };
@@ -74,8 +82,28 @@ export function SearchScreen() {
   }, [state, router]);
 
   const results = useSearchResults(state);
-  const data = results.data && kindOf(results.data) === kindOf(state) ? results.data : null;
-  const count = data ? countText(data.total, state) : "Loading…";
+  const failed = results.status === "error";
+  const allMaps = state.tab === "maps" && state.scope === "all";
+  // A failed all-maps search shows no stale sets, hidden count or unranked line.
+  const data =
+    results.data && kindOf(results.data) === kindOf(state) && !(allMaps && failed)
+      ? results.data
+      : null;
+  const count = failed
+    ? SEARCH_FAILED_COUNT
+    : data
+      ? countText(data.total, data.page, state)
+      : "Loading…";
+  const hiddenText =
+    data && "hidden" in data && data.hidden > 0 ? hiddenSetsText(data.hidden) : null;
+  const unranked = data && "hidden" in data && data.results.some((set) => set.unranked);
+  const spoken = [hiddenText, unranked ? UNRANKED_WARNING : null].filter(Boolean).join(". ");
+  const allCount = (
+    <>
+      {count}
+      {spoken ? <span className="sr-only">. {spoken}</span> : null}
+    </>
+  );
   const mapError =
     state.tab === "pools" && state.filters.map !== "" && results.status === "error"
       ? results.error
@@ -85,7 +113,7 @@ export function SearchScreen() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Search"
-        lead="Past osu! tournament pools and their maps. Star ratings are without mods."
+        lead="Past osu! tournament pools, the maps they played, and every osu! map. Star ratings are without mods."
       />
       <nav aria-label="What to search" className="flex gap-4 font-bold">
         {(["pools", "maps"] as const).map((tab) => (
@@ -125,7 +153,7 @@ export function SearchScreen() {
             <AllMapFilterPanel
               filters={state.filters}
               onChange={(filters) => setState({ tab: "maps", scope: "all", page: 1, filters })}
-              resultCount={count}
+              resultCount={allCount}
             />
           ) : (
             <MapFilterPanel
@@ -139,7 +167,7 @@ export function SearchScreen() {
       {results.status === "error" && mapError === null ? (
         <Notice tone="error" live>
           {results.error}
-          {state.tab === "maps" && state.scope === "all" ? (
+          {allMaps && results.code === MIRROR_UNAVAILABLE_CODE ? (
             <>
               {" "}
               <Link href={scopeHref("played", state.filters)} className="underline">
@@ -154,12 +182,8 @@ export function SearchScreen() {
           {data.hiddenMissing} more hidden: data missing for a filter.
         </p>
       ) : null}
-      {data && "hidden" in data && data.hidden > 0 ? (
-        <p className="text-c3 text-sm">{hiddenSetsText(data.hidden)}</p>
-      ) : null}
-      {data && "hidden" in data && data.results.some((set) => set.unranked) ? (
-        <p className="text-amber-200 text-sm">{UNRANKED_WARNING}</p>
-      ) : null}
+      {hiddenText ? <p className="text-c3 text-sm">{hiddenText}</p> : null}
+      {unranked ? <p className="text-amber-200 text-sm">{UNRANKED_WARNING}</p> : null}
       {data?.tab === "pools" ? <PoolResultList results={data.results} /> : null}
       {data?.tab === "maps" && data.scope === "played" ? (
         <MapResultList results={data.results} />

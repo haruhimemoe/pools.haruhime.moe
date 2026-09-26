@@ -39,7 +39,7 @@ export function HomeScreen({
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Past osu! tournament mappools"
-        lead="Search pools and maps from past tournaments, see where a map was played before, and check a pool you're building against the content rules for officially supported tournaments."
+        lead="Search pools from past tournaments and every osu! map, see where a map was played before, and check a pool you're building against the content rules for officially supported tournaments."
         meta={countsLine(counts)}
       />
       <div className="grid gap-6 md:grid-cols-2">

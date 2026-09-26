@@ -1,6 +1,7 @@
 /**
  * @file src/components/search/AllMapResultList.tsx
- * @desc All-maps results: one card per beatmapset (artist, title, mapper, status, an Unranked tag
+ * @desc All-maps results: one card per beatmapset (artist, title, mapper, the status as osu!
+ *       names it: Ranked, Approved, Loved, Qualified, Pending, WIP or Graveyard; an Unranked tag
  *       for graveyard, pending and WIP sets, and "Check first" with the reason for sets that
  *       need a closer look), each osu!standard difficulty with its no-mod stars, length and BPM
  *       and how many pools played it (a link to its map page when some did), and a link to the
@@ -11,6 +12,7 @@
  */
 
 import Link from "next/link";
+import { SET_STATUS_LABELS } from "@/constants/search";
 import { formatBpm, formatDuration } from "@/utils/format";
 import { starsText } from "@/utils/pool-text";
 import type { AllMapDifficulty, AllMapSet } from "@/utils/search-params";
@@ -50,7 +52,7 @@ export function AllMapResultList({ results }: { results: readonly AllMapSet[] })
             >
               {`${set.artist} - ${set.title}`}
             </a>
-            <Tag tone="plain">{set.status}</Tag>
+            <Tag tone="plain">{SET_STATUS_LABELS[set.status] ?? set.status}</Tag>
             {set.unranked ? <Tag tone="warn">Unranked</Tag> : null}
             {set.check ? <Tag tone="warn">Check first</Tag> : null}
           </div>

@@ -1,8 +1,9 @@
 /**
  * @file tests/components/home/HomeScreen.test.tsx
- * @desc The home page: what pools is, its counts (or "No pools yet.") with a link to where pools
- *       come from instead of one source's name, a pools search that works without JavaScript,
- *       the maps search, the links to search, check and submit, and the pools added last.
+ * @desc The home page: what pools is (pools and every osu! map), its counts (or "No pools
+ *       yet.") with a link to where pools come from instead of one source's name, a pools search
+ *       that works without JavaScript, the maps search, the links to search, check and submit,
+ *       and the pools added last.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Sat Sep 26, 2026
@@ -26,6 +27,7 @@ describe("HomeScreen", () => {
     expect(where).toHaveAttribute("href", "/data#pools");
     expect(where.parentElement).toHaveTextContent("633 pools · 7093 maps · where they come from");
     expect(container).not.toHaveTextContent("otdb");
+    expect(container).toHaveTextContent(/Search pools from past tournaments and every osu! map/);
   });
 
   it("says when there are no pools yet", () => {

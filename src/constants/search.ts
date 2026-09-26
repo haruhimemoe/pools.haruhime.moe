@@ -121,6 +121,17 @@ export const MAP_STATUS_LABELS: Readonly<Record<MapStatus, string>> = Object.fre
   graveyard: "Graveyard",
 });
 
+/** How a beatmapset's osu! status reads on its card (anything else shows as osu! sent it). */
+export const SET_STATUS_LABELS: Readonly<Record<string, string>> = Object.freeze({
+  ranked: "Ranked",
+  approved: "Approved",
+  loved: "Loved",
+  qualified: "Qualified",
+  pending: "Pending",
+  wip: "WIP",
+  graveyard: "Graveyard",
+});
+
 /** The hinai mirror's search, called from our server only. */
 export const MIRROR_SEARCH_URL = "https://mirror.hinamizawa.ai/v3/osu/beatmaps/search/v2";
 export const MIRROR_SEARCH_TIMEOUT_MS = 10_000;
@@ -131,6 +142,10 @@ export const MIRROR_TOTAL_CAP = 10_000;
 
 export const ALL_MAPS_FAILED =
   "Searching all osu! maps isn't working right now. Maps played in pools still work.";
+/** The code the route sends with ALL_MAPS_FAILED (a 503, never a 429 or a network error). */
+export const MIRROR_UNAVAILABLE_CODE = "mirror_unavailable";
+/** The live count when a search failed. */
+export const SEARCH_FAILED_COUNT = "Couldn't search";
 export const UNRANKED_WARNING =
   "Unranked maps can change or disappear after you pool them. Check the map before your round.";
 
