@@ -1,14 +1,15 @@
 /**
  * @file src/services/map-fill.ts
- * @desc Fills maps from the mirror during an import: every map still holding only otdb's
- *       details is asked for, 100 ids a call, one call at a time. Found maps take the mirror's
+ * @desc Fills maps from the mirror: every map still holding only otdb's details or none (a map
+ *       an admin added), or only the ids given (an added pool's), 100 ids a call, one call at a
+ *       time. Found maps take the mirror's
  *       values (no-mod stars among them); maps the mirror doesn't have keep otdb's and are asked
  *       for again next run. A retryable mirror error waits (its Retry-After, else 1 s, 2 s) and
  *       tries the batch again, 3 tries in all; any other mirror error stops the fill and the
  *       result says why. Mirror errors never throw.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import "server-only";
@@ -18,7 +19,7 @@ import type { AnyBulkWriteOperation } from "mongodb";
 import { BATCH_QUERY_MS } from "@/constants/db";
 import { getHinaiClient } from "@/lib/hinai";
 import { mapsCollection } from "@/models/Map";
-import type { StoredMap } from "@/schemas/map";
+import { type StoredMap, UNFILLED_META_SOURCES } from "@/schemas/map";
 import { mirrorFields } from "@/utils/map-record";
 
 /** Asks the mirror about some maps (the hinai client's getBeatmaps). */
@@ -52,16 +53,19 @@ const lookupWithRetries = async (
 
 /**
  * @function fillMaps
- * @param deps {{ lookup?: MapLookup; now?: () => Date; sleep?: (ms: number) => Promise<void> }}
- *        the mirror lookup, clock and wait (tests)
+ * @param deps {{ ids?: readonly number[]; lookup?: MapLookup; now?: () => Date; sleep?: (ms:
+ *        number) => Promise<void> }} only these maps (default: every unfilled one), the mirror
+ *        lookup, clock and wait (tests)
  * @returns {Promise<FillResult>} ids asked, rows filled, ids the mirror doesn't have, and why it
  *          stopped early (null when it didn't)
  */
 export const fillMaps = async ({
+  ids: only,
   lookup = (ids) => getHinaiClient().getBeatmaps(ids),
   now = () => new Date(),
   sleep = wait,
 }: {
+  ids?: readonly number[];
   lookup?: MapLookup;
   now?: () => Date;
   sleep?: (ms: number) => Promise<void>;
@@ -70,7 +74,10 @@ export const fillMaps = async ({
   const ids = (
     await maps
       .find(
-        { metaSource: "otdb" },
+        {
+          metaSource: { $in: [...UNFILLED_META_SOURCES] },
+          ...(only ? { _id: { $in: [...only] } } : {}),
+        },
         { projection: { _id: 1 }, sort: { _id: 1 }, maxTimeMS: BATCH_QUERY_MS },
       )
       .toArray()

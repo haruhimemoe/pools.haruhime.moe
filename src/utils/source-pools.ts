@@ -9,9 +9,10 @@
  *       stored as no mod. The name, every label and the notes go through the content filter. A
  *       pool that fails any check is skipped with a reason, never half-imported. Each pool gets
  *       the canonical @haruhimemoe/pool shape (buckets only when not the default) and its
- *       fingerprint. A source is otdb's (its id and link) or a host or community pool an admin
- *       added (a generated id and its credit); either way it rides along unchanged. Server code
- *       only (node:crypto through the fingerprint).
+ *       fingerprint. A pool that comes with its shape (a pack key's) is taken as is. A source
+ *       is otdb's (its id and link) or a host or community pool an admin added (a generated id
+ *       and its credit); either way it rides along unchanged. Server code only (node:crypto
+ *       through the fingerprint).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Fri Sep 25, 2026
@@ -38,7 +39,7 @@ import {
 import { MAX_NOTES_LENGTH, type SourceKind } from "@/constants/pools";
 import type { PoolSource, SourceSlotRecord } from "@/schemas/pool";
 import { hasBlockedLanguage } from "@/utils/content-filter";
-import { poolFingerprint } from "@/utils/fingerprint";
+import { type PoolShape, poolFingerprint } from "@/utils/fingerprint";
 import { slotModsMap } from "@/utils/slot-mods";
 
 /** One pool at one source: a stored source without its importedAt. */
@@ -57,6 +58,11 @@ export type SourcePool = {
   name: string;
   notes: string;
   slots: readonly SourceSlot[];
+  /**
+   * The pool already in @haruhimemoe/pool's shape (a pack key's, custom slot mods included):
+   * used as is instead of reading the labels, which then only name the maps.
+   */
+  shape?: PoolShape;
 };
 
 /** A pool ready to become (or match) a pool record. */
@@ -287,7 +293,16 @@ export const normalizePool = (pool: SourcePool): NormalizeResult => {
   }
   if (hasBlockedLanguage(notes)) return skip("The notes fail the content filter.");
 
-  let labelled = poolFromLabels(pool.name, pool.slots);
+  let labelled: LabelResult = pool.shape
+    ? {
+        ok: true,
+        pool: {
+          name: pool.name,
+          slots: [...pool.shape.slots],
+          ...(pool.shape.buckets ? { buckets: [...pool.shape.buckets] } : {}),
+        },
+      }
+    : poolFromLabels(pool.name, pool.slots);
   if (!labelled.ok) return skip(labelled.reason);
   // What the source says the maps were played with, when it says it for every map.
   const sourceMods = pool.slots.flatMap((slot) => (slot.mods ? [slot.mods] : []));

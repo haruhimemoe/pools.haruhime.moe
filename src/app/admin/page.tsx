@@ -1,11 +1,11 @@
 /**
  * @file src/app/admin/page.tsx
  * @desc /admin: the newest import reports, how many pools sit in each sync state, the retry
- *       buttons, the public pages refresh (for after an import), and a link to every pool. Admins
- *       only (sign-in otherwise); never indexed.
+ *       buttons, the public pages refresh (for after an import), and links to add a pool and to
+ *       every pool. Admins only (sign-in otherwise); never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
@@ -30,6 +30,9 @@ export default async function AdminPage() {
         meta={`Signed in as ${admin.username}`}
         actions={
           <>
+            <ButtonLink href="/admin/pools/new" variant="secondary">
+              Add a pool
+            </ButtonLink>
             <ButtonLink href="/admin/pools" variant="secondary">
               Every pool
             </ButtonLink>

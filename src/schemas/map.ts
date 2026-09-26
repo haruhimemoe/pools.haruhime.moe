@@ -2,19 +2,25 @@
  * @file src/schemas/map.ts
  * @desc A map (difficulty) as stored in the maps collection: set, artist, title, difficulty
  *       name, set host, mode, AR/OD/CS/HP, length, BPM and no-mod stars (all without mods),
- *       checksum, where the details came from (otdb's export until the mirror answers), search
- *       and sort keys, and usage (count, last year, played as, shown).
+ *       checksum, where the details came from (otdb's export or nothing until the mirror
+ *       answers), search and sort keys, and usage (count, last year, played as, shown).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { beatmapIdSchema, RULESETS } from "@haruhimemoe/pool";
 import { z } from "zod";
 import { PLAYED_AS_CODES } from "@/constants/pools";
 
-/** otdb: seeded from the export; mirror: the mirror answered for it. */
-export const META_SOURCES = ["otdb", "mirror"] as const;
+/**
+ * otdb: seeded from the export; mirror: the mirror answered for it; none: a map an admin added
+ * that pools had never seen, every detail blank until the mirror answers.
+ */
+export const META_SOURCES = ["otdb", "mirror", "none"] as const;
+
+/** Rows the mirror fill asks about: everything it hasn't answered yet. */
+export const UNFILLED_META_SOURCES = ["otdb", "none"] as const;
 
 export const mapUsageSchema = z.object({
   /** Distinct current pools (not hidden, not superseded) that have the map. */

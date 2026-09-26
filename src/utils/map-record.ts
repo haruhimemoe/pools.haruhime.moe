@@ -1,13 +1,14 @@
 /**
  * @file src/utils/map-record.ts
  * @desc Map rows: one seeded from otdb's export (set, artist, title, set host, difficulty name,
- *       AR/OD/CS/HP, length and BPM, all without mods; no stars, since otdb's carry mods), the
+ *       AR/OD/CS/HP, length and BPM, all without mods; no stars, since otdb's carry mods), a
+ *       blank one for a map an admin added that pools had never seen, the
  *       fields the mirror fills (its BeatmapMeta: no-mod stars, set host id, checksum), the
  *       folded search text (artist, title, set host, difficulty), a title sort key that puts
  *       unknown titles last, and the label pages show for a map. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
@@ -85,6 +86,36 @@ export const seededMap = (id: number, seed: MapSeed, now: Date): StoredMap => ({
   usage: { count: 0, lastYear: null, playedAs: [], shown: false },
   updatedAt: now,
 });
+
+/**
+ * @function blankMap
+ * @param id {number} the beatmap (difficulty) id
+ * @param now {Date} the clock
+ * @returns {StoredMap} a new row with every detail null (metaSource "none"), no uses yet
+ */
+export const blankMap = (id: number, now: Date): StoredMap => {
+  const text = { artist: null, title: null, setHost: null, version: null };
+  return {
+    _id: id,
+    setId: null,
+    ...text,
+    setHostId: null,
+    mode: null,
+    ar: null,
+    od: null,
+    cs: null,
+    hp: null,
+    length: null,
+    bpm: null,
+    stars: null,
+    checksum: null,
+    metaSource: "none",
+    searchText: mapSearchText(text),
+    sortTitle: sortTitleOf(null),
+    usage: { count: 0, lastYear: null, playedAs: [], shown: false },
+    updatedAt: now,
+  };
+};
 
 /**
  * @function mirrorFields

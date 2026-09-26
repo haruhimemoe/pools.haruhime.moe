@@ -6,10 +6,11 @@
  *       and packs hasn't deleted it (a failed PUT stays as error and the answer says so). badged
  *       for every pool of a tournament (one year, unknown years, or all). Retries for failed
  *       syncs, 50 pools at most per click. The admin pool list. Every change revalidates the
- *       public pages it touches.
+ *       public pages it touches. syncPoolNow sends one pool's pack at once (the edit and an
+ *       added pool use it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import "server-only";
@@ -51,6 +52,31 @@ const serviceOrReason = (read: () => PacksService | null): PacksService | string
 };
 
 /**
+ * @function syncPoolNow
+ * @param pool {StoredPool} a pool as it now stands
+ * @param deps {AdminDeps} packs service, fetch and clock (tests)
+ * @returns {Promise<SyncOutcome>} not-needed when packs deleted its pack or its input didn't
+ *          change; otherwise the PUT's outcome (its stored state), or why it wasn't sent
+ */
+export const syncPoolNow = async (
+  pool: StoredPool,
+  { packsService = getPacksService, fetch, now = () => new Date() }: AdminDeps = {},
+): Promise<SyncOutcome> => {
+  if (pool.pack.state === "gone" || packInputHash(packInputOf(pool)) === pool.pack.inputHash) {
+    return { status: "not-needed" };
+  }
+  const service = serviceOrReason(packsService);
+  if (typeof service === "string") return { status: "failed", message: service };
+  const summary = await syncPools({ service, ids: [pool._id], fetch, now });
+  if (summary.configError !== null) return { status: "failed", message: summary.configError };
+  const after = await (await poolsCollection()).findOne(
+    { _id: pool._id },
+    { projection: { pack: 1 }, maxTimeMS: QUERY_TIME_MS },
+  );
+  return { status: "sent", state: after?.pack.state ?? "error", error: after?.pack.error ?? null };
+};
+
+/**
  * @function savePoolEdit
  * @param id {string} the pool id
  * @param body {PoolEditBody} the admin's form
@@ -81,27 +107,7 @@ export const savePoolEdit = async (
   const saved: StoredPool = { ...before, ...update };
   const mapIds = [...new Set(before.slots.map((slot) => slot.beatmapId))];
   if (before.hidden !== saved.hidden || before.year !== saved.year) await recomputeUsage(mapIds);
-  let sync: SyncOutcome = { status: "not-needed" };
-  if (saved.pack.state !== "gone" && packInputHash(packInputOf(saved)) !== saved.pack.inputHash) {
-    const service = serviceOrReason(packsService);
-    if (typeof service === "string") {
-      sync = { status: "failed", message: service };
-    } else {
-      const summary = await syncPools({ service, ids: [id], fetch, now });
-      const after = await pools.findOne(
-        { _id: id },
-        { projection: { pack: 1 }, maxTimeMS: QUERY_TIME_MS },
-      );
-      sync =
-        summary.configError !== null
-          ? { status: "failed", message: summary.configError }
-          : {
-              status: "sent",
-              state: after?.pack.state ?? "error",
-              error: after?.pack.error ?? null,
-            };
-    }
-  }
+  const sync = await syncPoolNow(saved, { packsService, fetch, now });
   revalidatePoolPages([id], mapIds);
   return {
     pool: parseStoredPool(await pools.findOne({ _id: id }, { maxTimeMS: QUERY_TIME_MS })) ?? saved,

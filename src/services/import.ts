@@ -3,11 +3,12 @@
  * @desc Import writes: the stored records as planning reads them; a plan written (new records
  *       inserted whole, with no stats yet and no pack; changed records get the importer's
  *       fields and what derives from them, never hidden, badged, edited, stats or the pack
- *       state); and map rows seeded from the export for the run's maps (a stored map is never
- *       overwritten: the mirror's values win).
+ *       state); map rows seeded from the export for the run's maps (a stored map is never
+ *       overwritten: the mirror's values win); and blank rows for maps an admin added that
+ *       pools had never seen (the mirror fills them next).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import "server-only";
@@ -18,7 +19,7 @@ import { poolsCollection } from "@/models/Pool";
 import type { StoredMap } from "@/schemas/map";
 import { emptyPackSync, type StoredPool } from "@/schemas/pool";
 import type { ExistingPool, ImportPlan, PlannedPool } from "@/utils/import-plan";
-import { type MapSeed, seededMap } from "@/utils/map-record";
+import { blankMap, type MapSeed, seededMap } from "@/utils/map-record";
 import { derivedFields, effectiveFields, isVisible } from "@/utils/pool-record";
 import { emptyPoolStats } from "@/utils/pool-stats";
 
@@ -129,6 +130,22 @@ export const seedMaps = async (
     const { _id, ...fields } = seededMap(id, seed, now);
     ops.push({ updateOne: { filter: { _id }, update: { $setOnInsert: fields }, upsert: true } });
   }
+  if (ops.length === 0) return 0;
+  return (await maps.bulkWrite(ops, { ordered: false })).upsertedCount;
+};
+
+/**
+ * @function seedBlankMaps
+ * @param ids {Iterable<number>} an added pool's map ids
+ * @param now {Date} the clock
+ * @returns {Promise<number>} how many blank rows it inserted (stored maps are left as they are)
+ */
+export const seedBlankMaps = async (ids: Iterable<number>, now: Date): Promise<number> => {
+  const maps = await mapsCollection();
+  const ops: AnyBulkWriteOperation<StoredMap>[] = [...new Set(ids)].map((id) => {
+    const { _id, ...fields } = blankMap(id, now);
+    return { updateOne: { filter: { _id }, update: { $setOnInsert: fields }, upsert: true } };
+  });
   if (ops.length === 0) return 0;
   return (await maps.bulkWrite(ops, { ordered: false })).upsertedCount;
 };
