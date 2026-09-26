@@ -1,13 +1,14 @@
 /**
  * @file src/utils/llms-txt.ts
  * @desc /llms.txt (llmstxt.org): title, a one-paragraph summary, the notes a reader needs first
- *       (where the data comes from, no-mod stars, no file hosting, the check is guidance, no
- *       API), then the pages, every current pool, the most used maps and the legal pages.
+ *       (pools come from otdb, tournament hosts and community members; no-mod stars, no file
+ *       hosting, the check is guidance, no API), then the pages, every current pool, the most
+ *       used maps and the legal pages.
  *       Link titles and descriptions come from sources, so their markdown is escaped. Sections
  *       with nothing in them are left out. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
@@ -43,7 +44,7 @@ export const LLMS_MAP_LIMIT = 500;
 const at = (path: string): string => `${SITE.url}${path}`;
 
 export const LLMS_NOTES: readonly string[] = [
-  "pools lists past osu! tournament mappools, the maps in them, and where each map was played before. Pool data comes from otdb, by Sheppsu. Map details and star ratings come from the hinai mirror. Every star rating is without mods.",
+  "pools lists past osu! tournament mappools, the maps in them, and where each map was played before. Pools come from several places: some past pools from otdb's public export (by Sheppsu), others sent by tournament hosts and community members. Each pool page names its sources. Map details and star ratings come from the osu! API v2 and the hinai mirror. Every star rating is without mods.",
   "Each pool opens on packs.haruhime.moe as a pack, to download its maps. pools never hosts beatmap files.",
   "The compliance check is guidance, not a ruling: the osu! Tournament Committee decides.",
   "There is no public API.",
@@ -81,6 +82,18 @@ export const llmsSections = ({
         url: at("/check"),
         description:
           "Paste beatmap IDs or links, a pool, or a pack key to check each map against the content rules for officially supported tournaments.",
+      },
+      {
+        title: "Submit a pool",
+        url: at("/submit"),
+        description:
+          "How tournament hosts and community members send a pool: post in the Discord server or email, with the tournament, round, year and maps.",
+      },
+      {
+        title: "Data",
+        url: at("/data"),
+        description:
+          "Where pools and map details come from, how the check reads the content rules, and how to send a correction.",
       },
       {
         title: "Credits",

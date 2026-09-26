@@ -1,10 +1,11 @@
 /**
  * @file tests/unit/app/seo.test.ts
  * @desc robots.txt keeps crawlers out of /api, /admin and /signin; the sitemap lists the static
- *       and legal pages, current pools and used maps (daily); llms.txt is a daily text route.
+ *       pages (/submit and /data among them), the legal pages, current pools and used maps
+ *       (daily); llms.txt is a daily text route.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -53,6 +54,8 @@ describe("sitemap.xml", () => {
       "https://pools.haruhime.moe/",
       "https://pools.haruhime.moe/search",
       "https://pools.haruhime.moe/check",
+      "https://pools.haruhime.moe/submit",
+      "https://pools.haruhime.moe/data",
       "https://pools.haruhime.moe/credits",
       "https://pools.haruhime.moe/legal/disclaimer",
       "https://pools.haruhime.moe/legal/privacy",

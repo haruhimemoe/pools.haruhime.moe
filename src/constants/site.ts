@@ -1,10 +1,10 @@
 /**
  * @file src/constants/site.ts
- * @desc Site identity, the source repo, the parent brand and GitHub org, navigation, the
- *       affiliation notice, and the User-Agent our server sends.
+ * @desc Site identity, the contact email and Discord server, the source repo, the parent brand
+ *       and GitHub org, navigation, the affiliation notice, and the User-Agent our server sends.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 export const SITE = {
@@ -14,6 +14,8 @@ export const SITE = {
   description:
     "Search past osu! tournament mappools and their maps, see where a map was played before, and check a pool against the content rules for officially supported tournaments.",
   contactEmail: "contact@haruhime.moe",
+  /** The haruhime.moe Discord server: pool submissions, corrections, the footer's Discord icon. */
+  discordUrl: "https://discord.gg/bKy9kjMV4y",
   /** Public source repository, linked from the footer. */
   repoUrl: "https://github.com/haruhimemoe/pools.haruhime.moe",
   /** The parent brand, linked from the footer wordmark. */

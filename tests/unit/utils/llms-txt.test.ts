@@ -1,12 +1,13 @@
 /**
  * @file tests/unit/utils/llms-txt.test.ts
- * @desc /llms.txt: title, summary, the notes a reader needs first (otdb credit, no-mod stars, no
- *       file hosting, guidance not rulings, no API), the pages, every current pool and the most
- *       used maps it's given, the legal pages; markdown in imported names escaped so a name can't
- *       add a link or break one; empty sections left out.
+ * @desc /llms.txt: title, summary, the notes a reader needs first (pools from otdb, hosts and
+ *       community members, no-mod stars, no file hosting, guidance not rulings, no API), the
+ *       pages (Submit a pool and Data among them), every current pool and the most used maps
+ *       it's given, the legal pages; markdown in imported names escaped so a name can't add a
+ *       link or break one; empty sections left out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -41,6 +42,8 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain("without mods");
     expect(text).toContain("guidance, not a ruling");
     expect(text).toContain("- [Search](https://pools.haruhime.moe/search)");
+    expect(text).toContain("- [Submit a pool](https://pools.haruhime.moe/submit): ");
+    expect(text).toContain("- [Data](https://pools.haruhime.moe/data): ");
     expect(text).toContain(
       "- [osu! World Cup 2023 Grand Finals](https://pools.haruhime.moe/pools/otdb-657): osu! World Cup · Grand Finals · 2023",
     );
@@ -50,6 +53,15 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain("- [Privacy](https://pools.haruhime.moe/legal/privacy)");
     expect(text.endsWith("\n")).toBe(true);
     expect(text).not.toContain("—");
+  });
+
+  it("says pools come from otdb, tournament hosts and community members, not otdb alone", () => {
+    const text = buildLlmsTxt(llmsSections({ pools: [], maps: [] }));
+    expect(text).toContain("otdb");
+    expect(text).toContain("Sheppsu");
+    expect(text).toContain("tournament hosts");
+    expect(text).toContain("community members");
+    expect(text).not.toMatch(/pool data comes from otdb/i);
   });
 
   it("escapes brackets, parentheses and angle brackets in imported names", () => {

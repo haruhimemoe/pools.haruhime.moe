@@ -1,11 +1,12 @@
 /**
  * @file tests/unit/app/pages.test.ts
  * @desc Public pages are cookie-free ISR: the home, pool and map pages regenerate hourly with no
- *       build-time params, no public page reads cookies or headers, a hidden or unknown pool
- *       404s, and a map id that isn't a whole number 404s without a lookup.
+ *       build-time params, no public page reads cookies or headers (/data and /submit included),
+ *       a hidden or unknown pool 404s, and a map id that isn't a whole number 404s without a
+ *       lookup.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Fri Sep 25, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -28,6 +29,8 @@ const PUBLIC_PAGES = [
   "src/app/pools/[id]/page.tsx",
   "src/app/maps/[id]/page.tsx",
   "src/app/credits/page.tsx",
+  "src/app/data/page.tsx",
+  "src/app/submit/page.tsx",
   "src/app/legal/[doc]/page.tsx",
   "src/app/search/page.tsx",
   "src/app/check/page.tsx",
