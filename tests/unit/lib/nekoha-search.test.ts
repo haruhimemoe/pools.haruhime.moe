@@ -24,7 +24,14 @@ import { type MirrorCall, nekohaAnswer, nekohaHandler, nekohaRow } from "../../h
 const server = setupMsw();
 beforeEach(resetMirrorCooldown);
 
-const DT: NekohaQuery = { lens: "DT", status: "ranked", q: "", sr: null, page: 1 };
+const DT: NekohaQuery = {
+  lens: "DT",
+  status: "ranked",
+  q: "",
+  sr: null,
+  sort: "favourites_desc",
+  page: 1,
+};
 
 describe("nekohaSearchUrl", () => {
   it("asks for 50 ranked osu!standard rows under the lens, most favourited first", () => {
@@ -42,7 +49,14 @@ describe("nekohaSearchUrl", () => {
 
   it("sends the text, the star range under the lens and pools' page as it is", () => {
     const url = new URL(
-      nekohaSearchUrl({ lens: "HDHR", status: "graveyard", q: "xeroa", sr: [5.5, 6.5], page: 3 }),
+      nekohaSearchUrl({
+        ...DT,
+        lens: "HDHR",
+        status: "graveyard",
+        q: "xeroa",
+        sr: [5.5, 6.5],
+        page: 3,
+      }),
     );
     expect(Object.fromEntries(url.searchParams)).toMatchObject({
       mods: "HDHR",
@@ -53,6 +67,13 @@ describe("nekohaSearchUrl", () => {
       page: "3",
     });
   });
+
+  it.each(["stars_desc", "bpm_desc", "length_desc", "pp"] as const)(
+    "sends the sort %s (the mirror reads anything but its four as pp)",
+    (sort) => {
+      expect(new URL(nekohaSearchUrl({ ...DT, sort })).searchParams.get("sort")).toBe(sort);
+    },
+  );
 
   it("leaves out a bottom end at the slider's minimum and an open top end", () => {
     const low = new URL(nekohaSearchUrl({ ...DT, sr: [0, 6] })).searchParams;

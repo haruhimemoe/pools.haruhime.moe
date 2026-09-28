@@ -43,6 +43,7 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain("guidance, not a ruling");
     expect(text).toContain("- [Search](https://pools.haruhime.moe/search)");
     expect(text).toContain("- [Make a pool](https://pools.haruhime.moe/new): ");
+    expect(text).toContain("a map browser that searches osu! maps under a mod");
     expect(text).toContain("- [Submit a pool](https://pools.haruhime.moe/submit): ");
     expect(text).toContain("- [Data](https://pools.haruhime.moe/data): ");
     expect(text).toContain(

@@ -1,9 +1,11 @@
 /**
  * @file tests/helpers/pool-editor.ts
- * @desc For the builder's component tests: a pool as the browser holds it, map details, and a
- *       fake pool API (no network) that applies ops with the builder's own rules, bumps the
- *       version, answers GETs with the current pool, records every call, and takes one-shot
- *       answers for a test's next calls (a 400, a 409, a request that never resolves).
+ * @desc For the builder's component tests: a pool as the browser holds it, map details, a map
+ *       browser page, and a fake pool API (no network) that applies ops with the builder's own
+ *       rules, bumps the version, answers GETs with the current pool, records every call, and
+ *       takes one-shot answers for a test's next calls (a 400, a 409, a request that never
+ *       resolves). The map browser's searches are answered from `browse` (settable, or a
+ *       function of the URL) and recorded apart, in `browseCalls`.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -13,6 +15,7 @@ import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import { vi } from "vitest";
 import type { Fetcher } from "@/lib/pool-client";
 import type { BuiltMap, ClientPool } from "@/schemas/built-pool-view";
+import type { BrowseResponse } from "@/utils/browse-params";
 import { applyLocal } from "@/utils/built-editor";
 
 export const DEFAULT_BUCKETS = ["NM", "HD", "HR", "DT", "FM", "TB"].map((code) => ({
@@ -78,6 +81,23 @@ export const builtMap = (id: number, over: Partial<BuiltMap> = {}): BuiltMap => 
 export const mapsFor = (ids: readonly number[]) =>
   Object.fromEntries(ids.map((id) => [id, builtMap(id)]));
 
+/** A map browser answer with nothing on it (override what a test needs). */
+export const browsePage = (over: Partial<BrowseResponse> = {}): BrowseResponse => ({
+  lens: "NM",
+  lenses: ["NM", "HD", "HR", "DT", "EZ", "HT", "FL", "HDHR", "HDDT"],
+  status: "ranked",
+  page: 1,
+  pageCount: 1,
+  total: 0,
+  hidden: 0,
+  filteredOnPage: 0,
+  excluded: 0,
+  playedHidden: 0,
+  modValuesAvailable: true,
+  sets: [],
+  ...over,
+});
+
 export type Call = { method: string; path: string; body: unknown };
 type Answer = (call: Call) => Response | Promise<Response>;
 
@@ -90,9 +110,16 @@ type Answer = (call: Call) => Response | Promise<Response>;
 export const fakePoolApi = (initial: ClientPool) => {
   let pool = initial;
   let details: BuiltMap[] = [];
+  let browse: (url: URL) => Response = () => Response.json(browsePage());
+  const browseCalls: URL[] = [];
   const calls: Call[] = [];
   const overrides: Answer[] = [];
   const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (String(input).startsWith("/api/maps/browse")) {
+      const url = new URL(String(input), "http://localhost");
+      browseCalls.push(url);
+      return browse(url);
+    }
     const call = {
       method: init?.method ?? "GET",
       path: String(input),
@@ -128,6 +155,11 @@ export const fakePoolApi = (initial: ClientPool) => {
     set details(next: BuiltMap[]) {
       details = next;
     },
+    /** What the map browser's searches get: a page, or an answer made from the URL. */
+    set browse(next: BrowseResponse | ((url: URL) => Response)) {
+      browse = typeof next === "function" ? next : () => Response.json(next);
+    },
+    browseCalls,
     next: (answer: Answer) => overrides.push(answer),
   };
 };

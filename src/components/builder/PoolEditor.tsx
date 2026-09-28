@@ -113,6 +113,7 @@ export function PoolEditor({
             openedFor={openedFor}
             openCount={openCount}
             onAdd={(beatmapId, bucket) => change([{ type: "addMap", beatmapId, bucket }])}
+            fetcher={fetcher}
           />
           <Card title="Editors">
             <EditorsPanel

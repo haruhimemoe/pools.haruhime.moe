@@ -3,7 +3,8 @@
  * @desc The hinai mirror's search of its mod data (GET /api/v1/nekoha-collab/search), called
  *       from our server only with pools' User-Agent and a 10 s timeout: one mod lens, one status
  *       (always sent: the mirror reads none, or an empty one, as something else), osu!standard,
- *       the text, the star range under the lens, the most favourited first, 50 rows a page.
+ *       the text, the star range under the lens, the sort picked (most favourited first unless
+ *       another; "pp" is what the mirror does with any sort it doesn't know), 50 rows a page.
  *       Its pages start at 1 like pools' (page=0 answers page 1). One row is one difficulty:
  *       `stars` is under the lens, `difficulty_rating`, BPM and length are without mods (the
  *       mirror doesn't adjust a DT row's BPM or length). Parsed with zod: unknown fields are
@@ -20,9 +21,9 @@ import "server-only";
 import { z } from "zod";
 import {
   BROWSE_PAGE_SIZE,
-  BROWSE_SORT,
   BROWSE_TIMEOUT_MS,
   type BrowseLens,
+  type BrowseSort,
   type LensStatus,
   NEKOHA_SEARCH_URL,
 } from "@/constants/browse";
@@ -37,6 +38,8 @@ export type NekohaQuery = {
   q: string;
   /** Star range under the lens. */
   sr: Range | null;
+  /** One of the mirror's four sorts, or "pp" (its answer to anything else). */
+  sort: BrowseSort;
   /** From 1. */
   page: number;
 };
@@ -91,12 +94,12 @@ export type NekohaSearch =
  * @returns {string} the mirror's URL for it (a bottom star end at the slider's minimum is no
  *          lower limit)
  */
-export const nekohaSearchUrl = ({ lens, status, q, sr, page }: NekohaQuery): string => {
+export const nekohaSearchUrl = ({ lens, status, q, sr, sort, page }: NekohaQuery): string => {
   const params = new URLSearchParams({ mods: lens, status, mode: "0" });
   if (q !== "") params.set("q", q);
   if (sr && sr[0] > STAR_RANGE.min) params.set("min_stars", String(sr[0]));
   if (sr && sr[1] !== null) params.set("max_stars", String(sr[1]));
-  params.set("sort", BROWSE_SORT);
+  params.set("sort", sort);
   params.set("limit", String(BROWSE_PAGE_SIZE));
   params.set("page", String(page));
   return `${NEKOHA_SEARCH_URL}?${params}`;

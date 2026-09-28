@@ -1,7 +1,7 @@
 /**
  * @file tests/unit/utils/browse-params.test.ts
  * @desc The map browser's params: defaults, every param read, anything unreadable (an unknown
- *       lens or status, crossed ranges, bad pages, bad or too many excluded ids) falling to its
+ *       lens, status or sort, crossed ranges, bad pages, bad or too many excluded ids) falling to its
  *       default, lenses read in any order with NC as DT, excluded ids kept once and sorted, and
  *       the URL round trip in a fixed order.
  * @author David @dvhsh (https://dvh.sh)
@@ -22,6 +22,7 @@ const FULL: BrowseParams = {
   q: "camellia",
   lens: "HDDT",
   status: "loved",
+  sort: "stars_desc",
   sr: [5.5, 6.5],
   bpm: [180, null],
   len: [60, 240],
@@ -36,13 +37,18 @@ const FULL: BrowseParams = {
 describe("parseBrowseParams", () => {
   it("reads nothing as the defaults", () => {
     expect(parseBrowseParams("")).toEqual(DEFAULT_BROWSE_PARAMS);
-    expect(DEFAULT_BROWSE_PARAMS).toMatchObject({ lens: "NM", status: "ranked", page: 1 });
+    expect(DEFAULT_BROWSE_PARAMS).toMatchObject({
+      lens: "NM",
+      status: "ranked",
+      sort: "favourites_desc",
+      page: 1,
+    });
   });
 
   it("reads every param", () => {
     expect(
       parseBrowseParams(
-        "?q=+camellia+&lens=HDDT&status=loved&sr=5.5-6.5&bpm=180-&len=1:00-4:00&ar=9.5-10.5&od=-9&excludeIds=129891,75&hidePlayed=1&explicit=show&page=3",
+        "?q=+camellia+&lens=HDDT&status=loved&sort=stars_desc&sr=5.5-6.5&bpm=180-&len=1:00-4:00&ar=9.5-10.5&od=-9&excludeIds=129891,75&hidePlayed=1&explicit=show&page=3",
       ),
     ).toEqual(FULL);
   });
@@ -61,9 +67,18 @@ describe("parseBrowseParams", () => {
     expect(parseBrowseParams(`lens=${raw}`).lens).toBe("NM");
   });
 
-  it("reads unknown statuses, bad ranges and bad pages as the defaults", () => {
+  it.each(["favourites_desc", "pp", "stars_desc", "bpm_desc", "length_desc"])(
+    "reads the sort %s",
+    (sort) => {
+      expect(parseBrowseParams(`sort=${sort}`).sort).toBe(sort);
+    },
+  );
+
+  it("reads unknown statuses, sorts, bad ranges and bad pages as the defaults", () => {
     expect(
-      parseBrowseParams("status=any&sr=7-5&bpm=fast&ar=x&od=11-2&len=--&page=0&hidePlayed=yes"),
+      parseBrowseParams(
+        "status=any&sort=plays&sr=7-5&bpm=fast&ar=x&od=11-2&len=--&page=0&hidePlayed=yes",
+      ),
     ).toEqual(DEFAULT_BROWSE_PARAMS);
     expect(parseBrowseParams("page=999").page).toBe(200);
   });
@@ -100,7 +115,7 @@ describe("serializeBrowseParams", () => {
 
   it("writes every param in a fixed order, the text last", () => {
     expect(serializeBrowseParams(FULL)).toBe(
-      "lens=HDDT&status=loved&sr=5.5-6.5&bpm=180-&len=60-240&ar=9.5-10.5&od=0-9&excludeIds=75,129891&hidePlayed=1&explicit=show&page=3&q=camellia",
+      "lens=HDDT&status=loved&sort=stars_desc&sr=5.5-6.5&bpm=180-&len=60-240&ar=9.5-10.5&od=0-9&excludeIds=75,129891&hidePlayed=1&explicit=show&page=3&q=camellia",
     );
     expect(browseApiUrl({ ...DEFAULT_BROWSE_PARAMS, lens: "HR" })).toBe("/api/maps/browse?lens=HR");
   });

@@ -4,7 +4,7 @@
  *       read counts as its default (never an error) and written back with only what's set, in a
  *       fixed order, so equal searches share one URL and one CDN entry. The lens is a combo from
  *       BROWSE_LENSES in any order (NC reads as DT); whether the mirror offers it is the
- *       service's call. Ranges snap to the search sliders and are under the lens. excludeIds
+ *       service's call. The sort is one of the mirror's (most favourited unless picked). Ranges snap to the search sliders and are under the lens. excludeIds
  *       ("hide maps in this pool") is 1 to 64 beatmap ids, kept once and sorted; one bad id or
  *       more than 64 reads as none. Also the answer shapes the route sends. Pure, and safe in
  *       the browser.
@@ -14,7 +14,15 @@
  */
 
 import { beatmapIdSchema } from "@haruhimemoe/pool";
-import { BROWSE_LENSES, type BrowseLens, DEFAULT_LENS, MAX_EXCLUDE_IDS } from "@/constants/browse";
+import {
+  BROWSE_LENSES,
+  BROWSE_SORTS,
+  type BrowseLens,
+  type BrowseSort,
+  DEFAULT_BROWSE_SORT,
+  DEFAULT_LENS,
+  MAX_EXCLUDE_IDS,
+} from "@/constants/browse";
 import {
   AR_RANGE,
   BPM_RANGE,
@@ -39,6 +47,8 @@ export type BrowseParams = {
   q: string;
   lens: BrowseLens;
   status: MapStatus;
+  /** The mirror's order (Ranked, Loved and Graveyard only). */
+  sort: BrowseSort;
   /** Star rating, BPM, length (seconds), AR and OD, all under the lens. */
   sr: Range | null;
   bpm: Range | null;
@@ -58,6 +68,7 @@ export const DEFAULT_BROWSE_PARAMS: BrowseParams = Object.freeze({
   q: "",
   lens: DEFAULT_LENS,
   status: DEFAULT_MAP_STATUS,
+  sort: DEFAULT_BROWSE_SORT,
   sr: null,
   bpm: null,
   len: null,
@@ -98,6 +109,7 @@ const parseExcludeIds = (raw: string | null): number[] => {
 export const parseBrowseParams = (search: string | URLSearchParams): BrowseParams => {
   const params = typeof search === "string" ? new URLSearchParams(search) : search;
   const status = params.get("status") ?? "";
+  const sort = params.get("sort") ?? "";
   const hidePlayed = params.get("hidePlayed");
   return {
     q: (params.get("q") ?? "").trim().slice(0, MAX_QUERY_LENGTH),
@@ -105,6 +117,9 @@ export const parseBrowseParams = (search: string | URLSearchParams): BrowseParam
     status: (MAP_STATUSES as readonly string[]).includes(status)
       ? (status as MapStatus)
       : DEFAULT_MAP_STATUS,
+    sort: (BROWSE_SORTS as readonly string[]).includes(sort)
+      ? (sort as BrowseSort)
+      : DEFAULT_BROWSE_SORT,
     sr: parseRange(params.get("sr"), STAR_RANGE),
     bpm: parseRange(params.get("bpm"), BPM_RANGE),
     len: parseLengthRange(params.get("len")),
@@ -120,7 +135,7 @@ export const parseBrowseParams = (search: string | URLSearchParams): BrowseParam
 /**
  * @function serializeBrowseParams
  * @param params {BrowseParams} a browse
- * @returns {string} the query string without "?": lens and status (when not the default), the
+ * @returns {string} the query string without "?": lens, status and sort (when not the default), the
  *          ranges, excludeIds, hidePlayed, explicit, page (from 2), and q last; empty for the
  *          defaults. Never throws.
  */
@@ -131,6 +146,7 @@ export const serializeBrowseParams = (params: BrowseParams): string => {
   };
   if (params.lens !== DEFAULT_LENS) parts.push(`lens=${params.lens}`);
   if (params.status !== DEFAULT_MAP_STATUS) parts.push(`status=${params.status}`);
+  if (params.sort !== DEFAULT_BROWSE_SORT) parts.push(`sort=${params.sort}`);
   range("sr", params.sr);
   range("bpm", params.bpm);
   range("len", params.len);

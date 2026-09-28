@@ -2,7 +2,7 @@
  * @file src/constants/browse.ts
  * @desc The map browser (GET /api/maps/browse): the mod lenses it offers (those the mirror's
  *       pp-maps/stats also lists), the statuses the mirror's mod data covers, the mirror
- *       endpoints it calls and their timeout, how long the lens list is kept, the sort, how many
+ *       endpoints it calls and their timeout, how long the lens list is kept, the sorts, how many
  *       of a pool's maps it can leave out, and the failure copy and code.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -42,8 +42,26 @@ export const PP_MAPS_STATS_URL = "https://mirror.hinamizawa.ai/v3/osu/pp-maps/st
 export const BROWSE_TIMEOUT_MS = 10_000;
 /** Rows a page asks for. */
 export const BROWSE_PAGE_SIZE = 50;
-/** Most favourited first (the mirror's sorts: stars, BPM, length or favourites, descending). */
-export const BROWSE_SORT = "favourites_desc";
+/**
+ * The mirror's sorts: favourites, stars, BPM and length, each high to low; it reads anything
+ * else as pp, high to low, so "pp" asks for that. Most favourited first unless picked.
+ */
+export const BROWSE_SORTS = [
+  "favourites_desc",
+  "pp",
+  "stars_desc",
+  "bpm_desc",
+  "length_desc",
+] as const;
+export type BrowseSort = (typeof BROWSE_SORTS)[number];
+export const DEFAULT_BROWSE_SORT: BrowseSort = "favourites_desc";
+export const BROWSE_SORT_LABELS: Readonly<Record<BrowseSort, string>> = Object.freeze({
+  favourites_desc: "Most favourited",
+  pp: "Most pp",
+  stars_desc: "Star rating, high to low",
+  bpm_desc: "BPM, high to low",
+  length_desc: "Longest first",
+});
 
 /** The mirror's lens list is kept an hour; after a failed fetch the built-in list is used a minute. */
 export const LENS_LIST_TTL_MS = 3_600_000;

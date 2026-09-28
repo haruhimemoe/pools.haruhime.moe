@@ -1,7 +1,8 @@
 /**
  * @file src/services/map-browse.ts
  * @desc One page of the map browser (GET /api/maps/browse). Ranked, Loved and Graveyard come
- *       from the mirror's mod data (src/lib/nekoha-search.ts) under a lens the mirror offers
+ *       from the mirror's mod data (src/lib/nekoha-search.ts, in the sort picked) under a lens
+ *       the mirror offers
  *       (src/lib/browse-lenses.ts; any other reads as NM), one difficulty a row, grouped by set
  *       in page order. Qualified and Pending come from the all-maps search without mods
  *       (src/lib/map-search.ts), so modValuesAvailable is false. Sets are judged as all-maps
@@ -77,8 +78,8 @@ const modDataPage = async (
   lens: BrowseLens,
   deps: MirrorDeps,
 ): Promise<Page | null> => {
-  const { q, sr, page } = params;
-  const found = await searchNekoha({ lens, status, q, sr, page }, deps);
+  const { q, sr, sort, page } = params;
+  const found = await searchNekoha({ lens, status, q, sr, sort, page }, deps);
   if (!found.ok) {
     console.error(`[map-browse] the mirror's mod data search failed: ${found.reason}`);
     return null;

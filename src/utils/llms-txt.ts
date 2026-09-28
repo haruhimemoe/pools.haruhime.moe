@@ -90,7 +90,7 @@ export const llmsSections = ({
         title: "Make a pool",
         url: at("/new"),
         description:
-          "Sign in with osu! to build a pool: its details, maps in slots (built-in and custom, with forced mods or freemod), pasted IDs or links, a summary and the content rules check. Pools start private; the owner can make them unlisted or public and add editors.",
+          "Sign in with osu! to build a pool: its details, maps in slots (built-in and custom, with forced mods or freemod), a map browser that searches osu! maps under a mod (star rating, AR, OD, BPM and length with that mod) and adds them to a slot, pasted IDs or links, a summary and the content rules check. Pools start private; the owner can make them unlisted or public and add editors.",
       },
       {
         title: "Submit a pool",

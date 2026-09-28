@@ -127,10 +127,10 @@ describe("PoolEditor: details and slots", () => {
     ]);
   });
 
-  it("brings focus to the map browser pane from a bucket's Find maps", async () => {
+  it("brings focus to the map browser pane from a bucket's Find maps, under its lens", async () => {
     const { user } = renderEditor(clientPool());
     await user.click(screen.getByRole("button", { name: "Find maps for HD" }));
-    expect(screen.getByRole("heading", { name: "Find maps (coming next)" })).toHaveFocus();
-    expect(screen.getByText("Opened for HD.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Find maps" })).toHaveFocus();
+    expect(screen.getByRole("combobox", { name: "Values under" })).toHaveValue("HD");
   });
 });

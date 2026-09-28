@@ -131,7 +131,7 @@ describe("browseMaps with the mirror's mod data", () => {
     expect(unknown).toMatchObject({ ar: null, od: null, cs: null, bpm: 270, source: "math" });
   });
 
-  it("asks with the lens, the status, the text, the star range and the page", async () => {
+  it("asks with the lens, the status, the text, the star range, the sort and the page", async () => {
     batch();
     const calls: MirrorCall[] = [];
     rows([], { mod: "HDHR", total: 0 }, calls);
@@ -141,6 +141,7 @@ describe("browseMaps with the mirror's mod data", () => {
       status: "loved",
       q: "xeroa",
       sr: [6, 7],
+      sort: "bpm_desc",
       page: 2,
     };
     const { answer } = await browse(params);
@@ -150,6 +151,7 @@ describe("browseMaps with the mirror's mod data", () => {
       q: "xeroa",
       min_stars: "6",
       max_stars: "7",
+      sort: "bpm_desc",
       page: "2",
     });
     expect(answer).toMatchObject({ lens: "HDHR", page: 2, pageCount: 0, total: 0, sets: [] });
