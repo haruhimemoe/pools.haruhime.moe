@@ -9,7 +9,7 @@
  *       whose credit rides along). (Blocked text below is a test input only.)
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -17,13 +17,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { poolFingerprint } from "@/utils/fingerprint";
 import { otdbSource, readOtdbExport } from "@/utils/otdb";
+import { modsFromSlotCode, poolFromLabels } from "@/utils/source-labels";
 import {
   bySourceId,
-  modsFromSlotCode,
   normalizeNotes,
   normalizePool,
   normalizePools,
-  poolFromLabels,
   type SourcePool,
 } from "@/utils/source-pools";
 
