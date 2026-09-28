@@ -1,6 +1,6 @@
 /**
  * @file src/components/builder/SlotRow.tsx
- * @desc One slot in the editor: its label, its map, and buttons to move it up or down, move it to
+ * @desc One slot in the editor: its label, its cover and preview clip, its map, and buttons to move it up or down, move it to
  *       another bucket (a picker and a Move button, so arrow keys in the picker never move
  *       anything) and remove it, a badge when its stars sit outside the bucket's target, and its note.
  *       Every control names its slot for screen readers. Its map and
@@ -17,9 +17,11 @@
 import { type PoolSlot, slotLabel } from "@haruhimemoe/pool";
 import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { useState } from "react";
+import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
 import { SlotNote } from "@/components/builder/SlotNote";
 import type { BuiltMap } from "@/schemas/built-pool-view";
+import { songOf } from "@/utils/map-preview";
 import type { SlotValueAnswer } from "@/utils/slot-values";
 
 export type MoveTarget = { code: string; label: string };
@@ -55,6 +57,7 @@ export function SlotRow(props: SlotRowProps) {
     >
       <div className="flex min-w-0 flex-1 gap-3">
         <span className="w-14 shrink-0 font-bold text-c1">{label}</span>
+        <MapPreview setId={map?.setId ?? null} song={songOf(map, slot.beatmapId)} />
         <div className="flex min-w-0 flex-col items-start gap-1">
           <SlotMapText beatmapId={slot.beatmapId} map={map} values={values} />
           {badge ? (

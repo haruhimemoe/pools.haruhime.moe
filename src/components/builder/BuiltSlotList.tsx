@@ -1,7 +1,7 @@
 /**
  * @file src/components/builder/BuiltSlotList.tsx
  * @desc A built pool's maps on its page: each bucket that has maps, in the pool's order, with its
- *       slots (label, the map linking osu!, its mapper, its values under the slot's mods and its note).
+ *       slots (label, its cover and preview clip, the map linking osu!, its mapper, its values under the slot's mods and its note).
  *       Read only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -9,10 +9,12 @@
  */
 
 import { type BucketEntry, type PoolSlot, slotLabel } from "@haruhimemoe/pool";
+import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
 import type { SlotNotes } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { groupHeading, groupSlots } from "@/utils/built-editor";
+import { songOf } from "@/utils/map-preview";
 import { groupSlotCode, type SlotValueMap, slotValueKey } from "@/utils/slot-values";
 
 type BuiltSlotListProps = {
@@ -39,6 +41,10 @@ export function BuiltSlotList({ pool, maps, values }: BuiltSlotListProps) {
               {group.slots.map((slot) => (
                 <li key={slot.beatmapId} className="flex gap-3 border-b3 border-t py-3">
                   <span className="w-14 shrink-0 font-bold text-c1">{slotLabel(slot)}</span>
+                  <MapPreview
+                    setId={maps[slot.beatmapId]?.setId ?? null}
+                    song={songOf(maps[slot.beatmapId], slot.beatmapId)}
+                  />
                   <div className="min-w-0">
                     <SlotMapText
                       beatmapId={slot.beatmapId}

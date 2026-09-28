@@ -5,7 +5,7 @@
  *       change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 export const LEGAL_SLUGS = ["disclaimer", "privacy", "terms"] as const;
@@ -25,7 +25,7 @@ export const LEGAL_DOCS: Record<
   privacy: {
     title: "Privacy",
     description: "What pools.haruhime.moe stores, why, and for how long.",
-    lastUpdated: "2026-09-27",
+    lastUpdated: "2026-09-28",
   },
   terms: {
     title: "Terms",

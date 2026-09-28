@@ -1,6 +1,7 @@
 /**
  * @file src/components/builder/BrowseSetCard.tsx
- * @desc One beatmapset in the map browser: artist, title (a link to it on osu!), mapper, its
+ * @desc One beatmapset in the map browser: its cover and preview clip (straight from osu!'s CDN),
+ *       artist, title (a link to it on osu!), mapper, its
  *       status, an Unranked tag and "Check first" with why; then each osu!standard difficulty
  *       with its values under the lens (stars, with the no-mod rating small beside them when
  *       they differ; AR, OD, CS, BPM, length; under a mod lens, "no mod data" beside AR, OD and CS
@@ -9,12 +10,13 @@
  *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BucketEntry } from "@haruhimemoe/pool";
 import Link from "next/link";
 import { AddToPool } from "@/components/builder/AddToPool";
+import { MapPreview } from "@/components/builder/MapPreview";
 import { SET_STATUS_LABELS } from "@/constants/search";
 import type { BrowseDiff, BrowseSet } from "@/utils/browse-params";
 import { formatBpm, formatDuration, formatStat } from "@/utils/format";
@@ -50,21 +52,26 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
   const { set, lens, buckets, defaultBucket, poolIds, onAdd } = props;
   return (
     <li className="rounded-lg bg-b4 p-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <a
-          href={`https://osu.ppy.sh/beatmapsets/${set.setId}`}
-          rel="noreferrer"
-          className="font-bold text-c1 hover:underline"
-        >
-          {`${set.artist} - ${set.title}`}
-        </a>
-        <span className={`${TAG} bg-b3 text-c2`}>
-          {SET_STATUS_LABELS[set.status] ?? set.status}
-        </span>
-        {set.unranked ? <span className={WARN}>Unranked</span> : null}
-        {set.check ? <span className={WARN}>Check first</span> : null}
+      <div className="flex gap-3">
+        <MapPreview setId={set.setId} song={`${set.artist} - ${set.title}`} />
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href={`https://osu.ppy.sh/beatmapsets/${set.setId}`}
+              rel="noreferrer"
+              className="font-bold text-c1 hover:underline"
+            >
+              {`${set.artist} - ${set.title}`}
+            </a>
+            <span className={`${TAG} bg-b3 text-c2`}>
+              {SET_STATUS_LABELS[set.status] ?? set.status}
+            </span>
+            {set.unranked ? <span className={WARN}>Unranked</span> : null}
+            {set.check ? <span className={WARN}>Check first</span> : null}
+          </div>
+          <p className="text-c3 text-sm">Mapped by {set.creator}</p>
+        </div>
       </div>
-      <p className="text-c3 text-sm">Mapped by {set.creator}</p>
       {set.check ? <p className="text-amber-200 text-sm">{set.check.text}</p> : null}
       <ul className="mt-2 flex flex-col gap-3 text-sm">
         {set.diffs.map((diff) => (

@@ -15,7 +15,7 @@
  *       deletion, dated 2026-09-27). No em dashes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -86,8 +86,12 @@ describe("legal pages", () => {
     expect(read("terms")).toContain(clause);
   });
 
-  it("dates the privacy page, disclaimer and terms from their last change (built pools)", () => {
-    expect(LEGAL_DOCS.privacy.lastUpdated).toBe("2026-09-27");
+  it("says map covers and preview clips load straight from osu!'s servers", () => {
+    expect(read("privacy")).toContain("straight from osu!'s servers (assets.ppy.sh and b.ppy.sh)");
+  });
+
+  it("dates the privacy page (editor v2.1), disclaimer and terms from their last change", () => {
+    expect(LEGAL_DOCS.privacy.lastUpdated).toBe("2026-09-28");
     expect(LEGAL_DOCS.disclaimer.lastUpdated).toBe("2026-09-27");
     expect(LEGAL_DOCS.terms.lastUpdated).toBe("2026-09-27");
   });

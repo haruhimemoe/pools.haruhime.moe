@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Map previews: covers and osu!'s preview clips (one at a time) in the map browser, the editor and built pool pages, loaded straight from osu!'s servers. The Content-Security-Policy now names the image and media hosts.
 - Notes on slots: a short note on each map (up to 280 characters), shown under it in the editor and on the pool's page.
 - Slot targets: how many maps each slot should hold and a star range under its mods, with placeholder rows, out-of-range badges and a list in the summary. `/new` offers Qualifiers, Group stage, Knockout and Finals templates that set the counts, and Find maps fills in the slot's star range.
 - Build a pool: anyone signs in with osu! and makes pools at `/new`, then edits them at `/pools/<id>/edit`: details, maps in slots (built-in and custom, with forced mods or freemod), moving without drag, pasted slot lines, IDs or links, and a summary with the content rules check. Every change saves at once, and a change someone else made first reloads the pool.
