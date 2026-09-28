@@ -15,10 +15,12 @@
 
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { Badge, BeatmapStats, TextLink } from "@haruhimemoe/ui";
+import { AddAsCandidate } from "@/components/builder/AddAsCandidate";
 import { AddToPool } from "@/components/builder/AddToPool";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { StarsUnder } from "@/components/maps/StarsUnder";
 import { SET_STATUS_LABELS } from "@/constants/search";
+import type { CandidateAdder } from "@/schemas/candidate-editor";
 import type { BrowseDiff, BrowseSet } from "@/utils/browse-params";
 import { starsText } from "@/utils/pool-text";
 
@@ -30,6 +32,8 @@ type BrowseSetCardProps = {
   defaultBucket: string | null;
   poolIds: ReadonlySet<number>;
   onAdd: (beatmapId: number, bucket: string | null) => void;
+  /** "Add as candidate" (the editor). */
+  candidate?: CandidateAdder | undefined;
 };
 
 const played = ({ id, playedIn }: BrowseDiff) => {
@@ -48,7 +52,7 @@ const played = ({ id, playedIn }: BrowseDiff) => {
  * @returns {JSX.Element} one set with its tags and each difficulty's values, played count and Add
  */
 export function BrowseSetCard(props: BrowseSetCardProps) {
-  const { set, lens, buckets, defaultBucket, poolIds, onAdd } = props;
+  const { set, lens, buckets, defaultBucket, poolIds, onAdd, candidate } = props;
   return (
     <li className="rounded-lg bg-b4 p-3">
       <div className="flex gap-3">
@@ -98,14 +102,25 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
               ) : null}
             </div>
             <div className="text-c3">{played(diff)}</div>
-            <AddToPool
-              beatmapId={diff.id}
-              version={diff.version}
-              buckets={buckets}
-              defaultBucket={defaultBucket}
-              inPool={poolIds.has(diff.id)}
-              onAdd={onAdd}
-            />
+            <div className="flex flex-wrap items-start gap-2">
+              <AddToPool
+                beatmapId={diff.id}
+                version={diff.version}
+                buckets={buckets}
+                defaultBucket={defaultBucket}
+                inPool={poolIds.has(diff.id)}
+                onAdd={onAdd}
+              />
+              {candidate ? (
+                <AddAsCandidate
+                  beatmapId={diff.id}
+                  beatmapsetId={set.setId}
+                  version={diff.version}
+                  defaultBucket={defaultBucket}
+                  adder={candidate}
+                />
+              ) : null}
+            </div>
           </li>
         ))}
       </ul>

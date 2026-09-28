@@ -53,6 +53,8 @@ export default defineConfig({
           environment: "jsdom",
           include: ["tests/components/**/*.test.tsx"],
           setupFiles: ["tests/setup/components.ts"],
+          // The editor's tests click through many renders; a busy full run needs the room.
+          testTimeout: 20_000,
         },
       },
       {

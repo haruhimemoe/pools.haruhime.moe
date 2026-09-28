@@ -13,9 +13,8 @@
 
 "use client";
 
-import type { PoolSlot } from "@haruhimemoe/pool";
 import { type DragEvent, type PointerEvent, useRef, useState } from "react";
-import { type DropTarget, readDropTarget } from "@/utils/drag-move";
+import { type DragItem, type DropTarget, readDropTarget } from "@/utils/drag-move";
 
 const targetAt = (x: number, y: number): DropTarget | null =>
   readDropTarget(document.elementFromPoint?.(x, y)?.closest("[data-drop-bucket]") ?? null);
@@ -31,14 +30,14 @@ export type SlotDrag = ReturnType<typeof useSlotDrag>;
 
 /**
  * @function useSlotDrag
- * @param onDrop {(slot: PoolSlot, target: DropTarget) => void} what a drop does
+ * @param onDrop {(slot: DragItem, target: DropTarget) => void} what a drop does
  * @returns the dragged map, the target under it, and props for handles and drop targets
  */
-export const useSlotDrag = (onDrop: (slot: PoolSlot, target: DropTarget) => void) => {
-  const dragged = useRef<PoolSlot | null>(null);
+export const useSlotDrag = (onDrop: (slot: DragItem, target: DropTarget) => void) => {
+  const dragged = useRef<DragItem | null>(null);
   const [dragging, setDragging] = useState<number | null>(null);
   const [over, setOver] = useState<DropTarget | null>(null);
-  const start = (slot: PoolSlot) => {
+  const start = (slot: DragItem) => {
     dragged.current = slot;
     setDragging(slot.beatmapId);
   };
@@ -55,7 +54,7 @@ export const useSlotDrag = (onDrop: (slot: PoolSlot, target: DropTarget) => void
     if (slot && target) onDrop(slot, target);
   };
 
-  const handle = (slot: PoolSlot) => ({
+  const handle = (slot: DragItem) => ({
     draggable: true,
     onDragStart: (event: DragEvent<HTMLElement>) => {
       event.dataTransfer?.setData("text/plain", String(slot.beatmapId));

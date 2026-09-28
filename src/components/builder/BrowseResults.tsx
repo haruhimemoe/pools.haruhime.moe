@@ -19,6 +19,7 @@ import { BrowseSetCard } from "@/components/builder/BrowseSetCard";
 import { MOD_VALUES_NOTE } from "@/constants/browse";
 import { hiddenSetsText, MAX_SEARCH_PAGE, UNRANKED_WARNING } from "@/constants/search";
 import type { MapBrowse } from "@/hooks/useMapBrowse";
+import type { CandidateAdder } from "@/schemas/candidate-editor";
 import type { BrowseResponse } from "@/utils/browse-params";
 
 type BrowseResultsProps = {
@@ -27,6 +28,8 @@ type BrowseResultsProps = {
   defaultBucket: string | null;
   poolIds: ReadonlySet<number>;
   onAdd: (beatmapId: number, bucket: string | null) => void;
+  /** "Add as candidate" (the editor). */
+  candidate?: CandidateAdder | undefined;
   onPage: (page: number) => void;
 };
 

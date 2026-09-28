@@ -10,7 +10,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import type { PoolSlot } from "@haruhimemoe/pool";
+import { MAX_SLOT_INDEX, type PoolSlot } from "@haruhimemoe/pool";
 import {
   type Candidate,
   candidateKey,
@@ -101,3 +101,38 @@ export const emptyRows = (
     })
     .filter((index) => !picks.some((slot) => slot.mod === bucket && slot.index === index))
     .sort((a, b) => a - b);
+
+/** A slot "Add as candidate" can choose: its value ("NM:2"), label and place. */
+export type CandidateSlotOption = { value: string; label: string; bucket: string; index: number };
+
+/**
+ * @function candidateSlotOptions
+ * @param pool {{ buckets: readonly { code: string }[]; slots: readonly PoolSlot[]; candidates?: SlotCandidates }}
+ *        the pool being edited
+ * @returns {CandidateSlotOption[]} for each bucket in order, every slot with a pick or candidates
+ *          ("NM4 (no pick)" for one without a pick), then a new slot after them ("New NM5")
+ */
+export const candidateSlotOptions = (pool: {
+  buckets: readonly { code: string }[];
+  slots: readonly PoolSlot[];
+  candidates?: SlotCandidates | undefined;
+}): CandidateSlotOption[] =>
+  pool.buckets.flatMap(({ code }) => {
+    const picks = new Set(pool.slots.filter((s) => s.mod === code).map((s) => s.index));
+    const rows = [...new Set([...picks, ...emptyRows(pool.candidates, pool.slots, code)])].sort(
+      (a, b) => a - b,
+    );
+    const next = Math.max(0, ...rows) + 1;
+    const option = (index: number, label: string) => ({
+      value: `${code}:${index}`,
+      label,
+      bucket: code,
+      index,
+    });
+    return [
+      ...rows.map((index) =>
+        option(index, `${code}${index}${picks.has(index) ? "" : " (no pick)"}`),
+      ),
+      ...(next <= MAX_SLOT_INDEX ? [option(next, `New ${code}${next}`)] : []),
+    ];
+  });

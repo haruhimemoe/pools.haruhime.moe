@@ -12,7 +12,9 @@
  *       range labels go by (the page on screen is under it, even while a new lens loads); when
  *       the answer to the current search is under another lens (one the mirror doesn't offer),
  *       the state snaps to it. Retry after a failure puts focus on the pane's heading, since
- *       the failure view (and its button) goes while the search runs.
+ *       the failure view (and its button) goes while the search runs. In the editor (`candidate`)
+ *       each difficulty also has "Add as candidate", and a Source choice switches to "Your
+ *       candidates" (YourCandidates; the search waits meanwhile).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -21,14 +23,16 @@
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
-import { Card } from "@haruhimemoe/ui";
+import { Card, ChoiceChips } from "@haruhimemoe/ui";
 import { useEffect, useId, useRef, useState } from "react";
 import { BrowseFilters } from "@/components/builder/BrowseFilters";
 import { BrowseResults } from "@/components/builder/BrowseResults";
+import { YourCandidates } from "@/components/builder/YourCandidates";
 import { BROWSE_LENSES } from "@/constants/browse";
 import { SEARCH_FAILED_COUNT } from "@/constants/search";
 import { useMapBrowse } from "@/hooks/useMapBrowse";
 import type { BucketTargets } from "@/schemas/built-plan";
+import type { CandidateAdder } from "@/schemas/candidate-editor";
 import { defaultBucketFor, findMapsState, lensForBucket, type OpenedFor } from "@/utils/browse-add";
 import {
   DEFAULT_BROWSE_STATE,
@@ -52,11 +56,19 @@ export type MapBrowserProps = {
   openCount: number;
   /** Adds a map to a bucket (null: no slot), at its end. */
   onAdd: (beatmapId: number, bucket: string | null) => void;
+  /** "Add as candidate" and the "Your candidates" source (the editor). */
+  candidate?: (CandidateAdder & { poolId: string; refresh: number }) | undefined;
   /** The pool's targets: Find maps on a bucket with a star range puts it in the star filter. */
   targets?: BucketTargets | undefined;
   /** fetch (tests; the editor passes its own). */
   fetcher?: typeof fetch;
 };
+
+/** Where the browser's maps come from: osu!'s maps, or your own candidates. */
+const SOURCES = [
+  { value: "search" as const, label: "Search osu! maps" },
+  { value: "candidates" as const, label: "Your candidates" },
+];
 
 /**
  * @function MapBrowserPane
@@ -65,14 +77,16 @@ export type MapBrowserProps = {
  * @returns {JSX.Element} the map browser: filters, ranges, results and paging
  */
 export function MapBrowserPane(props: MapBrowserProps) {
-  const { buckets, poolIds, openedFor, openCount, onAdd, fetcher, targets } = props;
+  const { buckets, poolIds, openedFor, openCount, onAdd, fetcher, targets, candidate } = props;
   const headingId = useId();
   const heading = useRef<HTMLHeadingElement>(null);
   const [state, setState] = useState(DEFAULT_BROWSE_STATE);
   const [urlRead, setUrlRead] = useState(false);
   const [opened, setOpened] = useState<OpenedFor | null>(null);
+  const [source, setSource] = useState<"search" | "candidates">("search");
   const browse = useMapBrowse(state, poolIds, {
-    enabled: urlRead,
+    // Your candidates on screen: the search waits.
+    enabled: urlRead && source === "search",
     ...(fetcher ? { fetcher } : {}),
   });
   const lenses = browse.data?.lenses ?? BROWSE_LENSES;
@@ -123,28 +137,48 @@ export function MapBrowserPane(props: MapBrowserProps) {
         Find maps
       </h2>
       <div className="flex flex-col gap-4">
-        <BrowseFilters
-          state={state}
-          lenses={lenses}
-          valuesLens={lens}
-          onChange={setState}
-          resultCount={count}
-        />
-        <BrowseResults
-          // Retry's failure view goes while the search runs: focus waits on the heading.
-          browse={{
-            ...browse,
-            retry: () => {
-              heading.current?.focus();
-              browse.retry();
-            },
-          }}
-          buckets={buckets}
-          defaultBucket={defaultBucketFor(lens, buckets, opened)}
-          poolIds={new Set(poolIds)}
-          onAdd={onAdd}
-          onPage={(page) => setState((s) => ({ ...s, page }))}
-        />
+        {candidate ? (
+          <ChoiceChips label="Source" options={SOURCES} value={source} onChange={setSource} />
+        ) : null}
+        {candidate && source === "candidates" ? (
+          <YourCandidates
+            poolId={candidate.poolId}
+            buckets={buckets}
+            under={defaultBucketFor(lens, buckets, opened) ?? "NM"}
+            defaultBucket={defaultBucketFor(lens, buckets, opened)}
+            poolIds={new Set(poolIds)}
+            onAdd={onAdd}
+            adder={candidate}
+            refresh={candidate.refresh}
+            fetcher={fetcher}
+          />
+        ) : (
+          <>
+            <BrowseFilters
+              state={state}
+              lenses={lenses}
+              valuesLens={lens}
+              onChange={setState}
+              resultCount={count}
+            />
+            <BrowseResults
+              // Retry's failure view goes while the search runs: focus waits on the heading.
+              browse={{
+                ...browse,
+                retry: () => {
+                  heading.current?.focus();
+                  browse.retry();
+                },
+              }}
+              buckets={buckets}
+              defaultBucket={defaultBucketFor(lens, buckets, opened)}
+              poolIds={new Set(poolIds)}
+              onAdd={onAdd}
+              candidate={candidate}
+              onPage={(page) => setState((s) => ({ ...s, page }))}
+            />
+          </>
+        )}
       </div>
     </Card>
   );

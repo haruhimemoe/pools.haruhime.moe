@@ -1,13 +1,13 @@
 /**
  * @file src/components/builder/PoolEditor.tsx
  * @desc The pool editor at /pools/<id>/edit. Two panes on wide screens, stacked on phones: the
- *       pool (details, maps by bucket with values under each slot's mods, the map browser right
+ *       pool (details, maps by bucket with values under each slot's mods and each slot's
+ *       candidates, whose details and values are asked for as picks' are, the map browser right
  *       under them, where its range sliders have room, paste, targets, custom slots) and the side
  *       (summary with the content rules check, recent changes, export, editors, the pack on packs with "Update pack
  *       now", and the owner's settings: who can see it, handing it to an editor, and delete).
  *       Every change is saved at once through usePoolEditor; the saving bar stays in view, with
- *       Undo. A
- *       pool moderators hid says so. Editors see everything but the owner's settings, which go
+ *       Undo. A pool moderators hid says so. Editors see everything but the owner's settings, which go
  *       once the owner hands the pool over; the notice saying so is a live region that's always
  *       there, and takes focus from the settings that went.
  * @author David @dvhsh (https://dvh.sh)
@@ -23,9 +23,9 @@ import { useEffect, useRef, useState } from "react";
 import { type CheckRules, ContentRulesCheck } from "@/components/builder/ContentRulesCheck";
 import { CustomBucketForm } from "@/components/builder/CustomBucketForm";
 import { DetailsForm } from "@/components/builder/DetailsForm";
+import { EditorBrowser } from "@/components/builder/EditorBrowser";
 import { EditorsPanel } from "@/components/builder/EditorsPanel";
 import { ExportPanel } from "@/components/builder/ExportPanel";
-import { MapBrowserPane } from "@/components/builder/MapBrowserPane";
 import { OwnerSettings } from "@/components/builder/OwnerSettings";
 import { PackPanel } from "@/components/builder/PackPanel";
 import { PasteBox } from "@/components/builder/PasteBox";
@@ -41,6 +41,7 @@ import { useSlotMaps } from "@/hooks/useSlotMaps";
 import { useSlotValues } from "@/hooks/useSlotValues";
 import type { Fetcher } from "@/lib/pool-client";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
+import { candidateSlots } from "@/utils/candidate-view";
 import type { SlotValueMap } from "@/utils/slot-values";
 
 type PoolEditorProps = {
@@ -79,8 +80,15 @@ export function PoolEditor({
   const router = useRouter();
   const editor = usePoolEditor(initial, { fetcher, ...(pollMs ? { pollMs } : {}) });
   const { pool, change } = editor;
-  const maps = useSlotMaps(pool.id, pool.slots, known, fetcher);
-  const values = useSlotValues(pool, knownValues, valuesComplete, !editor.saving, fetcher);
+  const slots = [...pool.slots, ...candidateSlots(pool.candidates)];
+  const maps = useSlotMaps(pool.id, slots, known, fetcher);
+  const values = useSlotValues(
+    { ...pool, slots },
+    knownValues,
+    valuesComplete,
+    !editor.saving,
+    fetcher,
+  );
   const [openedFor, setOpenedFor] = useState<string | null>(null);
   const [openCount, setOpenCount] = useState(0);
   const [handedOver, setHandedOver] = useState<string | null>(null);
@@ -136,13 +144,11 @@ export function PoolEditor({
             <PoolMaps pool={pool} maps={maps} values={values} change={change} onFind={onFind} />
           </Card>
           {/* Under the maps, in the wide column: the side column is too narrow for its sliders. */}
-          <MapBrowserPane
-            buckets={pool.buckets}
-            poolIds={pool.slots.map((slot) => slot.beatmapId)}
+          <EditorBrowser
+            pool={pool}
+            change={change}
             openedFor={openedFor}
             openCount={openCount}
-            onAdd={(beatmapId, bucket) => change([{ type: "addMap", beatmapId, bucket }])}
-            targets={pool.targets}
             fetcher={fetcher}
           />
           <Card title="Paste a pool">

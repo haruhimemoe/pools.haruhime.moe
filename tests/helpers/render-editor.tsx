@@ -13,6 +13,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PoolEditor } from "@/components/builder/PoolEditor";
 import type { ClientPool } from "@/schemas/built-pool-view";
+import { candidateSlots } from "@/utils/candidate-view";
 import type { SlotValueMap } from "@/utils/slot-values";
 import { clientPool, fakePoolApi, mapsFor, RULES } from "./pool-editor";
 
@@ -39,7 +40,7 @@ export const renderEditor = (
   const view = render(
     <PoolEditor
       initial={pool}
-      maps={mapsFor(pool.slots.map((slot) => slot.beatmapId))}
+      maps={mapsFor([...pool.slots, ...candidateSlots(pool.candidates)].map((s) => s.beatmapId))}
       values={values}
       valuesComplete={valuesComplete}
       me={me}

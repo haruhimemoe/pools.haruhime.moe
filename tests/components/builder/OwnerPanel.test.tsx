@@ -226,7 +226,7 @@ describe("editor layout", () => {
     expect(panes?.className).toMatch(/\blg:grid-cols-\[/);
     // A slot's text and controls sit side by side only when the maps card itself is wide
     // (48rem): the pool's column is 38.5rem on any desktop, too narrow for both.
-    const row = container.querySelector("li[data-map]");
+    const row = container.querySelector("li[data-map] > div");
     expect(row).toHaveClass("flex-col", "@3xl:flex-row");
     expect(row?.className).not.toMatch(/\blg:flex-row/);
     expect(row?.closest(".\\@container")).not.toBeNull();

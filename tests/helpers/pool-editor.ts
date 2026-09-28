@@ -6,8 +6,8 @@
  *       takes one-shot answers for a test's next calls (a 400, a 409, a request that never
  *       resolves). The map browser's searches are answered from `browse` (settable, or a
  *       function of the URL) and the slot values from `values` (a function of the server's
- *       pool) and the activity log from `activity`, each recorded apart (`browseCalls`,
- *       `valueCalls`, `activityCalls`).
+ *       pool), the activity log from `activity` and "Your candidates" from `own`, each recorded
+ *       apart (`browseCalls`, `valueCalls`, `activityCalls`, `ownCalls`).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -19,6 +19,7 @@ import type { BrowseLens } from "@/constants/browse";
 import type { Fetcher } from "@/lib/pool-client";
 import type { ClientActivity } from "@/schemas/activity";
 import type { BuiltMap, ClientPack, ClientPool } from "@/schemas/built-pool-view";
+import type { YourCandidatesAnswer } from "@/schemas/your-candidates";
 import type { BrowseResponse } from "@/utils/browse-params";
 import { applyLocal } from "@/utils/built-editor";
 import type { SlotValueMap } from "@/utils/slot-values";
@@ -134,6 +135,15 @@ export const fakePoolApi = (initial: ClientPool) => {
     Response.json(browsePage({ lens: (url.searchParams.get("lens") ?? "NM") as BrowseLens }));
   let values: (current: ClientPool) => SlotValueMap = () => ({});
   let activity: ClientActivity[] = [];
+  let own: (url: URL) => YourCandidatesAnswer = () => ({
+    rows: [],
+    total: 0,
+    page: 1,
+    pages: 1,
+    under: "NM",
+    complete: true,
+  });
+  const ownCalls: URL[] = [];
   const activityCalls: string[] = [];
   const browseCalls: URL[] = [];
   const valueCalls: string[] = [];
@@ -147,6 +157,11 @@ export const fakePoolApi = (initial: ClientPool) => {
     if (String(input).endsWith("/values")) {
       valueCalls.push(String(input));
       return Response.json({ values: values(pool), complete: true });
+    }
+    if (String(input).startsWith("/api/candidates")) {
+      const url = new URL(String(input), "http://localhost");
+      ownCalls.push(url);
+      return Response.json(own(url));
     }
     if (String(input).startsWith("/api/maps/browse")) {
       const url = new URL(String(input), "http://localhost");
@@ -203,6 +218,11 @@ export const fakePoolApi = (initial: ClientPool) => {
     set values(next: (current: ClientPool) => SlotValueMap) {
       values = next;
     },
+    /** What GET /api/candidates answers with, from its URL. */
+    set own(next: (url: URL) => YourCandidatesAnswer) {
+      own = next;
+    },
+    ownCalls,
     next: (answer: Answer) => overrides.push(answer),
   };
 };

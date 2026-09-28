@@ -3,7 +3,9 @@
  * @desc The editor's maps: every bucket in the pool's order (with its target's placeholders and
  *       badges), each slot with its move and remove buttons and its note. Slots can also be
  *       dragged by their handle onto another row or bucket (src/hooks/useSlotDrag.ts, a
- *       moveMap); the buttons stay the keyboard's way. Keyboard use never loses its place: after a move, focus stays on the moved map
+ *       moveMap); the buttons stay the keyboard's way. In the editor each slot shows its
+ *       candidates (src/hooks/useCandidateActions.ts), and drags between picks and candidates
+ *       promote, demote or move them. Keyboard use never loses its place: after a move, focus stays on the moved map
  *       (the same button when it still applies, else the next one that does); after a remove, it
  *       goes to the next map in the bucket, or the one before, or the bucket's Find maps. Focus
  *       moves once the changed pool is on screen, not on a render in between. It's a size
@@ -18,6 +20,7 @@
 import { bucketOptionLabel, type PoolSlot } from "@haruhimemoe/pool";
 import { useEffect, useRef } from "react";
 import { BucketSection } from "@/components/builder/BucketSection";
+import { useCandidateActions } from "@/hooks/useCandidateActions";
 import { useSlotDrag } from "@/hooks/useSlotDrag";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
@@ -82,7 +85,9 @@ export function PoolMaps({ pool, maps, values, change, onFind }: PoolMapsProps) 
   const onMoveTo = (slot: PoolSlot, bucket: string) =>
     run(moveToOp(slot, bucket), inRow(slot.beatmapId, ["target", "remove"]));
 
+  const candidates = useCandidateActions(pool, maps, change);
   const drag = useSlotDrag((picked, target) => {
+    if (candidates.drop(picked, target)) return;
     // The pool may have moved on during the drag (a save, a poll): go by the map, not its old place.
     const slot = pool.slots.find((s) => s.beatmapId === picked.beatmapId);
     if (slot) run(dropOp(slot, target), inRow(slot.beatmapId, ["up", "down", "remove"]));
@@ -108,6 +113,7 @@ export function PoolMaps({ pool, maps, values, change, onFind }: PoolMapsProps) 
           plan={group.code === null ? undefined : pool.targets[group.code]}
           notes={pool.slotNotes}
           drag={drag}
+          candidates={candidates.context}
           onNote={(slot, note) => change([{ type: "setNote", beatmapId: slot.beatmapId, note }])}
           onFind={onFind}
           onRemoveBucket={(code) => run({ type: "removeBucket", code }, ['[data-control="find"]'])}

@@ -5,7 +5,8 @@
  *       numbers close up, as the Up and Down buttons' moves do), dropped on another bucket goes
  *       to that bucket's end, and dropped on itself or its own bucket does nothing. A drop
  *       target is read from `data-drop-bucket` ("" for maps with no slot) and
- *       `data-drop-index` (a row). Pure, and safe in the browser.
+ *       `data-drop-index` (a row), and `data-drop-zone="candidates"` for a slot's candidate
+ *       list (src/utils/candidate-drag.ts makes those drops' ops). Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -14,8 +15,14 @@
 import type { PoolSlot } from "@haruhimemoe/pool";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 
-/** Where a slot was dropped: a bucket (null: no slot), and a row's number or none. */
-export type DropTarget = { bucket: string | null; index: number | null };
+/**
+ * Where a slot was dropped: a bucket (null: no slot), a row's number or none, and "candidates"
+ * when it was a slot's candidate list (`data-drop-zone`).
+ */
+export type DropTarget = { bucket: string | null; index: number | null; zone?: "candidates" };
+
+/** What is dragged: a pick, or a slot's candidate (its slot's bucket and number). */
+export type DragItem = PoolSlot & { candidate?: true };
 
 /**
  * @function dropOp
@@ -46,5 +53,11 @@ export const readDropTarget = (
   const bucket = element?.getAttribute("data-drop-bucket") ?? null;
   if (bucket === null) return null;
   const index = Number(element?.getAttribute("data-drop-index") ?? Number.NaN);
-  return { bucket: bucket === "" ? null : bucket, index: Number.isInteger(index) ? index : null };
+  const zone =
+    element?.getAttribute("data-drop-zone") === "candidates" ? { zone: "candidates" as const } : {};
+  return {
+    bucket: bucket === "" ? null : bucket,
+    index: Number.isInteger(index) ? index : null,
+    ...zone,
+  };
 };
