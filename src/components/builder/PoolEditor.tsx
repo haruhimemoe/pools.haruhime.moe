@@ -3,8 +3,10 @@
  * @desc The pool editor at /pools/<id>/edit. Two panes on wide screens, stacked on phones: the
  *       pool (details, maps by bucket with values under each slot's mods, paste, custom slots)
  *       and the side (summary with the content rules check, the map browser, editors, the pack
- *       on packs with "Update pack now", and the owner's settings: who can see it and delete). Every change is saved at once through usePoolEditor; the saving bar stays in
- *       view. A pool moderators hid says so. Editors see everything but the owner's settings.
+ *       on packs with "Update pack now", and the owner's settings: who can see it, handing it to
+ *       an editor, and delete). Every change is saved at once through usePoolEditor; the saving
+ *       bar stays in view. A pool moderators hid says so. Editors see everything but the owner's
+ *       settings, which go (with a notice) once the owner hands the pool over.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -26,6 +28,7 @@ import { PasteBox } from "@/components/builder/PasteBox";
 import { PoolMaps } from "@/components/builder/PoolMaps";
 import { PoolSummary } from "@/components/builder/PoolSummary";
 import { SaveState } from "@/components/builder/SaveState";
+import { TransferOwnerForm } from "@/components/builder/TransferOwnerForm";
 import { VisibilityForm } from "@/components/builder/VisibilityForm";
 import { HIDDEN_BY_MODERATION, VISIBILITY_TEXT } from "@/constants/built-pools";
 import { usePoolEditor } from "@/hooks/usePoolEditor";
@@ -65,6 +68,7 @@ export function PoolEditor({
   const values = useSlotValues(pool, knownValues, !editor.saving, fetcher);
   const [openedFor, setOpenedFor] = useState<string | null>(null);
   const [openCount, setOpenCount] = useState(0);
+  const [handedOver, setHandedOver] = useState<string | null>(null);
   const onFind = (code: string) => {
     setOpenedFor(code);
     setOpenCount((n) => n + 1);
@@ -90,6 +94,7 @@ export function PoolEditor({
         onDismiss={editor.dismiss}
       />
       {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION}</Notice> : null}
+      {handedOver ? <Notice live>{handedOver}</Notice> : null}
       <div
         data-panes
         className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]"
@@ -138,6 +143,13 @@ export function PoolEditor({
             <Card title="Owner settings">
               <div className="flex flex-col gap-6">
                 <VisibilityForm pool={pool} editor={editor} fetcher={fetcher} />
+                <h3 className="font-bold text-c1">Hand this pool to an editor</h3>
+                <TransferOwnerForm
+                  pool={pool}
+                  editor={editor}
+                  fetcher={fetcher}
+                  onDone={setHandedOver}
+                />
                 <h3 className="font-bold text-c1">Delete this pool</h3>
                 <DeletePoolForm
                   poolId={pool.id}

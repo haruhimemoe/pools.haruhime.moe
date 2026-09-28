@@ -3,8 +3,9 @@
  * @desc Every pool route for the owner, an editor, an admin, someone else and a visitor, over a
  *       private, an unlisted and a public pool, and a hidden unlisted and hidden public one. Can't
  *       see it: 404. Signed out on a write:
- *       401. Sees it but may not: 403. The owner does everything; editors read and edit, and
- *       remove themselves; admins see what isn't private and delete any pool, but never edit.
+ *       401. Sees it but may not: 403. The owner does everything (handing the pool to an editor
+ *       included); editors read and edit, and remove themselves; admins see what isn't private
+ *       and delete any pool, but never edit or take it over.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -14,6 +15,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE as deleteEditor } from "@/app/api/pools/[id]/editors/[osuId]/route";
 import { POST as postEditor } from "@/app/api/pools/[id]/editors/route";
 import { POST as postOps } from "@/app/api/pools/[id]/ops/route";
+import { POST as postOwner } from "@/app/api/pools/[id]/owner/route";
 import { DELETE as deletePool, GET as getPool } from "@/app/api/pools/[id]/route";
 import { GET as getValues } from "@/app/api/pools/[id]/values/route";
 import { PUT as putVisibility } from "@/app/api/pools/[id]/visibility/route";
@@ -60,6 +62,14 @@ const ROUTES: Record<string, Call> = {
   values: (cookie) => getValues(poolRequest("GET", `${base}/values`, cookie), at),
   addEditor: (cookie) =>
     postEditor(poolRequest("POST", `${base}/editors`, cookie, { username: "newbie" }), at),
+  owner: (cookie) =>
+    postOwner(
+      poolRequest("POST", `${base}/owner`, cookie, {
+        osuId: EDITOR_OSU_ID,
+        confirmName: "Spring Cup Finals",
+      }),
+      at,
+    ),
   removeEditor: (cookie) =>
     deleteEditor(
       poolRequest("DELETE", `${base}/editors/${EDITOR_OSU_ID}`, cookie),
@@ -76,6 +86,11 @@ const MATRIX: [Visibility, boolean, string, number[]][] = [
   ["private", false, "addEditor", [200, 403, 404, 404, 401]],
   ["private", false, "removeEditor", [204, 204, 404, 404, 401]],
   ["private", false, "values", [200, 200, 404, 404, 401]],
+  ["private", false, "owner", [200, 403, 404, 404, 401]],
+  ["public", false, "owner", [200, 403, 403, 403, 401]],
+  ["unlisted", false, "owner", [200, 403, 403, 403, 401]],
+  ["public", true, "owner", [200, 403, 403, 404, 401]],
+  ["unlisted", true, "owner", [200, 403, 403, 404, 401]],
   ["public", false, "values", [200, 200, 403, 403, 401]],
   ["unlisted", false, "values", [200, 200, 403, 403, 401]],
   ["public", true, "values", [200, 200, 403, 404, 401]],

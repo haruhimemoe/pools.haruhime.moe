@@ -1,9 +1,11 @@
 /**
  * @file src/schemas/built-pool-view.ts
  * @desc What the browser holds of a built pool: the pool as the pages and editor show it (no
- *       dates, the pack as a state with its link or reason, editors as osu! id and name) and each of its maps'
- *       details from the maps collection (label parts, no-mod stars, length, BPM, AR, OD, CS, and how many
- *       past pools used it), and the pool a new one starts from. Plain JSON, so a server page and an API answer give the same shape.
+ *       dates, the pack as a state with its link or reason, editors as osu! id and name, and for
+ *       the owner whether each has signed in) and each of its maps' details from the maps
+ *       collection (label parts, no-mod stars, length, BPM, AR, OD, CS, and how many past pools
+ *       used it), and the pool a new one starts from. Plain JSON, so a server page and an API
+ *       answer give the same shape.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -14,6 +16,9 @@ import type { BuiltPackState, Visibility } from "@/constants/built-pools";
 
 /** An osu! user on a pool: the owner or an editor. */
 export type PoolPerson = { osuId: number; username: string };
+
+/** An editor; `signedIn` (they've signed in to pools) is sent to the owner only. */
+export type ClientEditor = PoolPerson & { signedIn?: boolean };
 
 /** What the caller may do (from src/utils/built-access.ts). */
 export type ClientAccess = {
@@ -43,7 +48,7 @@ export type ClientPool = {
   visibility: Visibility;
   hidden: boolean;
   owner: PoolPerson | null;
-  editors: PoolPerson[];
+  editors: ClientEditor[];
   buckets: BucketEntry[];
   slots: PoolSlot[];
   version: number;
@@ -98,7 +103,9 @@ export const clientPoolOf = (view: ClientPool): ClientPool => ({
   visibility: view.visibility,
   hidden: view.hidden,
   owner: view.owner ? { osuId: view.owner.osuId, username: view.owner.username } : null,
-  editors: view.editors.map(({ osuId, username }) => ({ osuId, username })),
+  editors: view.editors.map(({ osuId, username, signedIn }) =>
+    signedIn === undefined ? { osuId, username } : { osuId, username, signedIn },
+  ),
   buckets: view.buckets,
   slots: view.slots,
   version: view.version,

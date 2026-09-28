@@ -1,8 +1,9 @@
 /**
  * @file tests/components/builder/OwnerPanel.test.tsx
  * @desc Who manages the pool: the owner's settings (visibility with the pack note only when it
- *       matters, adding and removing editors, delete behind the typed name) and none of them for
- *       an editor, who can leave instead. When packs didn't answer, deleting or going private
+ *       matters, adding and removing editors, handing the pool to an editor who has signed in and
+ *       delete, each behind the typed name) and none of them for an editor, who can leave
+ *       instead; once the pool is handed over, the old owner's settings go. When packs didn't answer, deleting or going private
  *       still works and says the pack's removal waits. Requests take turns with the ops, so the next change
  *       carries the version they moved to. Also the editor's layout at phone width, by class.
  * @author David @dvhsh (https://dvh.sh)
@@ -12,6 +13,7 @@
 
 import { screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { NO_HANDOVER } from "@/components/builder/TransferOwnerForm";
 import { PACK_NOTE, PACK_REMOVAL_QUEUED } from "@/constants/built-pools";
 import { clientPool, EDITOR_ACCESS } from "../../helpers/pool-editor";
 import { renderEditor } from "../../helpers/render-editor";
@@ -104,6 +106,60 @@ describe("owner settings", () => {
     await saved();
     expect(api.calls[0]).toMatchObject({ method: "PUT", body: { visibility: "unlisted" } });
     expect(api.calls[1]?.body).toMatchObject({ baseVersion: 2 });
+  });
+});
+
+describe("handing the pool to an editor", () => {
+  const editors = [
+    { osuId: 20, username: "editor", signedIn: true },
+    { osuId: 50, username: "newbie", signedIn: false },
+  ];
+  const typeName = async (user: ReturnType<typeof renderEditor>["user"], text: string) => {
+    const field = screen.getByRole("textbox", { name: "Type Spring Cup Finals to hand it over" });
+    await user.clear(field);
+    await user.type(field, text);
+  };
+
+  it("offers editors who have signed in, and hands it over once the name is typed", async () => {
+    const { api, user } = renderEditor(clientPool({ editors }));
+    expect(screen.getByRole("radio", { name: /newbie/ })).toBeDisabled();
+    expect(screen.getByText("hasn't signed in yet")).toBeInTheDocument();
+    const go = screen.getByRole("button", { name: "Hand the pool over" });
+    await typeName(user, "Spring Cup Finals");
+    expect(go).toBeDisabled();
+    await user.click(screen.getByRole("radio", { name: "editor" }));
+    await typeName(user, "spring cup finals");
+    expect(go).toBeDisabled();
+    await typeName(user, "Spring Cup Finals");
+    const owner = { osuId: 20, username: "editor" };
+    const after = { ...api.pool, owner, editors: [{ osuId: 10, username: "owner" }] };
+    api.next(() => Response.json({ pool: { ...after, access: EDITOR_ACCESS, version: 2 } }));
+    await user.click(go);
+    expect(await screen.findByText("editor owns this pool now. You still edit it.")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Owner settings" })).not.toBeInTheDocument();
+    expect(screen.getByText("You edit this pool.")).toBeInTheDocument();
+    expect(api.calls.at(-1)).toMatchObject({
+      method: "POST",
+      path: "/api/pools/b-a0000001/owner",
+      body: { osuId: 20, confirmName: "Spring Cup Finals" },
+    });
+  });
+
+  it("says why when it's refused, keeping the owner's settings", async () => {
+    const { api, user } = renderEditor(clientPool({ editors }));
+    await user.click(screen.getByRole("radio", { name: "editor" }));
+    await typeName(user, "Spring Cup Finals");
+    const message = "editor already owns 50 pools.";
+    api.next(() => Response.json({ error: { code: "too_many_pools", message } }, { status: 400 }));
+    await user.click(screen.getByRole("button", { name: "Hand the pool over" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    expect(screen.getByRole("heading", { name: "Owner settings" })).toBeInTheDocument();
+  });
+
+  it("says who can take it when no editor has signed in", () => {
+    renderEditor(clientPool({ editors: [] }));
+    expect(screen.getByText(NO_HANDOVER)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Hand the pool over" })).not.toBeInTheDocument();
   });
 });
 

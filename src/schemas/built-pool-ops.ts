@@ -2,10 +2,12 @@
  * @file src/schemas/built-pool-ops.ts
  * @desc The pool routes' JSON bodies, all strict: POST /api/pools (a name and details, or a pool
  *       to start from), POST /api/pools/<id>/ops (a base version and 1 to 20 ops), PUT
- *       .../visibility, POST .../editors (an osu! username). Each op's fields come from
- *       @haruhimemoe/pool's schemas (beatmap ids, bucket codes, palette colors, forced mod sets);
- *       every piece of text a person types, bucket codes included, goes through the content
- *       filter. What an op does to a pool lives in src/utils/built-ops.ts.
+ *       .../visibility, POST .../editors (an osu! username), POST .../owner (an editor's osu!
+ *       id and the pool's name typed to confirm). Each op's fields come from @haruhimemoe/pool's
+ *       schemas (beatmap ids, bucket codes, palette colors, forced mod sets); every piece of text
+ *       a person types and we keep, bucket codes included, goes through the content filter (the
+ *       name typed to confirm is only compared, never kept). What an op does to a pool lives in
+ *       src/utils/built-ops.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -122,4 +124,12 @@ export const editorBodySchema = z.strictObject({
     .min(1, "Type an osu! username.")
     .max(MAX_USERNAME_LENGTH, "That isn't an osu! username.")
     .regex(/^[A-Za-z0-9 _[\]-]+$/, "That isn't an osu! username."),
+});
+
+/** Longer than any pool name, so a wrong one is refused by comparison, not by length. */
+const MAX_CONFIRM_LENGTH = 200;
+
+export const ownerBodySchema = z.strictObject({
+  osuId: z.number().int().positive(),
+  confirmName: z.string().max(MAX_CONFIRM_LENGTH),
 });

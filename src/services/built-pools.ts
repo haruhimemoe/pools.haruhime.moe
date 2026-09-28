@@ -2,8 +2,9 @@
  * @file src/services/built-pools.ts
  * @desc Database work for pools built here: reading one (by shape only, builtPoolReadSchema, so
  *       a pool a newer content filter or limit would refuse still reads and can be fixed or
- *       deleted; a row of the wrong shape is left out, never shown half-broken), what a caller sees of it (the owner's current osu! name
- *       and every bucket), creating one (at most 50 per owner, a fresh "b-" id claimed in
+ *       deleted; a row of the wrong shape is left out, never shown half-broken), what a caller
+ *       sees of it (the owner's current osu! name, every bucket, and for the owner which editors
+ *       have signed in), creating one (at most 50 per owner, a fresh "b-" id claimed in
  *       built_pool_ids so no id is ever reused, maybe copied from a past pool or a built one the
  *       caller can see), changing who sees it, and deleting it. A pool with a pack on packs
  *       loses the pack (going private, being deleted); when packs can't be asked, the change
@@ -80,7 +81,8 @@ export type BuiltPoolView = {
   visibility: Visibility;
   hidden: boolean;
   owner: { osuId: number; username: string } | null;
-  editors: Omit<BuiltEditor, "userId">[];
+  /** signedIn (they have a user id) goes to the owner only, who can hand the pool to them. */
+  editors: (Omit<BuiltEditor, "userId"> & { signedIn?: boolean })[];
   buckets: BucketEntry[];
   slots: PoolSlot[];
   version: number;
@@ -188,7 +190,12 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     visibility: pool.visibility,
     hidden: pool.hidden,
     owner: await ownerOf(pool.ownerId),
-    editors: pool.editors.map(({ osuId, username, addedAt }) => ({ osuId, username, addedAt })),
+    editors: pool.editors.map(({ userId, osuId, username, addedAt }) => ({
+      osuId,
+      username,
+      addedAt,
+      ...(canManage ? { signedIn: userId !== null } : {}),
+    })),
     buckets: bucketsOf(pool).map((entry) => ({ ...entry })),
     slots: pool.slots,
     version: pool.version,
