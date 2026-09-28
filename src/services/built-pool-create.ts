@@ -23,6 +23,7 @@ import {
 } from "@/constants/built-pools";
 import type { SessionUser } from "@/lib/auth";
 import { builtPoolIdsCollection, builtPoolsCollection } from "@/models/BuiltPool";
+import { passingNotes } from "@/schemas/built-plan";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 import type { CreatePoolBody } from "@/schemas/built-pool-ops";
 import type { StartFrom } from "@/schemas/built-pool-view";
@@ -149,7 +150,7 @@ export const createBuiltPool = async (
     slots: start?.slots ?? [],
     // A template only sets targets; a built pool's own come with it.
     targets: body.template ? templateTargets(body.template) : (start?.targets ?? {}),
-    slotNotes: start?.slotNotes ?? {},
+    slotNotes: passingNotes(start?.slotNotes ?? {}),
     version: 1,
     pack: EMPTY_BUILT_PACK,
     hidden: false,

@@ -5,7 +5,8 @@
  *       code; and each slot's note (0 to 280 characters on one line, through the content filter,
  *       its refusal coded content_filter), keyed by beatmap id so it follows the map when it
  *       moves. Each is stored only when there's one; every key names a bucket or map the pool
- *       has. Reads check shape only.
+ *       has. Reads check shape only; `passingNotes` keeps the notes a write would take today,
+ *       for anyone who can't edit the pool and for Start from.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -75,7 +76,8 @@ export const slotNoteSchema = z
   .string()
   .trim()
   .max(MAX_SLOT_NOTE_LENGTH, `Keep a note to ${MAX_SLOT_NOTE_LENGTH} characters.`)
-  .regex(/^[^\p{Cc}]*$/u, "A note can't have line breaks.")
+  // Control characters, and the line and paragraph separators (U+2028, U+2029).
+  .regex(/^[^\p{Cc}\p{Zl}\p{Zp}]*$/u, "A note can't have line breaks.")
   .refine((text) => !/\p{Cs}/u.test(text), "The note has a broken character.")
   .refine((text) => !hasBlockedLanguage(text), {
     message: "That fails the content filter.",
@@ -89,6 +91,20 @@ export type SlotNotes = Readonly<Record<string, string>>;
 
 /** Notes as read: shape only. */
 export const slotNotesShape = z.record(z.string(), z.string());
+
+/**
+ * @function passingNotes
+ * @param notes {Readonly<Record<string, string>>} notes as stored (read by shape only)
+ * @returns {SlotNotes} only those a write would take today: a stored note a newer content filter
+ *          or rule refuses isn't shown to anyone who can't edit the pool, or copied to a new one
+ */
+export const passingNotes = (notes: Readonly<Record<string, string>>): SlotNotes =>
+  Object.fromEntries(
+    Object.entries(notes).filter(
+      ([id, text]) =>
+        /^\d+$/.test(id) && slotNoteSchema.min(1).safeParse(text).success && text === text.trim(),
+    ),
+  );
 
 /**
  * @function checkSlotNotes

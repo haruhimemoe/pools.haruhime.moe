@@ -28,7 +28,7 @@ import { QUERY_TIME_MS } from "@/constants/db";
 import type { SessionUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import type { BucketTargets, SlotNotes } from "@/schemas/built-plan";
+import { type BucketTargets, passingNotes, type SlotNotes } from "@/schemas/built-plan";
 import {
   type BuiltEditor,
   builtPoolReadSchema,
@@ -213,7 +213,8 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     buckets: bucketsOf(pool).map((entry) => ({ ...entry })),
     slots: pool.slots,
     targets: pool.targets ?? {},
-    slotNotes: pool.slotNotes ?? {},
+    // Everyone else sees only notes a write would take today; editors see theirs to fix them.
+    slotNotes: canEdit ? (pool.slotNotes ?? {}) : passingNotes(pool.slotNotes ?? {}),
     version: pool.version,
     // packs' reasons are for the people who fix the pool.
     pack: clientPackOf(pool, { withError: canEdit }),

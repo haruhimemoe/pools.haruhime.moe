@@ -12,6 +12,7 @@
 
 import { describe, expect, it } from "vitest";
 import { POST as postOps } from "@/app/api/pools/[id]/ops/route";
+import { GET as getPool } from "@/app/api/pools/[id]/route";
 import { POST as create } from "@/app/api/pools/route";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { findBuiltPool } from "@/services/built-pools";
@@ -120,6 +121,36 @@ describe("setNote", () => {
     await send(cast, 3, [{ type: "removeMap", slot: { bucket: "HD", index: 1 } }]);
     const row = await (await builtPoolsCollection()).findOne({ _id: ID });
     expect(row && "slotNotes" in row).toBe(false);
+  });
+
+  it("shows a stored note a newer filter refuses only to editors, and never copies it", async () => {
+    const cast = await createCast();
+    const slots = [
+      { mod: "NM", index: 1, beatmapId: 5 },
+      { mod: "NM", index: 2, beatmapId: 6 },
+    ];
+    await insertPool(cast, { _id: ID, visibility: "public", slots });
+    // Written before the filter knew the word.
+    await (await builtPoolsCollection()).updateOne(
+      { _id: ID },
+      { $set: { slotNotes: { 5: "retard map", 6: "jump aim" } } },
+    );
+    const notesFor = async (who: keyof Cast | null) => {
+      const request = poolRequest("GET", `/api/pools/${ID}`, who ? cast[who].cookie : null);
+      const body = (await (await getPool(request, params({ id: ID }))).json()) as {
+        pool: { slotNotes: unknown };
+      };
+      return body.pool.slotNotes;
+    };
+    expect(await notesFor("owner")).toEqual({ 5: "retard map", 6: "jump aim" });
+    expect(await notesFor("other")).toEqual({ 6: "jump aim" });
+    expect(await notesFor("admin")).toEqual({ 6: "jump aim" });
+    const response = await create(
+      poolRequest("POST", "/api/pools", cast.other.cookie, { startedFrom: ID }),
+    );
+    expect(response.status).toBe(201);
+    const { id } = (await response.json()) as { id: string };
+    expect((await findBuiltPool(id))?.slotNotes).toEqual({ 6: "jump aim" });
   });
 
   it("refuses a note the content filter blocks", async () => {

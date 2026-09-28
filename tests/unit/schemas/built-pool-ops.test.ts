@@ -95,6 +95,8 @@ describe("opsBodySchema", () => {
     { type: "setTarget", bucket: "chink", count: 2 },
     { type: "setNote", beatmapId: 129891, note: "x".repeat(281) },
     { type: "setNote", beatmapId: 129891, note: "two\nlines" },
+    { type: "setNote", beatmapId: 129891, note: "two\u2028lines" },
+    { type: "setNote", beatmapId: 129891, note: "two\u2029paragraphs" },
     { type: "setNote", beatmapId: 129891, note: "retard map" },
     { type: "setNote", beatmapId: 0, note: "a" },
     { type: "setNote", beatmapId: 129891 },
