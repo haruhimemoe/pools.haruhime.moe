@@ -6,9 +6,10 @@
  *       can't see it 404, sees it but can't edit 403. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/pools/[id]/maps/route";
 import { builtPoolsCollection } from "@/models/BuiltPool";
@@ -16,7 +17,6 @@ import { mapsCollection } from "@/models/Map";
 import { ADMIN_OSU_ID } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import { mirrorHandler, mirrorRow } from "../../../helpers/hinai-server";
-import { setupMsw } from "../../../helpers/msw";
 import { createCast, insertPool, params, poolRequest } from "../../../helpers/pool-requests";
 import { makeMap } from "../../../helpers/records";
 

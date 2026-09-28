@@ -4,7 +4,7 @@
  *       and GitHub org, navigation, the affiliation notice, and the User-Agent our server sends.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 export const SITE = {
@@ -28,6 +28,12 @@ export const SITE = {
 
 /** Sent as User-Agent on every request our server makes (osu!, the mirror, otdb, packs). */
 export const SERVER_USER_AGENT = `${SITE.title} (+${SITE.url}; ${SITE.contactEmail})`;
+
+/** Where /signin goes after sign-in when `next` is missing or not a safe path. */
+export const DEFAULT_AFTER_SIGN_IN = "/account";
+
+/** The readable "signed in" marker cookie: pages ask for the session only when it's there. */
+export const SIGNED_IN_COOKIE = "pools-signed-in";
 
 export const NAV_LINKS: readonly { href: string; label: string }[] = [
   { href: "/", label: "Home" },

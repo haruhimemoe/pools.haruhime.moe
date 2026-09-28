@@ -17,6 +17,7 @@
  * @modified Sat Sep 26, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { encodePackKey } from "@haruhimemoe/pool";
 import { revalidatePath } from "next/cache";
 import { describe, expect, it } from "vitest";
@@ -28,7 +29,6 @@ import { addPool } from "@/services/add-pool";
 import { loadExistingPools } from "@/services/import";
 import { setupTestDb } from "../../helpers/db";
 import { mirrorHandler, mirrorRow } from "../../helpers/hinai-server";
-import { setupMsw } from "../../helpers/msw";
 import {
   createdAnswer,
   type PutCall,

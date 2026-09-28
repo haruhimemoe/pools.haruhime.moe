@@ -7,11 +7,11 @@
  *       with what the maps collection has. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { jsonError, noStore } from "@haruhimemoe/next-kit/server";
 import { RATE_LIMITS } from "@/constants/api";
-import { jsonError, noStore } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { limitUser, poolResponse, refusalResponse } from "@/lib/pool-routes";
 import { fillBuiltMaps } from "@/services/built-pool-maps";

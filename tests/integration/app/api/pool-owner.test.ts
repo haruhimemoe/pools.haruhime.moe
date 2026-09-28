@@ -10,15 +10,16 @@
  *       pool-permissions.test.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { userSubject } from "@haruhimemoe/next-kit/server";
 import { describe, expect, it } from "vitest";
 import { POST } from "@/app/api/pools/[id]/owner/route";
 import { GET } from "@/app/api/pools/[id]/route";
 import { PUT as putVisibility } from "@/app/api/pools/[id]/visibility/route";
 import { RATE_LIMITS } from "@/constants/api";
-import { refuseOverLimit, userSubject } from "@/lib/rate-limit";
+import { refuseOverLimit } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { findBuiltPool } from "@/services/built-pools";
 import { afterTaskCount } from "../../../helpers/after";

@@ -11,11 +11,12 @@
  *       sync-state counts read a pool never sent as "never".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { mapsCollection } from "@/models/Map";
@@ -36,7 +37,6 @@ import { readOtdbExport } from "@/utils/otdb";
 import { packInputHash, packInputOf } from "@/utils/pack-input";
 import { normalizePools } from "@/utils/source-pools";
 import { setupTestDb } from "../../helpers/db";
-import { setupMsw } from "../../helpers/msw";
 import {
   createdAnswer,
   type PutCall,

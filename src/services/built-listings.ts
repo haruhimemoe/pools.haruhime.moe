@@ -11,8 +11,8 @@
  */
 
 import "server-only";
+import { isEnvValidationSkipped } from "@haruhimemoe/next-kit/env";
 import { BUILT_POOL_INDEXES, QUERY_TIME_MS } from "@/constants/db";
-import { isEnvValidationSkipped } from "@/env";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { ownerNamesOf } from "@/services/built-pools";
 

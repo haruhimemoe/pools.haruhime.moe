@@ -9,11 +9,12 @@
  *       Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { jsonError, noStore, parseJsonBody } from "@haruhimemoe/next-kit/server";
 import { PACK_REMOVAL_QUEUED } from "@/constants/built-pools";
-import { jsonError, noStore, parseJsonBody, refuseCrossSite } from "@/lib/api";
+import { refuseCrossSite } from "@/lib/api";
 import { getAdminFromHeaders } from "@/lib/auth";
 import { schedulePackSync } from "@/lib/pack-sync-after";
 import { revalidateBuiltLists } from "@/lib/revalidate";

@@ -10,13 +10,14 @@
  *       added pool use it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
+import { EnvError } from "@haruhimemoe/next-kit/env";
 import type { Filter } from "mongodb";
 import { BATCH_QUERY_MS, QUERY_TIME_MS } from "@/constants/db";
-import { EnvError, getPacksService, type PacksService } from "@/env";
+import { getPacksService, type PacksService } from "@/env";
 import type { Fetch } from "@/lib/packs-client";
 import { revalidateAllPoolAndMapPages, revalidatePoolPages } from "@/lib/revalidate";
 import { poolsCollection } from "@/models/Pool";

@@ -9,9 +9,10 @@
  *       counted; page counts; and every failure (the mirror's, ready false) as one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { BROWSE_LENSES } from "@/constants/browse";
@@ -24,7 +25,6 @@ import { browseMaps } from "@/services/map-browse";
 import { type BrowseParams, DEFAULT_BROWSE_PARAMS } from "@/utils/browse-params";
 import { setupTestDb } from "../../helpers/db";
 import { compactSet, mirrorSearchHandler, searchAnswer } from "../../helpers/mirror-search";
-import { setupMsw } from "../../helpers/msw";
 import {
   lensStats,
   lensStatsHandler,

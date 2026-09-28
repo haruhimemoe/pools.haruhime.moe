@@ -8,9 +8,10 @@
  *       and delete any pool, but never edit or take it over.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE as deleteEditor } from "@/app/api/pools/[id]/editors/[osuId]/route";
 import { POST as postEditor } from "@/app/api/pools/[id]/editors/route";
@@ -22,7 +23,6 @@ import { PUT as putVisibility } from "@/app/api/pools/[id]/visibility/route";
 import type { Visibility } from "@/constants/built-pools";
 import { ADMIN_OSU_ID } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import {
   type Cast,
   createCast,

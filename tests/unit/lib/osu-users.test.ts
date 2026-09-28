@@ -6,14 +6,14 @@
  *       something unreadable.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse, http } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { forgetOsuUserToken, lookupOsuUser } from "@/lib/osu-users";
-import { setupMsw } from "../../helpers/msw";
 
 const server = setupMsw();
 const CREDENTIALS = () => ({ clientId: "1", clientSecret: "secret" });

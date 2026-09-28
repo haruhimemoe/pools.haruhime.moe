@@ -12,6 +12,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { MOD_VALUES_INDEXES } from "@/constants/db";
@@ -25,7 +26,6 @@ import { isMirrorCooling, resetMirrorCooldown } from "@/lib/map-search";
 import { getModValues } from "@/lib/mod-values";
 import { modValuesCollection } from "@/models/ModValues";
 import { setupTestDb } from "../../helpers/db";
-import { setupMsw } from "../../helpers/msw";
 import {
   type BatchCall,
   ppBatchAnswering,

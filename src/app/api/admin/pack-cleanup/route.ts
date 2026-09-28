@@ -5,10 +5,11 @@
  *       everyone else, then the same-origin guard, then a JSON body (an empty object).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { jsonError, noStore, parseJsonBody, refuseCrossSite } from "@/lib/api";
+import { jsonError, noStore, parseJsonBody } from "@haruhimemoe/next-kit/server";
+import { refuseCrossSite } from "@/lib/api";
 import { getAdminFromHeaders } from "@/lib/auth";
 import { packCleanupBodySchema } from "@/schemas/admin";
 import { retryQueuedPackRemovals } from "@/services/admin";

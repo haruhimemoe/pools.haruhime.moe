@@ -1,9 +1,9 @@
 /**
  * @file src/constants/db.ts
- * @desc Collection names in the pools database (built pools and their id claims included), the
- *       session TTL index name, the indexes on better-auth's collections, how long a public read and a batch read (importer, admin) may
- *       run (the cluster is a shared free M0), and the index names searches hint (and the
- *       mod_values TTL index).
+ * @desc Collection names in the pools database (built pools and their id claims included), how
+ *       long a public read and a batch read (importer, admin) may run (the cluster is a shared
+ *       free M0), and the index names searches hint (and the mod_values TTL index). better-auth's
+ *       index names are next-kit's AUTH_INDEXES.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
@@ -23,20 +23,6 @@ export const PACK_CLEANUP_COLLECTION = "pack_cleanup";
 export const MOD_VALUES_COLLECTION = "mod_values";
 /** Who changed what on built pools (src/services/built-pool-activity.ts). */
 export const BUILT_POOL_ACTIVITY_COLLECTION = "built_pool_activity";
-
-export const SESSION_TTL_INDEX = "session_expiresAt_ttl";
-
-/** Index names on better-auth's collections (src/lib/db-indexes.ts builds them). */
-export const AUTH_INDEXES = Object.freeze({
-  /** One user per osu! id: two sign-ins racing can't make two. */
-  userOsuId: "user_osuId_unique",
-  /** One account row per osu! link. */
-  accountKey: "account_providerId_accountId_unique",
-  /** Every signed-in request looks its session up by token. */
-  sessionToken: "session_token_unique",
-  /** Deleting a user's sessions. */
-  sessionUser: "session_userId",
-});
 
 /** maxTimeMS on every public read. */
 export const QUERY_TIME_MS = 2000;

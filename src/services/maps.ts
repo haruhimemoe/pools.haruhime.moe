@@ -7,12 +7,12 @@
  *       through so ISR keeps the last good version).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
+import { isEnvValidationSkipped } from "@haruhimemoe/next-kit/env";
 import { MAP_INDEXES, POOL_INDEXES, QUERY_TIME_MS } from "@/constants/db";
-import { isEnvValidationSkipped } from "@/env";
 import { mapsCollection } from "@/models/Map";
 import { poolsCollection } from "@/models/Pool";
 import { parseStoredMap, type StoredMap } from "@/schemas/map";

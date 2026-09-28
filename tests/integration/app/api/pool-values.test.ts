@@ -6,9 +6,10 @@
  *       answers, with complete false, and the mirror's deadline sits well inside maxDuration.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, maxDuration } from "@/app/api/pools/[id]/values/route";
@@ -17,7 +18,6 @@ import { resetMirrorCooldown } from "@/lib/map-search";
 import { mapsCollection } from "@/models/Map";
 import { ADMIN_OSU_ID } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import { createCast, insertPool, params, poolRequest } from "../../../helpers/pool-requests";
 import { ppBatchAnswering, ppBatchHandler, ppValues } from "../../../helpers/pp-batch";
 import { makeMap } from "../../../helpers/records";

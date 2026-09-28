@@ -7,9 +7,10 @@
  *       503 browse_unavailable, no-store; and the per-IP search limit (60 a minute) then 429.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { GET } from "@/app/api/maps/browse/route";
@@ -18,7 +19,6 @@ import { resetLensList } from "@/lib/browse-lenses";
 import { resetMirrorCooldown } from "@/lib/map-search";
 import type { BrowseResponse } from "@/utils/browse-params";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import {
   lensStats,
   lensStatsHandler,

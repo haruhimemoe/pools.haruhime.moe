@@ -6,14 +6,14 @@
  *       visitor, and answers 404 to a signed-in user who isn't an admin.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
+import { signInHref } from "@haruhimemoe/next-kit/server";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { type AdminUser, getUserFromHeaders, type SessionUser } from "@/lib/auth";
-import { signInHref } from "@/utils/safe-next";
 
 /**
  * @function getCurrentUser

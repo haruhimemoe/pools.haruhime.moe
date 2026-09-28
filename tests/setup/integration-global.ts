@@ -1,25 +1,11 @@
 /**
  * @file tests/setup/integration-global.ts
- * @desc Starts one in-memory MongoDB for the integration project and hands its URI to the test
- *       workers through Vitest's provide/inject.
+ * @desc The integration project's globalSetup: next-kit's startMemoryMongo, one in-memory
+ *       MongoDB for the run, its URI handed to the workers as inject("mongoUri"). Vitest needs a
+ *       file with a default export here, so this is the only line.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { MongoMemoryServer } from "mongodb-memory-server";
-import type { TestProject } from "vitest/node";
-
-declare module "vitest" {
-  export interface ProvidedContext {
-    mongoUri: string;
-  }
-}
-
-export default async function setup(project: TestProject) {
-  const server = await MongoMemoryServer.create();
-  project.provide("mongoUri", server.getUri());
-  return async () => {
-    await server.stop();
-  };
-}
+export { startMemoryMongo as default } from "@haruhimemoe/next-kit/testing";

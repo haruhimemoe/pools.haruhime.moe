@@ -4,7 +4,7 @@
  *       flips without a reload), then goes home and refreshes server components.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -12,7 +12,7 @@
 import { Button, type ButtonVariant } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { markSignedOut } from "@/hooks/useAccount";
+import { markSignedOut } from "@/lib/account";
 import { authClient } from "@/lib/auth-client";
 
 const defaultSignOut = async (): Promise<void> => {

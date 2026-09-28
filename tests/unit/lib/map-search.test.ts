@@ -11,9 +11,10 @@
  *       or with no total, one more after any page with sets and none after an empty one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { delay, HttpResponse, http } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MIRROR_SEARCH_URL } from "@/constants/search";
@@ -32,7 +33,6 @@ import {
   type SearchCall,
   searchAnswer,
 } from "../../helpers/mirror-search";
-import { setupMsw } from "../../helpers/msw";
 
 const server = setupMsw();
 beforeEach(resetMirrorCooldown);

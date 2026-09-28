@@ -9,10 +9,11 @@
  *       run with exit code 1.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readFileSync } from "node:fs";
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { runImport } from "@/lib/import-runner";
@@ -22,7 +23,6 @@ import { listImportReports } from "@/services/imports";
 import { readOtdbExport } from "@/utils/otdb";
 import { setupTestDb } from "../../helpers/db";
 import { mirrorHandler, mirrorRow } from "../../helpers/hinai-server";
-import { setupMsw } from "../../helpers/msw";
 import {
   createdAnswer,
   type PutCall,

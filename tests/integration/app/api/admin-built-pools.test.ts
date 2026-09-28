@@ -10,6 +10,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE, PATCH } from "@/app/api/admin/built-pools/[id]/route";
@@ -20,7 +21,6 @@ import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
 import { runAfterTasks } from "../../../helpers/after";
 import { ADMIN_OSU_ID } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import {
   createdAnswer,
   type DeleteCall,

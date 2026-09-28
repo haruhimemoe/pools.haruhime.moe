@@ -12,14 +12,14 @@
 
 "use client";
 
+import { signInHref } from "@haruhimemoe/next-kit/auth-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
-import { useAccount } from "@/hooks/useAccount";
+import { useAccount } from "@/lib/account";
 import { avatarSrc } from "@/utils/avatar";
-import { signInHref } from "@/utils/safe-next";
 
 const ITEM = "block rounded px-3 py-2 font-bold text-c2 text-sm hover:bg-b4 hover:text-c1";
 

@@ -8,16 +8,16 @@
  *       stand-in (msw); no packs token is set, so the answer says the pack wasn't sent.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/admin/pools/route";
 import { poolsCollection } from "@/models/Pool";
 import { ADMIN_OSU_ID, createTestAdmin } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import { mirrorHandler } from "../../../helpers/hinai-server";
-import { setupMsw } from "../../../helpers/msw";
 import { makePool } from "../../../helpers/records";
 
 setupTestDb();

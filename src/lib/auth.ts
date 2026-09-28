@@ -1,58 +1,31 @@
 /**
  * @file src/lib/auth.ts
- * @desc better-auth for every osu! user, built on first use: MongoDB adapter on the shared
- *       client, osu! generic OAuth (identify + public, PKCE, pools' own osu! app). Anyone with an
- *       osu! account can sign in (to make pools); admin rights come only from ADMIN_OSU_IDS,
- *       read on every request by getUserFromHeaders and getAdminFromHeaders, so a removed id
- *       stops being an admin at once. osu! is a trusted provider for linking: a user row whose
- *       osu! link is gone (an account deletion that stopped partway) is relinked on the next
- *       osu! sign-in instead of locking them out; safe because the only way to a user row is
- *       osu! itself (its email is made from the osu! id, and there's no email sign-up). A first
- *       sign-in links the new user to the pools that
- *       already list their osu! id as an editor. osu! tokens are never kept. A readable signed-in marker
- *       cookie follows the session (set with it, cleared on sign-out or a get-session that finds
- *       none), so pages ask for the session only when it's there. Errors with no page to return
- *       to go to /signin?error=<code>.
+ * @desc better-auth for every osu! user, built on first use by @haruhimemoe/next-kit/auth's
+ *       createOsuAuth (MongoDB on the shared client, osu! OAuth with PKCE, osu! trusted for
+ *       account linking, no osu! tokens kept, errors to /signin?error=<code>, and the readable
+ *       SIGNED_IN_COOKIE marker following the session). Anyone with an osu! account can sign in
+ *       (to make pools); admin rights come only from ADMIN_OSU_IDS, read on every request by
+ *       getUserFromHeaders and getAdminFromHeaders, so a removed id stops being an admin at
+ *       once. A first sign-in links the new user to the pools that already list their osu! id
+ *       as an editor.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
-import { OSU_OAUTH, OSU_SIGN_IN_SCOPES, toOsuUser } from "@haruhimemoe/osu/shapes";
-import { betterAuth } from "better-auth";
-import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { createAuthMiddleware } from "better-auth/api";
-import { genericOAuth } from "better-auth/plugins";
-import { OSU_PROVIDER_ID } from "@/constants/auth";
+import { createOsuAuth, getOsuUser, type OsuSessionUser } from "@haruhimemoe/next-kit/auth";
+import { SIGNED_IN_COOKIE } from "@/constants/site";
 import { getServerEnv } from "@/env";
 import { isAdminOsuId } from "@/lib/admin";
 import { connectDb, getDb, getMongoClient } from "@/lib/db";
-import { markerMaxAge, SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
 import { linkEditorAccount } from "@/services/built-pool-editors";
 
 /**
- * @function osuProfileToUser
- * @param raw {unknown} the /api/v2/me profile better-auth fetched
- * @returns the better-auth user fields (a synthetic email: osu! gives none)
- * @throws {z.ZodError} when the profile has no id or username
- */
-export const osuProfileToUser = (raw: unknown) => {
-  const user = toOsuUser(raw);
-  return {
-    email: `${user.osuId}@osu.local`,
-    emailVerified: false as const,
-    name: user.username,
-    ...user,
-    ...(user.avatarUrl ? { image: user.avatarUrl } : {}),
-  };
-};
-
-/**
  * @function linkNewEditor
- * @param user {Record<string, unknown>} the user better-auth just created
- * @returns {Promise<void>} fills in their user id on pools that list their osu! id as an editor
- *          (a failure is logged: signing in never fails over it)
+ * @param user {Record<string, unknown>} the user row better-auth just wrote
+ * @returns {Promise<void>} links it to the pools that list its osu! id as an editor; a failure
+ *          is logged and never fails the sign-in
  */
 export const linkNewEditor = async (user: Record<string, unknown>): Promise<void> => {
   if (typeof user.osuId !== "number" || typeof user.id !== "string") return;
@@ -63,141 +36,57 @@ export const linkNewEditor = async (user: Record<string, unknown>): Promise<void
   }
 };
 
-/** Drops OAuth tokens from an account write. */
-const withoutTokens = <T extends Record<string, unknown>>(account: T): T => ({
-  ...account,
-  accessToken: null,
-  refreshToken: null,
-  idToken: null,
-});
-
 const createAuth = () => {
   const env = getServerEnv();
-  const markerOptions = {
-    path: "/",
-    sameSite: "lax" as const,
-    secure: env.BETTER_AUTH_URL.startsWith("https://"),
-    httpOnly: false,
-  };
-  return betterAuth({
+  return createOsuAuth({
+    clientId: env.OSU_CLIENT_ID,
+    clientSecret: env.OSU_CLIENT_SECRET,
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
-    database: mongodbAdapter(getDb(), { client: getMongoClient(), transaction: false }),
-    // Identity only ever comes from osu!.
-    disabledPaths: ["/update-user"],
-    account: {
-      // `<osuId>@osu.local` belongs to whoever osu! says has that id, so a user row left
-      // without its osu! link (a deletion that stopped halfway) is theirs to sign back into.
-      accountLinking: { trustedProviders: [OSU_PROVIDER_ID], requireLocalEmailVerified: false },
-    },
-    // A failure with no page to return to (a callback whose state can't be read) lands on
-    // /signin?error=<code>, which explains it, instead of better-auth's bare error page.
-    onAPIError: { errorURL: new URL("/signin", env.BETTER_AUTH_URL).toString() },
-    user: {
-      additionalFields: {
-        osuId: { type: "number", required: true },
-        username: { type: "string", required: true },
-        avatarUrl: { type: "string", required: false },
-        countryCode: { type: "string", required: false },
-      },
-    },
-    databaseHooks: {
-      user: {
-        // An owner may have added this osu! id as an editor before its first sign-in.
-        create: { after: async (user) => linkNewEditor(user as Record<string, unknown>) },
-      },
-      account: {
-        create: { before: async (account) => ({ data: withoutTokens(account) }) },
-        update: { before: async (account) => ({ data: withoutTokens(account) }) },
-      },
-    },
-    hooks: {
-      // Keep the readable "signed in" marker in step with the session, so pages without it never
-      // ask for the session at all (src/hooks/useAccount.ts).
-      after: createAuthMiddleware(async (ctx) => {
-        const set = (expiresAt: Date | string) =>
-          ctx.setCookie(SIGNED_IN_COOKIE, "1", {
-            ...markerOptions,
-            maxAge: markerMaxAge(expiresAt),
-          });
-        const clear = () => ctx.setCookie(SIGNED_IN_COOKIE, "", { ...markerOptions, maxAge: 0 });
-        const created = ctx.context.newSession;
-        if (created) {
-          set(created.session.expiresAt);
-        } else if (ctx.path === "/sign-out") {
-          clear();
-        } else if (ctx.path === "/get-session") {
-          const returned = ctx.context.returned as {
-            session?: { expiresAt: Date | string };
-          } | null;
-          if (returned?.session) set(returned.session.expiresAt);
-          else clear();
-        }
-      }),
-    },
-    plugins: [
-      genericOAuth({
-        config: [
-          {
-            providerId: OSU_PROVIDER_ID,
-            clientId: env.OSU_CLIENT_ID,
-            clientSecret: env.OSU_CLIENT_SECRET,
-            ...OSU_OAUTH,
-            scopes: [...OSU_SIGN_IN_SCOPES],
-            pkce: true,
-            overrideUserInfo: true,
-            mapProfileToUser: osuProfileToUser,
-          },
-        ],
-      }),
-    ],
+    db: getDb(),
+    client: getMongoClient(),
+    markerCookie: SIGNED_IN_COOKIE,
+    // An owner may have added this osu! id as an editor before its first sign-in.
+    hooks: { afterUserCreate: linkNewEditor },
   });
 };
 
+/** The better-auth instance's type, for the client's inferAdditionalFields. */
 export type Auth = ReturnType<typeof createAuth>;
 
 let instance: Auth | null = null;
 
 /**
  * @function getAuth
- * @returns {Auth} the better-auth instance (built on first call)
- * @throws {EnvError} when server env is missing
+ * @returns {Auth} the process-wide better-auth instance, built on first use
  */
 export const getAuth = (): Auth => {
   instance ??= createAuth();
   return instance;
 };
 
-export type SessionUser = {
-  id: string;
-  osuId: number;
-  username: string;
-  avatarUrl: string | null;
-  /** ADMIN_OSU_IDS lists their osu! id, read for this request. */
-  isAdmin: boolean;
-};
+/** The signed-in user, and whether ADMIN_OSU_IDS lists them right now. */
+export type SessionUser = OsuSessionUser & { isAdmin: boolean };
 
-export type AdminUser = Omit<SessionUser, "isAdmin">;
+/** A signed-in admin. */
+export type AdminUser = OsuSessionUser;
 
 /**
  * @function getUserFromHeaders
  * @param headers {Headers} request headers (the session cookie)
- * @returns {Promise<SessionUser | null>} the signed-in user, or null (no, forged or expired
- *          session)
+ * @returns {Promise<SessionUser | null>} the signed-in user, or null
  */
 export const getUserFromHeaders = async (headers: Headers): Promise<SessionUser | null> => {
   await connectDb();
-  const session = await getAuth().api.getSession({ headers });
-  if (!session) return null;
-  const { id, osuId, username, avatarUrl } = session.user;
-  return { id, osuId, username, avatarUrl: avatarUrl ?? null, isAdmin: isAdminOsuId(osuId) };
+  const user = await getOsuUser(getAuth(), headers);
+  return user ? { ...user, isAdmin: isAdminOsuId(user.osuId) } : null;
 };
 
 /**
  * @function getAdminFromHeaders
- * @param headers {Headers} request headers (the session cookie)
- * @returns {Promise<AdminUser | null>} the signed-in admin, or null (no, forged or expired
- *          session, or one whose osu! id isn't listed, or isn't any more)
+ * @param headers {Headers} request headers
+ * @returns {Promise<AdminUser | null>} the signed-in admin, or null (signed out, or signed in
+ *          without an id in ADMIN_OSU_IDS)
  */
 export const getAdminFromHeaders = async (headers: Headers): Promise<AdminUser | null> => {
   const user = await getUserFromHeaders(headers);

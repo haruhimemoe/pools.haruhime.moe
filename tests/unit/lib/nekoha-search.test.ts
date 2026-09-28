@@ -9,16 +9,16 @@
  *       failure; and a Retry-After skipping the mirror meanwhile.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { delay, HttpResponse, http } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { NEKOHA_SEARCH_URL } from "@/constants/browse";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { resetMirrorCooldown } from "@/lib/map-search";
 import { type NekohaQuery, nekohaSearchUrl, searchNekoha } from "@/lib/nekoha-search";
-import { setupMsw } from "../../helpers/msw";
 import { type MirrorCall, nekohaAnswer, nekohaHandler, nekohaRow } from "../../helpers/nekoha";
 
 const server = setupMsw();

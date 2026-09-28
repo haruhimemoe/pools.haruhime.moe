@@ -12,6 +12,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { builtPoolsCollection } from "@/models/BuiltPool";
@@ -20,7 +21,6 @@ import { findBuiltPool, markPackPending } from "@/services/built-pools";
 import { packCleanupCollection } from "@/services/pack-cleanup";
 import { EMPTY_BUILT_PACK, PACK_GONE } from "@/utils/built-pack";
 import { setupTestDb } from "../../helpers/db";
-import { setupMsw } from "../../helpers/msw";
 import {
   createdAnswer,
   type DeleteCall,

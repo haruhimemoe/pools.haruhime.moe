@@ -7,7 +7,7 @@
  *       refusal or no answer is said out loud.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -17,7 +17,7 @@ import { DeleteAccountForm } from "@/components/account/DeleteAccountForm";
 
 const { push, markSignedOut } = vi.hoisted(() => ({ push: vi.fn(), markSignedOut: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh: vi.fn() }) }));
-vi.mock("@/hooks/useAccount", () => ({ markSignedOut }));
+vi.mock("@/lib/account", () => ({ markSignedOut }));
 
 afterEach(() => {
   vi.unstubAllGlobals();

@@ -4,11 +4,11 @@
  *       may never have signed in. Uses pools' own osu! app with client credentials (scope
  *       public), a token cached for the process and fetched again once after a 401, our
  *       User-Agent, a 10 s timeout, and the caller's budget check before the call (the osu!
- *       budget in src/lib/osu-budget.ts). @haruhimemoe/osu's client has no user lookup, so this
+ *       budget, osuBudget in src/lib/osu.ts). @haruhimemoe/osu's client has no user lookup, so this
  *       makes its own two requests. Never throws; the secret is never logged.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";

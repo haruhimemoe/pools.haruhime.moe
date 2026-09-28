@@ -15,6 +15,7 @@
  */
 
 import { readFileSync } from "node:fs";
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { GET } from "@/app/api/search/route";
@@ -31,7 +32,6 @@ import {
   type SearchCall,
   searchAnswer,
 } from "../../../helpers/mirror-search";
-import { setupMsw } from "../../../helpers/msw";
 import { makePool } from "../../../helpers/records";
 
 setupTestDb();

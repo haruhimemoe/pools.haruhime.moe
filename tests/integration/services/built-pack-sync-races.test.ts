@@ -10,6 +10,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PACKS_TIMEOUT_MS } from "@/lib/packs-client";
@@ -19,7 +20,6 @@ import { findBuiltPool, markPackPending } from "@/services/built-pools";
 import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
 import type { PackInput } from "@/utils/pack-input";
 import { setupTestDb } from "../../helpers/db";
-import { setupMsw } from "../../helpers/msw";
 import { packsPutHandler, slugFor, TEST_SERVICE } from "../../helpers/packs-server";
 import { createCast, insertPool } from "../../helpers/pool-requests";
 

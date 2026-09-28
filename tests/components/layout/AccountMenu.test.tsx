@@ -6,19 +6,19 @@
  *       second press.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AccountMenu } from "@/components/layout/AccountMenu";
-import type { Account } from "@/hooks/useAccount";
+import type { Account } from "@/lib/account";
 
 const { account } = vi.hoisted(() => ({
   account: { current: { status: "loading" } as Account },
 }));
-vi.mock("@/hooks/useAccount", () => ({ useAccount: () => account.current }));
+vi.mock("@/lib/account", () => ({ useAccount: () => account.current }));
 vi.mock("@/lib/auth-client", () => ({ authClient: {} }));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/search",

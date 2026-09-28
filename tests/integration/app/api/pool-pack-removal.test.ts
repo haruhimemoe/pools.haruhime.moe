@@ -9,6 +9,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE } from "@/app/api/pools/[id]/route";
@@ -17,7 +18,6 @@ import { PACK_REMOVAL_QUEUED } from "@/constants/built-pools";
 import { findBuiltPool } from "@/services/built-pools";
 import { packCleanupCollection } from "@/services/pack-cleanup";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import { packsDeleteHandler, TEST_SERVICE } from "../../../helpers/packs-server";
 import { createCast, insertPool, params, poolRequest } from "../../../helpers/pool-requests";
 

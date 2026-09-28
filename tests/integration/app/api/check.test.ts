@@ -7,21 +7,29 @@
  *       have); 30 checks a minute per IP.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { rateLimitId, windowFor } from "@haruhimemoe/next-kit/server";
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { Collection } from "mongodb";
 import { describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/check/route";
+import { OSU_API_BUDGET } from "@/constants/compliance";
 import { MAPS_COLLECTION, RATE_LIMITS_COLLECTION } from "@/constants/db";
 import { getDb } from "@/lib/db";
-import { osuBudgetWindow } from "@/lib/osu-budget";
 import { mapsCollection } from "@/models/Map";
 import type { CheckResponse } from "@/schemas/compliance";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import { osuHandlers } from "../../../helpers/osu-server";
 import { makeMap } from "../../../helpers/records";
+
+/** The osu! budget's counter for a rule, subject and time. */
+const budgetWindow = (
+  rule: { scope: string; limit: number; windowSeconds: number },
+  subject: string,
+  nowMs: number,
+) => ({ id: rateLimitId(rule, subject, nowMs), expiresAt: windowFor(rule, nowMs).expiresAt });
 
 setupTestDb();
 setupMsw(...osuHandlers);
@@ -82,7 +90,7 @@ describe("GET /api/check", () => {
   });
 
   it("never caches a partial answer", async () => {
-    const window = osuBudgetWindow(Date.now());
+    const window = budgetWindow(OSU_API_BUDGET, OSU_API_BUDGET.subject, Date.now());
     await getDb()
       .collection(RATE_LIMITS_COLLECTION)
       .insertOne({ _id: window.id as never, count: 50, expiresAt: window.expiresAt });

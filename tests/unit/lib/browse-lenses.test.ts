@@ -7,16 +7,16 @@
  *       built-in list, asked again after a minute.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { BROWSE_LENSES } from "@/constants/browse";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { availableLenses, resetLensList } from "@/lib/browse-lenses";
 import { noteMirrorRetryAfter, resetMirrorCooldown } from "@/lib/map-search";
-import { setupMsw } from "../../helpers/msw";
 import { lensStats, lensStatsHandler, type MirrorCall } from "../../helpers/nekoha";
 
 const server = setupMsw();

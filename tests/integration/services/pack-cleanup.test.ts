@@ -13,6 +13,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { builtPoolsCollection } from "@/models/BuiltPool";
@@ -25,7 +26,6 @@ import {
 import { syncPools } from "@/services/sync";
 import { makeBuiltPool } from "../../helpers/built-pools";
 import { setupTestDb } from "../../helpers/db";
-import { setupMsw } from "../../helpers/msw";
 import { type DeleteCall, packsDeleteHandler, TEST_SERVICE } from "../../helpers/packs-server";
 import { createCast, insertPool } from "../../helpers/pool-requests";
 

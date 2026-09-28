@@ -7,7 +7,7 @@
  *       a refusal or no answer is said in the page, and nothing was deleted.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -15,7 +15,7 @@
 import { Button, ButtonLink, TextInput } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useState } from "react";
-import { markSignedOut } from "@/hooks/useAccount";
+import { markSignedOut } from "@/lib/account";
 
 const UNREACHABLE = "Couldn't reach pools. Your account is still there.";
 

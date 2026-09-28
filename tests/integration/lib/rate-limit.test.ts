@@ -5,17 +5,34 @@
  *       hit that costs more than one (a call carrying several ops), and counting that fails open.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { createRateLimiter, rateLimitHeaders } from "@haruhimemoe/next-kit/server";
 import { describe, expect, it, vi } from "vitest";
-import { hitRateLimit, rateLimitHeaders, refuseOverLimit } from "@/lib/rate-limit";
+import { RATE_LIMITS_COLLECTION } from "@/constants/db";
+import { connectedDb, getDb } from "@/lib/db";
+import { refuseOverLimit } from "@/lib/rate-limit";
 import { setupTestDb } from "../../helpers/db";
 
 setupTestDb();
 
 const RULE = { scope: "test", limit: 2, windowSeconds: 60 };
 const NOW = new Date("2026-09-24T12:00:30.000Z");
+
+/** pools' limiter settings with a clock and database the test controls. */
+const hitRateLimit = (
+  rule: typeof RULE,
+  subject: string,
+  now = NOW,
+  db: () => ReturnType<typeof connectedDb> = connectedDb,
+  cost = 1,
+) =>
+  createRateLimiter({ db, collection: RATE_LIMITS_COLLECTION, now: () => now.getTime() }).hit(
+    rule,
+    subject,
+    cost,
+  );
 
 describe("hitRateLimit", () => {
   it("allows up to the limit per subject and window", async () => {
@@ -37,6 +54,11 @@ describe("hitRateLimit", () => {
     expect(await hitRateLimit(RULE, "1.2.3.4", new Date("2026-09-24T12:01:01.000Z"))).toMatchObject(
       { allowed: true },
     );
+  });
+
+  it("keeps pools' counters in rate_limits", async () => {
+    await refuseOverLimit(RULE, "8.8.8.8");
+    expect(await getDb().collection(RATE_LIMITS_COLLECTION).countDocuments()).toBe(1);
   });
 
   it("answers 429 no-store once over", async () => {

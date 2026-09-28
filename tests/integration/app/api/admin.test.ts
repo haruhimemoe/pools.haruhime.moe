@@ -7,9 +7,10 @@
  *       pack cleanup" tries every queued pack removal, or says why it can't.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as postBadged } from "@/app/api/admin/badged/route";
@@ -21,7 +22,6 @@ import { poolsCollection } from "@/models/Pool";
 import { packCleanupCollection } from "@/services/pack-cleanup";
 import { ADMIN_OSU_ID, createTestAdmin } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import { type DeleteCall, packsDeleteHandler, TEST_SERVICE } from "../../../helpers/packs-server";
 import { makePool } from "../../../helpers/records";
 

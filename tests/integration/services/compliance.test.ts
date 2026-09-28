@@ -8,21 +8,29 @@
  *       What pools knows about each map, or null when that lookup fails.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { rateLimitId, windowFor } from "@haruhimemoe/next-kit/server";
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { Collection } from "mongodb";
 import { HttpResponse, http } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { OSU_API_BUDGET, OSU_API_BUDGET_PER_IP } from "@/constants/compliance";
 import { RATE_LIMITS_COLLECTION, SET_FACTS_COLLECTION } from "@/constants/db";
 import { getDb } from "@/lib/db";
-import { osuBudgetWindow, osuSubjectWindow } from "@/lib/osu-budget";
 import { mapsCollection } from "@/models/Map";
 import { checkCompliance, checkMaps } from "@/services/compliance";
 import { setupTestDb } from "../../helpers/db";
-import { setupMsw } from "../../helpers/msw";
 import { osuCalls, osuHandlers } from "../../helpers/osu-server";
 import { makeMap } from "../../helpers/records";
+
+/** The osu! budget's counter for a rule, subject and time. */
+const budgetWindow = (
+  rule: { scope: string; limit: number; windowSeconds: number },
+  subject: string,
+  nowMs: number,
+) => ({ id: rateLimitId(rule, subject, nowMs), expiresAt: windowFor(rule, nowMs).expiresAt });
 
 setupTestDb();
 const server = setupMsw(...osuHandlers);
@@ -92,7 +100,7 @@ describe("checkCompliance", () => {
 
   it("leaves maps unchecked when the global budget or the IP's share is spent", async () => {
     const counters = getDb().collection(RATE_LIMITS_COLLECTION);
-    const global = osuBudgetWindow(NOW);
+    const global = budgetWindow(OSU_API_BUDGET, OSU_API_BUDGET.subject, NOW);
     await counters.insertOne({ _id: global.id as never, count: 50, expiresAt: global.expiresAt });
     expect(await checkCompliance([75], { now })).toEqual({
       sets: [],
@@ -100,7 +108,7 @@ describe("checkCompliance", () => {
       unchecked: [75],
     });
     await counters.deleteMany({});
-    const share = osuSubjectWindow("203.0.113.7", NOW);
+    const share = budgetWindow(OSU_API_BUDGET_PER_IP, "203.0.113.7", NOW);
     await counters.insertOne({ _id: share.id as never, count: 20, expiresAt: share.expiresAt });
     expect(await checkCompliance([75], { now, subject: "203.0.113.7" })).toEqual({
       sets: [],

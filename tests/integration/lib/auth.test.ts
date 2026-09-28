@@ -11,14 +11,14 @@
  *       cleared by one that doesn't and on sign-out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, POST } from "@/app/api/auth/[...all]/route";
+import { SIGNED_IN_COOKIE } from "@/constants/site";
 import { getAdminFromHeaders, getAuth, getUserFromHeaders } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
 import { ADMIN_OSU_ID, createTestAdmin, createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 

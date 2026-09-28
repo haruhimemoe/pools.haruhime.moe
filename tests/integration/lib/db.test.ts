@@ -8,12 +8,13 @@
  *       refuses one that can't write to "pools".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { AUTH_INDEXES } from "@haruhimemoe/next-kit/auth";
 import { Db, type Document } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { RATE_LIMITS_COLLECTION, SESSION_TTL_INDEX } from "@/constants/db";
+import { RATE_LIMITS_COLLECTION } from "@/constants/db";
 import { closeDb, connectDb, getDb } from "@/lib/db";
 import { type ConnectionStatus, DatabasePrivilegeError } from "@/lib/db-privileges";
 
@@ -56,7 +57,7 @@ describe("connectDb", () => {
   it("creates the TTL indexes for sessions and rate-limit counters", async () => {
     await connectDb();
     const session = await getDb().collection("session").indexes();
-    expect(session.find((index) => index.name === SESSION_TTL_INDEX)).toMatchObject({
+    expect(session.find((index) => index.name === AUTH_INDEXES.sessionTtl)).toMatchObject({
       key: { expiresAt: 1 },
       expireAfterSeconds: 0,
     });

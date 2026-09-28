@@ -10,7 +10,7 @@
  *       (label and usage from current pools), for the rows, or null when that lookup fails.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -25,8 +25,7 @@ import type { Db } from "mongodb";
 import { FACTS_FALLBACK_LIMIT, SET_FACTS_TTL_SECONDS } from "@/constants/compliance";
 import { MAPS_COLLECTION, QUERY_TIME_MS, SET_FACTS_COLLECTION } from "@/constants/db";
 import { connectedDb } from "@/lib/db";
-import { getOsuClient, type OsuClient } from "@/lib/osu";
-import { budgetGate } from "@/lib/osu-budget";
+import { getOsuClient, type OsuClient, osuBudget } from "@/lib/osu";
 import { mapsCollection } from "@/models/Map";
 import {
   type CheckMap,
@@ -148,7 +147,7 @@ export const checkCompliance = async (
   if (uncached.length > 0) {
     try {
       const lookup = await osu.getBeatmapsets(uncached, {
-        beforeCall: budgetGate(database, subject, now),
+        beforeCall: osuBudget(database).gate(subject, now),
         fallbackLimit: FACTS_FALLBACK_LIMIT,
       });
       const writes = new Map<number, { facts: BeatmapsetFacts; ids: number[] }>();

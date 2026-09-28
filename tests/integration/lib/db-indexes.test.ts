@@ -7,12 +7,12 @@
  *       build.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { AUTH_INDEXES } from "@haruhimemoe/next-kit/auth";
 import { ObjectId } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AUTH_INDEXES } from "@/constants/db";
 import { getDb } from "@/lib/db";
 import { ensureIndexes } from "@/lib/db-indexes";
 import { createTestUser } from "../../helpers/auth";

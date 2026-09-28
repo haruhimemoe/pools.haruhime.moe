@@ -13,12 +13,12 @@
  */
 
 import "server-only";
+import { userSubject } from "@haruhimemoe/next-kit/server";
 import { MAX_EDITORS } from "@/constants/built-pools";
 import type { SessionUser } from "@/lib/auth";
 import { connectedDb } from "@/lib/db";
-import { budgetGate } from "@/lib/osu-budget";
+import { osuBudget } from "@/lib/osu";
 import { lookupOsuUser, type OsuUserLookup } from "@/lib/osu-users";
-import { userSubject } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { BuiltEditor } from "@/schemas/built-pool";
 import { recordFor } from "@/services/built-pool-activity";
@@ -80,7 +80,7 @@ export const addBuiltPoolEditor = async (
   const full = () =>
     refuse(400, "too_many_editors", `A pool can have at most ${MAX_EDITORS} editors.`);
   if (pool.editors.length >= MAX_EDITORS) return full();
-  const beforeCall = budgetGate(await connectedDb(), userSubject(caller));
+  const beforeCall = osuBudget(await connectedDb()).gate(userSubject(caller));
   const found = await lookup(username, { beforeCall });
   if (found.kind !== "found") return lookupRefusal(found, username);
   if (found.osuId === caller.osuId) {

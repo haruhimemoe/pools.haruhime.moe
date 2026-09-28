@@ -8,11 +8,12 @@
  *       report), and the download when --file isn't given.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { OTDB_EXPORT_URL } from "@/constants/pools";
@@ -23,7 +24,6 @@ import { listImportReports } from "@/services/imports";
 import { readOtdbExport } from "@/utils/otdb";
 import { setupTestDb } from "../../helpers/db";
 import { mirrorHandler, mirrorRow } from "../../helpers/hinai-server";
-import { setupMsw } from "../../helpers/msw";
 import {
   createdAnswer,
   type PutCall,

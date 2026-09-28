@@ -8,11 +8,12 @@
  *       credit, so nothing was added), both naming the pool and its admin page. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { errorCodeFor, jsonError, noStore, parseJsonBody } from "@haruhimemoe/next-kit/server";
 import { z } from "zod";
-import { errorCodeFor, jsonError, noStore, parseJsonBody, refuseCrossSite } from "@/lib/api";
+import { refuseCrossSite } from "@/lib/api";
 import { getAdminFromHeaders } from "@/lib/auth";
 import { addPoolBodySchema, fieldErrors } from "@/schemas/admin";
 import { addPool } from "@/services/add-pool";

@@ -5,14 +5,14 @@
  *       for the test to run.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { stubOsuAppEnv } from "@haruhimemoe/next-kit/testing";
 import { beforeEach, inject, vi } from "vitest";
 import { clearAfterTasks } from "../helpers/after";
-import { stubServerEnv } from "../helpers/server-env";
 
-stubServerEnv({ MONGODB_URI: inject("mongoUri") });
+stubOsuAppEnv({ MONGODB_URI: inject("mongoUri") });
 // CI sets SKIP_ENV_VALIDATION for the whole job (for `next build`); integration tests use a real
 // in-memory database, so services must not take their "no database" path.
 vi.stubEnv("SKIP_ENV_VALIDATION", "");

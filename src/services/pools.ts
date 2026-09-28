@@ -9,13 +9,13 @@
  *       through, so ISR keeps serving the last good version instead of storing an empty one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
+import { isEnvValidationSkipped } from "@haruhimemoe/next-kit/env";
 import { MAP_INDEXES, POOL_INDEXES, QUERY_TIME_MS } from "@/constants/db";
 import { POOL_ID_PATTERN, SOURCE_KINDS, type SourceKind } from "@/constants/pools";
-import { isEnvValidationSkipped } from "@/env";
 import { mapsCollection } from "@/models/Map";
 import { poolsCollection } from "@/models/Pool";
 import type { StoredMap } from "@/schemas/map";

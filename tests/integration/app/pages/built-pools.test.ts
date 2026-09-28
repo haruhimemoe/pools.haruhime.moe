@@ -15,6 +15,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resetMirrorCooldown } from "@/lib/map-search";
@@ -24,7 +25,6 @@ import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
 import { afterTaskCount } from "../../../helpers/after";
 import { ADMIN_OSU_ID } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import { type Cast, createCast, insertPool } from "../../../helpers/pool-requests";
 import { type BatchCall, ppBatchHandler, ppValues } from "../../../helpers/pp-batch";
 import { makeMap } from "../../../helpers/records";

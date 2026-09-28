@@ -12,6 +12,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { revalidatePath } from "next/cache";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE as deleteEditor } from "@/app/api/pools/[id]/editors/[osuId]/route";
@@ -25,7 +26,6 @@ import { findBuiltPool } from "@/services/built-pools";
 import { EMPTY_BUILT_PACK, PACK_GONE } from "@/utils/built-pack";
 import { afterTaskCount, runAfterTasks } from "../../../helpers/after";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import {
   createdAnswer,
   type DeleteCall,

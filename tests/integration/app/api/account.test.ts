@@ -14,6 +14,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { ObjectId } from "mongodb";
 import { HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -25,7 +26,6 @@ import { builtPoolsCollection } from "@/models/BuiltPool";
 import { packCleanupCollection } from "@/services/pack-cleanup";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import { type DeleteCall, packsDeleteHandler, TEST_SERVICE } from "../../../helpers/packs-server";
 import { createCast, insertPool, poolRequest } from "../../../helpers/pool-requests";
 

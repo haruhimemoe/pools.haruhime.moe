@@ -9,15 +9,15 @@
  *       anything else an error).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { deletePack, postStatsBackfill, putPoolPack } from "@/lib/packs-client";
 import type { PackInput } from "@/utils/pack-input";
-import { setupMsw } from "../../helpers/msw";
 import {
   type DeleteCall,
   PACKS_URL_FOR_TESTS,

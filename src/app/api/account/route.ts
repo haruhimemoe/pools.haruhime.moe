@@ -9,17 +9,18 @@
  *       Either clears the signed-in marker. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { jsonError, noStore, parseJsonBody } from "@haruhimemoe/next-kit/server";
 import { z } from "zod";
 import { RATE_LIMITS } from "@/constants/api";
 import { packRemovalsQueuedText } from "@/constants/built-pools";
-import { jsonError, noStore, parseJsonBody, refuseCrossSite } from "@/lib/api";
+import { SIGNED_IN_COOKIE } from "@/constants/site";
+import { refuseCrossSite } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { limitUser } from "@/lib/pool-routes";
 import { revalidateBuiltLists } from "@/lib/revalidate";
-import { SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
 import { deleteAccount } from "@/services/account";
 
 const bodySchema = z.strictObject({ username: z.string().trim().max(64) });

@@ -7,24 +7,23 @@
  *       breaks what uses it. POOLS_ALLOW_SHARED_DB_USER is on only for "true".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { EnvError } from "@haruhimemoe/next-kit/env";
+import { TEST_OSU_APP_ENV } from "@haruhimemoe/next-kit/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   assertNoPlaceholderSecrets,
   DEFAULT_PACKS_URL,
-  EnvError,
   getAdminOsuIds,
   getAllowSharedDbUser,
+  getDatabaseUri,
   getPacksService,
-  isEnvValidationSkipped,
   OPTIONAL_ENV_KEYS,
-  parseDatabaseEnv,
   parseServerEnv,
   SERVER_ENV_KEYS,
 } from "@/env";
-import { TEST_SERVER_ENV } from "../helpers/server-env";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -44,7 +43,7 @@ const invalid = (key: string) =>
 
 describe("parseServerEnv", () => {
   it("returns exactly the server variables", () => {
-    expect(parseServerEnv({ ...TEST_SERVER_ENV, UNRELATED: "x" })).toEqual(TEST_SERVER_ENV);
+    expect(parseServerEnv({ ...TEST_OSU_APP_ENV, UNRELATED: "x" })).toEqual(TEST_OSU_APP_ENV);
   });
 
   it("names every missing variable, in schema order", () => {
@@ -56,22 +55,22 @@ describe("parseServerEnv", () => {
   });
 
   it("never puts a value in the error message", () => {
-    const error = errorFrom({ ...TEST_SERVER_ENV, BETTER_AUTH_SECRET: "short-secret-value" });
+    const error = errorFrom({ ...TEST_OSU_APP_ENV, BETTER_AUTH_SECRET: "short-secret-value" });
     expect(error.message).toContain("BETTER_AUTH_SECRET");
     expect(error.message).not.toContain("short-secret-value");
   });
 
   it("treats blank values as missing", () => {
-    expect(errorFrom({ ...TEST_SERVER_ENV, OSU_CLIENT_SECRET: "   " }).message).toContain(
+    expect(errorFrom({ ...TEST_OSU_APP_ENV, OSU_CLIENT_SECRET: "   " }).message).toContain(
       "OSU_CLIENT_SECRET",
     );
   });
 
   it("rejects a URI that isn't MongoDB and a client id that isn't a number", () => {
-    expect(errorFrom({ ...TEST_SERVER_ENV, MONGODB_URI: "postgres://x" }).message).toContain(
+    expect(errorFrom({ ...TEST_OSU_APP_ENV, MONGODB_URI: "postgres://x" }).message).toContain(
       "MONGODB_URI",
     );
-    expect(errorFrom({ ...TEST_SERVER_ENV, OSU_CLIENT_ID: "abc" }).message).toContain(
+    expect(errorFrom({ ...TEST_OSU_APP_ENV, OSU_CLIENT_ID: "abc" }).message).toContain(
       "OSU_CLIENT_ID",
     );
   });
@@ -79,8 +78,8 @@ describe("parseServerEnv", () => {
   it("keeps the optional variables out, so a bad one can't break the rest", () => {
     for (const key of OPTIONAL_ENV_KEYS) expect(SERVER_ENV_KEYS).not.toContain(key);
     expect(
-      parseServerEnv({ ...TEST_SERVER_ENV, ADMIN_OSU_IDS: "nope", POOLS_SERVICE_TOKEN: "short" }),
-    ).toEqual(TEST_SERVER_ENV);
+      parseServerEnv({ ...TEST_OSU_APP_ENV, ADMIN_OSU_IDS: "nope", POOLS_SERVICE_TOKEN: "short" }),
+    ).toEqual(TEST_OSU_APP_ENV);
   });
 
   it("fills placeholders under SKIP_ENV_VALIDATION but keeps real values", () => {
@@ -91,16 +90,17 @@ describe("parseServerEnv", () => {
   });
 });
 
-describe("parseDatabaseEnv", () => {
+describe("getDatabaseUri", () => {
   it("needs only MONGODB_URI", () => {
-    expect(parseDatabaseEnv({ MONGODB_URI: " mongodb://db.example:27017 " })).toEqual({
-      MONGODB_URI: "mongodb://db.example:27017",
-    });
+    vi.stubEnv("MONGODB_URI", " mongodb://db.example:27017 ");
+    vi.stubEnv("BETTER_AUTH_SECRET", "");
+    expect(getDatabaseUri()).toBe("mongodb://db.example:27017");
   });
 
   it("names MONGODB_URI when it's missing or wrong, never printing it", () => {
-    for (const value of [undefined, "  ", "postgres://secret@x"]) {
-      expect(() => parseDatabaseEnv({ MONGODB_URI: value })).toThrow(invalid("MONGODB_URI"));
+    for (const value of ["", "  ", "postgres://secret@x"]) {
+      vi.stubEnv("MONGODB_URI", value);
+      expect(() => getDatabaseUri()).toThrow(invalid("MONGODB_URI"));
     }
   });
 });
@@ -112,7 +112,7 @@ describe("SKIP_ENV_VALIDATION on a production server", () => {
     expect(() => assertNoPlaceholderSecrets(SKIP_IN_PROD)).toThrow(
       "SKIP_ENV_VALIDATION is set on a production server, so BETTER_AUTH_SECRET, OSU_CLIENT_SECRET, MONGODB_URI would fall back to public placeholders. Set the real values and unset SKIP_ENV_VALIDATION.",
     );
-    expect(() => parseDatabaseEnv(SKIP_IN_PROD)).toThrow("MONGODB_URI");
+    expect(() => assertNoPlaceholderSecrets(SKIP_IN_PROD, ["MONGODB_URI"])).toThrow("MONGODB_URI");
   });
 
   it("allows it during next build, outside production, and on Vercel Preview", () => {
@@ -132,17 +132,8 @@ describe("SKIP_ENV_VALIDATION on a production server", () => {
   });
 
   it("allows it with every real secret set", () => {
-    const real = { ...TEST_SERVER_ENV, MONGODB_URI: "mongodb://db.example:27017" };
+    const real = { ...TEST_OSU_APP_ENV, MONGODB_URI: "mongodb://db.example:27017" };
     expect(parseServerEnv({ ...real, ...SKIP_IN_PROD })).toEqual(real);
-  });
-});
-
-describe("isEnvValidationSkipped", () => {
-  it("is true only for SKIP_ENV_VALIDATION=true", () => {
-    vi.stubEnv("SKIP_ENV_VALIDATION", "true");
-    expect(isEnvValidationSkipped()).toBe(true);
-    vi.stubEnv("SKIP_ENV_VALIDATION", "1");
-    expect(isEnvValidationSkipped()).toBe(false);
   });
 });
 

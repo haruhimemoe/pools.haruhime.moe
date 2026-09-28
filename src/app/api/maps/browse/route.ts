@@ -9,17 +9,16 @@
  *       which answers without asking it) is 503 browse_unavailable, never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { clientIp, jsonError, noStore, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { RATE_LIMITS } from "@/constants/api";
 import { BROWSE_FAILED, BROWSE_UNAVAILABLE_CODE } from "@/constants/browse";
 import { SEARCH_CACHE } from "@/constants/search";
-import { jsonError, noStore } from "@/lib/api";
 import { refuseOverLimit } from "@/lib/rate-limit";
 import { browseMaps } from "@/services/map-browse";
 import { parseBrowseParams } from "@/utils/browse-params";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 
 export async function GET(request: Request) {
   const limited = await refuseOverLimit(

@@ -8,9 +8,10 @@
  *       configuration error.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { delay, HttpResponse } from "msw";
 import { describe, expect, it, vi } from "vitest";
 import { poolsCollection } from "@/models/Pool";
@@ -18,7 +19,6 @@ import { emptyPackSync, type StoredPool } from "@/schemas/pool";
 import { runStatsBackfill, syncPools } from "@/services/sync";
 import { packInputHash, packInputOf } from "@/utils/pack-input";
 import { setupTestDb } from "../../helpers/db";
-import { setupMsw } from "../../helpers/msw";
 import {
   createdAnswer,
   type PutCall,

@@ -4,14 +4,14 @@
  *       /signin?next=<next>&error=<code> when osu! or the admin check says no.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
+import { osuSignIn } from "@haruhimemoe/next-kit/auth-react";
 import { Button } from "@haruhimemoe/ui";
 import { useState } from "react";
-import { OSU_PROVIDER_ID } from "@/constants/auth";
 import { authClient } from "@/lib/auth-client";
 
 const FAILED = "Couldn't start osu! sign-in. Try again.";
@@ -22,12 +22,8 @@ export function SignInWithOsu({ next }: { next: string }) {
   const onClick = async () => {
     setPending(true);
     setError(null);
-    const { error: failed } = await authClient.signIn.social({
-      provider: OSU_PROVIDER_ID,
-      callbackURL: next,
-      // better-auth adds &error=<code>; /signin explains it and keeps where to go next.
-      errorCallbackURL: `/signin?next=${encodeURIComponent(next)}`,
-    });
+    // better-auth adds &error=<code> to the error URL; /signin explains it and keeps `next`.
+    const { error: failed } = await authClient.signIn.social(osuSignIn(next));
     if (failed) {
       setError(failed.message ?? FAILED);
       setPending(false);

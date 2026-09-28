@@ -9,9 +9,10 @@
  *       (like the lookups' share of the osu! budget) by osu! id, so a new account can't reset it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse, http } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DELETE } from "@/app/api/pools/[id]/editors/[osuId]/route";
@@ -23,7 +24,6 @@ import { getDb } from "@/lib/db";
 import { findBuiltPool } from "@/services/built-pools";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
-import { setupMsw } from "../../../helpers/msw";
 import {
   type Cast,
   createCast,

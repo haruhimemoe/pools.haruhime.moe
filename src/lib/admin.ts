@@ -5,11 +5,12 @@
  *       logged by name.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
-import { EnvError, getAdminOsuIds } from "@/env";
+import { EnvError } from "@haruhimemoe/next-kit/env";
+import { getAdminOsuIds } from "@/env";
 
 /**
  * @function isAdminOsuId

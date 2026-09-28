@@ -12,16 +12,15 @@
  *       an all-maps page whose played-in lookup failed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { clientIp, jsonError, noStore, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { RATE_LIMITS } from "@/constants/api";
 import { ALL_MAPS_FAILED, MIRROR_UNAVAILABLE_CODE, SEARCH_CACHE } from "@/constants/search";
-import { jsonError, noStore } from "@/lib/api";
 import { refuseOverLimit } from "@/lib/rate-limit";
 import { searchAllMaps } from "@/services/all-maps";
 import { searchMaps, searchPools } from "@/services/search";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 import { parseSearchState } from "@/utils/search-params";
 
 export async function GET(request: Request) {

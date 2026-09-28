@@ -5,10 +5,11 @@
  *       left. Same 404 for everyone else, then the same-origin guard, then a JSON body.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { jsonError, noStore, parseJsonBody, refuseCrossSite } from "@/lib/api";
+import { jsonError, noStore, parseJsonBody } from "@haruhimemoe/next-kit/server";
+import { refuseCrossSite } from "@/lib/api";
 import { getAdminFromHeaders } from "@/lib/auth";
 import { syncBodySchema } from "@/schemas/admin";
 import { retrySyncs } from "@/services/admin";

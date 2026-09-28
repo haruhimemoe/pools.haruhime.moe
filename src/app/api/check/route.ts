@@ -9,16 +9,16 @@
  *       cookies.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { clientIp, jsonError, noStore, rateLimitSubject } from "@haruhimemoe/next-kit/server";
 import { RATE_LIMITS } from "@/constants/api";
 import { CHECK_CACHE } from "@/constants/compliance";
-import { BAD_CHECK_IDS, jsonError, noStore, parseBeatmapIds } from "@/lib/api";
+import { BAD_CHECK_IDS, parseBeatmapIds } from "@/lib/api";
 import { refuseOverLimit } from "@/lib/rate-limit";
 import type { CheckResponse } from "@/schemas/compliance";
 import { checkCompliance, checkMaps } from "@/services/compliance";
-import { clientIp, rateLimitSubject } from "@/utils/client-ip";
 
 /** A check with many uncached sets makes a few osu! calls. */
 export const maxDuration = 30;

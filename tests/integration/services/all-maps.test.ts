@@ -11,9 +11,10 @@
  *       a failure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { SET_FACTS_COLLECTION } from "@/constants/db";
@@ -29,7 +30,6 @@ import {
   mirrorSearchHandler,
   searchAnswer,
 } from "../../helpers/mirror-search";
-import { setupMsw } from "../../helpers/msw";
 import { makeMap } from "../../helpers/records";
 
 setupTestDb();

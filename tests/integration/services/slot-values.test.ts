@@ -9,9 +9,10 @@
  *       stored no-mod values.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { isMirrorCooling, resetMirrorCooldown } from "@/lib/map-search";
@@ -22,7 +23,6 @@ import {
   slotValues,
 } from "@/services/slot-values";
 import { setupTestDb } from "../../helpers/db";
-import { setupMsw } from "../../helpers/msw";
 import {
   type BatchCall,
   ppBatchAnswering,

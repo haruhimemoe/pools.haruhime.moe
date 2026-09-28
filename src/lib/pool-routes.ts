@@ -8,16 +8,17 @@
  *       `pool` on a 409). Nothing here is ever cached: answers depend on who asks.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
+import { jsonError, noStore, parseJsonBody, userSubject } from "@haruhimemoe/next-kit/server";
 import type { z } from "zod";
 import type { RateLimitRule } from "@/constants/api";
 import { MAX_POOL_BODY_BYTES } from "@/constants/built-pools";
-import { jsonError, noStore, parseJsonBody, refuseCrossSite } from "@/lib/api";
+import { refuseCrossSite } from "@/lib/api";
 import { getUserFromHeaders, type SessionUser } from "@/lib/auth";
-import { refuseOverLimit, userSubject } from "@/lib/rate-limit";
+import { refuseOverLimit } from "@/lib/rate-limit";
 import type { Refusal } from "@/services/built-pools";
 
 export type Guarded<T> = { ok: true; value: T } | { ok: false; response: Response };
