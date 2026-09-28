@@ -3,7 +3,8 @@
  * @desc The map browser (GET /api/maps/browse): the mod lenses it offers (those the mirror's
  *       pp-maps/stats also lists), the statuses the mirror's mod data covers, the mirror
  *       endpoints it calls and their timeout, how long the lens list is kept, the sorts, how many
- *       of a pool's maps it can leave out, and the failure copy and code.
+ *       of a pool's maps it can leave out, the failure copy and code, and the browser's notes
+ *       (where values under mods come from, none for Qualified and Pending, explicit maps).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -79,3 +80,14 @@ export const LENS_LIST_RETRY_MS = 60_000;
 export const BROWSE_FAILED = "Map search isn't working right now.";
 /** The code the route sends with BROWSE_FAILED (a 503, never cached). */
 export const BROWSE_UNAVAILABLE_CODE = "browse_unavailable";
+
+/** Where the browser's values under mods come from. */
+export const MOD_VALUES_NOTE =
+  "Values with mods come from the hinai mirror and can differ slightly from osu!'s.";
+
+/** Said under the ranges for Qualified and Pending, which have no values under mods. */
+export const NO_MOD_VALUES =
+  "Mod values aren't available for Qualified and Pending maps, so these are without mods.";
+
+/** Said instead of the explicit checkbox, which only Qualified and Pending have. */
+export const EXPLICIT_LINE = "Mod searches can include explicit maps.";

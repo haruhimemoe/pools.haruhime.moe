@@ -22,15 +22,11 @@ import {
   BROWSE_SORTS,
   type BrowseLens,
   type BrowseSort,
+  EXPLICIT_LINE,
+  NO_MOD_VALUES,
 } from "@/constants/browse";
 import { MAX_QUERY_LENGTH } from "@/constants/search";
 import { type BrowseState, DEFAULT_BROWSE_STATE, isLensStatus, lensOf } from "@/utils/browse-state";
-
-/** Said under a mod lens: values the mirror has no mod data for are worked out. */
-export const NO_MOD_VALUES =
-  "Mod values aren't available for Qualified and Pending maps, so these are without mods.";
-/** Said instead of the explicit checkbox, which only Qualified and Pending have. */
-export const EXPLICIT_LINE = "Mod searches can include explicit maps.";
 
 type BrowseFiltersProps = {
   state: BrowseState;

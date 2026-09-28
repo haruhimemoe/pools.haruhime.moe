@@ -4,8 +4,8 @@
  *       who can see one, the pack states, and the limits (maps and custom buckets come from
  *       @haruhimemoe/pool; editors, pools per owner, ops per call, the JSON body cap, text and
  *       paste lengths), how the builder names each visibility, what it says about the pool's pack
- *       on packs, what it says when a pack removal is queued, and how the editor backs off
- *       asking for slot values.
+ *       on packs, what it says when a pack removal is queued, when no editor can take the pool
+ *       over, and how the editor backs off asking for slot values.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -102,3 +102,7 @@ export const MAX_USERNAME_LENGTH = 32;
 export const VALUES_RETRY_MS = 2_000;
 /** The longest the editor waits between asks for slot values. */
 export const VALUES_RETRY_MAX_MS = 60_000;
+
+/** Said when no editor has signed in to take the pool over. */
+export const NO_HANDOVER =
+  "Only an editor who has signed in to pools can take the pool over. Add one above first.";

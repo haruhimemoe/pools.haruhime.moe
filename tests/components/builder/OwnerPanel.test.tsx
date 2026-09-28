@@ -15,8 +15,7 @@
 
 import { screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { NO_HANDOVER } from "@/components/builder/TransferOwnerForm";
-import { PACK_NOTE, PACK_REMOVAL_QUEUED } from "@/constants/built-pools";
+import { NO_HANDOVER, PACK_NOTE, PACK_REMOVAL_QUEUED } from "@/constants/built-pools";
 import { clientPool, EDITOR_ACCESS } from "../../helpers/pool-editor";
 import { renderEditor } from "../../helpers/render-editor";
 

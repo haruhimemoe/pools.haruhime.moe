@@ -16,8 +16,7 @@
 
 import { screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EXPLICIT_LINE, NO_MOD_VALUES } from "@/components/builder/BrowseFilters";
-import { MOD_VALUES_NOTE } from "@/components/builder/BrowseResults";
+import { EXPLICIT_LINE, MOD_VALUES_NOTE, NO_MOD_VALUES } from "@/constants/browse";
 import { UNRANKED_WARNING } from "@/constants/search";
 import { diff, lensAsked, renderPane, set } from "../../helpers/browse-pane";
 import { browsePage } from "../../helpers/pool-editor";

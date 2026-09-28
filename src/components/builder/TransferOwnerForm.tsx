@@ -15,13 +15,10 @@
 
 import { RadioGroup, TypeToConfirm } from "@haruhimemoe/ui";
 import { useState } from "react";
+import { NO_HANDOVER } from "@/constants/built-pools";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientPool } from "@/schemas/built-pool-view";
 import type { PoolEditor } from "@/schemas/pool-editor";
-
-/** Said when no editor has signed in to take the pool over. */
-export const NO_HANDOVER =
-  "Only an editor who has signed in to pools can take the pool over. Add one above first.";
 
 /** No one types a NUL, so this never matches. */
 const UNMATCHABLE = "\u0000";

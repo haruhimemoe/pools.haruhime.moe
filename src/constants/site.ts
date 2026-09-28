@@ -1,11 +1,15 @@
 /**
  * @file src/constants/site.ts
  * @desc Site identity, the contact email and Discord server, the source repo, the parent brand
- *       and GitHub org, navigation, the affiliation notice, and the User-Agent our server sends.
+ *       and GitHub org, navigation and the footer's columns, the home page's builder line, the
+ *       affiliation notice, the User-Agent our server sends, and sign-in's marker and landing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
  */
+
+import type { SiteFooterColumn } from "@haruhimemoe/ui";
+import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
 
 /** The site's name, URL, description, contact and links. */
 export const SITE = {
@@ -42,4 +46,39 @@ export const NAV_LINKS: readonly { href: string; label: string }[] = [
   { href: "/search", label: "Search" },
   { href: "/check", label: "Check a pool" },
   { href: "/submit", label: "Submit a pool" },
+];
+
+/** What the builder does, in one line. */
+export const BUILDER_LINE =
+  "Search every osu! map under a mod and see its star rating, AR and OD with it, check the pool against the content rules for officially supported tournaments, see where each map was played before, work on it with co-editors, and download it on packs.";
+
+/** The footer's link columns: pools, Data, About and Legal. */
+export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
+  {
+    title: "pools",
+    items: [
+      { href: "/search", label: "Search" },
+      { href: "/check", label: "Check a pool" },
+      { href: "/submit", label: "Submit a pool" },
+    ],
+  },
+  {
+    title: "Data",
+    items: [
+      { href: "/data#pools", label: "Pool data" },
+      { href: "/data#maps", label: "Map data" },
+      { href: "/credits", label: "Credits" },
+    ],
+  },
+  {
+    title: "About",
+    items: [
+      { href: SITE.repoUrl, label: "Source on GitHub" },
+      { href: `mailto:${SITE.contactEmail}`, label: SITE.contactEmail },
+    ],
+  },
+  {
+    title: "Legal",
+    items: LEGAL_SLUGS.map((slug) => ({ href: `/legal/${slug}`, label: LEGAL_DOCS[slug].title })),
+  },
 ];

@@ -16,13 +16,10 @@
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { Button, cx, Notice, Pagination } from "@haruhimemoe/ui";
 import { BrowseSetCard } from "@/components/builder/BrowseSetCard";
+import { MOD_VALUES_NOTE } from "@/constants/browse";
 import { hiddenSetsText, MAX_SEARCH_PAGE, UNRANKED_WARNING } from "@/constants/search";
 import type { MapBrowse } from "@/hooks/useMapBrowse";
 import type { BrowseResponse } from "@/utils/browse-params";
-
-/** Where the browser's values under mods come from. */
-export const MOD_VALUES_NOTE =
-  "Values with mods come from the hinai mirror and can differ slightly from osu!'s.";
 
 type BrowseResultsProps = {
   browse: MapBrowse;

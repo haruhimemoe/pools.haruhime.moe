@@ -24,7 +24,7 @@ import { AllMapFilterPanel } from "@/components/search/AllMapFilterPanel";
 import { AllMapResultList } from "@/components/search/AllMapResultList";
 import { MapFilterPanel } from "@/components/search/MapFilterPanel";
 import { MapResultList } from "@/components/search/MapResultList";
-import { MapScopeSwitch, scopeHref } from "@/components/search/MapScopeSwitch";
+import { MapScopeSwitch } from "@/components/search/MapScopeSwitch";
 import { PoolFilterPanel } from "@/components/search/PoolFilterPanel";
 import { PoolResultList } from "@/components/search/PoolResultList";
 import {
@@ -40,6 +40,7 @@ import {
   EMPTY_POOL_FILTERS,
   type SearchState,
 } from "@/utils/search-filters";
+import { scopeHref } from "@/utils/search-links";
 import { parseSearchState, searchHref, serializeSearchState } from "@/utils/search-params";
 
 /** Pools, maps played in pools, or beatmapsets (all maps; with no total, the page). */

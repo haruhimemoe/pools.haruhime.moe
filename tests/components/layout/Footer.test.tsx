@@ -7,13 +7,13 @@
  *       credit it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { FOOTER_COLUMNS, Footer } from "@/components/layout/Footer";
-import { SITE } from "@/constants/site";
+import { Footer } from "@/components/layout/Footer";
+import { FOOTER_COLUMNS, SITE } from "@/constants/site";
 
 const EXPECTED: [string, [string, string][]][] = [
   [

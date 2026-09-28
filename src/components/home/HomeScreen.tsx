@@ -17,13 +17,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { MapSearchForm } from "@/components/home/MapSearchForm";
 import { RecentlyBuilt } from "@/components/home/RecentlyBuilt";
+import { BUILDER_LINE } from "@/constants/site";
 import type { ListedBuiltPool } from "@/services/built-listings";
 import type { HomeCounts, RecentPool } from "@/services/pools";
 import { poolHeadline } from "@/utils/pool-text";
-
-/** What the builder does, in one line. */
-export const BUILDER_LINE =
-  "Search every osu! map under a mod and see its star rating, AR and OD with it, check the pool against the content rules for officially supported tournaments, see where each map was played before, work on it with co-editors, and download it on packs.";
 
 const countsLine = ({ pools, maps }: HomeCounts): ReactNode =>
   pools === 0 ? (

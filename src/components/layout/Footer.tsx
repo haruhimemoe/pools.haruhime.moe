@@ -9,40 +9,8 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { SiteFooter, type SiteFooterColumn } from "@haruhimemoe/ui";
-import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
-import { SITE } from "@/constants/site";
-
-/** The footer's link columns: pools, Data, About and Legal. */
-export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
-  {
-    title: "pools",
-    items: [
-      { href: "/search", label: "Search" },
-      { href: "/check", label: "Check a pool" },
-      { href: "/submit", label: "Submit a pool" },
-    ],
-  },
-  {
-    title: "Data",
-    items: [
-      { href: "/data#pools", label: "Pool data" },
-      { href: "/data#maps", label: "Map data" },
-      { href: "/credits", label: "Credits" },
-    ],
-  },
-  {
-    title: "About",
-    items: [
-      { href: SITE.repoUrl, label: "Source on GitHub" },
-      { href: `mailto:${SITE.contactEmail}`, label: SITE.contactEmail },
-    ],
-  },
-  {
-    title: "Legal",
-    items: LEGAL_SLUGS.map((slug) => ({ href: `/legal/${slug}`, label: LEGAL_DOCS[slug].title })),
-  },
-];
+import { SiteFooter } from "@haruhimemoe/ui";
+import { FOOTER_COLUMNS, SITE } from "@/constants/site";
 
 /**
  * @function Footer
