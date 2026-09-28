@@ -68,7 +68,6 @@ export function SlotNote({ beatmapId, label, note, onSave }: SlotNoteProps) {
           label={`Note for ${label}`}
           hint={`Up to ${MAX_SLOT_NOTE_LENGTH} characters, like "jump aim check".`}
           autoComplete="off"
-          // biome-ignore lint/a11y/noAutofocus: opened by its own button, which it replaces.
           autoFocus
           value={text}
           error={error ?? undefined}

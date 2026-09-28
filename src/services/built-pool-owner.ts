@@ -20,6 +20,7 @@ import { MAX_POOLS_PER_OWNER } from "@/constants/built-pools";
 import type { SessionUser } from "@/lib/auth";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { BuiltEditor, StoredBuiltPool } from "@/schemas/built-pool";
+import { recordFor } from "@/services/built-pool-activity";
 import {
   type Answer,
   type BuiltPoolView,
@@ -31,6 +32,7 @@ import {
   refuse,
   viewOf,
 } from "@/services/built-pools";
+import { ownerActivity } from "@/utils/activity";
 import { accessOf } from "@/utils/built-access";
 
 /** Who owns the pool and who edits it. */
@@ -149,5 +151,6 @@ export const transferBuiltPool = async (
     const now = await asItStands(id, caller);
     return now.ok ? { ok: true, value: now.value.view } : now;
   }
+  await recordFor(caller, id, ownerActivity(username));
   return { ok: true, value: await viewOf((await markPackPending(id)) ?? after, caller) };
 };

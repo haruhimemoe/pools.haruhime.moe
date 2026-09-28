@@ -86,6 +86,13 @@ describe("legal pages", () => {
     expect(read("terms")).toContain(clause);
   });
 
+  it("says who sees a pool's activity log, how long it's kept, and what deleting does", () => {
+    const privacy = read("privacy");
+    expect(privacy).toContain("Only the pool's owner and editors see it.");
+    expect(privacy).toContain("its last 200 changes, each for at most 180 days");
+    expect(privacy).toContain('with "deleted user" and removes your osu! ID');
+  });
+
   it("says map covers and preview clips load straight from osu!'s servers", () => {
     expect(read("privacy")).toContain("straight from osu!'s servers (assets.ppy.sh and b.ppy.sh)");
   });

@@ -36,7 +36,9 @@ import {
   storedBuiltPoolSchema,
 } from "@/schemas/built-pool";
 import type { ClientPack } from "@/schemas/built-pool-view";
+import { deleteActivityOf, recordFor } from "@/services/built-pool-activity";
 import { type PackRemoval, removePackOrQueue } from "@/services/pack-cleanup";
+import { visibilityActivity } from "@/utils/activity";
 import { type Access, accessOf, type Caller } from "@/utils/built-access";
 import { clientPackOf, EMPTY_BUILT_PACK } from "@/utils/built-pack";
 import { type BuiltSearchFields, builtSearchFields } from "@/utils/built-record";
@@ -304,6 +306,7 @@ export const deleteBuiltPool = async (
   if (!loaded.ok) return loaded;
   const packRemoval = await removePackOrQueue(loaded.value.pool);
   await (await builtPoolsCollection()).deleteOne({ _id: id });
+  await deleteActivityOf([id]);
   return { ok: true, value: { packRemoval } };
 };
 
@@ -339,6 +342,7 @@ export const setBuiltPoolVisibility = async (
   const parsed =
     (visibility !== "private" && (await markPackPending(id))) || readBuiltPool(updated);
   if (!parsed) return refuse(404, "not_found", NOT_FOUND);
+  await recordFor(caller, id, visibilityActivity(visibility));
   return { ok: true, value: { pool: await viewOf(parsed, caller), packRemoval } };
 };
 

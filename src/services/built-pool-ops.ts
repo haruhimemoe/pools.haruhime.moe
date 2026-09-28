@@ -9,7 +9,8 @@
  *       read at, so two editors can't both win: the loser gets the 409. Fields ops don't own (editors,
  *       pack, hidden) are never written here, so a change to them without a new version isn't
  *       undone. An unlisted or public pool's pack is marked pending (the route syncs it after
- *       the answer). The 409's pool goes only to someone who can still see it.
+ *       the answer), and the change goes in the pool's activity log. The 409's pool goes only
+ *       to someone who can still see it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -21,6 +22,7 @@ import type { SessionUser } from "@/lib/auth";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 import type { PoolOp } from "@/schemas/built-pool-ops";
+import { recordActivity } from "@/services/built-pool-activity";
 import {
   type Answer,
   type BuiltPoolView,
@@ -33,6 +35,7 @@ import {
   toStored,
   viewOf,
 } from "@/services/built-pools";
+import { opsActivity } from "@/utils/activity";
 import { accessOf } from "@/utils/built-access";
 import { applyOps } from "@/utils/built-ops";
 import type { BuiltSearchFields } from "@/utils/built-record";
@@ -124,5 +127,6 @@ export const applyBuiltPoolOps = async (
   );
   const after = readBuiltPool(written);
   if (!after) return conflict(id, caller);
+  await recordActivity(id, caller, opsActivity(pool, ops), now);
   return { ok: true, value: await viewOf((await markPackPending(id)) ?? after, caller) };
 };

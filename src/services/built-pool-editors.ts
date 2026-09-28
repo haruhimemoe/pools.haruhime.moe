@@ -9,7 +9,7 @@
  *       description names the editors).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -21,6 +21,7 @@ import { lookupOsuUser, type OsuUserLookup } from "@/lib/osu-users";
 import { userSubject } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { BuiltEditor } from "@/schemas/built-pool";
+import { recordFor } from "@/services/built-pool-activity";
 import {
   type Answer,
   type BuiltPoolView,
@@ -31,6 +32,7 @@ import {
   refuse,
   viewOf,
 } from "@/services/built-pools";
+import { editorActivity } from "@/utils/activity";
 
 export type LookupUser = (
   username: string,
@@ -104,6 +106,7 @@ export const addBuiltPoolEditor = async (
   // Someone else added them (or filled the list) since the read.
   const after = readBuiltPool(updated);
   if (!after) return taken();
+  await recordFor(caller, id, editorActivity("added", found.username));
   return { ok: true, value: await viewOf((await markPackPending(id)) ?? after, caller) };
 };
 
@@ -122,15 +125,15 @@ export const removeBuiltPoolEditor = async (
   const self = caller.osuId === osuId;
   const loaded = await loadFor(id, caller, (a) => a.canManage || (self && a.isEditor));
   if (!loaded.ok) return loaded;
-  if (!loaded.value.pool.editors.some((editor) => editor.osuId === osuId)) {
-    return refuse(404, "not_editor", "They don't edit this pool.");
-  }
+  const leaving = loaded.value.pool.editors.find((editor) => editor.osuId === osuId);
+  if (!leaving) return refuse(404, "not_editor", "They don't edit this pool.");
   const updated = await (await builtPoolsCollection()).updateOne(
     { _id: id, "editors.osuId": osuId },
     { $pull: { editors: { osuId } }, $set: { updatedAt: new Date() }, $inc: { version: 1 } },
   );
   if (updated.matchedCount === 0) return refuse(404, "not_found", NOT_FOUND);
   await markPackPending(id);
+  await recordFor(caller, id, editorActivity(self ? "left" : "removed", leaving.username));
   return { ok: true, value: null };
 };
 

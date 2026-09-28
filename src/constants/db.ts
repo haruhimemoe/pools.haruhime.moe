@@ -6,7 +6,7 @@
  *       mod_values TTL index).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 export const POOLS_COLLECTION = "pools";
@@ -21,6 +21,8 @@ export const BUILT_POOL_IDS_COLLECTION = "built_pool_ids";
 export const PACK_CLEANUP_COLLECTION = "pack_cleanup";
 /** Values under mods from the mirror, one row per beatmap id and combo. */
 export const MOD_VALUES_COLLECTION = "mod_values";
+/** Who changed what on built pools (src/services/built-pool-activity.ts). */
+export const BUILT_POOL_ACTIVITY_COLLECTION = "built_pool_activity";
 
 export const SESSION_TTL_INDEX = "session_expiresAt_ttl";
 
@@ -85,4 +87,14 @@ export const BATCH_QUERY_MS = 60_000;
 /** Index names on mod_values. */
 export const MOD_VALUES_INDEXES = Object.freeze({
   ttl: "mod_values_fetchedAt_ttl",
+});
+
+/** Index names on built_pool_activity. */
+export const BUILT_POOL_ACTIVITY_INDEXES = Object.freeze({
+  /** A pool's entries, newest first (the editor's list, the trim). */
+  pool: "poolId_1_at_-1__id_-1",
+  /** Entries go 180 days after they were written. */
+  ttl: "built_pool_activity_at_ttl",
+  /** A deleted account's entries, to rename. */
+  osuId: "osuId_1",
 });

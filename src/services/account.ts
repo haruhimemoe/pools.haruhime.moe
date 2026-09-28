@@ -19,6 +19,7 @@ import "server-only";
 import { getAuth, type SessionUser } from "@/lib/auth";
 import { connectDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
+import { deleteActivityOf, forgetActivityBy } from "@/services/built-pool-activity";
 import { WANTS_PACK_SYNC } from "@/services/built-pools";
 import { removePackOrQueue } from "@/services/pack-cleanup";
 
@@ -49,6 +50,7 @@ export const removeUserFromBuiltPools = async (
       const skip = packRemovalsQueued > 0 ? PACKS_FAILED_EARLIER : null;
       if ((await removePackOrQueue(pool, now, skip)) === "queued") packRemovalsQueued += 1;
       await pools.deleteOne({ _id: pool._id });
+      await deleteActivityOf([pool._id]);
     }
   };
   await removeOwned();
@@ -70,6 +72,8 @@ export const removeUserFromBuiltPools = async (
     if ((await pools.countDocuments({ ownerId: user.id })) === 0) break;
     await removeOwned();
   }
+  // Their entries on other pools' activity logs lose their name.
+  await forgetActivityBy(user.osuId);
   return { packRemovalsQueued };
 };
 
