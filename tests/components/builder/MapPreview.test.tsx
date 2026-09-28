@@ -2,8 +2,9 @@
  * @file tests/components/builder/MapPreview.test.tsx
  * @desc Map previews: the set's cover from osu!'s CDN (lazy, fixed size, alt text), a play button
  *       that plays the set's clip from b.ppy.sh and stops it, only one clip at a time (starting
- *       another stops the first), a clip that ends resetting its button, and no cover or button
- *       before the set is known. Media playback is stubbed; nothing reaches the network.
+ *       another stops the first), a clip that ends resetting its button, no cover or button
+ *       before the set is known or for a set id that isn't a positive whole number, and a clip
+ *       that stops once no button for its set is left. Media playback is stubbed; nothing reaches the network.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -68,5 +69,32 @@ describe("MapPreview", () => {
     await user.click(screen.getByRole("button", { name: "Play preview of A" }));
     act(() => played[0]?.dispatchEvent(new Event("ended")));
     expect(screen.getByRole("button", { name: "Play preview of A" })).toBeInTheDocument();
+  });
+
+  it("shows nothing for a set id that isn't a positive whole number", () => {
+    for (const setId of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, 2 ** 53]) {
+      const { container, unmount } = render(<MapPreview setId={setId} song="A" />);
+      expect(container).toBeEmptyDOMElement();
+      unmount();
+    }
+  });
+
+  it("stops the clip once no button for its set is left on the page", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <>
+        <MapPreview setId={1} song="A" />
+        <MapPreview setId={1} song="A" />
+      </>,
+    );
+    await user.click(
+      screen.getAllByRole("button", { name: "Play preview of A" })[0] as HTMLElement,
+    );
+    rerender(<MapPreview setId={1} song="A" />);
+    expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Stop preview of A" })).toBeInTheDocument();
+    rerender(<MapPreview setId={2} song="B" />);
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Play preview of B" })).toBeInTheDocument();
   });
 });

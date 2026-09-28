@@ -57,6 +57,29 @@ export const togglePreview = (setId: number, url: string): void => {
   audio.play().catch(() => release(audio));
 };
 
+/** How many preview buttons each set has on the page. */
+const shown = new Map<number, number>();
+
+/**
+ * @function holdPreview
+ * @param setId {number} a set whose preview button just mounted
+ * @returns {() => void} for when it unmounts: once the set has no button left, its clip stops
+ *          (a page of results changed, the slot went, or the page did), since nothing could stop
+ *          it any more
+ */
+export const holdPreview = (setId: number): (() => void) => {
+  shown.set(setId, (shown.get(setId) ?? 0) + 1);
+  return () => {
+    const left = (shown.get(setId) ?? 1) - 1;
+    if (left > 0) {
+      shown.set(setId, left);
+      return;
+    }
+    shown.delete(setId);
+    if (current?.setId === setId) stopPreview();
+  };
+};
+
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
   return () => {

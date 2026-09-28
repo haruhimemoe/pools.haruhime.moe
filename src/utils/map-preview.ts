@@ -13,18 +13,35 @@ import { coverUrl } from "@haruhimemoe/osu/shapes";
 import { mapLabel } from "@/utils/map-record";
 
 /**
+ * @function isSetId
+ * @param value {unknown} a beatmapset id as the page holds it
+ * @returns {boolean} true only for a positive safe integer, the only thing a preview URL is
+ *          built from
+ */
+export const isSetId = (value: unknown): value is number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+
+const checked = (setId: number): number => {
+  if (!isSetId(setId)) throw new RangeError(`Not a beatmapset id: ${setId}`);
+  return setId;
+};
+
+/**
  * @function previewCoverUrl
  * @param setId {number} a beatmapset
  * @returns {string} its small square cover on assets.ppy.sh
+ * @throws {RangeError} when setId isn't a positive safe integer
  */
-export const previewCoverUrl = (setId: number): string => coverUrl(setId, "list");
+export const previewCoverUrl = (setId: number): string => coverUrl(checked(setId), "list");
 
 /**
  * @function previewClipUrl
  * @param setId {number} a beatmapset
  * @returns {string} its preview clip on b.ppy.sh
+ * @throws {RangeError} when setId isn't a positive safe integer
  */
-export const previewClipUrl = (setId: number): string => `https://b.ppy.sh/preview/${setId}.mp3`;
+export const previewClipUrl = (setId: number): string =>
+  `https://b.ppy.sh/preview/${checked(setId)}.mp3`;
 
 /**
  * @function coverAlt

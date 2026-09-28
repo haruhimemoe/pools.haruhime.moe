@@ -10,6 +10,7 @@
 import { describe, expect, it } from "vitest";
 import {
   coverAlt,
+  isSetId,
   previewClipUrl,
   previewCoverUrl,
   previewLabel,
@@ -20,6 +21,17 @@ describe("map previews", () => {
   it("builds the cover and clip URLs on osu!'s CDN", () => {
     expect(previewCoverUrl(1030499)).toBe("https://assets.ppy.sh/beatmaps/1030499/covers/list.jpg");
     expect(previewClipUrl(1030499)).toBe("https://b.ppy.sh/preview/1030499.mp3");
+  });
+
+  it("builds them from positive whole set ids only", () => {
+    expect(isSetId(1)).toBe(true);
+    for (const bad of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, 2 ** 53, "1", null]) {
+      expect(isSetId(bad)).toBe(false);
+    }
+    for (const bad of [0, -1, 1.5, Number.NaN, 1e21]) {
+      expect(() => previewCoverUrl(bad)).toThrow(RangeError);
+      expect(() => previewClipUrl(bad)).toThrow(RangeError);
+    }
   });
 
   it("names the cover and the play button after the song", () => {

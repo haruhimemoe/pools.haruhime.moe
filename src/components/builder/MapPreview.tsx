@@ -2,7 +2,9 @@
  * @file src/components/builder/MapPreview.tsx
  * @desc A set's preview beside a map: its cover (lazy, 48 px square, named after the song) with
  *       a button over it that plays or stops its preview clip. Both load straight from osu!'s CDN; one clip
- *       plays at a time (src/hooks/usePreviewPlayer.ts). Nothing until the set is known.
+ *       plays at a time (src/hooks/usePreviewPlayer.ts), and it stops once no button for its set
+ *       is left on the page. Nothing until the set is known, or for an id that isn't a positive
+ *       whole number.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -11,8 +13,15 @@
 "use client";
 
 import Image from "next/image";
-import { togglePreview, usePlayingSet } from "@/hooks/usePreviewPlayer";
-import { coverAlt, previewClipUrl, previewCoverUrl, previewLabel } from "@/utils/map-preview";
+import { useEffect } from "react";
+import { holdPreview, togglePreview, usePlayingSet } from "@/hooks/usePreviewPlayer";
+import {
+  coverAlt,
+  isSetId,
+  previewClipUrl,
+  previewCoverUrl,
+  previewLabel,
+} from "@/utils/map-preview";
 
 type MapPreviewProps = {
   setId: number | null;
@@ -22,7 +31,9 @@ type MapPreviewProps = {
 
 export function MapPreview({ setId, song }: MapPreviewProps) {
   const playing = usePlayingSet();
-  if (setId === null) return null;
+  const valid = isSetId(setId);
+  useEffect(() => (valid ? holdPreview(setId) : undefined), [valid, setId]);
+  if (!valid) return null;
   const on = playing === setId;
   return (
     <div className="relative size-12 shrink-0">
