@@ -82,6 +82,7 @@ describe("syncBuiltPack", () => {
       lastAttemptAt: T0,
       listed: true,
       gone: false,
+      retry: true,
     });
   });
 
@@ -119,6 +120,24 @@ describe("syncBuiltPack", () => {
     expect(await syncBuiltPack(ID, { now: at(29_999) })).toBe(false);
     expect(await syncBuiltPack(ID, { now: at(30_000) })).toBe(true);
     expect((await findBuiltPool(ID))?.pack.state).toBe("synced");
+  });
+
+  it.each([
+    ["a refusal", () => HttpResponse.json({ message: "Too long." }, { status: 400 })],
+    ["pools' settings refused", () => HttpResponse.json({}, { status: 401 })],
+  ])("leaves %s for the next change or Update pack now", async (_, refusal) => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const calls: PutCall[] = [];
+    server.use(packsPutHandler(refusal, calls));
+    await pool();
+    await syncBuiltPack(ID, { now: at(0) });
+    expect((await findBuiltPool(ID))?.pack).toMatchObject({ state: "failed", retry: false });
+    expect(await syncBuiltPack(ID, { now: at(60_000) })).toBe(false);
+    await markPackPending(ID);
+    expect(await syncBuiltPack(ID, { now: at(60_000) })).toBe(true);
+    expect(await syncBuiltPack(ID, { now: at(120_000), force: true })).toBe(true);
+    expect(calls).toHaveLength(3);
+    vi.mocked(console.error).mockRestore();
   });
 
   it("syncs a pool at most once every 30 s; a later change waits for the next sync", async () => {

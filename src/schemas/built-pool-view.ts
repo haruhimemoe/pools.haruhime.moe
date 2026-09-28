@@ -8,7 +8,7 @@
  *       answer give the same shape.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
@@ -29,13 +29,15 @@ export type ClientAccess = {
   canDelete: boolean;
 };
 
-/** The pool's pack on packs as pages show it: a link once synced, the reason once failed. */
+/** The pool's pack on packs as pages show it: a link while there's one, the reason once failed. */
 export type ClientPack = {
   state: BuiltPackState;
   href: string | null;
   error: string | null;
   /** packs' moderators removed it: it's never synced again. */
   gone: boolean;
+  /** A failure pools tries again by itself; false after a refusal, which waits for a change. */
+  retry: boolean;
 };
 
 export type ClientPool = {

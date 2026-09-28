@@ -1,7 +1,7 @@
 /**
  * @file src/components/builder/BuiltPoolView.tsx
  * @desc A built pool's page: its name, tournament · round · year, map count and who can see it,
- *       "Download on packs" once its pack is synced, Edit for its owner and editors, "Start
+ *       "Download on packs" while it has a pack (a change waiting for the next sync too), Edit for its owner and editors, "Start
  *       from this pool" (to /new?from=<id>, which asks a visitor to sign in), a moderation
  *       notice for its owner and editors when it's hidden, the notes, "Built by" (owner and
  *       editors, linking osu! profiles), the maps with their values under each slot's mods, and
@@ -9,7 +9,7 @@
  *       the visitor.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
@@ -37,12 +37,11 @@ export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps)
     ...(pool.owner ? [{ ...pool.owner, role: "owner" }] : []),
     ...pool.editors.map((editor) => ({ ...editor, role: "editor" })),
   ];
-  const download =
-    pool.pack.state === "synced" && pool.pack.href ? (
-      <ButtonLink key="download" href={pool.pack.href}>
-        Download on packs
-      </ButtonLink>
-    ) : null;
+  const download = pool.pack.href ? (
+    <ButtonLink key="download" href={pool.pack.href}>
+      Download on packs
+    </ButtonLink>
+  ) : null;
   const edit = pool.access.canEdit ? (
     <ButtonLink key="edit" href={`/pools/${pool.id}/edit`} variant="secondary">
       Edit

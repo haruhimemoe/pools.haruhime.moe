@@ -5,9 +5,10 @@
  *       characters and without names the content filter refuses; public for a public pool
  *       that isn't hidden, unlisted otherwise; bare slots; buckets when the pool has its own
  *       list), when a pool is due a sync (unlisted or public, not removed by packs' moderators,
- *       pending or failed, and 30 s since the last try), the state each packs answer leaves,
- *       and what the browser sees (the state, a link once synced: the pack's page for a public
- *       pool packs lists, else the pack key; the reason once failed). Pure.
+ *       pending or failed with a failure it tries again, and 30 s since the last try), the
+ *       state each packs answer leaves (a refusal waits for a change), and what the browser
+ *       sees (the state, a link while there's a pack: the pack's page for a public pool packs
+ *       lists, else the pack key; the reason once failed). Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -43,6 +44,7 @@ export const EMPTY_BUILT_PACK: BuiltPack = {
   lastAttemptAt: null,
   listed: false,
   gone: false,
+  retry: true,
 };
 
 type PackPool = Pick<StoredBuiltPool, "_id" | "name" | "visibility" | "hidden" | "slots"> & {
@@ -99,8 +101,8 @@ export const builtPackInput = (pool: PackPool, names: readonly string[]): PackIn
  * @function packSyncDue
  * @param pool {{ visibility: Visibility; pack: BuiltPack }} a pool
  * @param now {Date} current time
- * @returns {boolean} true for an unlisted or public pool whose pack is pending or failed (and
- *          not removed by packs), last tried 30 s ago or never
+ * @returns {boolean} true for an unlisted or public pool whose pack is pending, or failed with a
+ *          failure pools tries again (and not removed by packs), last tried 30 s ago or never
  */
 export const packSyncDue = (
   pool: { visibility: Visibility; pack: BuiltPack },
@@ -108,7 +110,7 @@ export const packSyncDue = (
 ): boolean => {
   const { pack } = pool;
   if (pool.visibility === "private" || pack.gone) return false;
-  if (pack.state !== "pending" && pack.state !== "failed") return false;
+  if (pack.state !== "pending" && !(pack.state === "failed" && pack.retry)) return false;
   return (
     pack.lastAttemptAt === null ||
     now.getTime() - pack.lastAttemptAt.getTime() >= PACK_SYNC_INTERVAL_MS
@@ -121,8 +123,9 @@ export const packSyncDue = (
  * @param answer {SyncAnswer} what packs said
  * @param now {Date} when it answered
  * @returns {BuiltPack} synced (created, updated or unchanged), or failed with the reason (a
- *          plain one when packs refused pools' settings); a 410 also marks it gone, so it's never
- *          synced again
+ *          plain one when packs refused pools' settings); a refusal (of the pool or of pools'
+ *          settings) isn't tried again until the next change or "Update pack now"; a 410 also
+ *          marks it gone, so it's never synced again
  */
 export const nextBuiltPack = (previous: BuiltPack, answer: SyncAnswer, now: Date): BuiltPack => {
   switch (answer.kind) {
@@ -135,19 +138,28 @@ export const nextBuiltPack = (previous: BuiltPack, answer: SyncAnswer, now: Date
         syncedAt: now,
         error: null,
         gone: false,
+        retry: true,
       };
     case "gone":
-      return { ...previous, state: "failed", error: PACK_GONE, listed: false, gone: true };
+      return {
+        ...previous,
+        state: "failed",
+        error: PACK_GONE,
+        listed: false,
+        gone: true,
+        retry: false,
+      };
     case "rejected":
       return {
         ...previous,
         state: "failed",
         error: `packs refused it (${answer.status}): ${answer.message}`,
+        retry: false,
       };
     case "config":
-      return { ...previous, state: "failed", error: PACKS_NOT_TAKING };
+      return { ...previous, state: "failed", error: PACKS_NOT_TAKING, retry: false };
     default:
-      return { ...previous, state: "failed", error: answer.message };
+      return { ...previous, state: "failed", error: answer.message, retry: true };
   }
 };
 
@@ -162,15 +174,24 @@ const keyHref = (pool: PackPool): string | null => {
   }
 };
 
+/** A link to the pack's page, for a public pool packs lists, while synced or pending. */
+const pageHref = (pool: PackPool & { pack: BuiltPack }): string | null => {
+  const { pack } = pool;
+  if (pack.state !== "synced" && pack.state !== "pending") return null;
+  return `${PACKS_SITE_URL}/p/${pack.slug}`;
+};
+
 /**
  * @function clientPackOf
  * @param pool {PackPool & { pack: BuiltPack }} a stored pool
  * @param options {{ withError?: boolean }} give packs' reason when failed (the owner and
  *        editors; default true)
- * @returns {ClientPack} its pack as the pages show it: none for a private pool; once synced, a
- *          link to the pack's page on packs for a public pool packs lists, else its pack key
- *          (/k#…: an unlisted pack's page is closed, and so is a public one packs' moderators
- *          hid; the key works in every case); the reason when failed, to those who may see it
+ * @returns {ClientPack} its pack as the pages show it: none for a private pool; while there's a
+ *          pack (any state but none, and not removed by packs), a link: the pack's page on
+ *          packs for a public pool packs lists, while synced or waiting for the next sync, else
+ *          its pack key (/k#…, built from the pool alone: an unlisted pack's page is closed,
+ *          and so is a public one packs' moderators hid; the key works in every case); the
+ *          reason when failed, to those who may see it
  */
 export const clientPackOf = (
   pool: PackPool & { pack: BuiltPack },
@@ -178,26 +199,28 @@ export const clientPackOf = (
 ): ClientPack => {
   const { pack } = pool;
   if (pool.visibility === "private") {
-    return { state: "none", href: null, error: null, gone: pack.gone };
+    return { state: "none", href: null, error: null, gone: pack.gone, retry: pack.retry };
   }
   let href: string | null = null;
-  if (pack.state === "synced" && pack.slug !== null) {
-    const pageOpen = pack.listed && packVisibilityOf(pool) === "public";
-    href = pageOpen ? `${PACKS_SITE_URL}/p/${pack.slug}` : keyHref(pool);
+  if (pack.state !== "none" && !pack.gone) {
+    const pageOpen = pack.slug !== null && pack.listed && packVisibilityOf(pool) === "public";
+    href = pageOpen ? pageHref(pool) : keyHref(pool);
   }
   return {
     state: pack.state,
     href,
     error: withError && pack.state === "failed" ? pack.error : null,
     gone: pack.gone,
+    retry: pack.retry,
   };
 };
 
 /**
  * @function packWaiting
  * @param pack {ClientPack} a pool's pack as the pages see it
- * @returns {boolean} true while it's pending or failed and packs hasn't removed it: a page or
- *          editor load then tries a sync (the sync itself keeps to one per 30 s)
+ * @returns {boolean} true while it's pending, or failed with a failure pools tries again, and
+ *          packs hasn't removed it: a page or editor load then tries a sync (the sync itself
+ *          keeps to one per 30 s); a refusal waits for the next change or "Update pack now"
  */
 export const packWaiting = (pack: ClientPack): boolean =>
-  !pack.gone && (pack.state === "pending" || pack.state === "failed");
+  !pack.gone && (pack.state === "pending" || (pack.state === "failed" && pack.retry));

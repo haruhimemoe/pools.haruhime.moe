@@ -6,7 +6,7 @@
  *       details and the check.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { type PoolSlot, sortSlots } from "@haruhimemoe/pool";
@@ -42,7 +42,7 @@ const pool = (slots: PoolSlot[], buckets = DEFAULT): ClientPool => ({
   buckets,
   slots,
   version: 1,
-  pack: { state: "none", href: null, error: null, gone: false },
+  pack: { state: "none", href: null, error: null, gone: false, retry: true },
   access: { isOwner: true, isEditor: false, canEdit: true, canManage: true, canDelete: true },
 });
 

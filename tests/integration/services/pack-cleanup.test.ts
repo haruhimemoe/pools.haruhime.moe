@@ -45,6 +45,7 @@ const SYNCED = {
   lastAttemptAt: null,
   listed: true,
   gone: false,
+  retry: true,
 };
 const withPacks = () => {
   vi.stubEnv("POOLS_SERVICE_TOKEN", TEST_SERVICE.token);

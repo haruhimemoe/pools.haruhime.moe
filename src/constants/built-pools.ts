@@ -8,7 +8,7 @@
  *       asking for slot values.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 export { MAX_CUSTOM_BUCKETS, MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
@@ -37,6 +37,10 @@ export const PACK_NOTE =
 /** What the editor says about the pool's pack, by where it stands. */
 export const PACK_STATUS_TEXT = {
   private: "A private pool has no pack. Make it unlisted or public to get one on packs.",
+  privateEditor:
+    "A private pool has no pack. Its owner can make it unlisted or public to get one on packs.",
+  gone: "packs removed this pool's pack, so it stays off packs, even if the pool goes private and back. Only an admin can undo that; a fresh pool (Start from this pool) gets its own pack.",
+  refused: "Your next change sends it again, or use Update pack now.",
   empty: "Add a map and the pool gets a pack on packs.",
   pending: "Your latest changes haven't reached packs yet.",
   synced: "The pack on packs is up to date.",

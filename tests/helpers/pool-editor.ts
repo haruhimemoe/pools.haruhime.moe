@@ -9,7 +9,7 @@
  *       pool), each recorded apart (`browseCalls`, `valueCalls`).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
@@ -33,7 +33,13 @@ const OWNER_ACCESS = {
   canDelete: true,
 };
 /** A private pool's pack: none. */
-export const NO_PACK: ClientPack = { state: "none", href: null, error: null, gone: false };
+export const NO_PACK: ClientPack = {
+  state: "none",
+  href: null,
+  error: null,
+  gone: false,
+  retry: true,
+};
 
 export const EDITOR_ACCESS = {
   isOwner: false,

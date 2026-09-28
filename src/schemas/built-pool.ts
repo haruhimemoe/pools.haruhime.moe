@@ -15,7 +15,7 @@
  *       still reads (and can be seen, renamed and deleted).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -92,8 +92,10 @@ export type BuiltEditor = z.infer<typeof builtEditorSchema>;
 
 /**
  * The pool's pack on packs. `lastAttemptAt` (the last sync started, at most one per 30 s),
- * `listed` (packs lists it: public and not hidden there) and `gone` (packs' moderators removed
- * it: never synced again) came with the sync, so older rows read without them.
+ * `listed` (packs lists it: public and not hidden there), `gone` (packs' moderators removed
+ * it: never synced again) and `retry` (a failure a sync tries again by itself; false when packs
+ * refused the pool or pools' settings, which waits for the next change or "Update pack now")
+ * came with the sync, so older rows read without them.
  */
 export const builtPackSchema = z.object({
   state: z.enum(BUILT_PACK_STATES),
@@ -103,6 +105,7 @@ export const builtPackSchema = z.object({
   lastAttemptAt: z.date().nullable().default(null),
   listed: z.boolean().default(false),
   gone: z.boolean().default(false),
+  retry: z.boolean().default(true),
 });
 
 export type BuiltPack = z.infer<typeof builtPackSchema>;

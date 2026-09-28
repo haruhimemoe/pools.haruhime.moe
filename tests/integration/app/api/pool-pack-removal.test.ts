@@ -6,7 +6,7 @@
  *       alone.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { HttpResponse } from "msw";
@@ -42,6 +42,7 @@ const SYNCED = {
   lastAttemptAt: null,
   listed: true,
   gone: false,
+  retry: true,
 };
 const packsDown = () =>
   server.use(packsDeleteHandler(() => HttpResponse.json({}, { status: 503 })));

@@ -3,11 +3,12 @@
  * @desc A built pool's pack: the description crediting its owner and editors with a link back
  *       (within packs' 500 characters, names the content filter refuses left out), the input
  *       packs gets (public only for a public pool that isn't hidden), when a pool is due a sync
- *       (unlisted or public, not removed by packs, pending or failed, 30 s since the last try),
- *       the state each answer leaves, and what the browser sees.
+ *       (unlisted or public, not removed by packs, pending or failed with a failure it tries
+ *       again, 30 s since the last try), the state each answer leaves (a refusal isn't tried
+ *       again by itself), and what the browser sees (a link as long as there's a pack).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -21,6 +22,7 @@ import {
   PACK_SYNC_INTERVAL_MS,
   PACKS_NOT_TAKING,
   packSyncDue,
+  packWaiting,
 } from "@/utils/built-pack";
 import { makeBuiltPool } from "../../helpers/built-pools";
 
@@ -94,6 +96,11 @@ describe("packSyncDue", () => {
     expect(packSyncDue(pool({ state: "none" }), NOW)).toBe(false);
     expect(packSyncDue(pool({ state: "failed", gone: true }), NOW)).toBe(false);
   });
+
+  it("leaves a refusal for the next change or Update pack now", () => {
+    expect(packSyncDue(pool({ state: "failed", retry: false }), NOW)).toBe(false);
+    expect(packSyncDue(pool({ state: "pending", retry: false }), NOW)).toBe(true);
+  });
 });
 
 describe("nextBuiltPack", () => {
@@ -110,6 +117,7 @@ describe("nextBuiltPack", () => {
         lastAttemptAt: NOW,
         listed: true,
         gone: false,
+        retry: true,
       });
     }
   });
@@ -120,15 +128,20 @@ describe("nextBuiltPack", () => {
       state: "failed",
       error: "packs refused it (400): Too long.",
       gone: false,
+      retry: false,
     });
     const down = { kind: "error" as const, message: "packs answered 503.", retryAfterMs: null };
     expect(nextBuiltPack(previous, down, NOW)).toMatchObject({
       state: "failed",
       error: "packs answered 503.",
+      retry: true,
     });
     // A settings problem is ours to fix: builders get a plain reason, never the setting's name.
     const config = { kind: "config" as const, message: "Check POOLS_SERVICE_TOKEN in both apps." };
-    expect(nextBuiltPack(previous, config, NOW).error).toBe(PACKS_NOT_TAKING);
+    expect(nextBuiltPack(previous, config, NOW)).toMatchObject({
+      error: PACKS_NOT_TAKING,
+      retry: false,
+    });
     expect(nextBuiltPack(previous, { kind: "gone" }, NOW)).toMatchObject({
       state: "failed",
       error: PACK_GONE,
@@ -154,6 +167,7 @@ describe("clientPackOf", () => {
       href: "https://packs.haruhime.moe/p/Abc123",
       error: null,
       gone: false,
+      retry: true,
     });
     // An unlisted pool's pack has no page anyone can open: the key works for everyone.
     const unlisted = makeBuiltPool({ visibility: "unlisted", slots: SLOTS, pack: synced });
@@ -170,13 +184,48 @@ describe("clientPackOf", () => {
     expect(clientPackOf(shared({ listed: false })).href).toMatch(key);
   });
 
-  it("gives no link unless synced, the reason when failed, and none for a private pool", () => {
+  it("keeps a link while there's a pack, the reason when failed, and none for private", () => {
     const failed = shared({ state: "failed", error: "packs answered 503." });
     expect(clientPackOf(failed)).toMatchObject({ href: null, error: "packs answered 503." });
     // Only the owner and editors get packs' reason; anyone else sees the state alone.
     expect(clientPackOf(failed, { withError: false }).error).toBeNull();
-    expect(clientPackOf(shared({ state: "pending" }))).toMatchObject({ href: null, error: null });
+    // A change waiting for the next sync: packs' page is still there.
+    expect(clientPackOf(shared({ state: "pending" }))).toMatchObject({
+      href: "https://packs.haruhime.moe/p/Abc123",
+      error: null,
+    });
+    const first = shared({ state: "pending", slug: null, listed: false });
+    expect(clientPackOf(first).href).toMatch(/\/k#/);
     const private_ = makeBuiltPool({ pack: { ...synced, state: "pending" } });
     expect(clientPackOf(private_).state).toBe("none");
+  });
+
+  it("gives an unlisted pool's key in every state but none, and nothing once packs removed it", () => {
+    const unlisted = (over = {}) =>
+      makeBuiltPool({ visibility: "unlisted", slots: SLOTS, pack: { ...synced, ...over } });
+    for (const state of ["pending", "failed"] as const) {
+      expect(clientPackOf(unlisted({ state, slug: null })).href).toMatch(/\/k#/);
+    }
+    expect(clientPackOf(unlisted({ state: "none", slug: null })).href).toBeNull();
+    expect(clientPackOf(unlisted({ state: "failed", gone: true })).href).toBeNull();
+  });
+});
+
+describe("packWaiting", () => {
+  const pack = (over = {}) => ({
+    state: "pending" as const,
+    href: null,
+    error: null,
+    gone: false,
+    retry: true,
+    ...over,
+  });
+
+  it("waits while pending, or failed with a failure pools tries again", () => {
+    expect(packWaiting(pack())).toBe(true);
+    expect(packWaiting(pack({ state: "failed" }))).toBe(true);
+    expect(packWaiting(pack({ state: "failed", retry: false }))).toBe(false);
+    expect(packWaiting(pack({ state: "failed", gone: true }))).toBe(false);
+    expect(packWaiting(pack({ state: "synced" }))).toBe(false);
   });
 });

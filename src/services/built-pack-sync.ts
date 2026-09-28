@@ -83,8 +83,12 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
  */
 const claim = async (id: string, at: Date, force: boolean): Promise<StoredBuiltPool | null> => {
   const since = new Date(at.getTime() - (force ? PACKS_TIMEOUT_MS : PACK_SYNC_INTERVAL_MS));
-  const free = [{ "pack.lastAttemptAt": null }, { "pack.lastAttemptAt": { $lte: since } }];
-  const due = force ? { $or: free } : { "pack.state": { $in: ["pending", "failed"] }, $or: free };
+  const free = { $or: [{ "pack.lastAttemptAt": null }, { "pack.lastAttemptAt": { $lte: since } }] };
+  // A refusal waits for the next change (pending) or a forced sync.
+  const waiting = {
+    $or: [{ "pack.state": "pending" }, { "pack.state": "failed", "pack.retry": { $ne: false } }],
+  };
+  const due = force ? free : { $and: [free, waiting] };
   const row = await (await builtPoolsCollection()).findOneAndUpdate(
     { _id: id, visibility: { $ne: "private" }, "pack.gone": { $ne: true }, ...due },
     { $set: { "pack.lastAttemptAt": at } },
@@ -116,7 +120,7 @@ const claimForced = async (
   return null;
 };
 
-/** A regular claim at `at`: due (pending, or failed), and 30 s since the last one. */
+/** A regular claim at `at`: due (pending, or failed and worth trying again), 30 s since the last. */
 const claimAt = async (id: string, at: Date) => {
   const pool = await claim(id, at, false);
   return pool ? { pool, at } : null;

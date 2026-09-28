@@ -11,7 +11,7 @@
  *       are kept by osu! id, so deleting the account doesn't reset them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { ObjectId } from "mongodb";
@@ -128,6 +128,7 @@ describe("DELETE /api/account and pools", () => {
     lastAttemptAt: null,
     listed: true,
     gone: false,
+    retry: true,
   };
 
   const setup = async () => {
