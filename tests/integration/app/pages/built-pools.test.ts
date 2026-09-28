@@ -155,7 +155,7 @@ describe("/pools/<b- id>", () => {
     }
     as(cast, "admin");
     const { html, metadata } = await builtPage();
-    expect(html).toContain("Moderators hid this pool.");
+    expect(html).toContain("Hidden by moderation.");
     expect(html).not.toContain(`/pools/${ID}/edit`);
     expect(metadata.robots).toEqual({ index: false });
     as(cast, "visitor");

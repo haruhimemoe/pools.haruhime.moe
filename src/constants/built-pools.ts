@@ -42,6 +42,10 @@ export const PACK_STATUS_TEXT = {
   failed: "packs didn't take the last update:",
 } as const;
 
+/** What a hidden pool's owner, editors and admins see on its page and in its editor. */
+export const HIDDEN_BY_MODERATION =
+  "Hidden by moderation. Only its owner, its editors and admins can see this pool; it's out of search, and its pack on packs is unlisted.";
+
 /** Said when a pack removal couldn't reach packs and waits in pack_cleanup. */
 export const PACK_REMOVAL_QUEUED =
   "packs.haruhime.moe didn't answer, so the pack will be removed there as soon as it does.";

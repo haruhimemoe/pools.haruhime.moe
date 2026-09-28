@@ -33,9 +33,6 @@ export const CONFLICT =
 
 export const GONE = "This pool was deleted or you no longer have access.";
 
-export const HIDDEN_NOTICE =
-  "Moderators hid this pool. Only you, its editors and admins can see it, and it stays out of search.";
-
 export type EditorFailure = { message: string; lines?: SlotLineError[] };
 
 export type PoolEditor = {

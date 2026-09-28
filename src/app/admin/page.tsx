@@ -1,8 +1,8 @@
 /**
  * @file src/app/admin/page.tsx
  * @desc /admin: the newest import reports, how many pools sit in each sync state, the retry
- *       buttons, how many pack removals wait for packs and "Retry pack cleanup", the public
- *       pages refresh (for after an import), and links to add a pool and to
+ *       buttons, how many pack removals wait for packs and "Retry pack cleanup", the newest 50
+ *       built pools with hide, unhide and delete, the public pages refresh (for after an import), and links to add a pool and to
  *       every pool. Admins only (sign-in otherwise); never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -11,6 +11,7 @@
 
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
+import { AdminBuiltPoolTable } from "@/components/admin/AdminBuiltPoolTable";
 import { ImportReportList } from "@/components/admin/ImportReportList";
 import { RefreshPagesButton } from "@/components/admin/RefreshPagesButton";
 import { RetryPackCleanupButton } from "@/components/admin/RetryPackCleanupButton";
@@ -18,6 +19,7 @@ import { RetrySyncButtons } from "@/components/admin/RetrySyncButtons";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { requireAdmin } from "@/lib/auth-session";
 import { countSyncStates } from "@/services/admin";
+import { ADMIN_BUILT_LIMIT, listRecentBuiltPools } from "@/services/built-moderation";
 import { listImportReports } from "@/services/imports";
 import { countPackCleanup } from "@/services/pack-cleanup";
 
@@ -25,10 +27,11 @@ export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 
 export default async function AdminPage() {
   const admin = await requireAdmin("/admin");
-  const [reports, states, waiting] = await Promise.all([
+  const [reports, states, waiting, built] = await Promise.all([
     listImportReports(20),
     countSyncStates(),
     countPackCleanup(),
+    listRecentBuiltPools(),
   ]);
   return (
     <div className="flex flex-col gap-6">
@@ -63,6 +66,14 @@ export default async function AdminPage() {
           here, and every sync run tries a few of these too.
         </p>
         <RetryPackCleanupButton />
+      </Card>
+      <Card title="Built pools">
+        <p className="mb-3 text-c2 text-sm">
+          The {ADMIN_BUILT_LIMIT} newest. Hiding one takes it off search, the sitemap and its public
+          page (its owner and editors still see it) and unlists its pack on packs. Deleting removes
+          it and its pack for good.
+        </p>
+        <AdminBuiltPoolTable pools={built} />
       </Card>
       <Card title="Public pages">
         <p className="mb-3 text-c2 text-sm">

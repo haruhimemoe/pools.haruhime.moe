@@ -17,12 +17,13 @@ import { retryDuePackCleanup } from "@/services/pack-cleanup";
 /**
  * @function schedulePackSync
  * @param id {string} a built pool id
+ * @param options {{ force?: boolean }} don't wait out the 30 s (an admin's hide)
  * @returns {void} the pool's pack synced after the response, when it's due
  */
-export const schedulePackSync = (id: string): void => {
+export const schedulePackSync = (id: string, { force = false }: { force?: boolean } = {}): void => {
   after(async () => {
     try {
-      await syncBuiltPack(id);
+      await syncBuiltPack(id, { force });
     } catch (error) {
       console.error(`[packs] couldn't sync ${id}'s pack`, error);
     }

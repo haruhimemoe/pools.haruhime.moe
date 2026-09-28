@@ -1,8 +1,8 @@
 /**
  * @file tests/unit/app/admin-pages.test.ts
  * @desc Admin pages ask for an admin (sign-in returns to the page asked for); /admin shows the
- *       sync-state counts, the pack removals waiting with "Retry pack cleanup", the public pages
- *       refresh and the import reports; /admin/pools lists
+ *       sync-state counts, the pack removals waiting with "Retry pack cleanup", the newest built
+ *       pools with their moderation buttons, the public pages refresh and the import reports; /admin/pools lists
  *       every pool, reading a bad show or page as the defaults; the pool preview shows hidden
  *       pools (the public page 404s them) and 404s an unknown id; and nothing under /admin is
  *       indexed.
@@ -23,6 +23,7 @@ const {
   countSyncStates,
   listImportReports,
   countPackCleanup,
+  listRecentBuiltPools,
 } = vi.hoisted(() => ({
   requireAdmin: vi.fn(async () => ({
     id: "u1",
@@ -36,7 +37,20 @@ const {
   countSyncStates: vi.fn(),
   listImportReports: vi.fn(async () => []),
   countPackCleanup: vi.fn(async () => 3),
+  listRecentBuiltPools: vi.fn(async () => [
+    {
+      id: "b-a0000001",
+      name: "Rude Cup",
+      owner: "someone",
+      visibility: "public",
+      hidden: true,
+      maps: 7,
+      pack: "synced",
+      createdAt: new Date("2026-09-27T12:00:00.000Z"),
+    },
+  ]),
 }));
+vi.mock("@/services/built-moderation", () => ({ ADMIN_BUILT_LIMIT: 50, listRecentBuiltPools }));
 vi.mock("@/services/pack-cleanup", () => ({ countPackCleanup }));
 vi.mock("@/services/slot-values", () => ({
   pastSlotValues: vi.fn(async () => ({ values: [], complete: true })),
@@ -77,6 +91,11 @@ describe("admin pages", () => {
     expect(html).toContain("Refresh public pages");
     expect(html).toContain("3 pack removals wait for packs.");
     expect(html).toContain("Retry pack cleanup");
+    expect(html).toContain("Built pools");
+    expect(html).toContain('href="/pools/b-a0000001"');
+    expect(html).toContain("someone");
+    expect(html).toContain("Unhide");
+    expect(html).toContain("2026-09-27");
     expect(page.metadata.robots).toEqual({ index: false });
   });
 

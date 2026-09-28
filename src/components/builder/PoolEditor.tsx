@@ -27,8 +27,8 @@ import { PoolMaps } from "@/components/builder/PoolMaps";
 import { PoolSummary } from "@/components/builder/PoolSummary";
 import { SaveState } from "@/components/builder/SaveState";
 import { VisibilityForm } from "@/components/builder/VisibilityForm";
-import { VISIBILITY_TEXT } from "@/constants/built-pools";
-import { HIDDEN_NOTICE, usePoolEditor } from "@/hooks/usePoolEditor";
+import { HIDDEN_BY_MODERATION, VISIBILITY_TEXT } from "@/constants/built-pools";
+import { usePoolEditor } from "@/hooks/usePoolEditor";
 import { useSlotMaps } from "@/hooks/useSlotMaps";
 import { useSlotValues } from "@/hooks/useSlotValues";
 import type { Fetcher } from "@/lib/pool-client";
@@ -89,7 +89,7 @@ export function PoolEditor({
         gone={editor.gone}
         onDismiss={editor.dismiss}
       />
-      {pool.hidden ? <Notice tone="warning">{HIDDEN_NOTICE}</Notice> : null}
+      {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION}</Notice> : null}
       <div
         data-panes
         className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]"

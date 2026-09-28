@@ -17,7 +17,7 @@ import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import { BuiltSlotList } from "@/components/builder/BuiltSlotList";
 import { type CheckRules, ContentRulesCheck } from "@/components/builder/ContentRulesCheck";
 import { PoolSummary } from "@/components/builder/PoolSummary";
-import { VISIBILITY_TEXT } from "@/constants/built-pools";
+import { HIDDEN_BY_MODERATION, VISIBILITY_TEXT } from "@/constants/built-pools";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
 import { startFromHref } from "@/utils/pool-links";
 import { builtHeadline } from "@/utils/pool-text";
@@ -62,11 +62,7 @@ export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps)
           </ButtonLink>,
         ]}
       />
-      {pool.hidden ? (
-        <Notice tone="warning">
-          Moderators hid this pool. Only its owner, its editors and admins can see it.
-        </Notice>
-      ) : null}
+      {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION}</Notice> : null}
       {pool.notes ? (
         <Card title="Notes">
           <p className="whitespace-pre-line">{pool.notes}</p>

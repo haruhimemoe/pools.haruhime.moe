@@ -72,6 +72,9 @@ export const revalidateBodySchema = z.strictObject({});
 /** "Retry pack cleanup" takes nothing either. */
 export const packCleanupBodySchema = z.strictObject({});
 
+/** PATCH /api/admin/built-pools/<id>: hide a built pool, or show it again. */
+export const builtHiddenBodySchema = z.strictObject({ hidden: z.boolean() });
+
 /** The most text the maps field takes: 64 maps with long links and their slots fit easily. */
 export const MAX_MAPS_TEXT = 8000;
 

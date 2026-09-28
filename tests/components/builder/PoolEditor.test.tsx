@@ -13,7 +13,8 @@
 
 import { cleanup, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CONFLICT, GONE, HIDDEN_NOTICE } from "@/hooks/usePoolEditor";
+import { HIDDEN_BY_MODERATION } from "@/constants/built-pools";
+import { CONFLICT, GONE } from "@/hooks/usePoolEditor";
 import type { ClientPool } from "@/schemas/built-pool-view";
 import { clientPool, nm } from "../../helpers/pool-editor";
 import { renderEditor } from "../../helpers/render-editor";
@@ -158,10 +159,10 @@ describe("PoolEditor: saving", () => {
 describe("PoolEditor: moderation", () => {
   it("says when moderators hid the pool, and nothing when they didn't", () => {
     setup(clientPool({ hidden: true }));
-    expect(screen.getByText(HIDDEN_NOTICE)).toBeInTheDocument();
+    expect(screen.getByText(HIDDEN_BY_MODERATION)).toBeInTheDocument();
     cleanup();
     setup();
-    expect(screen.queryByText(HIDDEN_NOTICE)).not.toBeInTheDocument();
+    expect(screen.queryByText(HIDDEN_BY_MODERATION)).not.toBeInTheDocument();
   });
 });
 
