@@ -8,13 +8,13 @@
  *       going there at once.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button, ButtonLink, TextInput } from "@haruhimemoe/ui";
-import { type FormEvent, useState } from "react";
+import { ButtonLink, TypeToConfirm } from "@haruhimemoe/ui";
+import { useState } from "react";
 import type { PoolEditor } from "@/hooks/usePoolEditor";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 
@@ -35,29 +35,20 @@ export function DeletePoolForm({
   onDeleted,
   fetcher = fetch,
 }: DeletePoolFormProps) {
-  const [typed, setTyped] = useState("");
-  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [queued, setQueued] = useState<string | null>(null);
-  const matches = typed.trim() === name;
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!matches) return;
-    setPending(true);
+  const remove = async () => {
     setError(null);
     const answer = await editor.exclusive(() =>
       callPools<DeleteAnswer>(fetcher, `/api/pools/${poolId}`, { method: "DELETE" }),
     );
     if (answer.ok && answer.body?.packRemoval === "queued") {
       setQueued(answer.body.notice ?? "");
-      return;
-    }
-    if (answer.ok) {
+    } else if (answer.ok) {
       onDeleted();
-      return;
+    } else {
+      setError(`${answer.message} The pool is still there.`);
     }
-    setError(`${answer.message} The pool is still there.`);
-    setPending(false);
   };
   if (queued !== null) {
     return (
@@ -72,31 +63,17 @@ export function DeletePoolForm({
     );
   }
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3">
+    <TypeToConfirm
+      id="delete-pool"
+      expected={name}
+      submitLabel="Delete this pool"
+      pendingLabel="Deleting…"
+      error={error}
+      onConfirm={remove}
+    >
       <p className="text-c2 text-sm">
         This deletes the pool for you and everyone who edits it. It can't be undone.
       </p>
-      <TextInput
-        id="delete-pool"
-        label={`Type ${name} to confirm`}
-        value={typed}
-        autoComplete="off"
-        spellCheck={false}
-        onChange={(event) => setTyped(event.target.value)}
-      />
-      <Button
-        type="submit"
-        variant="secondary"
-        className="self-start"
-        disabled={!matches || pending}
-      >
-        {pending ? "Deleting…" : "Delete this pool"}
-      </Button>
-      {error ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
-          {error}
-        </p>
-      ) : null}
-    </form>
+    </TypeToConfirm>
   );
 }

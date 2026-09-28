@@ -1,12 +1,12 @@
 /**
  * @file src/components/admin/BuiltPoolModeration.tsx
  * @desc One built pool's moderation buttons on /admin: Hide or Unhide (PATCH
- *       /api/admin/built-pools/<id>), and Delete, confirmed in the page (no confirm() dialog):
- *       the first click asks and focuses "Delete for good", which deletes; Cancel puts focus
- *       back on Delete. The page refreshes after each change; what happened (a failure, or a
- *       pack removal packs will do later, included) is said in the table's live region
- *       (BuiltModerationArea), which keeps it, and takes focus, once a deleted pool's row is
- *       gone.
+ *       /api/admin/built-pools/<id>), and Delete, confirmed in the page with ui's InlineConfirm
+ *       (no confirm() dialog): the first click asks "Delete <name> for good?" with focus on
+ *       Cancel, which puts focus back on Delete; "Delete for good" deletes. The page refreshes
+ *       after each change; what happened (a failure, or a pack removal packs will do later,
+ *       included) is said in the table's live region (BuiltModerationArea), which keeps it and,
+ *       once a pool is deleted, takes focus while its row goes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -14,41 +14,23 @@
 
 "use client";
 
-import { Button } from "@haruhimemoe/ui";
+import { Button, InlineConfirm } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { ModerationNotice } from "@/components/admin/BuiltModerationArea";
 
 type Props = { id: string; name: string; hidden: boolean };
 
+/**
+ * @function BuiltPoolModeration
+ * @param props {Props} the pool's id, name and whether moderators hid it
+ * @returns {JSX.Element | null} Hide or Unhide and Delete; nothing once the pool is deleted
+ */
 export function BuiltPoolModeration({ id, name, hidden }: Props) {
   const router = useRouter();
   const say = useContext(ModerationNotice);
   const [pending, setPending] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const askDelete = useRef<HTMLButtonElement>(null);
-  const confirmDelete = useRef<HTMLButtonElement>(null);
-  // Focus follows the Delete / "Delete for good" swap, so it never falls to the page.
-  const swapped = useRef(false);
-  useEffect(() => {
-    if (!swapped.current) return;
-    swapped.current = false;
-    (confirming ? confirmDelete : askDelete).current?.focus();
-  }, [confirming]);
-  const confirm = (asking: boolean) => {
-    swapped.current = true;
-    setConfirming(asking);
-  };
-  const done = async (method: "PATCH" | "DELETE", response: Response) => {
-    if (!response.ok) {
-      swapped.current = method === "DELETE";
-      return say(`That didn't work for ${name} (${response.status}).`);
-    }
-    if (method === "PATCH") return say(hidden ? `${name} shows again.` : `${name} is hidden.`);
-    const body = response.status === 200 ? ((await response.json()) as { notice?: string }) : {};
-    // The refreshed page drops the row: the message and focus go to the table's live region.
-    say(`${name} is deleted. ${body.notice ?? ""}`.trim(), true);
-  };
+  const [deleted, setDeleted] = useState(false);
   const send = async (method: "PATCH" | "DELETE") => {
     setPending(true);
     say("");
@@ -58,8 +40,18 @@ export function BuiltPoolModeration({ id, name, hidden }: Props) {
         headers: { "Content-Type": "application/json" },
         ...(method === "PATCH" ? { body: JSON.stringify({ hidden: !hidden }) } : {}),
       });
-      await done(method, response);
-      setConfirming(false);
+      if (!response.ok) {
+        say(`That didn't work for ${name} (${response.status}).`);
+      } else if (method === "PATCH") {
+        say(hidden ? `${name} shows again.` : `${name} is hidden.`);
+      } else {
+        const body =
+          response.status === 200 ? ((await response.json()) as { notice?: string }) : {};
+        // The buttons go at once (so focus can't return to them) and the refresh drops the row:
+        // the message and focus go to the table's live region.
+        setDeleted(true);
+        say(`${name} is deleted. ${body.notice ?? ""}`.trim(), true);
+      }
       router.refresh();
     } catch {
       say("That didn't reach the server.");
@@ -67,6 +59,7 @@ export function BuiltPoolModeration({ id, name, hidden }: Props) {
       setPending(false);
     }
   };
+  if (deleted) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button
@@ -77,31 +70,14 @@ export function BuiltPoolModeration({ id, name, hidden }: Props) {
       >
         {hidden ? "Unhide" : "Hide"}
       </Button>
-      {confirming ? (
-        <>
-          <Button
-            ref={confirmDelete}
-            disabled={pending}
-            onClick={() => send("DELETE")}
-            aria-label={`Delete for good: ${name}`}
-          >
-            Delete for good
-          </Button>
-          <Button variant="ghost" disabled={pending} onClick={() => confirm(false)}>
-            Cancel
-          </Button>
-        </>
-      ) : (
-        <Button
-          ref={askDelete}
-          variant="secondary"
-          disabled={pending}
-          onClick={() => confirm(true)}
-          aria-label={`Delete ${name}`}
-        >
-          Delete
-        </Button>
-      )}
+      <InlineConfirm
+        trigger="Delete"
+        triggerProps={{ "aria-label": `Delete ${name}`, disabled: pending }}
+        question={`Delete ${name} for good?`}
+        confirmLabel="Delete for good"
+        pendingLabel="Deleting…"
+        onConfirm={() => send("DELETE")}
+      />
     </div>
   );
 }

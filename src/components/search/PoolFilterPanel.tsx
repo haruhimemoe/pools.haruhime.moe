@@ -14,9 +14,15 @@
 "use client";
 
 import { formatStars } from "@haruhimemoe/osu/format";
-import { FilterPanel, FilterRow, RangeSlider, Select, TextInput } from "@haruhimemoe/ui";
+import {
+  ChoiceChips,
+  FilterPanel,
+  FilterRow,
+  RangeSlider,
+  Select,
+  TextInput,
+} from "@haruhimemoe/ui";
 import { type ReactNode, useState } from "react";
-import { ChoiceChips } from "@/components/search/ChoiceChips";
 import {
   BADGED_FILTERS,
   BADGED_LABELS,
@@ -74,8 +80,9 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
       <FilterRow label="Pools">
         <div className="flex flex-col gap-2">
           <ChoiceChips
-            options={POOL_TYPES}
-            labels={POOL_TYPE_LABELS}
+            label="Pools"
+            hideLabel
+            options={POOL_TYPES.map((type) => ({ value: type, label: POOL_TYPE_LABELS[type] }))}
             value={filters.type}
             onChange={setType}
           />

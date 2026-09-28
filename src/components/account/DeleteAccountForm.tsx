@@ -12,9 +12,9 @@
 
 "use client";
 
-import { Button, ButtonLink, TextInput } from "@haruhimemoe/ui";
+import { ButtonLink, TypeToConfirm } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useId, useState } from "react";
+import { useId, useState } from "react";
 import { markSignedOut } from "@/lib/account";
 
 const UNREACHABLE = "Couldn't reach pools. Your account is still there.";
@@ -28,41 +28,37 @@ const messageOf = async (response: Response): Promise<string> => {
   }
 };
 
+/**
+ * @function DeleteAccountForm
+ * @param props {{ username: string }} the signed-in osu! username, typed to confirm
+ * @returns {JSX.Element} the typed-name confirmation (ui's TypeToConfirm), or what happened
+ */
 export function DeleteAccountForm({ username }: { username: string }) {
   const router = useRouter();
   const id = useId();
-  const [typed, setTyped] = useState("");
-  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [queued, setQueued] = useState<string | null>(null);
-  const matches = typed.trim() === username;
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!matches) return;
-    setPending(true);
+  const remove = async () => {
     setError(null);
     try {
       const response = await fetch("/api/account", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: typed.trim() }),
+        body: JSON.stringify({ username }),
       });
       if (response.status === 204) {
         markSignedOut();
         router.push("/");
-        return;
-      }
-      if (response.ok) {
+      } else if (response.ok) {
         markSignedOut();
         const body = (await response.json().catch(() => ({}))) as { notice?: string };
         setQueued(body.notice ?? "");
-        return;
+      } else {
+        setError(await messageOf(response));
       }
-      setError(await messageOf(response));
     } catch {
       setError(UNREACHABLE);
     }
-    setPending(false);
   };
   if (queued !== null) {
     return (
@@ -77,32 +73,18 @@ export function DeleteAccountForm({ username }: { username: string }) {
     );
   }
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3">
+    <TypeToConfirm
+      id={id}
+      expected={username}
+      submitLabel="Delete my account"
+      pendingLabel="Deleting…"
+      error={error}
+      onConfirm={remove}
+    >
       <p className="text-c2 text-sm">
         This deletes your account and every pool you own (with its pack on packs), takes you off the
         pools you edit, and signs you out everywhere. It can't be undone.
       </p>
-      <TextInput
-        id={id}
-        label={`Type ${username} to confirm`}
-        value={typed}
-        autoComplete="off"
-        spellCheck={false}
-        onChange={(event) => setTyped(event.target.value)}
-      />
-      <Button
-        type="submit"
-        variant="secondary"
-        className="self-start"
-        disabled={!matches || pending}
-      >
-        {pending ? "Deleting…" : "Delete my account"}
-      </Button>
-      {error ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
-          {error}
-        </p>
-      ) : null}
-    </form>
+    </TypeToConfirm>
   );
 }

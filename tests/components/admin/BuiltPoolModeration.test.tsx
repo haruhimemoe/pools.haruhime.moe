@@ -1,7 +1,7 @@
 /**
  * @file tests/components/admin/BuiltPoolModeration.test.tsx
  * @desc An admin's buttons on a built pool: Hide sends hidden true (Unhide false), refreshes
- *       the page and says so; Delete asks in the page first (focus on "Delete for good"), Cancel
+ *       the page and says so; Delete asks in the page first (focus on Cancel), Cancel
  *       backs out (focus back on Delete), "Delete for good" deletes and says when packs will
  *       remove the pack later, in the table's live region, which keeps the message and focus
  *       once the refreshed page drops the row; a failure is said.
@@ -10,7 +10,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BuiltModerationArea } from "@/components/admin/BuiltModerationArea";
@@ -58,7 +58,8 @@ describe("BuiltPoolModeration", () => {
   it("asks before deleting, with focus on the question's buttons", async () => {
     const { user, calls } = setup(() => new Response(null, { status: 204 }));
     await user.click(screen.getByRole("button", { name: "Delete Rude Cup" }));
-    expect(screen.getByRole("button", { name: "Delete for good: Rude Cup" })).toHaveFocus();
+    const question = screen.getByRole("group", { name: "Delete Rude Cup for good?" });
+    expect(within(question).getByRole("button", { name: "Cancel" })).toHaveFocus();
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(calls()).toEqual([]);
     expect(screen.getByRole("button", { name: "Delete Rude Cup" })).toHaveFocus();
@@ -68,7 +69,7 @@ describe("BuiltPoolModeration", () => {
     const notice = "packs.haruhime.moe didn't answer, so the pack will be removed later.";
     const { user, view, calls } = setup(() => Response.json({ packRemoval: "queued", notice }));
     await user.click(screen.getByRole("button", { name: "Delete Rude Cup" }));
-    await user.click(screen.getByRole("button", { name: "Delete for good: Rude Cup" }));
+    await user.click(screen.getByRole("button", { name: "Delete for good" }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     expect(calls()[0]?.[1]?.method).toBe("DELETE");
     // The refreshed page no longer lists the pool: the message and focus stay put.
