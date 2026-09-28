@@ -53,12 +53,12 @@ Next.js 16 (App Router), React 19, TypeScript 7, Tailwind CSS v4 and MDX, on Bun
 
 pools uses these shared haruhime.moe packages:
 
-- [`@haruhimemoe/pool`](https://www.npmjs.com/package/@haruhimemoe/pool): the mappool shape, slot and mod rules, pasted-pool parsing, and the pack key codec.
-- [`@haruhimemoe/osu`](https://www.npmjs.com/package/@haruhimemoe/osu): osu! API v2 shapes, the osu! sign-in settings, and the server client the check uses.
-- [`@haruhimemoe/hinai`](https://www.npmjs.com/package/@haruhimemoe/hinai): the client for the hinai beatmap mirror.
+- [`@haruhimemoe/pool`](https://www.npmjs.com/package/@haruhimemoe/pool): the mappool shape, slot and mod rules, pasted-pool parsing, the pack key codec, the content filter (`/content-filter`) and the packs service contract (`/service`).
+- [`@haruhimemoe/osu`](https://www.npmjs.com/package/@haruhimemoe/osu): osu! API v2 shapes and the osu! sign-in settings (`/shapes`, safe in the browser), the server client the check uses, and duration, star, BPM and stat text (`/format`).
+- [`@haruhimemoe/hinai`](https://www.npmjs.com/package/@haruhimemoe/hinai): the client for the hinai beatmap mirror, and the mirror's recorded answers the tests mock it with (`/testing`).
 - [`@haruhimemoe/compliance`](https://www.npmjs.com/package/@haruhimemoe/compliance): the content rules for officially supported tournaments.
-- [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs and pools share: JSON route helpers, rate limits and the osu! budget in MongoDB, env parsing, the MongoDB client and its indexes, and osu! sign-in with the signed-in marker.
-- [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme, buttons, cards, form fields, filters, pagination, and the site header, footer and page frame.
+- [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs and pools share: JSON route helpers, rate limits and the osu! budget in MongoDB (`/server`), env parsing (`/env`), the MongoDB client and its indexes (`/mongo`), osu! sign-in (`/auth`) with the signed-in marker and account store for the browser (`/auth-react`), and the fake env, in-memory MongoDB and msw setup the tests use (`/testing`).
+- [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme, buttons, cards, form fields, filters, chips, radios, confirmations, badges, text links, tabs, tables, star ratings, beatmap stats, slot badges, pagination, the account menu, and the site header, footer and page frame.
 - [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image.
 
 ## License
