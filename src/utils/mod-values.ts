@@ -170,10 +170,7 @@ export const valuesUnderMods = (
  * @function valueModsOf
  * @param code {string} a pool slot's mods (src/utils/slot-mods.ts): a built-in bucket code or a
  *        custom slot's forced combo
- * @returns {ModAcronym[]} the mods its values are shown under: none for NM, HD, FM and TB (HD
- *          alone shows the no-mod rating too), else the forced combo
+ * @returns {ModAcronym[]} the mods its values are shown under: none for NM, FM and TB, else the
+ *          slot's mods (HD included: the mirror rates HD on its own)
  */
-export const valueModsOf = (code: string): ModAcronym[] => {
-  const mods = parseMods(code) ?? [];
-  return mods.length === 1 && mods[0] === "HD" ? [] : mods;
-};
+export const valueModsOf = (code: string): ModAcronym[] => parseMods(code) ?? [];

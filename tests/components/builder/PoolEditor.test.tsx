@@ -4,14 +4,15 @@
  *       moved map), move to another bucket and remove, each change sent at once with the last
  *       saved version, the optimistic copy rolled back on an error, the 409 notice with the
  *       reloaded pool, a pool that's gone (said once, and no more polling), the notice when
- *       moderators hid it, and "Find maps" bringing focus to the map browser pane. No network: a
+ *       moderators hid it, values under each slot's mods (and the summary's star range from
+ *       them), and "Find maps" bringing focus to the map browser pane. No network: a
  *       fake pool API applies the ops with the builder's own rules.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
  */
 
-import { cleanup, screen, waitFor } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { HIDDEN_BY_MODERATION } from "@/constants/built-pools";
 import { CONFLICT, GONE } from "@/hooks/usePoolEditor";
@@ -194,7 +195,10 @@ describe("PoolEditor: values under each slot's mods", () => {
       expect(row(20)).toHaveTextContent("7.20★ DT · AR 9 · OD 8 · 1:20 · 270 BPM"),
     );
     expect(api.valueCalls).toEqual(["/api/pools/b-a0000001/values"]);
-    expect(screen.getByText("Star range per slot (with its mods)")).toBeInTheDocument();
+    const summary = screen.getByText("Star range per slot (with its mods)").closest("section");
+    const range = (title: string) => within(summary as HTMLElement).getByText(title).nextSibling;
+    expect(range("DT")).toHaveTextContent(/^7\.20★$/);
+    expect(range("NM")).toHaveTextContent(/^5\.00★$/);
   });
 
   it("says no mod data when the mirror had none", async () => {

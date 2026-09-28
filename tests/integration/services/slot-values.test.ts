@@ -1,7 +1,7 @@
 /**
  * @file tests/integration/services/slot-values.test.ts
  * @desc Values under each pool slot's mods against a stand-in pp/batch (msw) and the mod_values
- *       cache: NM, HD, FM and TB slots keep their no-mod values without asking; modded slots
+ *       cache: NM, FM and TB slots keep their no-mod values without asking; HD and modded slots
  *       take stars, AR, OD and CS from the mirror and BPM and length from the math, one call per
  *       combo; a map the mirror lacks keeps its no-mod rating with the rest computed ("math":
  *       no mod data); a failed call still answers, marked incomplete. A past pool's values follow
@@ -37,18 +37,21 @@ const slot = (beatmapId: number, mods: string): SlotValueRequest => ({
 });
 
 describe("slotValues", () => {
-  it("keeps no-mod values for NM, HD, FM and TB slots without asking", async () => {
+  it("keeps no-mod values for NM, FM and TB slots without asking", async () => {
     const calls: BatchCall[] = [];
     server.use(ppBatchHandler(() => ppValues(), calls));
-    const { values, complete } = await slotValues([
-      slot(1, "NM"),
-      slot(2, "HD"),
-      slot(3, "FM"),
-      slot(4, "TB"),
-    ]);
+    const { values, complete } = await slotValues([slot(1, "NM"), slot(3, "FM"), slot(4, "TB")]);
     expect(calls).toEqual([]);
     expect(complete).toBe(true);
-    expect(values).toEqual(Array(4).fill({ ...NO_MOD, mods: "NM", source: "none" }));
+    expect(values).toEqual(Array(3).fill({ ...NO_MOD, mods: "NM", source: "none" }));
+  });
+
+  it("takes an HD slot's values from the mirror's HD values", async () => {
+    const calls: BatchCall[] = [];
+    server.use(ppBatchHandler(() => ppValues({ stars: 5.71 }), calls));
+    const { values } = await slotValues([slot(2, "HD")]);
+    expect(calls.map((call) => [call.mods, call.ids])).toEqual([["HD", [2]]]);
+    expect(values[0]).toMatchObject({ stars: 5.71, bpm: 180, mods: "HD", source: "mirror" });
   });
 
   it("takes modded values from the mirror, one call per combo", async () => {

@@ -1,7 +1,7 @@
 /**
  * @file tests/unit/utils/slot-values.test.ts
  * @desc The pure side of values under a slot's mods: the combo each slot's values are under (NM
- *       for NM, HD, FM, TB, free and no-mod custom slots; the forced combo otherwise), for built
+ *       for NM, FM, TB, free and no-mod custom slots; HD and the forced combo otherwise), for built
  *       pools and for a past pool's source slots (matched to its slots by place, else by map);
  *       a map's no-mod values; the math fallback; and what a slot says (stars with the combo, AR,
  *       OD, length, BPM, and "no mod data" when the mirror had none).
@@ -37,7 +37,7 @@ const NO_MOD = { stars: 5.5, ar: 9, od: 8, cs: 4, bpm: 180, length: 120 };
 describe("the combo a slot's values are under", () => {
   it.each([
     ["NM", "NM"],
-    ["HD", "NM"],
+    ["HD", "HD"],
     ["HR", "HR"],
     ["DT", "DT"],
     ["FM", "NM"],

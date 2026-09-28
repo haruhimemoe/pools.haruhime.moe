@@ -26,7 +26,7 @@ The site never hosts beatmap files. "Download on packs" and "Open in packs" open
 - **Moderation:** admins can hide or delete any built pool. A hidden pool leaves search, the sitemap and its public page (its owner and editors see "Hidden by moderation"), and its pack is unlisted on packs.
 - **Submit a pool:** tournament hosts and community members send past pools in the Discord server or by email (see [Submit a pool](https://pools.haruhime.moe/submit)). An admin checks each one by hand and adds it; a pool whose maps match one we have joins it instead of making a copy.
 
-Pool slots show star rating, AR, OD, BPM and length under each slot's mods (NM, HD, FM and TB slots without mods). Star ratings with mods come from the hinai mirror and can differ slightly from osu!'s; a map it has no mod data for says so. Searches of maps played in pools and of all osu! maps show ratings without mods.
+Pool slots show star rating, AR, OD, BPM and length under each slot's mods (NM, FM and TB slots without mods). Star ratings with mods come from the hinai mirror and can differ slightly from osu!'s; a map it has no mod data for says so. Searches of maps played in pools and of all osu! maps show ratings without mods.
 
 ## Where the data comes from
 

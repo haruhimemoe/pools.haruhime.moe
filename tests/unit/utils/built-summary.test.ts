@@ -1,7 +1,8 @@
 /**
  * @file tests/unit/utils/built-summary.test.ts
  * @desc A built pool's summary: star ranges per bucket that has maps (with how many stars are
- *       known), sets in more than one slot, and maps past pools played.
+ *       known: stars under the slot's mods, or no-mod stars in a no-mod bucket), sets in more than
+ *       one slot, and maps past pools played.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -55,6 +56,22 @@ describe("built pool summary", () => {
       { title: "NM", low: 4.81, high: 5.2, maps: 2, known: 2 },
       { title: "HD", low: null, high: null, maps: 1, known: 0 },
       { title: "HR", low: 6.4, high: 6.4, maps: 1, known: 1 },
+    ]);
+  });
+
+  it("counts only stars under the slot's mods, so a modded slot's no-mod stars are unknown", () => {
+    const dt: PoolSlot[] = [
+      { mod: "DT", index: 1, beatmapId: 1 },
+      { mod: "DT", index: 2, beatmapId: 2 },
+      { mod: "DT", index: 3, beatmapId: 5 },
+    ];
+    const values = {
+      "1:DT": { stars: 7.2, mods: "DT", source: "mirror" },
+      "2:DT": { stars: 4.81, mods: "DT", source: "math" },
+    } as never;
+    const withFive = { ...maps, 5: map(5, { stars: 5.5 }) };
+    expect(starRanges(groupSlots({ buckets, slots: dt }), withFive, values)).toEqual([
+      { title: "DT", low: 7.2, high: 7.2, maps: 3, known: 1 },
     ]);
   });
 

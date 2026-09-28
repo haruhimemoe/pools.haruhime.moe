@@ -72,8 +72,8 @@ export default function DataPage() {
             from the mirror straight to your browser.
           </p>
           <p>
-            A pool's slots show star rating, AR, OD, BPM and length under the slot's mods (HR, DT,
-            EZ, HT, FL and forced custom mods; NM, HD, FM and TB slots show no-mod values). Star
+            A pool's slots show star rating, AR, OD, BPM and length under the slot's mods (HD, HR,
+            DT, EZ, HT, FL and forced custom mods; NM, FM and TB slots show no-mod values). Star
             ratings, AR, OD and CS with mods come from the hinai mirror's precomputed values and can
             differ slightly from osu!'s; BPM and length are worked out from the mod. A map the
             mirror has no mod data for shows its no-mod rating, marked "no mod data". The map

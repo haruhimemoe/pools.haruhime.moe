@@ -175,7 +175,7 @@ describe("valuesUnderMods", () => {
 describe("valueModsOf", () => {
   it.each([
     ["NM", []],
-    ["HD", []],
+    ["HD", ["HD"]],
     ["FM", []],
     ["TB", []],
     ["HR", ["HR"]],

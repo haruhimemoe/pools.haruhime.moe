@@ -1,8 +1,8 @@
 /**
  * @file src/services/slot-values.ts
- * @desc Values under each pool slot's mods, for built and past pool pages: NM, HD, FM and TB
- *       slots keep the map's no-mod values (HD's rating included); other slots (HR, DT, EZ, HT,
- *       FL, forced custom combos) take stars, AR, OD and CS from the mirror's pp/batch under the
+ * @desc Values under each pool slot's mods, for built and past pool pages: NM, FM and TB slots
+ *       keep the map's no-mod values; other slots (HD, HR, DT, EZ, HT, FL, forced custom
+ *       combos) take stars, AR, OD and CS from the mirror's pp/batch under the
  *       combo (src/lib/mod-values.ts: one call per combo, cached 30 days) and BPM and length
  *       from the mod math. A map the mirror lacks keeps its no-mod rating with AR, OD, CS, BPM
  *       and length computed ("math": the page says "no mod data"). A failed mirror call still

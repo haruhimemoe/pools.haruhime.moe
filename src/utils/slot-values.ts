@@ -1,8 +1,8 @@
 /**
  * @file src/utils/slot-values.ts
  * @desc The pure side of values under a pool slot's mods (src/services/slot-values.ts asks the
- *       mirror): the combo each slot's values are under (none for NM, HD, FM, TB, free and
- *       no-mod custom slots; else the forced combo), for a built pool's slots and a past pool's
+ *       mirror): the combo each slot's values are under (none for NM, FM, TB, free and no-mod
+ *       custom slots; else HD or the forced combo), for a built pool's slots and a past pool's
  *       source slots (matched to its slots by place, else by map, else none); a map's no-mod
  *       values; the answer for a slot from the mirror's values or, without them, the mod math
  *       with the no-mod rating ("math": no mod data); and what a slot says. Pure, and safe in

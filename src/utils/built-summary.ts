@@ -1,9 +1,10 @@
 /**
  * @file src/utils/built-summary.ts
  * @desc What a built pool's summary says, from its slots and map details: the star range of each
- *       bucket that has maps (each slot's stars under its mods when known, else no-mod), beatmapsets in more than one slot (a pool can't hold the
- *       same difficulty twice, but two difficulties of one set are worth a look), and the maps
- *       past pools played. Pure.
+ *       bucket that has maps (only stars under each slot's mods: the mirror's for a modded slot,
+ *       the no-mod rating for a no-mod one; anything else counts as unknown), beatmapsets in more
+ *       than one slot (a pool can't hold the same difficulty twice, but two difficulties of one
+ *       set are worth a look), and the maps past pools played. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -18,12 +19,25 @@ import { groupSlotCode, type SlotValueMap, slotValueKey } from "@/utils/slot-val
 
 export type StarRange = {
   title: string;
-  /** Lowest and highest stars (under each slot's mods when known), null when none are known. */
+  /** Lowest and highest stars under each slot's mods, null when none are known. */
   low: number | null;
   high: number | null;
   /** Maps in the bucket, and how many of them have stars. */
   maps: number;
   known: number;
+};
+
+/** A slot's stars under its mods: the mirror's for a modded slot, no-mod for a no-mod one. */
+const starsUnderMods = (
+  slot: PoolSlot,
+  entry: SlotGroup["entry"],
+  maps: BuiltMaps,
+  values: SlotValueMap,
+): number | null => {
+  const code = groupSlotCode(slot, entry);
+  const answer = values[slotValueKey(slot.beatmapId, code)];
+  if (code !== "NM") return answer?.source === "mirror" ? answer.stars : null;
+  return answer?.stars ?? maps[slot.beatmapId]?.stars ?? null;
 };
 
 /**
@@ -42,10 +56,8 @@ export const starRanges = (
     .filter((group) => group.slots.length > 0)
     .map((group) => {
       const stars = group.slots.flatMap((slot) => {
-        const code = groupSlotCode(slot, group.entry);
-        const value =
-          values[slotValueKey(slot.beatmapId, code)]?.stars ?? maps[slot.beatmapId]?.stars;
-        return value == null ? [] : [value];
+        const value = starsUnderMods(slot, group.entry, maps, values);
+        return value === null ? [] : [value];
       });
       return {
         title: groupHeading(group.entry).title,
