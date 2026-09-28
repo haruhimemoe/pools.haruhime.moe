@@ -1,0 +1,50 @@
+/**
+ * @file src/components/builder/SaveState.tsx
+ * @desc The editor's saving bar, kept in view while scrolling: "Saving…" or "All changes saved."
+ *       in a polite live region, and, announced as they come, a change that wasn't saved (and
+ *       why), the 409 notice, and a pool that went away. Presentational.
+ * @author David @dvhsh (https://dvh.sh)
+ * @created Sun Sep 27, 2026
+ * @modified Sun Sep 27, 2026
+ */
+
+import { Button, Notice } from "@haruhimemoe/ui";
+import { CONFLICT, type EditorFailure, GONE } from "@/hooks/usePoolEditor";
+
+type SaveStateProps = {
+  saving: boolean;
+  failure: EditorFailure | null;
+  conflict: boolean;
+  gone: boolean;
+  onDismiss: () => void;
+};
+
+export function SaveState({ saving, failure, conflict, gone, onDismiss }: SaveStateProps) {
+  return (
+    <div className="sticky top-0 z-10 flex flex-col gap-2 rounded-lg bg-b5 px-4 py-2">
+      <p role="status" className="font-bold text-c3 text-sm">
+        {saving ? "Saving…" : "All changes saved."}
+      </p>
+      {gone ? (
+        <Notice tone="error" live>
+          {GONE}
+        </Notice>
+      ) : null}
+      {conflict ? (
+        <Notice tone="warning" live>
+          {CONFLICT}
+        </Notice>
+      ) : null}
+      {failure ? (
+        <Notice tone="error" live>
+          {failure.message}
+        </Notice>
+      ) : null}
+      {conflict || failure ? (
+        <Button variant="ghost" className="self-start" onClick={onDismiss}>
+          Dismiss
+        </Button>
+      ) : null}
+    </div>
+  );
+}

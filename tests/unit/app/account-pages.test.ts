@@ -3,7 +3,9 @@
  * @desc /signin says signing in is for making pools (anyone with an osu! account), explains an
  *       error code, and sends a signed-in visitor on to `next` through the browser; /account
  *       asks for sign-in, then shows the osu! name and avatar, how many pools they own and edit
- *       with each one listed under Your pools (#pools), and the delete form. Neither is indexed.
+ *       with each one listed under Your pools (#pools, each linking its page and editor, and
+ *       Make a pool), and the delete form; /new asks a visitor to sign in and come back, and
+ *       shows a signed-in user the form. None is indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -109,5 +111,40 @@ describe("/account", () => {
     expect(html).toContain("private · 0 maps");
     expect(html).toContain("Their Cup");
     expect(html).toContain("unlisted · 1 map");
+    expect(html).toContain('href="/pools/b-a0000001"');
+    expect(html).toContain('href="/pools/b-a0000003/edit"');
+    expect(html).toContain('aria-label="Edit Their Cup"');
+    expect(html).toContain('href="/new"');
+  });
+});
+
+/** The first element in a rendered tree whose props match. */
+const findProps = (node: unknown, match: (props: Record<string, unknown>) => boolean): unknown => {
+  if (Array.isArray(node)) return node.map((child) => findProps(child, match)).find(Boolean);
+  if (!node || typeof node !== "object" || !("props" in node)) return undefined;
+  const props = (node as { props: Record<string, unknown> }).props;
+  return match(props) ? props : findProps(props.children, match);
+};
+
+describe("/new", () => {
+  it("asks a visitor to sign in and come back to /new", async () => {
+    getCurrentUser.mockResolvedValue(null);
+    const page = await import("@/app/new/page");
+    const element = await page.default();
+    const html = renderToStaticMarkup(element);
+    expect(html).toContain("Sign in first");
+    expect(html).toContain("Sign in with osu!");
+    expect(html).not.toContain("Make the pool");
+    expect(findProps(element, (props) => props.next === "/new")).toBeDefined();
+    expect(page.metadata.robots).toEqual({ index: false });
+  });
+
+  it("shows a signed-in user the form", async () => {
+    getCurrentUser.mockResolvedValue(USER);
+    const page = await import("@/app/new/page");
+    const html = renderToStaticMarkup(await page.default());
+    expect(html).toContain("Make the pool");
+    expect(html).toContain('id="new-name"');
+    expect(html).not.toContain("Sign in with osu!");
   });
 });

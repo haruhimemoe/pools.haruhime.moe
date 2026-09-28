@@ -1,8 +1,9 @@
 /**
  * @file tests/components/layout/AccountMenu.test.tsx
  * @desc The header's account area: nothing while loading, "Sign in" (back to this page after)
- *       when signed out, and when signed in an avatar button that opens a menu with Your pools,
- *       Account and Sign out, closed again by Escape (focus back on the button) or a second press.
+ *       when signed out, and when signed in an avatar button that opens a menu with Make a pool,
+ *       Your pools, Account and Sign out, closed again by Escape (focus back on the button) or a
+ *       second press.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -46,7 +47,7 @@ describe("AccountMenu", () => {
     );
   });
 
-  it("opens a menu with Your pools, Account and Sign out", async () => {
+  it("opens a menu with Make a pool, Your pools, Account and Sign out", async () => {
     account.current = SIGNED_IN;
     const user = userEvent.setup();
     const { container } = render(<AccountMenu />);
@@ -55,6 +56,7 @@ describe("AccountMenu", () => {
     expect(button).toHaveAttribute("aria-expanded", "false");
     await user.click(button);
     expect(button).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("link", { name: "Make a pool" })).toHaveAttribute("href", "/new");
     expect(screen.getByRole("link", { name: "Your pools" })).toHaveAttribute(
       "href",
       "/account#pools",

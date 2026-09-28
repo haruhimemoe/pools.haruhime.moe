@@ -3,7 +3,7 @@
  * @desc Pools people build here: the id shape ("b-" and a generated source id, never reused),
  *       who can see one, the pack states, and the limits (maps and custom buckets come from
  *       @haruhimemoe/pool; editors, pools per owner, ops per call, the JSON body cap, text and
- *       paste lengths).
+ *       paste lengths), and how the builder names each visibility.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -20,6 +20,16 @@ export const BUILT_POOL_ID_PATTERN = /^b-[a-z][0-9a-z]{7}$/;
 export const VISIBILITIES = ["private", "unlisted", "public"] as const;
 
 export type Visibility = (typeof VISIBILITIES)[number];
+
+/** How the builder names each visibility and says who sees it. */
+export const VISIBILITY_TEXT: Readonly<Record<Visibility, { label: string; hint: string }>> = {
+  private: { label: "Private", hint: "Only you and your editors." },
+  unlisted: { label: "Unlisted", hint: "Anyone with the link. It isn't listed anywhere." },
+  public: { label: "Public", hint: "Anyone, and search can list it." },
+};
+
+/** Said when a pool is unlisted or public, until the packs sync lands. */
+export const PACK_LATER = "Downloads on packs come later: for now this pool has no pack.";
 
 /** Where the pool's pack on packs stands (synced from step 7 on; "none" until then). */
 export const BUILT_PACK_STATES = ["none", "synced", "pending", "failed"] as const;

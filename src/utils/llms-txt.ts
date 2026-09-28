@@ -3,13 +3,13 @@
  * @desc /llms.txt (llmstxt.org): title, a one-paragraph summary, the notes a reader needs first
  *       (pools come from otdb, tournament hosts and community members; no-mod stars, no file
  *       hosting, every osu! map searchable, sending a pool, beta, the check is guidance, no API),
- *       then the pages, every current pool, the most
+ *       then the pages (Make a pool among them), every current pool, the most
  *       used maps and the legal pages.
  *       Link titles and descriptions come from sources, so their markdown is escaped. Sections
  *       with nothing in them are left out. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
@@ -85,6 +85,12 @@ export const llmsSections = ({
         url: at("/check"),
         description:
           "Paste beatmap IDs or links, a pool, or a pack key to check each map against the content rules for officially supported tournaments.",
+      },
+      {
+        title: "Make a pool",
+        url: at("/new"),
+        description:
+          "Sign in with osu! to build a pool: its details, maps in slots (built-in and custom, with forced mods or freemod), pasted IDs or links, a summary and the content rules check. Pools start private; the owner can make them unlisted or public and add editors.",
       },
       {
         title: "Submit a pool",

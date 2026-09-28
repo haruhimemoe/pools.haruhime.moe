@@ -1,10 +1,11 @@
 /**
  * @file src/utils/pool-text.ts
  * @desc How pages write a pool's parts: the year ("year unknown" when the name has none), the
- *       headline (tournament · round · year), badged (only when known) and no-mod stars. Pure.
+ *       headline (tournament · round · year), a built pool's headline, badged (only when known)
+ *       and no-mod stars. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { formatStars } from "@/utils/format";
@@ -46,3 +47,20 @@ export const badgedText = (badged: boolean | null): string | null =>
  */
 export const starsText = (stars: number | null): string =>
   stars === null ? "–" : `${formatStars(stars)}★`;
+
+/**
+ * @function builtHeadline
+ * @param pool {{ tournament: string; round: string; year: number | null }} a built pool's details
+ * @returns {string} "Tournament · Round · Year", leaving out what's empty (a built pool with no
+ *          year says nothing about it)
+ */
+export const builtHeadline = ({
+  tournament,
+  round,
+  year,
+}: {
+  tournament: string;
+  round: string;
+  year: number | null;
+}): string =>
+  [tournament, round, year === null ? "" : String(year)].filter((part) => part !== "").join(" · ");

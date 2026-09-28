@@ -3,8 +3,8 @@
  * @desc The header's account area. Client-side, so static pages stay static and read no cookies:
  *       the session comes from useAccount, which asks only when the signed-in marker is there.
  *       Nothing while loading; "Sign in" (returning to this page) when signed out; signed in, an
- *       avatar button that discloses Your pools, Account and Sign out. Escape closes it and puts
- *       focus back on the button; so does a click outside or on a link.
+ *       avatar button that discloses Make a pool, Your pools, Account and Sign out. Escape closes
+ *       it and puts focus back on the button; so does a click outside or on a link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -78,6 +78,9 @@ export function AccountMenu() {
           id={id}
           className="absolute right-0 z-10 mt-2 flex w-44 flex-col gap-1 rounded-lg border border-b3 bg-b6 p-2"
         >
+          <Link href="/new" className={ITEM} onClick={() => setOpen(false)}>
+            Make a pool
+          </Link>
           <Link href="/account#pools" className={ITEM} onClick={() => setOpen(false)}>
             Your pools
           </Link>

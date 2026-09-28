@@ -2,7 +2,7 @@
  * @file tests/unit/utils/llms-txt.test.ts
  * @desc /llms.txt: title, summary, the notes a reader needs first (pools from otdb, hosts and
  *       community members, no-mod stars, no file hosting, guidance not rulings, no API), the
- *       pages (Submit a pool and Data among them), every current pool and the most used maps
+ *       pages (Make a pool, Submit a pool and Data among them), every current pool and the most used maps
  *       it's given, the legal pages; markdown in imported names escaped so a name can't add a
  *       link or break one; empty sections left out.
  * @author David @dvhsh (https://dvh.sh)
@@ -42,6 +42,7 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain("without mods");
     expect(text).toContain("guidance, not a ruling");
     expect(text).toContain("- [Search](https://pools.haruhime.moe/search)");
+    expect(text).toContain("- [Make a pool](https://pools.haruhime.moe/new): ");
     expect(text).toContain("- [Submit a pool](https://pools.haruhime.moe/submit): ");
     expect(text).toContain("- [Data](https://pools.haruhime.moe/data): ");
     expect(text).toContain(

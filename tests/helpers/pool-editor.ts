@@ -1,0 +1,133 @@
+/**
+ * @file tests/helpers/pool-editor.ts
+ * @desc For the builder's component tests: a pool as the browser holds it, map details, and a
+ *       fake pool API (no network) that applies ops with the builder's own rules, bumps the
+ *       version, answers GETs with the current pool, records every call, and takes one-shot
+ *       answers for a test's next calls (a 400, a 409, a request that never resolves).
+ * @author David @dvhsh (https://dvh.sh)
+ * @created Sun Sep 27, 2026
+ * @modified Sun Sep 27, 2026
+ */
+
+import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
+import { vi } from "vitest";
+import type { Fetcher } from "@/lib/pool-client";
+import type { BuiltMap, ClientPool } from "@/schemas/built-pool-view";
+import { applyLocal } from "@/utils/built-editor";
+
+export const DEFAULT_BUCKETS = ["NM", "HD", "HR", "DT", "FM", "TB"].map((code) => ({
+  code,
+})) as BucketEntry[];
+
+const OWNER_ACCESS = {
+  isOwner: true,
+  isEditor: false,
+  canEdit: true,
+  canManage: true,
+  canDelete: true,
+};
+export const EDITOR_ACCESS = {
+  isOwner: false,
+  isEditor: true,
+  canEdit: true,
+  canManage: false,
+  canDelete: false,
+};
+
+/** The content rules' pages, as the server passes them. */
+export const RULES = {
+  contentUsage: "https://osu.ppy.sh/wiki/Rules/Content_usage_permissions",
+  officialSupport: "https://osu.ppy.sh/wiki/Tournaments/Official_support",
+  project: "https://github.com/example/compliance",
+};
+
+export const nm = (index: number, beatmapId: number): PoolSlot => ({ mod: "NM", index, beatmapId });
+
+export const clientPool = (over: Partial<ClientPool> = {}): ClientPool => ({
+  id: "b-a0000001",
+  name: "Spring Cup Finals",
+  tournament: "Spring Cup",
+  round: "Finals",
+  year: 2026,
+  notes: "",
+  visibility: "private",
+  hidden: false,
+  owner: { osuId: 10, username: "owner" },
+  editors: [{ osuId: 20, username: "editor" }],
+  buckets: DEFAULT_BUCKETS,
+  slots: [nm(1, 10), nm(2, 20), nm(3, 30)],
+  version: 1,
+  access: OWNER_ACCESS,
+  ...over,
+});
+
+export const builtMap = (id: number, over: Partial<BuiltMap> = {}): BuiltMap => ({
+  id,
+  setId: id * 10,
+  artist: "xi",
+  title: `Song ${id}`,
+  version: "Hard",
+  setHost: "Mapper",
+  stars: 5,
+  length: 120,
+  bpm: 180,
+  usage: { count: 0, lastYear: null },
+  ...over,
+});
+
+export const mapsFor = (ids: readonly number[]) =>
+  Object.fromEntries(ids.map((id) => [id, builtMap(id)]));
+
+export type Call = { method: string; path: string; body: unknown };
+type Answer = (call: Call) => Response | Promise<Response>;
+
+/**
+ * @function fakePoolApi
+ * @param initial {ClientPool} the pool the fake server starts with
+ * @returns the fetcher, its calls, the server's pool (settable), the map details it answers
+ *          with (settable), and `next` for one-shot answers
+ */
+export const fakePoolApi = (initial: ClientPool) => {
+  let pool = initial;
+  let details: BuiltMap[] = [];
+  const calls: Call[] = [];
+  const overrides: Answer[] = [];
+  const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const call = {
+      method: init?.method ?? "GET",
+      path: String(input),
+      body: init?.body ? JSON.parse(String(init.body)) : undefined,
+    };
+    calls.push(call);
+    // One-shot answers are for the pool's own routes, never the map details.
+    const override = call.path.endsWith("/maps") ? undefined : overrides.shift();
+    if (override) return override(call);
+    if (call.path.endsWith("/ops")) {
+      const result = applyLocal(pool, (call.body as { ops: never[] }).ops);
+      if (!result.ok) {
+        const { code, message, op, lines } = result;
+        return Response.json({ error: { code, message, op, lines } }, { status: 400 });
+      }
+      pool = { ...result.pool, version: pool.version + 1 };
+      return Response.json({ pool });
+    }
+    if (call.path.endsWith("/maps")) return Response.json({ maps: details, error: null });
+    if (call.method === "GET") return Response.json({ pool });
+    return new Response(null, { status: 204 });
+  });
+  return {
+    fetcher: fetcher as unknown as Fetcher,
+    calls,
+    get pool() {
+      return pool;
+    },
+    set pool(next: ClientPool) {
+      pool = next;
+    },
+    /** What GET .../maps answers with. */
+    set details(next: BuiltMap[]) {
+      details = next;
+    },
+    next: (answer: Answer) => overrides.push(answer),
+  };
+};
