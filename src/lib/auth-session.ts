@@ -1,32 +1,46 @@
 /**
  * @file src/lib/auth-session.ts
- * @desc Admin session helpers for server pages (they read next/headers). Route handlers use
- *       getAdminFromHeaders(request.headers) instead. Public pages never call these.
+ * @desc Session helpers for server pages (they read next/headers). Route handlers use
+ *       getUserFromHeaders(request.headers) instead. Public pages never call these. A page for
+ *       signed-in people sends a visitor to sign in and back; an admin page does the same for a
+ *       visitor, and answers 404 to a signed-in user who isn't an admin.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { type AdminUser, getAdminFromHeaders } from "@/lib/auth";
+import { notFound, redirect } from "next/navigation";
+import { type AdminUser, getUserFromHeaders, type SessionUser } from "@/lib/auth";
 import { signInHref } from "@/utils/safe-next";
 
 /**
- * @function getCurrentAdmin
- * @returns {Promise<AdminUser | null>} the signed-in admin for this request, or null
+ * @function getCurrentUser
+ * @returns {Promise<SessionUser | null>} the signed-in user for this request, or null
  */
-export const getCurrentAdmin = async (): Promise<AdminUser | null> =>
-  getAdminFromHeaders(await headers());
+export const getCurrentUser = async (): Promise<SessionUser | null> =>
+  getUserFromHeaders(await headers());
+
+/**
+ * @function requireUser
+ * @param next {string} where sign-in should return to (the page asking)
+ * @returns {Promise<SessionUser>} the user; redirects to /signin?next= when there is none
+ */
+export const requireUser = async (next: string): Promise<SessionUser> => {
+  const user = await getCurrentUser();
+  if (!user) redirect(signInHref(next));
+  return user;
+};
 
 /**
  * @function requireAdmin
  * @param next {string} where sign-in should return to (the page asking)
- * @returns {Promise<AdminUser>} the admin; redirects to /signin?next= when there is none
+ * @returns {Promise<AdminUser>} the admin; redirects to /signin?next= when nobody is signed in,
+ *          and 404s a signed-in user who isn't an admin
  */
 export const requireAdmin = async (next = "/admin"): Promise<AdminUser> => {
-  const admin = await getCurrentAdmin();
-  if (!admin) redirect(signInHref(next));
-  return admin;
+  const { isAdmin, ...user } = await requireUser(next);
+  if (!isAdmin) notFound();
+  return user;
 };

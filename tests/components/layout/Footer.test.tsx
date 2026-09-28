@@ -7,7 +7,7 @@
  *       credit it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -44,6 +44,7 @@ const EXPECTED: [string, [string, string][]][] = [
     [
       ["Disclaimer", "/legal/disclaimer"],
       ["Privacy", "/legal/privacy"],
+      ["Terms", "/legal/terms"],
     ],
   ],
 ];

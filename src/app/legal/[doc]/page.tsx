@@ -3,7 +3,7 @@
  * @desc Legal document route. Static params come from the registry; unknown slugs 404.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { PageHeader, Prose } from "@haruhimemoe/ui";
@@ -16,6 +16,7 @@ import { formatIsoDate } from "@/utils/date";
 const LOADERS: Record<LegalSlug, () => Promise<{ default: MDXContent }>> = {
   disclaimer: () => import("@content/legal/disclaimer.mdx"),
   privacy: () => import("@content/legal/privacy.mdx"),
+  terms: () => import("@content/legal/terms.mdx"),
 };
 
 export const dynamicParams = false;

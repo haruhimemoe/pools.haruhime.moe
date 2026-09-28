@@ -5,10 +5,10 @@
  *       change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
-export const LEGAL_SLUGS = ["disclaimer", "privacy"] as const;
+export const LEGAL_SLUGS = ["disclaimer", "privacy", "terms"] as const;
 
 export type LegalSlug = (typeof LEGAL_SLUGS)[number];
 
@@ -25,7 +25,12 @@ export const LEGAL_DOCS: Record<
   privacy: {
     title: "Privacy",
     description: "What pools.haruhime.moe stores, why, and for how long.",
-    lastUpdated: "2026-09-26",
+    lastUpdated: "2026-09-27",
+  },
+  terms: {
+    title: "Terms",
+    description: "The rules for signing in and making pools on pools.haruhime.moe.",
+    lastUpdated: "2026-09-27",
   },
 };
 

@@ -1,11 +1,11 @@
 /**
  * @file tests/unit/app/seo.test.ts
- * @desc robots.txt keeps crawlers out of /api, /admin and /signin; the sitemap lists the static
- *       pages (/submit and /data among them), the legal pages, current pools and used maps
- *       (daily); llms.txt is a daily text route.
+ * @desc robots.txt keeps crawlers out of /api, /admin, /signin and /account; the sitemap lists
+ *       the static pages (/submit and /data among them), the legal pages (terms included),
+ *       current pools and used maps (daily); llms.txt is a daily text route.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -39,7 +39,7 @@ describe("robots.txt", () => {
   it("keeps crawlers out of the API, admin and sign-in", async () => {
     const { default: robots } = await import("@/app/robots");
     expect(robots()).toEqual({
-      rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/admin", "/signin"] }],
+      rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/admin", "/signin", "/account"] }],
       sitemap: "https://pools.haruhime.moe/sitemap.xml",
     });
   });
@@ -59,6 +59,7 @@ describe("sitemap.xml", () => {
       "https://pools.haruhime.moe/credits",
       "https://pools.haruhime.moe/legal/disclaimer",
       "https://pools.haruhime.moe/legal/privacy",
+      "https://pools.haruhime.moe/legal/terms",
       "https://pools.haruhime.moe/pools/otdb-657",
       "https://pools.haruhime.moe/maps/129891",
     ]);

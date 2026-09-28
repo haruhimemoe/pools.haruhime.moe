@@ -17,6 +17,7 @@ The site never hosts beatmap files. "Open in packs" opens the pool on [packs.har
 - **Map pages:** the map's details and every pool that played it, newest first.
 - **Compliance check:** paste beatmap IDs or links, a pool, or a pack key, and each map's beatmapset is checked against the osu! content rules for officially supported tournaments. It's a guide, not a ruling: the osu! Tournament Committee decides.
 - **Home page:** counts, quick pool and map searches, and the pools added last.
+- **Accounts:** anyone with an osu! account can sign in, to make pools. The header shows your avatar menu (Your pools, Account, Sign out), and your account page deletes the account for good once you type your username.
 - **Submit a pool:** tournament hosts and community members send pools in the Discord server or by email (see [Submit a pool](https://pools.haruhime.moe/submit)). An admin checks each one by hand and adds it; a pool whose maps match one we have joins it instead of making a copy.
 
 Every star rating on the site is without mods.
@@ -35,7 +36,7 @@ To run your own copy you need Bun 1.4+, Node 24+ and a MongoDB database. Copy `.
 
 ## Stack
 
-Next.js 16 (App Router), React 19, TypeScript 7, Tailwind CSS v4 and MDX, on Bun. MongoDB with Mongoose and zod, and better-auth with osu! sign-in for admins. Tests run on Vitest, lint and format on Biome.
+Next.js 16 (App Router), React 19, TypeScript 7, Tailwind CSS v4 and MDX, on Bun. MongoDB with Mongoose and zod, and better-auth with osu! sign-in for everyone (admins are listed by osu! ID). Tests run on Vitest, lint and format on Biome.
 
 ## Packages
 

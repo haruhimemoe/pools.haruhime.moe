@@ -7,7 +7,7 @@
  *       link or break one; empty sections left out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -51,6 +51,7 @@ describe("buildLlmsTxt", () => {
       "- [xi - FREEDOM DiVE \\[FOUR DIMENSIONS\\]](https://pools.haruhime.moe/maps/129891): Used in 3 pools \\(latest 2023\\)",
     );
     expect(text).toContain("- [Privacy](https://pools.haruhime.moe/legal/privacy)");
+    expect(text).toContain("- [Terms](https://pools.haruhime.moe/legal/terms)");
     expect(text.endsWith("\n")).toBe(true);
     expect(text).not.toContain("—");
   });

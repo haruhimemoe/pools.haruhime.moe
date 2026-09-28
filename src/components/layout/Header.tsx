@@ -1,16 +1,17 @@
 /**
  * @file src/components/layout/Header.tsx
- * @desc Site header: the library SiteHeader with the pools wordmark and the main nav. Public
- *       pages carry no account area (only admins sign in, at /signin). In a beta build a small
+ * @desc Site header: the library SiteHeader with the pools wordmark, the main nav and the
+ *       account menu (client-side, so public pages still read no cookies). In a beta build a small
  *       "beta" tag sits beside the wordmark, outside the link, so the link's name stays "pools"
  *       and screen readers hear "beta" once.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { SiteHeader } from "@haruhimemoe/ui";
 import Link from "next/link";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 import { NAV_LINKS, SITE } from "@/constants/site";
 
 type HeaderProps = {
@@ -37,6 +38,7 @@ export function Header({ beta = false }: HeaderProps) {
         </div>
       }
       links={NAV_LINKS}
+      actions={<AccountMenu />}
     />
   );
 }

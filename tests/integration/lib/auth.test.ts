@@ -1,22 +1,24 @@
 /**
  * @file tests/integration/lib/auth.test.ts
- * @desc Admin-only osu! sign-in against in-memory Mongo, osu! stubbed: the user hook sees the osu!
- *       id from the profile and refuses anyone not in ADMIN_OSU_IDS with a not_admin APIError (no
- *       user row, no session, the callback lands on the error page with error=not_admin); an admin signs in (PKCE, our callback, no osu! tokens
- *       kept); an id removed from the list loses its session at once and can't sign in again.
- *       Every failure lands on /signin with the error code: a refused osu! account back on the
- *       page it came from, and a callback with a bad state (no state to read the page from) on
- *       /signin?error=state_mismatch rather than better-auth's bare error page.
+ * @desc osu! sign-in for everyone against in-memory Mongo, osu! stubbed: any osu! user signs in
+ *       (PKCE, our callback, no osu! tokens kept) and gets a user row and a session; admin rights
+ *       come only from ADMIN_OSU_IDS, read per request, so a removed id stays signed in as a user
+ *       but stops being an admin at once, and a malformed list makes nobody an admin.
+ *       getUserFromHeaders reads the caller. A callback with a bad state lands on
+ *       /signin?error=state_mismatch rather than better-auth's bare error page. The readable
+ *       signed-in marker follows the session: set on sign-in and by a get-session that finds one,
+ *       cleared by one that doesn't and on sign-out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, POST } from "@/app/api/auth/[...all]/route";
-import { getAdminFromHeaders, osuProfileToUser, refuseNonAdminUser } from "@/lib/auth";
+import { getAdminFromHeaders, getUserFromHeaders } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { ADMIN_OSU_ID, createTestAdmin } from "../../helpers/auth";
+import { SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
+import { ADMIN_OSU_ID, createTestAdmin, createTestUser } from "../../helpers/auth";
 import { setupTestDb } from "../../helpers/db";
 
 setupTestDb();
@@ -101,17 +103,6 @@ describe("sign-in errors", () => {
   });
 });
 
-describe("the user hook", () => {
-  it("sees the osu! id the profile maps to, and refuses anyone not listed", () => {
-    expect(refuseNonAdminUser(osuProfileToUser(PROFILE(ADMIN_OSU_ID)))).toBeUndefined();
-    const refused = expect(() => refuseNonAdminUser(osuProfileToUser(PROFILE(2))));
-    refused.toThrow(
-      expect.objectContaining({ body: expect.objectContaining({ code: "not_admin" }) }),
-    );
-    expect(() => refuseNonAdminUser({})).toThrow();
-  });
-});
-
 describe("osu! sign-in", () => {
   it("signs an admin in and keeps no osu! tokens", async () => {
     const callback = await signInWithOsu(PROFILE(ADMIN_OSU_ID));
@@ -127,24 +118,32 @@ describe("osu! sign-in", () => {
     expect(account?.refreshToken ?? null).toBeNull();
   });
 
-  it("refuses anyone else: no user, no session, the error page", async () => {
+  it("signs in any osu! user, who isn't an admin", async () => {
     const callback = await signInWithOsu(PROFILE(2));
-    expect(callback.headers.get("location")).toMatch(
-      /^\/signin\?next=%2Fadmin&error=not_admin(&|$)/,
-    );
-    expect(await getDb().collection("user").countDocuments({ osuId: 2 })).toBe(0);
-    expect(await getDb().collection("session").countDocuments()).toBe(0);
+    expect(callback.headers.get("location")).toBe("/admin");
+    const headers = new Headers({ cookie: cookiesFrom(callback) });
+    expect(await getUserFromHeaders(headers)).toMatchObject({
+      osuId: 2,
+      username: "player2",
+      avatarUrl: "https://a.ppy.sh/2",
+      isAdmin: false,
+    });
+    expect(await getAdminFromHeaders(headers)).toBeNull();
+    expect(await getDb().collection("user").countDocuments({ osuId: 2 })).toBe(1);
+    const account = await getDb().collection("account").findOne({ accountId: "2" });
+    expect(account?.accessToken ?? null).toBeNull();
   });
 
-  it("drops a removed admin's session at once and refuses a new one", async () => {
+  it("keeps a removed admin signed in as a user, no longer an admin", async () => {
     const admin = await createTestAdmin();
     const headers = new Headers({ cookie: admin.cookie });
-    expect(await getAdminFromHeaders(headers)).not.toBeNull();
+    expect(await getUserFromHeaders(headers)).toMatchObject({ isAdmin: true });
     vi.stubEnv("ADMIN_OSU_IDS", "1");
     expect(await getAdminFromHeaders(headers)).toBeNull();
+    expect(await getUserFromHeaders(headers)).toMatchObject({ id: admin.id, isAdmin: false });
     const again = await signInWithOsu(PROFILE(ADMIN_OSU_ID));
-    expect(again.headers.get("location") ?? "").toContain("error=not_admin");
-    expect(await getDb().collection("session").countDocuments()).toBe(1);
+    expect(again.headers.get("location")).toBe("/admin");
+    expect(await getDb().collection("session").countDocuments()).toBe(2);
   });
 
   it("fails closed on a malformed ADMIN_OSU_IDS", async () => {
@@ -152,5 +151,59 @@ describe("osu! sign-in", () => {
     vi.stubEnv("ADMIN_OSU_IDS", "not-ids");
     vi.spyOn(console, "error").mockImplementation(() => {});
     expect(await getAdminFromHeaders(new Headers({ cookie: admin.cookie }))).toBeNull();
+  });
+});
+
+describe("getUserFromHeaders", () => {
+  it("reads the caller, or null without a session", async () => {
+    const user = await createTestUser(5, "peppy");
+    expect(await getUserFromHeaders(new Headers({ cookie: user.cookie }))).toEqual({
+      id: user.id,
+      osuId: 5,
+      username: "peppy",
+      avatarUrl: null,
+      isAdmin: false,
+    });
+    expect(await getUserFromHeaders(new Headers())).toBeNull();
+    expect(
+      await getUserFromHeaders(new Headers({ cookie: "better-auth.session_token=forged.sig" })),
+    ).toBeNull();
+  });
+});
+
+/** The marker's Set-Cookie line from a response, or undefined. */
+const markerFrom = (response: Response): string | undefined =>
+  response.headers.getSetCookie().find((cookie) => cookie.startsWith(`${SIGNED_IN_COOKIE}=`));
+
+const authRequest = (path: string, cookie: string, method = "GET") =>
+  new Request(`http://localhost:3000/api/auth/${path}`, {
+    method,
+    headers: { cookie, origin: "http://localhost:3000" },
+  });
+
+describe("signed-in marker cookie", () => {
+  it("is set, readable by the page, when osu! sign-in completes", async () => {
+    const marker = markerFrom(await signInWithOsu(PROFILE(3)));
+    expect(marker).toMatch(/^pools-signed-in=1;/);
+    expect(marker).toMatch(/Max-Age=\d{5,}/);
+    expect(marker).toMatch(/Path=\//);
+    expect(marker).not.toMatch(/HttpOnly/i);
+  });
+
+  it("is refreshed by a get-session that finds a session", async () => {
+    const user = await createTestUser(4);
+    expect(markerFrom(await GET(authRequest("get-session", user.cookie)))).toMatch(
+      /^pools-signed-in=1;/,
+    );
+  });
+
+  it("is cleared by a get-session without a session, and on sign-out", async () => {
+    expect(markerFrom(await GET(authRequest("get-session", "pools-signed-in=1")))).toMatch(
+      /^pools-signed-in=;.*Max-Age=0/,
+    );
+    const user = await createTestUser(6);
+    expect(markerFrom(await POST(authRequest("sign-out", user.cookie, "POST")))).toMatch(
+      /^pools-signed-in=;.*Max-Age=0/,
+    );
   });
 });

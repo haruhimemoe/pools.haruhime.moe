@@ -1,11 +1,12 @@
 /**
  * @file tests/helpers/auth.ts
- * @desc createTestAdmin(): a real better-auth user + osu! account + session in the test
- *       database, with the signed session cookie a browser would send. The osu! id must be in
- *       ADMIN_OSU_IDS when it's called (the user hook refuses anyone else).
+ * @desc createTestUser(): a real better-auth user + osu! account + session in the test database,
+ *       with the signed session cookie a browser would send. createTestAdmin() is the same for an
+ *       osu! id that ADMIN_OSU_IDS lists (admin rights are read per request, so the test stubs
+ *       the list).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { makeSignature } from "better-auth/crypto";
@@ -15,16 +16,19 @@ import { TEST_SERVER_ENV } from "./server-env";
 
 export const ADMIN_OSU_ID = 12231334;
 
+export type TestUser = { id: string; osuId: number; username: string; cookie: string };
+
 /**
- * @function createTestAdmin
- * @param osuId {number} the admin's osu! id (default ADMIN_OSU_ID)
- * @returns {Promise<{ id: string; osuId: number; username: string; cookie: string }>}
+ * @function createTestUser
+ * @param osuId {number} the user's osu! id
+ * @param username {string} their osu! username (default player<osuId>)
+ * @returns {Promise<TestUser>} the user's id, osu! id, username and session cookie
  */
-export const createTestAdmin = async (
-  osuId: number = ADMIN_OSU_ID,
-): Promise<{ id: string; osuId: number; username: string; cookie: string }> => {
+export const createTestUser = async (
+  osuId: number,
+  username = `player${osuId}`,
+): Promise<TestUser> => {
   const ctx = await getAuth().$context;
-  const username = `admin${osuId}`;
   const user = await ctx.internalAdapter.createUser(
     { email: `${osuId}@osu.local`, emailVerified: false, name: username, osuId, username },
     { method: "oauth", oauth: { providerId: OSU_PROVIDER_ID } },
@@ -39,3 +43,11 @@ export const createTestAdmin = async (
   const cookie = `better-auth.session_token=${encodeURIComponent(`${session.token}.${signature}`)}`;
   return { id: user.id, osuId, username, cookie };
 };
+
+/**
+ * @function createTestAdmin
+ * @param osuId {number} the admin's osu! id (default ADMIN_OSU_ID; ADMIN_OSU_IDS must list it)
+ * @returns {Promise<TestUser>} as createTestUser, named admin<osuId>
+ */
+export const createTestAdmin = (osuId: number = ADMIN_OSU_ID): Promise<TestUser> =>
+  createTestUser(osuId, `admin${osuId}`);

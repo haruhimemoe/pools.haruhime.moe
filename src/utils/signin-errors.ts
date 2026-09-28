@@ -1,27 +1,22 @@
 /**
  * @file src/utils/signin-errors.ts
  * @desc What /signin says for each error code better-auth sends back (every failure lands on
- *       /signin?...&error=<code>): a refused osu! account first (not_admin, which our user and
- *       session hooks throw, so it's never confused with a database failure), then couldn't
- *       create the user or session (a database problem), a bad or stale state, sign-in
- *       cancelled on osu!, osu! not confirming it, and a plain line for anything else.
+ *       /signin?...&error=<code>): couldn't create the user or session (a database problem), a
+ *       bad or stale state, sign-in cancelled on osu!, osu! not confirming it, not_admin (every
+ *       osu! account can sign in now, so only admin checks use it: signing in to make pools
+ *       still works), and a plain line for anything else.
  *       When a URL carries error twice (old ?error=oauth&error=<code> links), the last wins.
  *       Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
-/** The code src/lib/auth.ts's hooks throw for an osu! id not in ADMIN_OSU_IDS. */
+/** The code for an osu! account that isn't in ADMIN_OSU_IDS, from an admin check. */
 export const NOT_ADMIN_ERROR = "not_admin";
 
-/** Error codes and what they mean, the admin refusal first. */
+/** Error codes and what they mean. */
 export const SIGN_IN_ERRORS: readonly { codes: readonly string[]; text: string }[] = [
-  {
-    // The user hook (not listed) or the session hook (no longer listed) refused the account.
-    codes: [NOT_ADMIN_ERROR],
-    text: "That osu! account isn't a pools admin.",
-  },
   {
     // better-auth's own codes when a user or session write fails (the database, not the list).
     codes: ["unable_to_create_user", "unable_to_create_session"],
@@ -39,6 +34,10 @@ export const SIGN_IN_ERRORS: readonly { codes: readonly string[]; text: string }
     codes: ["invalid_code", "no_code", "unable_to_get_user_info"],
     text: "osu! didn't confirm the sign-in. Try again.",
   },
+  {
+    codes: [NOT_ADMIN_ERROR],
+    text: "That osu! account isn't a pools admin. You can still sign in to make pools.",
+  },
 ];
 
 const OTHER_ERROR = "Sign-in didn't finish. Try again.";
@@ -47,7 +46,7 @@ const OTHER_ERROR = "Sign-in didn't finish. Try again.";
  * @function signInErrorText
  * @param error {string | string[] | undefined} the page's `error` param (all of them, when
  *        there are several)
- * @returns {string | null} what to tell the admin, from the last error given; null for none
+ * @returns {string | null} what to tell the person, from the last error given; null for none
  */
 export const signInErrorText = (error: string | string[] | undefined): string | null => {
   const code = Array.isArray(error) ? error.at(-1) : error;
