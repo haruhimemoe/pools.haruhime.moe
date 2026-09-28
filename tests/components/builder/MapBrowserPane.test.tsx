@@ -1,7 +1,8 @@
 /**
  * @file tests/components/builder/MapBrowserPane.test.tsx
  * @desc The map browser in the editor: each set with its tags and each difficulty with values
- *       under the lens, played-in links and what the page left out; the failure (with Retry),
+ *       under the lens, played-in links and what the page left out; the failure (with Retry,
+ *       which puts focus on the pane's heading),
  *       empty and loading states; Qualified and Pending forcing the lens to NM (and taking the
  *       explicit checkbox, which the other statuses replace with a line); the lens of the page on
  *       screen naming the ranges and Add (snapping to the answer's lens, kept while a new lens
@@ -10,7 +11,7 @@
  *       MapBrowserAdd.test.tsx. A fake fetch answers; nothing reaches the network.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { screen, within } from "@testing-library/react";
@@ -118,6 +119,8 @@ describe("MapBrowserPane results", () => {
     fail = false;
     const asked = urls.length;
     await user.click(screen.getByRole("button", { name: "Retry" }));
+    // Retry goes while the search runs: focus waits on the pane's heading, not the page.
+    expect(screen.getByRole("heading", { name: "Find maps" })).toHaveFocus();
     expect(await screen.findByText("xi - Song 1")).toBeInTheDocument();
     expect(urls.length).toBe(asked + 1);
   });
@@ -171,7 +174,7 @@ describe("MapBrowserPane lens and statuses", () => {
           browsePage({ lens: "NM", lenses: ["NM", "HD", "HR", "DT"], sets: [set(1, [diff(11)])] }),
         ),
     });
-    expect(await screen.findByRole("button", { name: "Add Diff 11 to NM" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Add to NM: Diff 11" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Stars (NM)" })).toBeInTheDocument();
     await vi.waitFor(() =>
       expect(screen.getByRole("combobox", { name: /Values under/ })).toHaveValue("NM"),
@@ -191,14 +194,14 @@ describe("MapBrowserPane lens and statuses", () => {
     };
     const { user, urls } = renderPane({ answer });
     const lens = await screen.findByRole("combobox", { name: /Values under/ });
-    await screen.findByRole("button", { name: "Add Diff 11 to NM" });
+    await screen.findByRole("button", { name: "Add to NM: Diff 11" });
     await user.selectOptions(lens, "HR");
     await vi.waitFor(() => expect(urls.at(-1)?.search).toBe("?lens=HR"));
-    expect(screen.getByRole("button", { name: "Add Diff 11 to NM" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add to NM: Diff 11" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Stars (NM)" })).toBeInTheDocument();
     expect(lens).toHaveValue("HR");
     release();
-    expect(await screen.findByRole("button", { name: "Add Diff 11 to HR" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Add to HR: Diff 11" })).toBeInTheDocument();
     expect(lens).toHaveValue("HR");
   });
 });

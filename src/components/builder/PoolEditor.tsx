@@ -1,12 +1,14 @@
 /**
  * @file src/components/builder/PoolEditor.tsx
  * @desc The pool editor at /pools/<id>/edit. Two panes on wide screens, stacked on phones: the
- *       pool (details, maps by bucket with values under each slot's mods, paste, custom slots)
- *       and the side (summary with the content rules check, the map browser, editors, the pack
- *       on packs with "Update pack now", and the owner's settings: who can see it, handing it to
- *       an editor, and delete). Every change is saved at once through usePoolEditor; the saving
- *       bar stays in view. A pool moderators hid says so. Editors see everything but the owner's
- *       settings, which go (with a notice) once the owner hands the pool over.
+ *       pool (details, maps by bucket with values under each slot's mods, the map browser right
+ *       under them, where its range sliders have room, paste, custom slots) and the side
+ *       (summary with the content rules check, editors, the pack on packs with "Update pack
+ *       now", and the owner's settings: who can see it, handing it to an editor, and delete).
+ *       Every change is saved at once through usePoolEditor; the saving bar stays in view. A
+ *       pool moderators hid says so. Editors see everything but the owner's settings, which go
+ *       once the owner hands the pool over; the notice saying so is a live region that's always
+ *       there, and takes focus from the settings that went.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -16,7 +18,7 @@
 
 import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type CheckRules, ContentRulesCheck } from "@/components/builder/ContentRulesCheck";
 import { CustomBucketForm } from "@/components/builder/CustomBucketForm";
 import { DeletePoolForm } from "@/components/builder/DeletePoolForm";
@@ -72,6 +74,10 @@ export function PoolEditor({
   const [openedFor, setOpenedFor] = useState<string | null>(null);
   const [openCount, setOpenCount] = useState(0);
   const [handedOver, setHandedOver] = useState<string | null>(null);
+  const handedRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (handedOver) handedRef.current?.focus();
+  }, [handedOver]);
   const onFind = (code: string) => {
     setOpenedFor(code);
     setOpenCount((n) => n + 1);
@@ -97,7 +103,16 @@ export function PoolEditor({
         onDismiss={editor.dismiss}
       />
       {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION[pool.visibility]}</Notice> : null}
-      {handedOver ? <Notice live>{handedOver}</Notice> : null}
+      {/* Always there, so the handover is announced; it takes focus from the card that goes. */}
+      <Notice
+        live
+        ref={handedRef}
+        tabIndex={-1}
+        data-handover
+        className={handedOver ? undefined : "sr-only"}
+      >
+        {handedOver}
+      </Notice>
       <div
         data-panes
         className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]"
@@ -109,6 +124,15 @@ export function PoolEditor({
           <Card title="Maps">
             <PoolMaps pool={pool} maps={maps} values={values} change={change} onFind={onFind} />
           </Card>
+          {/* Under the maps, in the wide column: the side column is too narrow for its sliders. */}
+          <MapBrowserPane
+            buckets={pool.buckets}
+            poolIds={pool.slots.map((slot) => slot.beatmapId)}
+            openedFor={openedFor}
+            openCount={openCount}
+            onAdd={(beatmapId, bucket) => change([{ type: "addMap", beatmapId, bucket }])}
+            fetcher={fetcher}
+          />
           <Card title="Paste a pool">
             <PasteBox change={change} lines={editor.failure?.lines} />
           </Card>
@@ -122,14 +146,6 @@ export function PoolEditor({
             <h3 className="mt-4 mb-2 font-bold text-c1">Check against the content rules</h3>
             <ContentRulesCheck slots={pool.slots} rules={rules} />
           </Card>
-          <MapBrowserPane
-            buckets={pool.buckets}
-            poolIds={pool.slots.map((slot) => slot.beatmapId)}
-            openedFor={openedFor}
-            openCount={openCount}
-            onAdd={(beatmapId, bucket) => change([{ type: "addMap", beatmapId, bucket }])}
-            fetcher={fetcher}
-          />
           <Card title="Editors">
             <EditorsPanel
               pool={pool}

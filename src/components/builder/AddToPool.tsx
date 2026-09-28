@@ -5,10 +5,12 @@
  *       "Choose slot" opens the picker for any slot (or no slot). The picker is a native select
  *       with its own Add and Cancel; opening it moves focus to the select, Escape or Cancel
  *       closes it and puts focus back on Add. A map already in the pool says so (Add stays
- *       focusable, marked unavailable, so focus isn't lost when it changes).
+ *       focusable, marked unavailable, so focus isn't lost when it changes). Each button's name
+ *       starts with the words on it, then the difficulty ("Add to NM: Insane"), so voice control
+ *       finds it by what it shows.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -55,11 +57,12 @@ export function AddToPool(props: AddToPoolProps) {
   const onKeyDown = (event: KeyboardEvent<HTMLFieldSetElement>) => {
     if (event.key === "Escape") close();
   };
+  // Each name starts with the words on the button (WCAG 2.5.3), then says which difficulty.
   const addName = inPool
-    ? `${version} is in this pool`
+    ? `In this pool: ${version}`
     : defaultBucket === null
       ? `Add ${version}: choose a slot`
-      : `Add ${version} to ${defaultBucket}`;
+      : `Add to ${defaultBucket}: ${version}`;
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
@@ -75,7 +78,7 @@ export function AddToPool(props: AddToPoolProps) {
         {inPool ? null : (
           <Button
             variant="ghost"
-            aria-label={`Choose a slot for ${version}`}
+            aria-label={`Choose slot for ${version}`}
             aria-expanded={open}
             onClick={() => (open ? close() : setOpen(true))}
           >

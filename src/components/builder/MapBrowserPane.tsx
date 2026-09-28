@@ -10,10 +10,11 @@
  *       so a refresh keeps it. The lenses come from the answer, and so does the lens Add and the
  *       range labels go by (the page on screen is under it, even while a new lens loads); when
  *       the answer to the current search is under another lens (one the mirror doesn't offer),
- *       the state snaps to it.
+ *       the state snaps to it. Retry after a failure puts focus on the pane's heading, since
+ *       the failure view (and its button) goes while the search runs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -115,7 +116,14 @@ export function MapBrowserPane(props: MapBrowserProps) {
           resultCount={count}
         />
         <BrowseResults
-          browse={browse}
+          // Retry's failure view goes while the search runs: focus waits on the heading.
+          browse={{
+            ...browse,
+            retry: () => {
+              heading.current?.focus();
+              browse.retry();
+            },
+          }}
           buckets={buckets}
           defaultBucket={defaultBucketFor(lens, buckets, opened)}
           poolIds={new Set(poolIds)}

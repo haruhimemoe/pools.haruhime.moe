@@ -3,12 +3,14 @@
  * @desc Who manages the pool: the owner's settings (visibility with the pack note only when it
  *       matters, adding and removing editors, handing the pool to an editor who has signed in and
  *       delete, each behind the typed name) and none of them for an editor, who can leave
- *       instead; once the pool is handed over, the old owner's settings go. When packs didn't answer, deleting or going private
- *       still works and says the pack's removal waits. Requests take turns with the ops, so the next change
- *       carries the version they moved to. Also the editor's layout at phone width, by class.
+ *       instead; once the pool is handed over, the old owner's settings go, and the always-there
+ *       notice says so and takes focus. When packs didn't answer, deleting or going private
+ *       still works and says the pack's removal waits. Requests take turns with the ops, so the
+ *       next change carries the version they moved to. Also the editor's layout, by class: the
+ *       panes and slot rows stack on phones, and the map browser sits under the maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { screen, waitFor } from "@testing-library/react";
@@ -121,7 +123,11 @@ describe("handing the pool to an editor", () => {
   };
 
   it("offers editors who have signed in, and hands it over once the name is typed", async () => {
-    const { api, user } = renderEditor(clientPool({ editors }));
+    const { api, user, container } = renderEditor(clientPool({ editors }));
+    // The live region is there, empty, before anything is said in it.
+    const region = container.querySelector("[data-handover]");
+    expect(region).toHaveAttribute("role", "status");
+    expect(region).toBeEmptyDOMElement();
     expect(screen.getByRole("radio", { name: /newbie/ })).toBeDisabled();
     expect(screen.getByText("hasn't signed in yet")).toBeInTheDocument();
     const go = screen.getByRole("button", { name: "Hand the pool over" });
@@ -135,7 +141,11 @@ describe("handing the pool to an editor", () => {
     const after = { ...api.pool, owner, editors: [{ osuId: 10, username: "owner" }] };
     api.next(() => Response.json({ pool: { ...after, access: EDITOR_ACCESS, version: 2 } }));
     await user.click(go);
-    expect(await screen.findByText("editor owns this pool now. You still edit it.")).toBeVisible();
+    const said = await screen.findByText("editor owns this pool now. You still edit it.");
+    expect(said).toBeVisible();
+    expect(said).toBe(region);
+    // The owner's settings, with the focused button, are gone: focus goes to what was said.
+    expect(said).toHaveFocus();
     expect(screen.queryByRole("heading", { name: "Owner settings" })).not.toBeInTheDocument();
     expect(screen.getByText("You edit this pool.")).toBeInTheDocument();
     expect(api.calls.at(-1)).toMatchObject({
@@ -207,16 +217,35 @@ describe("editors", () => {
 });
 
 describe("editor layout", () => {
-  it("stacks the panes and each slot's controls on phones", () => {
+  it("stacks the panes, and each slot's controls unless the maps card is wide", () => {
     const { container } = renderEditor();
     const panes = container.querySelector("[data-panes]");
     expect(panes).toHaveClass("grid", "grid-cols-1");
     expect(panes?.className).toMatch(/\blg:grid-cols-\[/);
+    // A slot's text and controls sit side by side only when the maps card itself is wide
+    // (48rem): the pool's column is 38.5rem on any desktop, too narrow for both.
     const row = container.querySelector("li[data-map]");
-    expect(row).toHaveClass("flex-col", "lg:flex-row");
+    expect(row).toHaveClass("flex-col", "@3xl:flex-row");
+    expect(row?.className).not.toMatch(/\blg:flex-row/);
+    expect(row?.closest(".\\@container")).not.toBeNull();
     const wide = [...container.querySelectorAll("*")].filter((node) =>
       /\bmin-w-\[|\bw-\[\d{3,}px\]/.test(node.getAttribute("class") ?? ""),
     );
     expect(wide).toEqual([]);
+  });
+
+  it("puts the map browser in the pool's column, under its maps, where the sliders have room", () => {
+    // The page is at most 64rem wide: the 22rem side column left a slider's track 0px wide.
+    const { container } = renderEditor();
+    const panes = container.querySelector("[data-panes]");
+    expect(panes?.className).toContain("lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]");
+    const [main, side] = [...(panes?.children ?? [])];
+    const browser = container.querySelector("#map-browser");
+    expect(browser?.parentElement).toBe(main);
+    expect(side?.contains(browser as Node)).toBe(false);
+    const titles = [...(main?.children ?? [])].map(
+      (card) => card.querySelector("h2")?.textContent ?? "",
+    );
+    expect(titles.slice(0, 3)).toEqual(["Details", "Maps", "Find maps"]);
   });
 });

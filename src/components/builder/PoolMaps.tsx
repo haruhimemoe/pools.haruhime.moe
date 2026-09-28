@@ -4,10 +4,11 @@
  *       buttons. Keyboard use never loses its place: after a move, focus stays on the moved map
  *       (the same button when it still applies, else the next one that does); after a remove, it
  *       goes to the next map in the bucket, or the one before, or the bucket's Find maps. Focus
- *       moves once the changed pool is on screen, not on a render in between.
+ *       moves once the changed pool is on screen, not on a render in between. It's a size
+ *       container, so a slot row lays out by the card's width, not the screen's.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -81,7 +82,7 @@ export function PoolMaps({ pool, maps, values, change, onFind }: PoolMapsProps) 
   };
 
   return (
-    <div ref={box} className="flex flex-col gap-5">
+    <div ref={box} className="@container flex flex-col gap-5">
       {groups.map((group) => (
         <BucketSection
           key={group.code ?? ""}

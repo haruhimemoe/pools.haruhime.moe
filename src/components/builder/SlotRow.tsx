@@ -2,11 +2,13 @@
  * @file src/components/builder/SlotRow.tsx
  * @desc One slot in the editor: its label, its map, and buttons to move it up or down, move it to
  *       another bucket (a picker and a Move button, so arrow keys in the picker never move
- *       anything) and remove it. Every control names its slot for screen readers. Stacks on
- *       phones. The editor decides what each button does and where focus goes after.
+ *       anything) and remove it. Every control names its slot for screen readers. Its map and
+ *       controls sit side by side only once the maps card (a size container) is 48rem wide;
+ *       narrower, on phones and in the desktop editor's pool column, they stack. The editor
+ *       decides what each button does and where focus goes after.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -41,7 +43,7 @@ export function SlotRow({ slot, map, values, first, last, targets, ...on }: Slot
   return (
     <li
       data-map={slot.beatmapId}
-      className="flex flex-col gap-2 border-b3 border-t py-3 lg:flex-row lg:items-center"
+      className="flex @3xl:flex-row flex-col @3xl:items-center gap-2 border-b3 border-t py-3"
     >
       <div className="flex min-w-0 flex-1 gap-3">
         <span className="w-14 shrink-0 font-bold text-c1">{label}</span>
