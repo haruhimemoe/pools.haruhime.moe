@@ -142,6 +142,7 @@ export const syncBuiltPack = async (
   } else {
     const input = builtPackInput(pool, await namesOf(pool));
     const answer = await putPoolPack(service, id, input, fetch ? { fetch } : {});
+    if (answer.kind === "config") console.error(`[packs] ${id}'s pack: ${answer.message}`);
     const pack = nextBuiltPack(pool.pack, answer, now());
     if (answer.kind === "gone") {
       await (await builtPoolsCollection()).updateOne({ _id: id }, { $set: { pack } });

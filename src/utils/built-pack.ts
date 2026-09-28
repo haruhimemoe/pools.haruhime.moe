@@ -28,6 +28,9 @@ export const PACK_DESCRIPTION_MAX = 500;
 /** One sync per pool at most this often. */
 export const PACK_SYNC_INTERVAL_MS = 30_000;
 
+/** What builders read when packs refuses pools' settings (the real reason is logged). */
+export const PACKS_NOT_TAKING = "packs isn't taking updates from pools right now.";
+
 /** Why a pool stopped syncing: packs' moderators deleted its pack. */
 export const PACK_GONE = "packs removed this pool's pack.";
 
@@ -116,8 +119,9 @@ export const packSyncDue = (
  * @param previous {BuiltPack} the pack before the PUT
  * @param answer {SyncAnswer} what packs said
  * @param now {Date} when it answered
- * @returns {BuiltPack} synced (created, updated or unchanged), or failed with the reason; a 410
- *          also marks it gone, so it's never synced again
+ * @returns {BuiltPack} synced (created, updated or unchanged), or failed with the reason (a
+ *          plain one when packs refused pools' settings); a 410 also marks it gone, so it's never
+ *          synced again
  */
 export const nextBuiltPack = (previous: BuiltPack, answer: SyncAnswer, now: Date): BuiltPack => {
   switch (answer.kind) {
@@ -139,6 +143,8 @@ export const nextBuiltPack = (previous: BuiltPack, answer: SyncAnswer, now: Date
         state: "failed",
         error: `packs refused it (${answer.status}): ${answer.message}`,
       };
+    case "config":
+      return { ...previous, state: "failed", error: PACKS_NOT_TAKING };
     default:
       return { ...previous, state: "failed", error: answer.message };
   }
@@ -158,11 +164,16 @@ const keyHref = (pool: PackPool): string | null => {
 /**
  * @function clientPackOf
  * @param pool {PackPool & { pack: BuiltPack }} a stored pool
+ * @param options {{ withError?: boolean }} give packs' reason when failed (the owner and
+ *        editors; default true)
  * @returns {ClientPack} its pack as the pages show it: none for a private pool; once synced, a
  *          link to the pack's page on packs (its key when packs' moderators hid a public one);
- *          the reason when failed
+ *          the reason when failed, to those who may see it
  */
-export const clientPackOf = (pool: PackPool & { pack: BuiltPack }): ClientPack => {
+export const clientPackOf = (
+  pool: PackPool & { pack: BuiltPack },
+  { withError = true }: { withError?: boolean } = {},
+): ClientPack => {
   const { pack } = pool;
   if (pool.visibility === "private") return { state: "none", href: null, error: null, gone: false };
   let href: string | null = null;
@@ -173,7 +184,7 @@ export const clientPackOf = (pool: PackPool & { pack: BuiltPack }): ClientPack =
   return {
     state: pack.state,
     href,
-    error: pack.state === "failed" ? pack.error : null,
+    error: withError && pack.state === "failed" ? pack.error : null,
     gone: pack.gone,
   };
 };

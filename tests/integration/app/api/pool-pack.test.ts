@@ -121,6 +121,26 @@ describe("a change to a shared pool", () => {
   });
 });
 
+describe("packs' reason for a failed sync", () => {
+  it("goes to the owner and editors only", async () => {
+    const failed = { ...EMPTY_BUILT_PACK, state: "failed" as const, error: "packs answered 503." };
+    await insertPool(cast, { _id: ID, visibility: "public", slots: SLOTS, pack: failed });
+    const packOf = async (cookie: string | null) =>
+      (
+        (await (await GET(poolRequest("GET", `/api/pools/${ID}`, cookie), at)).json()) as {
+          pool: { pack: { state: string; error: string | null } };
+        }
+      ).pool.pack;
+    expect(await packOf(cast.editor.cookie)).toEqual(
+      expect.objectContaining({ state: "failed", error: "packs answered 503." }),
+    );
+    expect(await packOf(cast.other.cookie)).toEqual(
+      expect.objectContaining({ state: "failed", error: null }),
+    );
+    expect(await packOf(null)).toEqual(expect.objectContaining({ error: null }));
+  });
+});
+
 describe("a change to who edits a shared pool", () => {
   it("syncs the pack with the names in its description", async () => {
     await insertPool(cast, { _id: ID, visibility: "public", slots: SLOTS });

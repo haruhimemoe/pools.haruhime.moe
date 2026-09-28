@@ -19,6 +19,7 @@ import {
   nextBuiltPack,
   PACK_GONE,
   PACK_SYNC_INTERVAL_MS,
+  PACKS_NOT_TAKING,
   packSyncDue,
 } from "@/utils/built-pack";
 import { makeBuiltPool } from "../../helpers/built-pools";
@@ -125,8 +126,9 @@ describe("nextBuiltPack", () => {
       state: "failed",
       error: "packs answered 503.",
     });
-    const config = { kind: "config" as const, message: "packs refused the service token." };
-    expect(nextBuiltPack(previous, config, NOW).error).toBe("packs refused the service token.");
+    // A settings problem is ours to fix: builders get a plain reason, never the setting's name.
+    const config = { kind: "config" as const, message: "Check POOLS_SERVICE_TOKEN in both apps." };
+    expect(nextBuiltPack(previous, config, NOW).error).toBe(PACKS_NOT_TAKING);
     expect(nextBuiltPack(previous, { kind: "gone" }, NOW)).toMatchObject({
       state: "failed",
       error: PACK_GONE,
@@ -163,6 +165,8 @@ describe("clientPackOf", () => {
   it("gives no link unless synced, the reason when failed, and none for a private pool", () => {
     const failed = shared({ state: "failed", error: "packs answered 503." });
     expect(clientPackOf(failed)).toMatchObject({ href: null, error: "packs answered 503." });
+    // Only the owner and editors get packs' reason; anyone else sees the state alone.
+    expect(clientPackOf(failed, { withError: false }).error).toBeNull();
     expect(clientPackOf(shared({ state: "pending" }))).toMatchObject({ href: null, error: null });
     const private_ = makeBuiltPool({ pack: { ...synced, state: "pending" } });
     expect(clientPackOf(private_).state).toBe("none");

@@ -192,7 +192,8 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     buckets: bucketsOf(pool).map((entry) => ({ ...entry })),
     slots: pool.slots,
     version: pool.version,
-    pack: clientPackOf(pool),
+    // packs' reasons are for the people who fix the pool.
+    pack: clientPackOf(pool, { withError: canEdit }),
     startedFrom: pool.startedFrom,
     createdAt: pool.createdAt,
     updatedAt: pool.updatedAt,
