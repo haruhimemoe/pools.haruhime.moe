@@ -1,10 +1,10 @@
 # pools.haruhime.moe
 
-> Source for https://pools.haruhime.moe (in beta), a site of past osu! tournament mappools: pool search, a search of every osu! map (through the hinai mirror, leaving out sets officially supported tournaments can't use), search of the maps played in pools, every tournament a map was played in, and a check of a pool against the content rules for officially supported tournaments. Pools come from otdb's export (by Sheppsu), tournament hosts and community members; an importer fills a MongoDB database from otdb's export, admins add the pools hosts and community members send (in the Discord server or by email), and every pool gets a plain pack on packs.haruhime.moe. Anyone can sign in with osu!; admins are listed by osu! ID. It never hosts beatmap files. Next.js 16, React 19, TypeScript 7 and MongoDB, run with Bun. MIT license. The live site serves its own llms.txt at https://pools.haruhime.moe/llms.txt; this file covers the repository.
+> Source for https://pools.haruhime.moe (in beta), where you build an osu! tournament mappool: anyone signs in with osu! and makes pools with co-editors, searching every osu! map under a mod (star rating, AR, OD, BPM and length with that mod, from the hinai mirror), checking the pool against the content rules for officially supported tournaments, and seeing where each map was played before; an unlisted or public pool with maps gets its own pack on packs.haruhime.moe, kept in step with it. Past tournament pools are there as reference: pool search, a search of every osu! map (leaving out sets officially supported tournaments can't use), search of the maps played in pools, and every tournament a map was played in. Past pools come from otdb's export (by Sheppsu), tournament hosts and community members; an importer fills a MongoDB database from otdb's export, admins add the pools hosts and community members send (in the Discord server or by email), and every past pool gets a plain pack on packs.haruhime.moe. Admins are listed by osu! ID and moderate built pools. It never hosts beatmap files. Next.js 16, React 19, TypeScript 7 and MongoDB, run with Bun. MIT license. The live site serves its own llms.txt at https://pools.haruhime.moe/llms.txt; this file covers the repository.
 
 ## Site
 
-- [llms.txt on the live site](https://pools.haruhime.moe/llms.txt): the pages, every current pool, the most used maps and the legal pages
+- [llms.txt on the live site](https://pools.haruhime.moe/llms.txt): the pages, every current past pool, every public built pool, the most used maps and the legal pages
 - [pools.haruhime.moe](https://pools.haruhime.moe/): the live site
 
 ## Docs
@@ -20,7 +20,10 @@
 - [src/lib/import-runner.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/lib/import-runner.ts): the import run
 - [src/services/add-pool.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/add-pool.ts): an admin adding a host or community pool through the importer's planner
 - [src/lib/map-search.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/lib/map-search.ts) and [src/services/all-maps.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/all-maps.ts): searching every osu! map and judging each set
-- [src/models/Pool.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/models/Pool.ts): the pool record's fields and indexes
+- [src/models/Pool.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/models/Pool.ts): the past pool record's fields and indexes
+- [src/models/BuiltPool.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/models/BuiltPool.ts) and [src/schemas/built-pool.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/schemas/built-pool.ts): a built pool's fields, limits and indexes
+- [src/components/builder/](https://github.com/haruhimemoe/pools.haruhime.moe/tree/main/src/components/builder) and [src/hooks/usePoolEditor.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/hooks/usePoolEditor.ts): the pool editor and the map browser
+- [src/services/built-pack-sync.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/built-pack-sync.ts): keeping a built pool's pack on packs in step
 - [src/utils/llms-txt.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/utils/llms-txt.ts): builds the live /llms.txt
 - [.env.example](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/.env.example): every environment variable, with what it's for
 
@@ -32,4 +35,4 @@
 - [@haruhimemoe/compliance](https://github.com/haruhimemoe/compliance): the content rules for officially supported tournaments
 - [@haruhimemoe/ui](https://github.com/haruhimemoe/ui): the React components and theme the site is built from
 - [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview
-- [packs.haruhime.moe](https://github.com/haruhimemoe/packs.haruhime.moe): the pack builder each pool opens in
+- [packs.haruhime.moe](https://github.com/haruhimemoe/packs.haruhime.moe): the pack builder each pool opens in, and where shared built pools get their packs

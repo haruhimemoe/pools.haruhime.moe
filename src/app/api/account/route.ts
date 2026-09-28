@@ -18,6 +18,7 @@ import { packRemovalsQueuedText } from "@/constants/built-pools";
 import { jsonError, noStore, parseJsonBody, refuseCrossSite } from "@/lib/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { limitUser } from "@/lib/pool-routes";
+import { revalidateBuiltLists } from "@/lib/revalidate";
 import { SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
 import { deleteAccount } from "@/services/account";
 
@@ -42,6 +43,8 @@ export async function DELETE(request: Request) {
   const limited = await limitUser(RATE_LIMITS.accountDelete, user);
   if (limited) return limited;
   const { packRemovalsQueued } = await deleteAccount(user);
+  // Their public pools leave the home page, the sitemap and llms.txt.
+  revalidateBuiltLists();
   const response = noStore(
     packRemovalsQueued > 0
       ? Response.json({ packRemovalsQueued, notice: packRemovalsQueuedText(packRemovalsQueued) })

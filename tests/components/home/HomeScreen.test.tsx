@@ -1,12 +1,14 @@
 /**
  * @file tests/components/home/HomeScreen.test.tsx
- * @desc The home page: what pools is (pools and every osu! map), its counts (or "No pools
- *       yet.") with a link to where pools come from instead of one source's name, a pools search
- *       that works without JavaScript, the maps search, the links to search, check and submit,
- *       and the pools added last.
+ * @desc The home page leads with building: "Build an osu! tournament mappool", Make a pool (to
+ *       /new, which handles sign-in) and a line on what the builder does. Then the maps search
+ *       and past pools: their counts (or "No pools yet.") with a link to where they come from
+ *       instead of one source's name, a pools search that works without JavaScript, the links to
+ *       search, check and submit, the pools built here lately (public ones, with who built them)
+ *       and the past pools added last, each left out when there are none.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -15,29 +17,47 @@ import { HomeScreen } from "@/components/home/HomeScreen";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
+const COUNTS = { pools: 633, maps: 7093, sources: ["otdb" as const] };
+
 describe("HomeScreen", () => {
-  it("says what pools is, counts pools and maps, and links where they come from", () => {
-    const { container } = render(
-      <HomeScreen counts={{ pools: 633, maps: 7093, sources: ["otdb"] }} />,
+  it("leads with building a pool", () => {
+    render(<HomeScreen counts={COUNTS} />);
+    const heading = screen.getByRole("heading", {
+      level: 1,
+      name: "Build an osu! tournament mappool",
+    });
+    const header = heading.parentElement?.parentElement as HTMLElement;
+    expect(within(header).getByRole("link", { name: "Make a pool" })).toHaveAttribute(
+      "href",
+      "/new",
     );
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Past osu! tournament mappools" }),
-    ).toBeInTheDocument();
+    for (const feature of [
+      /under a mod/,
+      /content rules/,
+      /played before/,
+      /co-editors/,
+      /packs/,
+    ]) {
+      expect(header).toHaveTextContent(feature);
+    }
+  });
+
+  it("counts past pools and maps, and links where they come from", () => {
+    const { container } = render(<HomeScreen counts={COUNTS} />);
     const where = screen.getByRole("link", { name: "where they come from" });
     expect(where).toHaveAttribute("href", "/data#pools");
     expect(where.parentElement).toHaveTextContent("633 pools · 7093 maps · where they come from");
     expect(container).not.toHaveTextContent("otdb");
-    expect(container).toHaveTextContent(/Search pools from past tournaments and every osu! map/);
   });
 
-  it("says when there are no pools yet", () => {
+  it("says when there are no past pools yet", () => {
     render(<HomeScreen counts={{ pools: 0, maps: 0, sources: [] }} />);
     expect(screen.getByText("No pools yet.")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "where they come from" })).toBeNull();
   });
 
-  it("searches pools with a plain form and links search and check", () => {
-    render(<HomeScreen counts={{ pools: 1, maps: 1, sources: ["otdb"] }} />);
+  it("searches maps and past pools with plain forms, and links search and check", () => {
+    render(<HomeScreen counts={COUNTS} />);
     const form = screen.getByRole("search", { name: "Pools" });
     expect(form).toHaveAttribute("action", "/search");
     expect(within(form).getByLabelText("Tournament, round or pool name")).toHaveAttribute(
@@ -54,12 +74,25 @@ describe("HomeScreen", () => {
       "/search",
     );
     expect(screen.getByRole("link", { name: "Check a pool" })).toHaveAttribute("href", "/check");
+    expect(screen.getByRole("link", { name: "Submit a pool" })).toHaveAttribute("href", "/submit");
   });
 
-  it("lists the pools added last, linking their pages", () => {
+  it("lists pools built here lately and the past pools added last", () => {
     render(
       <HomeScreen
-        counts={{ pools: 2, maps: 3, sources: ["otdb", "host"] }}
+        counts={COUNTS}
+        built={[
+          {
+            id: "b-a0000001",
+            name: "My Cup Finals",
+            tournament: "My Cup",
+            round: "",
+            year: null,
+            maps: 3,
+            builtBy: "peppy",
+            updatedAt: new Date("2026-09-27T12:00:00.000Z"),
+          },
+        ]}
         recent={[
           {
             _id: "host-hz9y8x7w",
@@ -72,16 +105,22 @@ describe("HomeScreen", () => {
         ]}
       />,
     );
+    const built = screen.getByRole("region", { name: "Recently built" });
+    expect(within(built).getByRole("link", { name: "My Cup Finals" })).toHaveAttribute(
+      "href",
+      "/pools/b-a0000001",
+    );
+    expect(built).toHaveTextContent("My Cup · 3 maps · Built by peppy");
     const recent = screen.getByRole("region", { name: "Recently added" });
     expect(
       within(recent).getByRole("link", { name: "Spring Cup 2026 Grand Finals" }),
     ).toHaveAttribute("href", "/pools/host-hz9y8x7w");
     expect(recent).toHaveTextContent("Spring Cup · Grand Finals · 2026");
-    expect(screen.getByRole("link", { name: "Submit a pool" })).toHaveAttribute("href", "/submit");
   });
 
-  it("leaves Recently added out when there's nothing to list", () => {
+  it("leaves both lists out when there's nothing to list", () => {
     render(<HomeScreen counts={{ pools: 0, maps: 0, sources: [] }} />);
     expect(screen.queryByRole("region", { name: "Recently added" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Recently built" })).toBeNull();
   });
 });

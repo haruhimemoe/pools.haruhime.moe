@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Build a pool: anyone signs in with osu! and makes pools at `/new`, then edits them at `/pools/<id>/edit`: details, maps in slots (built-in and custom, with forced mods or freemod), moving without drag, pasted slot lines, IDs or links, and a summary with the content rules check. Every change saves at once, and a change someone else made first reloads the pool.
+- A map browser in the editor that searches osu! maps under a mod lens, with star rating, AR, OD, BPM and length under that mod, and adds a difficulty to the matching slot.
+- Pool slots show their values under the slot's mods, on past and built pools.
+- Co-editors, added by osu! username; who can see a pool (private, unlisted or public); deleting a pool or the whole account.
+- Unlisted and public built pools with maps get their own pack on packs.haruhime.moe, crediting the owner and editors and kept in step after each change. The editor shows the pack's state with "Update pack now", and the pool's page shows "Download on packs".
+- "Start from this pool" on past and built pool pages copies a pool's maps into a new private pool.
+- Search's pools tab lists past tournament pools, public pools built here, or both; public built pools are in the sitemap and llms.txt, and the home page lists them under Recently built.
+- Admins hide, unhide and delete built pools from `/admin`; a hidden pool's pack is unlisted on packs.
+- The home page, site description and llms.txt lead with building a pool; past pools stay as reference.
 - Past tournament pools from otdb's export, tournament hosts and community members, each with its tournament, round and year, its notes, who it came from (with the link they gave) and a link to open it in packs.
 - Admins add pools that hosts and community members send at `/admin/pools/new`: a packs link, a pack key, or slot lines and beatmap IDs. A pool whose maps match one we have joins it instead of making a copy.
 - Search every osu! map through the hinai mirror, by text, status, star rating, length and BPM, with explicit maps on request. Sets that can't be used in officially supported tournaments are left out and counted, sets to check first are marked, unranked maps carry a warning, and each difficulty says how many pools played it. The maps tab opens on all maps; Played in pools keeps the old search, and old links still open it.

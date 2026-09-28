@@ -55,6 +55,14 @@ describe("/data", () => {
     );
   });
 
+  it("says pools built here get a pack on packs and never count as played before", () => {
+    render(<DataPage />);
+    const pools = section("Pools");
+    expect(pools).toHaveTextContent(/Pools built here/);
+    expect(pools).toHaveTextContent(/unlisted or public and has maps gets a pack on packs/);
+    expect(pools).toHaveTextContent(/never count toward where a map was played before/);
+  });
+
   it("says where map details and values with mods come from, and that no files are hosted", () => {
     render(<DataPage />);
     const maps = section("Maps");

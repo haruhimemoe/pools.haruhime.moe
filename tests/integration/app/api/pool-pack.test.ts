@@ -11,6 +11,7 @@
  * @modified Sun Sep 27, 2026
  */
 
+import { revalidatePath } from "next/cache";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE as deleteEditor } from "@/app/api/pools/[id]/editors/[osuId]/route";
 import { POST as postEditor } from "@/app/api/pools/[id]/editors/route";
@@ -87,6 +88,10 @@ describe("a change to a shared pool", () => {
     });
     expect((await PUT(privately, at)).status).toBe(200);
     expect(deletes.map((call) => call.id)).toEqual([ID]);
+    // It leaves the home page, the sitemap and llms.txt.
+    expect(vi.mocked(revalidatePath).mock.calls.map(([path]) => path)).toEqual(
+      expect.arrayContaining(["/", "/sitemap.xml", "/llms.txt"]),
+    );
     expect(afterTaskCount()).toBe(0);
   });
 

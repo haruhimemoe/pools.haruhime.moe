@@ -1,9 +1,10 @@
 /**
  * @file tests/unit/utils/llms-txt.test.ts
- * @desc /llms.txt: title, summary, the notes a reader needs first (pools from otdb, hosts and
+ * @desc /llms.txt: title, summary, the notes a reader needs first (building a pool first; past
+ *       pools from otdb, hosts and
  *       community members, no-mod stars, no file hosting, guidance not rulings, no API), the
- *       pages (Make a pool, Submit a pool and Data among them), every current pool and the most used maps
- *       it's given, the legal pages; markdown in imported names escaped so a name can't add a
+ *       pages (Make a pool, Submit a pool and Data among them), every current pool, every public
+ *       built pool with who built it and the most used maps it's given, the legal pages; markdown in imported names escaped so a name can't add a
  *       link or break one; empty sections left out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -100,7 +101,36 @@ describe("buildLlmsTxt", () => {
   it("leaves out empty sections", () => {
     const text = buildLlmsTxt(llmsSections({ pools: [], maps: [] }));
     expect(text).not.toContain("## Pools");
+    expect(text).not.toContain("## Built pools");
     expect(text).not.toContain("## Maps");
     expect(text).toContain("## Pages");
+  });
+
+  it("leads with building a pool and lists public built pools with who built them", () => {
+    const text = buildLlmsTxt(
+      llmsSections({
+        pools: [],
+        built: [
+          {
+            id: "b-a0000001",
+            name: "My Cup [Finals]",
+            tournament: "My Cup",
+            round: "",
+            year: null,
+            maps: 3,
+            builtBy: "peppy",
+          },
+        ],
+        maps: [],
+      }),
+    );
+    const [, , first, second] = text.split("\n\n");
+    expect(first).toMatch(/^pools is where you build an osu! tournament mappool/);
+    expect(second).toMatch(/^Past osu! tournament mappools are there as reference/);
+    expect(text).toContain("its own pack on packs.haruhime.moe");
+    expect(text).toContain("## Built pools");
+    expect(text).toContain(
+      "- [My Cup \\[Finals\\]](https://pools.haruhime.moe/pools/b-a0000001): My Cup · 3 maps · Built by peppy",
+    );
   });
 });

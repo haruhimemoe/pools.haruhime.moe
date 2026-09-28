@@ -4,7 +4,7 @@
  *       and GitHub org, navigation, the affiliation notice, and the User-Agent our server sends.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 export const SITE = {
@@ -12,7 +12,7 @@ export const SITE = {
   title: "pools.haruhime.moe",
   url: "https://pools.haruhime.moe",
   description:
-    "Search past osu! tournament mappools and their maps, see where a map was played before, and check a pool against the content rules for officially supported tournaments.",
+    "Build an osu! tournament mappool: search every osu! map under a mod, check the pool against the content rules for officially supported tournaments, and download it on packs, with past tournament pools as reference for where a map was played before.",
   contactEmail: "contact@haruhime.moe",
   /** The haruhime.moe Discord server: pool submissions, corrections, the footer's Discord icon. */
   discordUrl: "https://discord.gg/bKy9kjMV4y",

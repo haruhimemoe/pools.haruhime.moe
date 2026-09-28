@@ -1,20 +1,29 @@
 /**
  * @file src/components/home/HomeScreen.tsx
- * @desc The home page: what pools is, its counts with a link to where pools come from (/data,
- *       rather than naming one source), a pools search (a plain GET form), the maps search (all
- *       osu! maps), links to the full search, the check and Submit a pool, and the pools added
- *       last (left out when there are none).
+ * @desc The home page leads with building: "Build an osu! tournament mappool", Make a pool (to
+ *       /new, which asks a visitor to sign in) and what the builder does. Then the maps search
+ *       (all osu! maps) and past pools as reference: their counts with a link to where they come
+ *       from (/data, rather than naming one source), a pools search (a plain GET form), links to
+ *       the full search, the check and Submit a pool, then the public pools built here lately
+ *       (Recently built) and the past pools added last (Recently added), each left out when
+ *       there are none.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { Button, ButtonLink, Card, PageHeader, TextInput } from "@haruhimemoe/ui";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { MapSearchForm } from "@/components/home/MapSearchForm";
+import { RecentlyBuilt } from "@/components/home/RecentlyBuilt";
+import type { ListedBuiltPool } from "@/services/built-listings";
 import type { HomeCounts, RecentPool } from "@/services/pools";
 import { poolHeadline } from "@/utils/pool-text";
+
+/** What the builder does, in one line. */
+export const BUILDER_LINE =
+  "Search every osu! map under a mod and see its star rating, AR and OD with it, check the pool against the content rules for officially supported tournaments, see where each map was played before, work on it with co-editors, and download it on packs.";
 
 const countsLine = ({ pools, maps }: HomeCounts): ReactNode =>
   pools === 0 ? (
@@ -28,22 +37,30 @@ const countsLine = ({ pools, maps }: HomeCounts): ReactNode =>
     </>
   );
 
-export function HomeScreen({
-  counts,
-  recent = [],
-}: {
+type HomeScreenProps = {
   counts: HomeCounts;
   recent?: readonly RecentPool[];
-}) {
+  built?: readonly ListedBuiltPool[];
+};
+
+export function HomeScreen({ counts, recent = [], built = [] }: HomeScreenProps) {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Past osu! tournament mappools"
-        lead="Search pools from past tournaments and every osu! map, see where a map was played before, and check a pool you're building against the content rules for officially supported tournaments."
-        meta={countsLine(counts)}
+        title="Build an osu! tournament mappool"
+        lead={BUILDER_LINE}
+        actions={
+          <ButtonLink href="/new" size="lg">
+            Make a pool
+          </ButtonLink>
+        }
       />
       <div className="grid gap-6 md:grid-cols-2">
-        <Card title="Search pools">
+        <Card title="Search maps">
+          <MapSearchForm />
+        </Card>
+        <Card title="Search past pools">
+          <p className="mb-3 text-c3 text-sm">{countsLine(counts)}</p>
           {/* biome-ignore lint/a11y/useSemanticElements: the form is the landmark (older screen readers don't map <search>) */}
           <form
             action="/search"
@@ -59,13 +76,10 @@ export function HomeScreen({
               label="Tournament, round or pool name"
               autoComplete="off"
             />
-            <Button type="submit" className="self-start">
+            <Button type="submit" variant="secondary" className="self-start">
               Search pools
             </Button>
           </form>
-        </Card>
-        <Card title="Search maps">
-          <MapSearchForm />
         </Card>
       </div>
       <div className="flex flex-wrap gap-3">
@@ -79,19 +93,24 @@ export function HomeScreen({
           Submit a pool
         </ButtonLink>
       </div>
-      {recent.length > 0 ? (
-        <Card title="Recently added">
-          <ul className="flex flex-col gap-2">
-            {recent.map((pool) => (
-              <li key={pool._id}>
-                <Link href={`/pools/${pool._id}`} className="font-bold text-c1 hover:underline">
-                  {pool.name}
-                </Link>
-                <p className="text-c3 text-sm">{poolHeadline(pool)}</p>
-              </li>
-            ))}
-          </ul>
-        </Card>
+      {built.length > 0 || recent.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2">
+          {built.length > 0 ? <RecentlyBuilt pools={built} /> : null}
+          {recent.length > 0 ? (
+            <Card title="Recently added">
+              <ul className="flex flex-col gap-2">
+                {recent.map((pool) => (
+                  <li key={pool._id}>
+                    <Link href={`/pools/${pool._id}`} className="font-bold text-c1 hover:underline">
+                      {pool.name}
+                    </Link>
+                    <p className="text-c3 text-sm">{poolHeadline(pool)}</p>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

@@ -16,6 +16,7 @@ import { PACK_REMOVAL_QUEUED } from "@/constants/built-pools";
 import { getUserFromHeaders } from "@/lib/auth";
 import { schedulePackSync } from "@/lib/pack-sync-after";
 import { guardWrite, limitUser, noContent, poolResponse, refusalResponse } from "@/lib/pool-routes";
+import { revalidateBuiltLists } from "@/lib/revalidate";
 import { deleteBuiltPool, getBuiltPoolFor } from "@/services/built-pools";
 import { packWaiting } from "@/utils/built-pack";
 
@@ -41,6 +42,7 @@ export async function DELETE(request: Request, { params }: Context) {
   if (limited) return limited;
   const answer = await deleteBuiltPool(id, caller.value);
   if (!answer.ok) return refusalResponse(answer);
+  revalidateBuiltLists();
   if (answer.value.packRemoval === "queued") {
     return poolResponse({ packRemoval: "queued", notice: PACK_REMOVAL_QUEUED });
   }

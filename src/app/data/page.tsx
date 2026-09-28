@@ -2,7 +2,7 @@
  * @file src/app/data/page.tsx
  * @desc /data: where pools' data comes from and how it's kept, in four sections the footer
  *       links by anchor: #pools (otdb's export, tournament hosts, community members; merged by
- *       map list, each pool page names its sources), #maps (JSON from the hinai mirror, which
+ *       map list, each pool page names its sources; built pools and their packs on packs), #maps (JSON from the hinai mirror, which
  *       serves osu! API data; a map it doesn't have keeps its source's; no files, star ratings with mods from the mirror), #rules (the check, guidance only; the all-maps search
  *       can't see takedown notices on ranked and loved maps) and #corrections
  *       (Discord or email). Static.
@@ -52,6 +52,13 @@ export default function DataPage() {
           <p>
             We read a pool's tournament, round and year from its name, so some are wrong. Admins fix
             what they find. Have a pool we're missing? <Link href="/submit">Submit a pool</Link>.
+          </p>
+          <p>
+            Pools built here are different: people make them with the builder, and they aren't past
+            tournament pools. A built pool that's unlisted or public and has maps gets a pack on
+            packs, under packs' haruhime pools account, crediting its owner and editors and kept in
+            step with the pool; the pack goes when the pool goes private or is deleted. Built pools
+            never count toward where a map was played before.
           </p>
         </section>
         <section id="maps" aria-labelledby="maps-title">

@@ -91,6 +91,11 @@ describe("copy rules", () => {
     expect(SITE.description).not.toMatch(/otdb|sheppsu/i);
   });
 
+  it("describes pools as where you build a pool, past pools as reference", () => {
+    expect(SITE.description).toMatch(/^Build an osu! tournament mappool/);
+    expect(SITE.description).toMatch(/past tournament pools as reference/);
+  });
+
   it.each(DOCS)("%s ends with a newline", (file) => {
     expect(readFileSync(file, "utf8").endsWith("\n")).toBe(true);
   });

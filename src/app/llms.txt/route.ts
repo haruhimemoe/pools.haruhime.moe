@@ -1,13 +1,14 @@
 /**
  * @file src/app/llms.txt/route.ts
- * @desc GET /llms.txt: a map of the site for AI assistants (llmstxt.org), with every current pool
- *       and the most used maps. ISR, daily (Refresh public pages on /admin rebuilds it at once);
+ * @desc GET /llms.txt: a map of the site for AI assistants (llmstxt.org), with every current
+ *       past pool, every public built pool and the most used maps. ISR, daily (Refresh public pages on /admin rebuilds it at once);
  *       a database error fails the render, so ISR keeps serving the last good one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
+import { listPublicBuiltPools } from "@/services/built-listings";
 import { listListedMaps } from "@/services/maps";
 import { listCurrentPools } from "@/services/pools";
 import { buildLlmsTxt, LLMS_MAP_LIMIT, llmsSections } from "@/utils/llms-txt";
@@ -15,8 +16,12 @@ import { buildLlmsTxt, LLMS_MAP_LIMIT, llmsSections } from "@/utils/llms-txt";
 export const revalidate = 86400;
 
 export async function GET() {
-  const [pools, maps] = await Promise.all([listCurrentPools(), listListedMaps(LLMS_MAP_LIMIT)]);
-  return new Response(buildLlmsTxt(llmsSections({ pools, maps })), {
+  const [pools, built, maps] = await Promise.all([
+    listCurrentPools(),
+    listPublicBuiltPools(),
+    listListedMaps(LLMS_MAP_LIMIT),
+  ]);
+  return new Response(buildLlmsTxt(llmsSections({ pools, built, maps })), {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 }

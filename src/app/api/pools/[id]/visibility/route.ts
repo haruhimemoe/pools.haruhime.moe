@@ -4,7 +4,8 @@
  *       in, from this site, JSON, within the per-user write limit. Going private removes its
  *       pack on packs; when packs can't be asked the pool goes private anyway and the answer
  *       adds `packRemoval: "queued"` and a notice. Going unlisted or public syncs its pack after
- *       the answer. 200 with the pool. Never cached.
+ *       the answer. The home page, sitemap and llms.txt are marked stale. 200 with the pool.
+ *       Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -20,6 +21,7 @@ import {
   readPoolBody,
   refusalResponse,
 } from "@/lib/pool-routes";
+import { revalidateBuiltLists } from "@/lib/revalidate";
 import { visibilityBodySchema } from "@/schemas/built-pool-ops";
 import { setBuiltPoolVisibility } from "@/services/built-pools";
 
@@ -39,6 +41,7 @@ export async function PUT(request: Request, { params }: Context) {
   const answer = await setBuiltPoolVisibility(id, caller.value, body.value.visibility);
   if (!answer.ok) return refusalResponse(answer);
   const { pool, packRemoval } = answer.value;
+  revalidateBuiltLists();
   if (pool.visibility !== "private") schedulePackSync(id);
   if (packRemoval === "queued") {
     return poolResponse({ pool, packRemoval, notice: PACK_REMOVAL_QUEUED });
