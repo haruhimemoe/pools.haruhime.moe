@@ -8,7 +8,7 @@
  */
 
 import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
-import Link from "next/link";
+import { TextLink } from "@haruhimemoe/ui";
 import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";
 import type { MapResult } from "@/utils/search-params";
@@ -19,9 +19,9 @@ export function MapResultList({ results }: { results: readonly MapResult[] }) {
     <ul className="flex flex-col gap-3">
       {results.map((map) => (
         <li key={map.id} className="rounded-lg bg-b4 p-4">
-          <Link href={`/maps/${map.id}`} className="font-bold text-c1 hover:underline">
+          <TextLink href={`/maps/${map.id}`} variant="plain">
             {mapLabel(map, map.id)}
-          </Link>
+          </TextLink>
           <p className="text-c3 text-sm">
             {[
               map.setHost ? `Set host ${map.setHost}` : null,

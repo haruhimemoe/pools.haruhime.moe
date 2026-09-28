@@ -16,7 +16,7 @@
 
 "use client";
 
-import { Notice, PageHeader, Pagination } from "@haruhimemoe/ui";
+import { LinkTabs, Notice, PageHeader, Pagination } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -124,29 +124,23 @@ export function SearchScreen() {
         title="Search"
         lead="Past osu! tournament pools, pools built here, the maps they played, and every osu! map. Star ratings are without mods."
       />
-      <nav aria-label="What to search" className="flex gap-4 font-bold">
-        {(["pools", "maps"] as const).map((tab) => (
-          <Link
-            key={tab}
-            href={searchHref(
-              tab === "pools"
-                ? { tab, page: 1, filters: { ...EMPTY_POOL_FILTERS, q: state.filters.q } }
-                : {
-                    tab,
-                    scope: "all",
-                    page: 1,
-                    filters: { ...EMPTY_ALL_MAP_FILTERS, q: state.filters.q },
-                  },
-            )}
-            aria-current={state.tab === tab ? "page" : undefined}
-            className={
-              state.tab === tab ? "text-c1 underline underline-offset-4" : "text-c3 hover:text-c1"
-            }
-          >
-            {tab === "pools" ? "Pools" : "Maps"}
-          </Link>
-        ))}
-      </nav>
+      <LinkTabs
+        label="What to search"
+        items={(["pools", "maps"] as const).map((tab) => ({
+          href: searchHref(
+            tab === "pools"
+              ? { tab, page: 1, filters: { ...EMPTY_POOL_FILTERS, q: state.filters.q } }
+              : {
+                  tab,
+                  scope: "all",
+                  page: 1,
+                  filters: { ...EMPTY_ALL_MAP_FILTERS, q: state.filters.q },
+                },
+          ),
+          label: tab === "pools" ? "Pools" : "Maps",
+          current: state.tab === tab,
+        }))}
+      />
       {state.tab === "pools" ? (
         <PoolFilterPanel
           filters={state.filters}

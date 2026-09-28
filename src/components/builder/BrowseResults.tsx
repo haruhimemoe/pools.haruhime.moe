@@ -8,13 +8,13 @@
  *       where mod values come from. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
-import { Button, Notice } from "@haruhimemoe/ui";
+import { Button, cx, Notice } from "@haruhimemoe/ui";
 import { BrowseSetCard } from "@/components/builder/BrowseSetCard";
 import { hiddenSetsText, MAX_SEARCH_PAGE, UNRANKED_WARNING } from "@/constants/search";
 import type { MapBrowse } from "@/hooks/useMapBrowse";
@@ -84,7 +84,7 @@ export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) 
     MAX_SEARCH_PAGE,
   );
   return (
-    <div className={`flex flex-col gap-3 ${status === "loading" ? "opacity-60" : ""}`}>
+    <div className={cx("flex flex-col gap-3", status === "loading" && "opacity-60")}>
       {leftOut(data).map((line) => (
         <p key={line} className="text-c3 text-sm">
           {line}

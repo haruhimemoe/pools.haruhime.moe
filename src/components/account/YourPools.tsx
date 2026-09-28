@@ -5,10 +5,10 @@
  *       holds and a link to its editor; "Make a pool" goes to /new. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { ButtonLink } from "@haruhimemoe/ui";
+import { ButtonLink, TextLink } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { VISIBILITY_TEXT } from "@/constants/built-pools";
 import type { PoolListItem, YourPools as Pools } from "@/services/built-pools";
@@ -26,9 +26,9 @@ function PoolList({ title, pools }: { title: string; pools: PoolListItem[] }) {
             key={pool.id}
             className="flex flex-col gap-1 border-b3 border-t py-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3"
           >
-            <Link href={`/pools/${pool.id}`} className="font-bold text-c1 hover:underline">
+            <TextLink href={`/pools/${pool.id}`} variant="plain">
               {pool.name}
-            </Link>
+            </TextLink>
             <span className="flex flex-wrap items-baseline gap-x-3 text-c3 text-xs">
               <span>
                 {VISIBILITY_TEXT[pool.visibility].label.toLowerCase()} ·{" "}

@@ -12,6 +12,7 @@
 
 import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
 import { beatmapUrl } from "@haruhimemoe/osu/shapes";
+import { TextLink } from "@haruhimemoe/ui";
 import type { BuiltMap } from "@/schemas/built-pool-view";
 import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";
@@ -47,13 +48,9 @@ export function SlotMapText({ beatmapId, map, values, link = false }: SlotMapTex
   return (
     <div className="min-w-0 break-words">
       {link ? (
-        <a
-          href={beatmapUrl(beatmapId)}
-          rel="noreferrer"
-          className="font-bold text-c1 hover:underline"
-        >
+        <TextLink href={beatmapUrl(beatmapId)} rel="noreferrer" variant="plain">
           {label}
-        </a>
+        </TextLink>
       ) : (
         <p className="font-bold text-c1">{label}</p>
       )}

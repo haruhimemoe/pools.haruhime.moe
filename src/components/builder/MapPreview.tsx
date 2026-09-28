@@ -12,6 +12,7 @@
 
 "use client";
 
+import { cx } from "@haruhimemoe/ui";
 import Image from "next/image";
 import { useEffect } from "react";
 import { holdPreview, togglePreview, usePlayingSet } from "@/hooks/usePreviewPlayer";
@@ -50,7 +51,10 @@ export function MapPreview({ setId, song }: MapPreviewProps) {
         type="button"
         aria-label={previewLabel(song, on)}
         onClick={() => togglePreview(setId, previewClipUrl(setId))}
-        className={`absolute inset-0 flex items-center justify-center rounded-md text-c1 text-lg transition-colors ${on ? "bg-h2/70" : "bg-b6/45 hover:bg-b6/65"}`}
+        className={cx(
+          "absolute inset-0 flex items-center justify-center rounded-md text-c1 text-lg transition-colors",
+          on ? "bg-h2/70" : "bg-b6/45 hover:bg-b6/65",
+        )}
       >
         <span aria-hidden="true">{on ? "■" : "▶"}</span>
       </button>

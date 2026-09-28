@@ -14,7 +14,7 @@
  */
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
-import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
+import { ButtonLink, Card, Notice, PageHeader, TextLink } from "@haruhimemoe/ui";
 import { BuiltSlotList } from "@/components/builder/BuiltSlotList";
 import { type CheckRules, ContentRulesCheck } from "@/components/builder/ContentRulesCheck";
 import { ExportPanel } from "@/components/builder/ExportPanel";
@@ -73,13 +73,9 @@ export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps)
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {people.map((person) => (
             <li key={person.osuId}>
-              <a
-                href={userUrl(person.osuId)}
-                rel="noopener"
-                className="font-bold text-c1 hover:underline"
-              >
+              <TextLink href={userUrl(person.osuId)} rel="noopener" variant="plain">
                 {person.username}
-              </a>{" "}
+              </TextLink>{" "}
               <span className="text-c3">{person.role}</span>
             </li>
           ))}

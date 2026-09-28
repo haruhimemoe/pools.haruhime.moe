@@ -14,7 +14,7 @@
 "use client";
 
 import { isCustomBucket, type PoolSlot } from "@haruhimemoe/pool";
-import { Button } from "@haruhimemoe/ui";
+import { Button, cx } from "@haruhimemoe/ui";
 import { useId } from "react";
 import { type MoveTarget, SlotRow } from "@/components/builder/SlotRow";
 import type { SlotDrag } from "@/hooks/useSlotDrag";
@@ -67,7 +67,10 @@ export function BucketSection(props: BucketSectionProps) {
       data-bucket={code ?? ""}
       data-drop-bucket={code ?? ""}
       {...drag?.target()}
-      className={`flex flex-col rounded-lg ${over ? "outline-dashed outline-2 outline-h1 outline-offset-4" : ""}`}
+      className={cx(
+        "flex flex-col rounded-lg",
+        over && "outline-dashed outline-2 outline-h1 outline-offset-4",
+      )}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 id={headingId} tabIndex={-1} className="font-bold text-c1">

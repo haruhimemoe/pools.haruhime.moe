@@ -6,9 +6,10 @@
  *       a credit line for each source with a fixed author (otdb by Sheppsu).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { TextLink } from "@haruhimemoe/ui";
 import { SOURCE_CREDITS } from "@/constants/pools";
 import type { FormerSource, PoolSource } from "@/schemas/pool";
 
@@ -18,9 +19,9 @@ const SENT_LINK_REL = "nofollow ugc noopener";
 const SourceEntry = ({ source }: { source: PoolSource | FormerSource }) => {
   if (source.kind === "otdb") {
     return (
-      <a href={source.url} rel="noreferrer" className="font-bold text-h1 hover:underline">
+      <TextLink href={source.url} rel="noreferrer" className="font-bold">
         {SOURCE_CREDITS.otdb.label} pool #{source.id}
-      </a>
+      </TextLink>
     );
   }
   const { name, url } = source.credit;
@@ -28,9 +29,9 @@ const SourceEntry = ({ source }: { source: PoolSource | FormerSource }) => {
     <>
       {SOURCE_CREDITS[source.kind].lead}{" "}
       {url ? (
-        <a href={url} rel={SENT_LINK_REL} className="font-bold text-h1 hover:underline">
+        <TextLink href={url} rel={SENT_LINK_REL} className="font-bold">
           {name}
-        </a>
+        </TextLink>
       ) : (
         <span className="font-bold text-c1">{name}</span>
       )}

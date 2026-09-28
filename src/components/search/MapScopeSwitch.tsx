@@ -5,10 +5,10 @@
  *       BPM) and starts at page 1.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import Link from "next/link";
+import { LinkTabs } from "@haruhimemoe/ui";
 import { MAP_SCOPE_LABELS, MAP_SCOPES, type MapScope } from "@/constants/search";
 import {
   type AllMapFilters,
@@ -44,21 +44,13 @@ export function MapScopeSwitch({
   filters: AllMapFilters | MapFilters;
 }) {
   return (
-    <nav aria-label="Which maps" className="flex flex-wrap gap-2 text-sm">
-      {MAP_SCOPES.map((value) => (
-        <Link
-          key={value}
-          href={scopeHref(value, filters)}
-          aria-current={scope === value ? "page" : undefined}
-          className={
-            scope === value
-              ? "rounded-full bg-h1 px-3 py-1 font-bold text-b5"
-              : "rounded-full bg-b3 px-3 py-1 text-c2 hover:text-c1"
-          }
-        >
-          {MAP_SCOPE_LABELS[value]}
-        </Link>
-      ))}
-    </nav>
+    <LinkTabs
+      label="Which maps"
+      items={MAP_SCOPES.map((value) => ({
+        href: scopeHref(value, filters),
+        label: MAP_SCOPE_LABELS[value],
+        current: scope === value,
+      }))}
+    />
   );
 }

@@ -9,10 +9,10 @@
  *       there are none.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { Button, ButtonLink, Card, PageHeader, TextInput } from "@haruhimemoe/ui";
+import { Button, ButtonLink, Card, PageHeader, TextInput, TextLink } from "@haruhimemoe/ui";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { MapSearchForm } from "@/components/home/MapSearchForm";
@@ -101,9 +101,9 @@ export function HomeScreen({ counts, recent = [], built = [] }: HomeScreenProps)
               <ul className="flex flex-col gap-2">
                 {recent.map((pool) => (
                   <li key={pool._id}>
-                    <Link href={`/pools/${pool._id}`} className="font-bold text-c1 hover:underline">
+                    <TextLink href={`/pools/${pool._id}`} variant="plain">
                       {pool.name}
-                    </Link>
+                    </TextLink>
                     <p className="text-c3 text-sm">{poolHeadline(pool)}</p>
                   </li>
                 ))}

@@ -15,7 +15,7 @@
 
 import { formatBpm, formatDuration, formatStat } from "@haruhimemoe/osu/format";
 import type { BucketEntry } from "@haruhimemoe/pool";
-import Link from "next/link";
+import { Badge, TextLink } from "@haruhimemoe/ui";
 import { AddToPool } from "@/components/builder/AddToPool";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SET_STATUS_LABELS } from "@/constants/search";
@@ -32,9 +32,6 @@ type BrowseSetCardProps = {
   onAdd: (beatmapId: number, bucket: string | null) => void;
 };
 
-const TAG = "rounded-full px-2 py-0.5 text-xs";
-const WARN = `${TAG} bg-amber-300/20 font-bold text-amber-200`;
-
 const stat = (name: string, value: number | null) =>
   `${name} ${value === null ? "?" : formatStat(value)}`;
 
@@ -42,9 +39,9 @@ const played = ({ id, playedIn }: BrowseDiff) => {
   if (playedIn === null) return <span>Pool history unavailable</span>;
   if (playedIn === 0) return <span>Not played in a past pool</span>;
   return (
-    <Link href={`/maps/${id}`} className="text-h1 hover:underline">
+    <TextLink href={`/maps/${id}`}>
       Played in {playedIn} past {playedIn === 1 ? "pool" : "pools"}
-    </Link>
+    </TextLink>
   );
 };
 
@@ -56,18 +53,16 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
         <MapPreview setId={set.setId} song={`${set.artist} - ${set.title}`} />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <a
+            <TextLink
               href={`https://osu.ppy.sh/beatmapsets/${set.setId}`}
               rel="noreferrer"
-              className="font-bold text-c1 hover:underline"
+              variant="plain"
             >
               {`${set.artist} - ${set.title}`}
-            </a>
-            <span className={`${TAG} bg-b3 text-c2`}>
-              {SET_STATUS_LABELS[set.status] ?? set.status}
-            </span>
-            {set.unranked ? <span className={WARN}>Unranked</span> : null}
-            {set.check ? <span className={WARN}>Check first</span> : null}
+            </TextLink>
+            <Badge>{SET_STATUS_LABELS[set.status] ?? set.status}</Badge>
+            {set.unranked ? <Badge tone="warning">Unranked</Badge> : null}
+            {set.check ? <Badge tone="warning">Check first</Badge> : null}
           </div>
           <p className="text-c3 text-sm">Mapped by {set.creator}</p>
         </div>

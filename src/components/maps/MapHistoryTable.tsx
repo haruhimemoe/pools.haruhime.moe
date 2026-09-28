@@ -4,9 +4,10 @@
  *       and a Badged column only when some row knows it. Scrolls sideways on phones.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { Table, TBody, Td, THead, Th } from "@haruhimemoe/ui";
 import Link from "next/link";
 import type { HistoryRow } from "@/utils/history";
 import { yearText } from "@/utils/pool-text";
@@ -14,46 +15,31 @@ import { yearText } from "@/utils/pool-text";
 export function MapHistoryTable({ rows }: { rows: readonly HistoryRow[] }) {
   const showBadged = rows.some((row) => row.badged !== null);
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <caption className="sr-only">Pools that used this map, newest first</caption>
-        <thead className="text-c3 text-xs uppercase">
-          <tr>
-            <th scope="col" className="py-2 pr-3">
-              Pool
-            </th>
-            <th scope="col" className="py-2 pr-3">
-              Year
-            </th>
-            <th scope="col" className="py-2 pr-3">
-              Slot
-            </th>
+    <Table caption="Pools that used this map, newest first" hideCaption>
+      <THead>
+        <tr>
+          <Th>Pool</Th>
+          <Th>Year</Th>
+          <Th>Slot</Th>
+          {showBadged ? <Th>Badged</Th> : null}
+        </tr>
+      </THead>
+      <TBody>
+        {rows.map((row) => (
+          <tr key={`${row.poolId}-${row.slot}`}>
+            <Td>
+              <Link href={`/pools/${row.poolId}`} className="hover:text-c1 hover:underline">
+                {row.round ? `${row.tournament} · ${row.round}` : row.tournament}
+              </Link>
+            </Td>
+            <Td numeric>{yearText(row.year)}</Td>
+            <Td className="font-bold text-c1">{row.slot}</Td>
             {showBadged ? (
-              <th scope="col" className="py-2">
-                Badged
-              </th>
+              <Td>{row.badged === null ? "Not known" : row.badged ? "Yes" : "No"}</Td>
             ) : null}
           </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={`${row.poolId}-${row.slot}`} className="border-b4 border-t">
-              <td className="py-2 pr-3">
-                <Link href={`/pools/${row.poolId}`} className="hover:text-c1 hover:underline">
-                  {row.round ? `${row.tournament} · ${row.round}` : row.tournament}
-                </Link>
-              </td>
-              <td className="py-2 pr-3 tabular-nums">{yearText(row.year)}</td>
-              <td className="py-2 pr-3 font-bold text-c1">{row.slot}</td>
-              {showBadged ? (
-                <td className="py-2">
-                  {row.badged === null ? "Not known" : row.badged ? "Yes" : "No"}
-                </td>
-              ) : null}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </TBody>
+    </Table>
   );
 }

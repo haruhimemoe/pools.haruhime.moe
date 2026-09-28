@@ -6,10 +6,10 @@
  *       and screen readers hear "beta" once.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { SiteHeader } from "@haruhimemoe/ui";
+import { Badge, SiteHeader } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { NAV_LINKS, SITE } from "@/constants/site";
@@ -30,11 +30,7 @@ export function Header({ beta = false }: HeaderProps) {
               .
             </span>
           </Link>
-          {beta ? (
-            <span className="rounded-full border border-b3 bg-b5 px-2 py-0.5 font-bold text-c4 text-xs uppercase tracking-wide">
-              beta
-            </span>
-          ) : null}
+          {beta ? <Badge tone="muted">beta</Badge> : null}
         </div>
       }
       links={NAV_LINKS}

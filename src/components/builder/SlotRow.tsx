@@ -17,7 +17,7 @@
 "use client";
 
 import { type PoolSlot, slotLabel } from "@haruhimemoe/pool";
-import { Button, fieldClasses } from "@haruhimemoe/ui";
+import { Badge, Button, cx, fieldClasses } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
@@ -63,7 +63,11 @@ export function SlotRow(props: SlotRowProps) {
       data-drop-bucket={slot.mod ?? ""}
       data-drop-index={slot.index}
       {...drag?.target()}
-      className={`flex @3xl:flex-row flex-col @3xl:items-center gap-2 border-t py-3 ${over ? "border-h1 border-t-2" : "border-b3"} ${dragged ? "opacity-50" : ""}`}
+      className={cx(
+        "flex @3xl:flex-row flex-col @3xl:items-center gap-2 border-t py-3",
+        over ? "border-h1 border-t-2" : "border-b3",
+        dragged && "opacity-50",
+      )}
     >
       <div className="flex min-w-0 flex-1 gap-3">
         {drag ? (
@@ -81,11 +85,7 @@ export function SlotRow(props: SlotRowProps) {
         <MapPreview setId={map?.setId ?? null} song={songOf(map, slot.beatmapId)} />
         <div className="flex min-w-0 flex-col items-start gap-1">
           <SlotMapText beatmapId={slot.beatmapId} map={map} values={values} />
-          {badge ? (
-            <span className="rounded-full bg-amber-300/20 px-2 py-0.5 font-bold text-amber-200 text-xs">
-              {badge}
-            </span>
-          ) : null}
+          {badge ? <Badge tone="warning">{badge}</Badge> : null}
           <SlotNote beatmapId={slot.beatmapId} label={label} note={note} onSave={on.onNote} />
         </div>
       </div>

@@ -10,13 +10,12 @@
  *       field.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button, Select, Textarea, TextInput } from "@haruhimemoe/ui";
-import Link from "next/link";
+import { Button, Select, Textarea, TextInput, TextLink } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
 import type { SyncState } from "@/schemas/pool";
 
@@ -230,9 +229,9 @@ export function AddPoolForm() {
         {answer ? (
           <>
             {outcomeText(answer).before}
-            <Link href={answer.pool.href} className="font-bold text-h1 hover:underline">
+            <TextLink href={answer.pool.href} className="font-bold">
               {answer.pool.name}
-            </Link>
+            </TextLink>
             {outcomeText(answer).after}
           </>
         ) : (

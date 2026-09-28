@@ -9,7 +9,7 @@
  */
 
 import { formatRange, formatStars } from "@haruhimemoe/osu/format";
-import Link from "next/link";
+import { TextLink } from "@haruhimemoe/ui";
 import { badgedText, builtHeadline, poolHeadline } from "@/utils/pool-text";
 import type { PoolResult } from "@/utils/search-params";
 
@@ -32,9 +32,9 @@ export function PoolResultList({ results }: { results: readonly PoolResult[] }) 
         const badged = badgedText(pool.badged);
         return (
           <li key={pool.id} className="rounded-lg bg-b4 p-4">
-            <Link href={`/pools/${pool.id}`} className="font-bold text-c1 hover:underline">
+            <TextLink href={`/pools/${pool.id}`} variant="plain">
               {pool.name}
-            </Link>
+            </TextLink>
             {headlineOf(pool) ? <p className="text-c3 text-sm">{headlineOf(pool)}</p> : null}
             <p className="text-c3 text-sm">
               {[

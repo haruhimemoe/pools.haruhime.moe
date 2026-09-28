@@ -7,13 +7,13 @@
  *       announced.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
-import { Button } from "@haruhimemoe/ui";
+import { Button, TextLink } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { AddEditorForm } from "@/components/builder/AddEditorForm";
 import type { PoolEditor } from "@/hooks/usePoolEditor";
@@ -32,9 +32,9 @@ type EditorsPanelProps = {
 
 function Person({ person }: { person: PoolPerson }) {
   return (
-    <a href={userUrl(person.osuId)} rel="noopener" className="font-bold text-c1 hover:underline">
+    <TextLink href={userUrl(person.osuId)} rel="noopener" variant="plain">
       {person.username}
-    </a>
+    </TextLink>
   );
 }
 
