@@ -34,7 +34,15 @@ afterEach(() => {
 
 const ID = "b-a0000001";
 const at = params({ id: ID });
-const SYNCED = { state: "synced" as const, slug: "Abc123", syncedAt: new Date(), error: null };
+const SYNCED = {
+  state: "synced" as const,
+  slug: "Abc123",
+  syncedAt: new Date(),
+  error: null,
+  lastAttemptAt: null,
+  listed: true,
+  gone: false,
+};
 const packsDown = () =>
   server.use(packsDeleteHandler(() => HttpResponse.json({}, { status: 503 })));
 

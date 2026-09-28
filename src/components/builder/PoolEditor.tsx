@@ -2,8 +2,8 @@
  * @file src/components/builder/PoolEditor.tsx
  * @desc The pool editor at /pools/<id>/edit. Two panes on wide screens, stacked on phones: the
  *       pool (details, maps by bucket with values under each slot's mods, paste, custom slots)
- *       and the side (summary with the content rules check, the map browser, editors, and the
- *       owner's settings: who can see it and delete). Every change is saved at once through usePoolEditor; the saving bar stays in
+ *       and the side (summary with the content rules check, the map browser, editors, the pack
+ *       on packs with "Update pack now", and the owner's settings: who can see it and delete). Every change is saved at once through usePoolEditor; the saving bar stays in
  *       view. A pool moderators hid says so. Editors see everything but the owner's settings.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -21,6 +21,7 @@ import { DeletePoolForm } from "@/components/builder/DeletePoolForm";
 import { DetailsForm } from "@/components/builder/DetailsForm";
 import { EditorsPanel } from "@/components/builder/EditorsPanel";
 import { MapBrowserPane } from "@/components/builder/MapBrowserPane";
+import { PackPanel } from "@/components/builder/PackPanel";
 import { PasteBox } from "@/components/builder/PasteBox";
 import { PoolMaps } from "@/components/builder/PoolMaps";
 import { PoolSummary } from "@/components/builder/PoolSummary";
@@ -129,6 +130,9 @@ export function PoolEditor({
               fetcher={fetcher}
               onLeft={() => router.push(YOUR_POOLS)}
             />
+          </Card>
+          <Card title="Pack on packs">
+            <PackPanel pool={pool} editor={editor} fetcher={fetcher} />
           </Card>
           {pool.access.isOwner ? (
             <Card title="Owner settings">

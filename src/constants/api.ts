@@ -20,6 +20,8 @@ export const RATE_LIMITS = {
   poolOps: { scope: "pool-ops", limit: 120, windowSeconds: 60 },
   /** POST /api/pools, per user. */
   poolCreate: { scope: "pool-create", limit: 10, windowSeconds: 3600 },
+  /** "Update pack now" (POST /api/pools/<id>/pack), per user. */
+  packUpdate: { scope: "pack-update", limit: 20, windowSeconds: 3600 },
   /** Adding and removing editors, per user. */
   poolEditors: { scope: "pool-editors", limit: 30, windowSeconds: 3600 },
   /** DELETE /api/account, per osu! account (it outlives the account it counts). */

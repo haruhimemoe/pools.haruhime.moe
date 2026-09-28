@@ -6,7 +6,8 @@
  *       /pools/built/<id> (what /pools/<b- id> is rewritten to) shows a pool to whoever can see
  *       it, with Edit only for its owner and editors, 404s the rest, and keeps private, unlisted
  *       and hidden pools out of search engines. Both show each slot's values under its mods (the
- *       mirror stood in by msw), and the summary's star range uses them.
+ *       mirror stood in by msw), and the summary's star range uses them. A synced pack shows
+ *       "Download on packs"; a waiting one syncs after either page loads.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -17,6 +18,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resetMirrorCooldown } from "@/lib/map-search";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { mapsCollection } from "@/models/Map";
+import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
+import { afterTaskCount } from "../../../helpers/after";
 import { ADMIN_OSU_ID } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import { setupMsw } from "../../../helpers/msw";
@@ -177,5 +180,35 @@ describe("values under each slot's mods", () => {
     expect(html).toMatch(/DT<\/dt><dd[^>]*>7\.25★/);
     as(cast, "owner");
     expect(await editPage()).toContain("7.25★ DT");
+  });
+});
+
+describe("the pool's pack on its pages", () => {
+  const synced = { ...EMPTY_BUILT_PACK, state: "synced" as const, slug: "Abc123", listed: true };
+
+  it("shows Download on packs once synced, and nothing before", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { visibility: "public", slots: SLOTS, pack: synced });
+    as(cast, "visitor");
+    expect((await builtPage()).html).toContain('href="https://packs.haruhime.moe/p/Abc123"');
+    expect(afterTaskCount()).toBe(0);
+    await (await builtPoolsCollection()).updateOne(
+      { _id: ID },
+      { $set: { "pack.state": "pending" } },
+    );
+    const { html } = await builtPage();
+    expect(html).not.toContain("Download on packs");
+  });
+
+  it("syncs a waiting pack after the pool's page or its editor loads", async () => {
+    const cast = await createCast();
+    const pending = { ...EMPTY_BUILT_PACK, state: "pending" as const };
+    await insertPool(cast, { visibility: "public", slots: SLOTS, pack: pending });
+    as(cast, "visitor");
+    await builtPage();
+    expect(afterTaskCount()).toBe(1);
+    as(cast, "owner");
+    await editPage();
+    expect(afterTaskCount()).toBe(2);
   });
 });

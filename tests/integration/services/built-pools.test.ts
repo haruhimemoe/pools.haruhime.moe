@@ -23,6 +23,7 @@ import {
   setBuiltPoolVisibility,
 } from "@/services/built-pools";
 import { packCleanupCollection } from "@/services/pack-cleanup";
+import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
 import { makeBuiltPool } from "../../helpers/built-pools";
 import { setupTestDb } from "../../helpers/db";
 import { setupMsw } from "../../helpers/msw";
@@ -37,7 +38,15 @@ afterEach(() => {
   vi.stubEnv("PACKS_URL", "");
 });
 
-const SYNCED = { state: "synced" as const, slug: "Abc123", syncedAt: new Date(), error: null };
+const SYNCED = {
+  state: "synced" as const,
+  slug: "Abc123",
+  syncedAt: new Date(),
+  error: null,
+  lastAttemptAt: null,
+  listed: true,
+  gone: false,
+};
 const withPacks = () => {
   vi.stubEnv("POOLS_SERVICE_TOKEN", TEST_SERVICE.token);
   vi.stubEnv("PACKS_URL", TEST_SERVICE.url);
@@ -139,11 +148,24 @@ describe("setBuiltPoolVisibility", () => {
     expect(answer).toMatchObject({
       ok: true,
       value: {
-        pool: { visibility: "private", version: 2, pack: { state: "none", slug: null } },
+        pool: { visibility: "private", version: 2, pack: { state: "none", href: null } },
         packRemoval: "removed",
       },
     });
     expect(calls.map((call) => call.id)).toEqual(["b-a0000001"]);
+    expect((await findBuiltPool("b-a0000001"))?.pack).toEqual(EMPTY_BUILT_PACK);
+  });
+
+  it("marks the pack pending when a pool with maps goes unlisted or public", async () => {
+    const cast = await createCast();
+    const slots = [{ mod: "NM", index: 1, beatmapId: 5 }];
+    await insertPool(cast, { _id: "b-a0000001", slots });
+    await insertPool(cast, { _id: "b-a0000002" });
+    const owner = { ...cast.owner, isAdmin: false };
+    const shared = await setBuiltPoolVisibility("b-a0000001", owner, "unlisted");
+    expect(shared).toMatchObject({ ok: true, value: { pool: { pack: { state: "pending" } } } });
+    const empty = await setBuiltPoolVisibility("b-a0000002", owner, "public");
+    expect(empty).toMatchObject({ ok: true, value: { pool: { pack: { state: "none" } } } });
   });
 
   it("goes private even when packs isn't there to remove the pack, queueing the removal", async () => {

@@ -42,6 +42,7 @@ const pool = (slots: PoolSlot[], buckets = DEFAULT): ClientPool => ({
   buckets,
   slots,
   version: 1,
+  pack: { state: "none", href: null, error: null, gone: false },
   access: { isOwner: true, isEditor: false, canEdit: true, canManage: true, canDelete: true },
 });
 

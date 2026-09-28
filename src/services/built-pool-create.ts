@@ -26,7 +26,6 @@ import type { CreatePoolBody } from "@/schemas/built-pool-ops";
 import {
   type Answer,
   type BuiltPoolView,
-  EMPTY_PACK,
   findBuiltPool,
   refuse,
   toStored,
@@ -34,6 +33,7 @@ import {
 } from "@/services/built-pools";
 import { getPublicPool } from "@/services/pools";
 import { accessOf } from "@/utils/built-access";
+import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
 import { newSourceId, type RandomBytes } from "@/utils/source-ids";
 
 const MAX_CLAIM_TRIES = 5;
@@ -124,7 +124,7 @@ export const createBuiltPool = async (
     ...(start?.buckets ? { buckets: start.buckets } : {}),
     slots: start?.slots ?? [],
     version: 1,
-    pack: EMPTY_PACK,
+    pack: EMPTY_BUILT_PACK,
     hidden: false,
     startedFrom: body.startedFrom ?? null,
     createdAt: now,

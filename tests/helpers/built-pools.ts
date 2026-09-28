@@ -8,6 +8,7 @@
  */
 
 import type { StoredBuiltPool } from "@/schemas/built-pool";
+import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
 
 const AT = new Date("2026-09-27T12:00:00.000Z");
 
@@ -28,7 +29,7 @@ export const makeBuiltPool = (overrides: Partial<StoredBuiltPool> = {}): StoredB
   editors: [],
   slots: [],
   version: 1,
-  pack: { state: "none", slug: null, syncedAt: null, error: null },
+  pack: EMPTY_BUILT_PACK,
   hidden: false,
   startedFrom: null,
   createdAt: AT,

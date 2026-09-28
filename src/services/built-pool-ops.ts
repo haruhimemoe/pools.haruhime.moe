@@ -8,7 +8,8 @@
  *       slots, version) is written with one $set that only matches the version it was read at,
  *       so two editors can't both win: the loser gets the 409. Fields ops don't own (editors,
  *       pack, hidden) are never written here, so a change to them without a new version isn't
- *       undone. The 409's pool goes only to someone who can still see it.
+ *       undone. An unlisted or public pool's pack is marked pending (the route syncs it after
+ *       the answer). The 409's pool goes only to someone who can still see it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -25,6 +26,7 @@ import {
   type BuiltPoolView,
   findBuiltPool,
   loadFor,
+  markPackPending,
   NOT_FOUND,
   readBuiltPool,
   refuse,
@@ -104,5 +106,5 @@ export const applyBuiltPoolOps = async (
   );
   const after = readBuiltPool(written);
   if (!after) return conflict(id, caller);
-  return { ok: true, value: await viewOf(after, caller) };
+  return { ok: true, value: await viewOf((await markPackPending(id)) ?? after, caller) };
 };

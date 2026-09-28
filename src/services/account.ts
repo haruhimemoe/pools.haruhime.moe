@@ -3,7 +3,8 @@
  * @desc Deleting an account, which a packs outage never blocks. First the pools: each pool they
  *       own goes, its pack on packs removed, or the removal queued when packs can't be asked
  *       (after the first failure the rest are queued without asking, so a packs outage can't
- *       hold the request past its time), then they're taken off every pool they edit. Then
+ *       hold the request past its time), then they're taken off every pool they edit (whose
+ *       packs are marked pending, since their name leaves the description). Then
  *       every session (so no cookie works again), every linked osu! account row, and the user
  *       last. A failure partway leaves a user row that the next osu! sign-in relinks
  *       (src/lib/auth.ts), so they can sign in and try again. Sessions, accounts and the user go
@@ -17,6 +18,7 @@ import "server-only";
 import { getAuth, type SessionUser } from "@/lib/auth";
 import { connectDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
+import { WANTS_PACK_SYNC } from "@/services/built-pools";
 import { removePackOrQueue } from "@/services/pack-cleanup";
 
 /** Why the rest of an account's pack removals were queued without asking packs. */
@@ -43,6 +45,11 @@ export const removeUserFromBuiltPools = async (
     if ((await removePackOrQueue(pool, now, skip)) === "queued") packRemovalsQueued += 1;
     await pools.deleteOne({ _id: pool._id });
   }
+  // Their name leaves those pools' pack descriptions: the next sync sends them.
+  await pools.updateMany(
+    { "editors.osuId": user.osuId, ...WANTS_PACK_SYNC },
+    { $set: { "pack.state": "pending" } },
+  );
   await pools.updateMany(
     { "editors.osuId": user.osuId },
     {

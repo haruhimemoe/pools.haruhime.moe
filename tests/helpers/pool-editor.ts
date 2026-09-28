@@ -15,7 +15,7 @@
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import { vi } from "vitest";
 import type { Fetcher } from "@/lib/pool-client";
-import type { BuiltMap, ClientPool } from "@/schemas/built-pool-view";
+import type { BuiltMap, ClientPack, ClientPool } from "@/schemas/built-pool-view";
 import type { BrowseResponse } from "@/utils/browse-params";
 import { applyLocal } from "@/utils/built-editor";
 import type { SlotValueMap } from "@/utils/slot-values";
@@ -31,6 +31,9 @@ const OWNER_ACCESS = {
   canManage: true,
   canDelete: true,
 };
+/** A private pool's pack: none. */
+export const NO_PACK: ClientPack = { state: "none", href: null, error: null, gone: false };
+
 export const EDITOR_ACCESS = {
   isOwner: false,
   isEditor: true,
@@ -62,6 +65,7 @@ export const clientPool = (over: Partial<ClientPool> = {}): ClientPool => ({
   buckets: DEFAULT_BUCKETS,
   slots: [nm(1, 10), nm(2, 20), nm(3, 30)],
   version: 1,
+  pack: NO_PACK,
   access: OWNER_ACCESS,
   ...over,
 });

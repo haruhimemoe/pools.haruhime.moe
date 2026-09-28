@@ -6,7 +6,7 @@
  *       to 100, notes up to 2000, year from 2007 to next year or none, every text trimmed and
  *       through the content filter, only notes keeping line breaks); who sees it; the owner (a
  *       user id) and up to 10 editors (osu! id and name, the user id once they've signed in);
- *       the version; the pack state; moderation. Nullable fields are stored as null, never
+ *       the version; the pack state (with when a sync last started); moderation. Nullable fields are stored as null, never
  *       undefined (the driver would write null anyway); `buckets` is left out for the default.
  *       No text takes a lone surrogate (the driver would store U+FFFD, so the saved text would
  *       differ from the checked one). The filter's refusal carries `params.code` content_filter,
@@ -90,11 +90,19 @@ export const builtEditorSchema = z.object({
 
 export type BuiltEditor = z.infer<typeof builtEditorSchema>;
 
+/**
+ * The pool's pack on packs. `lastAttemptAt` (the last sync started, at most one per 30 s),
+ * `listed` (packs lists it: public and not hidden there) and `gone` (packs' moderators removed
+ * it: never synced again) came with the sync, so older rows read without them.
+ */
 export const builtPackSchema = z.object({
   state: z.enum(BUILT_PACK_STATES),
   slug: packSlugSchema.nullable(),
   syncedAt: z.date().nullable(),
   error: z.string().nullable(),
+  lastAttemptAt: z.date().nullable().default(null),
+  listed: z.boolean().default(false),
+  gone: z.boolean().default(false),
 });
 
 export type BuiltPack = z.infer<typeof builtPackSchema>;

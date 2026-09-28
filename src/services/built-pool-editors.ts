@@ -5,7 +5,8 @@
  *       who never signed in can be added; access follows their osu! id, and their user id is
  *       filled in when they first sign in (linkEditorAccount, from the auth hook). At most 10,
  *       never the owner, never twice. The owner removes any editor; an editor can remove
- *       themselves. Each change is a new version.
+ *       themselves. Each change is a new version, and marks a shared pool's pack pending (its
+ *       description names the editors).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -24,6 +25,7 @@ import {
   type Answer,
   type BuiltPoolView,
   loadFor,
+  markPackPending,
   NOT_FOUND,
   readBuiltPool,
   refuse,
@@ -102,7 +104,7 @@ export const addBuiltPoolEditor = async (
   // Someone else added them (or filled the list) since the read.
   const after = readBuiltPool(updated);
   if (!after) return taken();
-  return { ok: true, value: await viewOf(after, caller) };
+  return { ok: true, value: await viewOf((await markPackPending(id)) ?? after, caller) };
 };
 
 /**
@@ -128,6 +130,7 @@ export const removeBuiltPoolEditor = async (
     { $pull: { editors: { osuId } }, $set: { updatedAt: new Date() }, $inc: { version: 1 } },
   );
   if (updated.matchedCount === 0) return refuse(404, "not_found", NOT_FOUND);
+  await markPackPending(id);
   return { ok: true, value: null };
 };
 

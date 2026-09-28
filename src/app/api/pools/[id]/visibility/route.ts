@@ -3,7 +3,8 @@
  * @desc PUT `{ visibility }`: the owner makes a built pool private, unlisted or public. Signed
  *       in, from this site, JSON, within the per-user write limit. Going private removes its
  *       pack on packs; when packs can't be asked the pool goes private anyway and the answer
- *       adds `packRemoval: "queued"` and a notice. 200 with the pool. Never cached.
+ *       adds `packRemoval: "queued"` and a notice. Going unlisted or public syncs its pack after
+ *       the answer. 200 with the pool. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -11,6 +12,7 @@
 
 import { RATE_LIMITS } from "@/constants/api";
 import { PACK_REMOVAL_QUEUED } from "@/constants/built-pools";
+import { schedulePackSync } from "@/lib/pack-sync-after";
 import {
   guardWrite,
   limitUser,
@@ -23,8 +25,8 @@ import { setBuiltPoolVisibility } from "@/services/built-pools";
 
 type Context = { params: Promise<{ id: string }> };
 
-/** Going private may wait on one DELETE to packs. */
-export const maxDuration = 30;
+/** Going private may wait on one DELETE to packs; going shared, on a PUT after the answer. */
+export const maxDuration = 60;
 
 export async function PUT(request: Request, { params }: Context) {
   const { id } = await params;
@@ -37,6 +39,7 @@ export async function PUT(request: Request, { params }: Context) {
   const answer = await setBuiltPoolVisibility(id, caller.value, body.value.visibility);
   if (!answer.ok) return refusalResponse(answer);
   const { pool, packRemoval } = answer.value;
+  if (pool.visibility !== "private") schedulePackSync(id);
   if (packRemoval === "queued") {
     return poolResponse({ pool, packRemoval, notice: PACK_REMOVAL_QUEUED });
   }

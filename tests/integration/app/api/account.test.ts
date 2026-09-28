@@ -120,7 +120,15 @@ describe("DELETE /api/account limits", () => {
 });
 
 describe("DELETE /api/account and pools", () => {
-  const synced = { state: "synced" as const, slug: "Abc123", syncedAt: new Date(), error: null };
+  const synced = {
+    state: "synced" as const,
+    slug: "Abc123",
+    syncedAt: new Date(),
+    error: null,
+    lastAttemptAt: null,
+    listed: true,
+    gone: false,
+  };
 
   const setup = async () => {
     vi.stubEnv("POOLS_SERVICE_TOKEN", TEST_SERVICE.token);

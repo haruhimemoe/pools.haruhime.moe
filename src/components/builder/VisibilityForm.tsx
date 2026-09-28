@@ -2,7 +2,7 @@
  * @file src/components/builder/VisibilityForm.tsx
  * @desc The owner's "Who can see this pool": private, unlisted or public, saved with PUT
  *       /api/pools/<id>/visibility in turn with the editor's other changes. Picking unlisted or
- *       public says packs downloads come later; private needs no note. The result is announced,
+ *       public says it gets a pack on packs; private needs no note. The result is announced,
  *       with packs' notice when going private couldn't remove the pack there yet.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -13,12 +13,7 @@
 
 import { Button } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
-import {
-  PACK_LATER,
-  VISIBILITIES,
-  VISIBILITY_TEXT,
-  type Visibility,
-} from "@/constants/built-pools";
+import { PACK_NOTE, VISIBILITIES, VISIBILITY_TEXT, type Visibility } from "@/constants/built-pools";
 import type { PoolEditor } from "@/hooks/usePoolEditor";
 import { useStoredField } from "@/hooks/useStoredField";
 import { callPools, type Fetcher } from "@/lib/pool-client";
@@ -71,7 +66,7 @@ export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityForm
           </label>
         ))}
       </fieldset>
-      {picked !== "private" ? <p className="text-c3 text-sm">{PACK_LATER}</p> : null}
+      {picked !== "private" ? <p className="text-c3 text-sm">{PACK_NOTE}</p> : null}
       <Button
         type="submit"
         variant="secondary"

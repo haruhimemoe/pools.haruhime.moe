@@ -1,7 +1,7 @@
 /**
  * @file src/components/builder/BuiltPoolView.tsx
  * @desc A built pool's page: its name, tournament · round · year, map count and who can see it,
- *       Edit for its owner and editors, a moderation notice when it's hidden, the notes, "Built
+ *       "Download on packs" once its pack is synced, Edit for its owner and editors, a moderation notice when it's hidden, the notes, "Built
  *       by" (owner and editors, linking osu! profiles), the maps with their values under each
  *       slot's mods, and the summary with the content rules check. Presentational; the page loads the pool for the visitor.
  * @author David @dvhsh (https://dvh.sh)
@@ -33,15 +33,24 @@ export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps)
     ...(pool.owner ? [{ ...pool.owner, role: "owner" }] : []),
     ...pool.editors.map((editor) => ({ ...editor, role: "editor" })),
   ];
+  const download =
+    pool.pack.state === "synced" && pool.pack.href ? (
+      <ButtonLink key="download" href={pool.pack.href}>
+        Download on packs
+      </ButtonLink>
+    ) : null;
+  const edit = pool.access.canEdit ? (
+    <ButtonLink key="edit" href={`/pools/${pool.id}/edit`} variant="secondary">
+      Edit
+    </ButtonLink>
+  ) : null;
   return (
     <article className="flex flex-col gap-6">
       <PageHeader
         title={pool.name}
         lead={builtHeadline(pool) || undefined}
         meta={`${count} · ${VISIBILITY_TEXT[pool.visibility].label}`}
-        actions={
-          pool.access.canEdit ? <ButtonLink href={`/pools/${pool.id}/edit`}>Edit</ButtonLink> : null
-        }
+        actions={download || edit ? <>{[download, edit]}</> : null}
       />
       {pool.hidden ? (
         <Notice tone="warning">

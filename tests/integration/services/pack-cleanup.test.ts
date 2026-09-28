@@ -4,7 +4,7 @@
  *       yes removes it; packs down, refusing or not set up queues the removal in pack_cleanup
  *       (ref, reason, attempts, nextAt) instead. Retrying tries the due ones (or all of them),
  *       drops the ones packs removed, pushes back the ones still failing, drops without a call
- *       the ones whose pool wants its pack again, and stops at a configuration answer or after
+ *       the ones whose pool wants its pack again (shared, with maps), and stops at a configuration answer or after
  *       two failures in a row (so a packs outage can't hold a request for long). Every
  *       sync run retries the due ones too.
  * @author David @dvhsh (https://dvh.sh)
@@ -34,7 +34,15 @@ afterEach(() => {
 });
 
 const NOW = new Date("2026-09-27T12:00:00.000Z");
-const SYNCED = { state: "synced" as const, slug: "Abc123", syncedAt: NOW, error: null };
+const SYNCED = {
+  state: "synced" as const,
+  slug: "Abc123",
+  syncedAt: NOW,
+  error: null,
+  lastAttemptAt: null,
+  listed: true,
+  gone: false,
+};
 const withPacks = () => {
   vi.stubEnv("POOLS_SERVICE_TOKEN", TEST_SERVICE.token);
   vi.stubEnv("PACKS_URL", TEST_SERVICE.url);
@@ -119,15 +127,17 @@ describe("retryPackCleanup", () => {
 
   it("tries every one when asked, and keeps the pack of a pool that wants it again", async () => {
     const cast = await createCast();
-    await insertPool(cast, { _id: "b-a0000001", visibility: "public" });
-    await insertPool(cast, { _id: "b-a0000002", visibility: "private" });
-    await queue("b-a0000001", later);
-    await queue("b-a0000002", later);
+    const slots = [{ mod: "NM", index: 1, beatmapId: 5 }];
+    await insertPool(cast, { _id: "b-a0000001", visibility: "public", slots });
+    await insertPool(cast, { _id: "b-a0000002", visibility: "private", slots });
+    // Emptied: a pool with no maps has no pack.
+    await insertPool(cast, { _id: "b-a0000003", visibility: "public" });
+    for (const ref of ["b-a0000001", "b-a0000002", "b-a0000003"]) await queue(ref, later);
     const calls: DeleteCall[] = [];
     server.use(packsDeleteHandler(undefined, calls));
     const summary = await retryPackCleanup(TEST_SERVICE, { all: true, now: () => NOW });
-    expect(summary).toMatchObject({ due: 2, removed: 1, kept: 1, remaining: 0 });
-    expect(calls.map((call) => call.id)).toEqual(["b-a0000002"]);
+    expect(summary).toMatchObject({ due: 3, removed: 2, kept: 1, remaining: 0 });
+    expect(calls.map((call) => call.id)).toEqual(["b-a0000002", "b-a0000003"]);
   });
 
   it("stops after two failures in a row: packs looks down", async () => {

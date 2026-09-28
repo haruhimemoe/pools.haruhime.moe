@@ -7,7 +7,8 @@
  *       the pool the server sent and says someone else changed it. Other requests (visibility,
  *       editors) take turns with the ops through `exclusive`, so no call is ever made with a
  *       version another one just moved on. While open it asks for the version every 15 s and
- *       on window focus, and takes a newer pool (a conflict when changes are still queued). A
+ *       on window focus, and takes a newer pool (a conflict when changes are still queued), or
+ *       only the pack's state when a sync moved it on the same version. A
  *       404 (or 401) from a read or a save means the pool was deleted or access went: it says
  *       so once and stops asking.
  * @author David @dvhsh (https://dvh.sh)
@@ -22,7 +23,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MAX_OPS_PER_CALL } from "@/constants/built-pools";
 import { callPools, type Fetcher, UNREACHABLE } from "@/lib/pool-client";
 import type { PoolOp } from "@/schemas/built-pool-ops";
-import { type ClientPool, clientPoolOf } from "@/schemas/built-pool-view";
+import { type ClientPack, type ClientPool, clientPoolOf } from "@/schemas/built-pool-view";
 import { applyLocal } from "@/utils/built-editor";
 
 export const POLL_MS = 15_000;
@@ -59,6 +60,9 @@ export type PoolEditor = {
 };
 
 type PoolBody = { pool: ClientPool };
+
+const samePack = (a: ClientPack, b: ClientPack): boolean =>
+  a.state === b.state && a.href === b.href && a.error === b.error && a.gone === b.gone;
 
 export const usePoolEditor = (
   initial: ClientPool,
@@ -152,6 +156,10 @@ export const usePoolEditor = (
       const answer = await callPools<PoolBody>(fetcher, `/api/pools/${saved.current.id}`);
       if (answer.ok) {
         const next = clientPoolOf(answer.body.pool);
+        // A pack sync changes no version: take its state alone.
+        if (next.version === saved.current.version && !samePack(next.pack, saved.current.pack)) {
+          rebase({ ...saved.current, pack: next.pack });
+        }
         if (next.version <= saved.current.version) return;
         if (queue.current.length > 0 && !own) rollBack(next, "conflict");
         else rebase(next);

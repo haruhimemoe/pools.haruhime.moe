@@ -4,13 +4,15 @@
  *       (pools' own app, inside the osu! budget), so someone who never signed in can be added
  *       and gets access once they do. Signed in, from this site, JSON, 30 editor changes an hour
  *       per user. 200 with the pool; 400 for a name osu! doesn't know, the owner, a repeat or an
- *       11th editor; 503 when osu! can't be asked. Never cached.
+ *       11th editor; 503 when osu! can't be asked. A shared pool's pack (its description names
+ *       the editors) syncs after the answer. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
  */
 
 import { RATE_LIMITS } from "@/constants/api";
+import { schedulePackSync } from "@/lib/pack-sync-after";
 import {
   guardWrite,
   limitUser,
@@ -36,5 +38,6 @@ export async function POST(request: Request, { params }: Context) {
   if (limited) return limited;
   const answer = await addBuiltPoolEditor(id, caller.value, body.value.username);
   if (!answer.ok) return refusalResponse(answer);
+  schedulePackSync(id);
   return poolResponse({ pool: answer.value });
 }

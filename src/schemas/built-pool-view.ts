@@ -1,7 +1,7 @@
 /**
  * @file src/schemas/built-pool-view.ts
  * @desc What the browser holds of a built pool: the pool as the pages and editor show it (no
- *       dates, no pack or moderation fields, editors as osu! id and name) and each of its maps'
+ *       dates, the pack as a state with its link or reason, editors as osu! id and name) and each of its maps'
  *       details from the maps collection (label parts, no-mod stars, length, BPM, AR, OD, CS, and how many
  *       past pools used it). Plain JSON, so a server page and an API answer give the same shape.
  * @author David @dvhsh (https://dvh.sh)
@@ -10,7 +10,7 @@
  */
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
-import type { Visibility } from "@/constants/built-pools";
+import type { BuiltPackState, Visibility } from "@/constants/built-pools";
 
 /** An osu! user on a pool: the owner or an editor. */
 export type PoolPerson = { osuId: number; username: string };
@@ -22,6 +22,15 @@ export type ClientAccess = {
   canEdit: boolean;
   canManage: boolean;
   canDelete: boolean;
+};
+
+/** The pool's pack on packs as pages show it: a link once synced, the reason once failed. */
+export type ClientPack = {
+  state: BuiltPackState;
+  href: string | null;
+  error: string | null;
+  /** packs' moderators removed it: it's never synced again. */
+  gone: boolean;
 };
 
 export type ClientPool = {
@@ -38,6 +47,7 @@ export type ClientPool = {
   buckets: BucketEntry[];
   slots: PoolSlot[];
   version: number;
+  pack: ClientPack;
   access: ClientAccess;
 };
 
@@ -82,5 +92,6 @@ export const clientPoolOf = (view: ClientPool): ClientPool => ({
   buckets: view.buckets,
   slots: view.slots,
   version: view.version,
+  pack: view.pack,
   access: view.access,
 });

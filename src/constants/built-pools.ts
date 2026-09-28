@@ -3,8 +3,8 @@
  * @desc Pools people build here: the id shape ("b-" and a generated source id, never reused),
  *       who can see one, the pack states, and the limits (maps and custom buckets come from
  *       @haruhimemoe/pool; editors, pools per owner, ops per call, the JSON body cap, text and
- *       paste lengths), how the builder names each visibility, and what it says when a pack
- *       removal is queued.
+ *       paste lengths), how the builder names each visibility, what it says about the pool's pack
+ *       on packs, and what it says when a pack removal is queued.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -29,8 +29,18 @@ export const VISIBILITY_TEXT: Readonly<Record<Visibility, { label: string; hint:
   public: { label: "Public", hint: "Anyone, and search can list it." },
 };
 
-/** Said when a pool is unlisted or public, until the packs sync lands. */
-export const PACK_LATER = "Downloads on packs come later: for now this pool has no pack.";
+/** Said when the owner picks unlisted or public. */
+export const PACK_NOTE =
+  "Once it has maps, it also gets a pack on packs.haruhime.moe for downloads, kept in step as it changes.";
+
+/** What the editor says about the pool's pack, by where it stands. */
+export const PACK_STATUS_TEXT = {
+  private: "A private pool has no pack. Make it unlisted or public to get one on packs.",
+  empty: "Add a map and the pool gets a pack on packs.",
+  pending: "Your latest changes haven't reached packs yet.",
+  synced: "The pack on packs is up to date.",
+  failed: "packs didn't take the last update:",
+} as const;
 
 /** Said when a pack removal couldn't reach packs and waits in pack_cleanup. */
 export const PACK_REMOVAL_QUEUED =
@@ -44,7 +54,7 @@ export const PACK_REMOVAL_QUEUED =
 export const packRemovalsQueuedText = (count: number): string =>
   `packs.haruhime.moe didn't answer, so ${count === 1 ? "1 pack" : `${count} packs`} will be removed there as soon as it does.`;
 
-/** Where the pool's pack on packs stands (synced from step 7 on; "none" until then). */
+/** Where the pool's pack on packs stands: none (private or empty), pending, synced, failed. */
 export const BUILT_PACK_STATES = ["none", "synced", "pending", "failed"] as const;
 
 export type BuiltPackState = (typeof BUILT_PACK_STATES)[number];

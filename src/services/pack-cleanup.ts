@@ -6,8 +6,8 @@
  *       attempts, nextAt }`, one row per ref) and the person's action goes ahead. The queue is
  *       retried on every packs sync run (the due rows) and from /admin's "Retry pack cleanup"
  *       (every row): a row packs removes is dropped, one still failing waits longer
- *       (src/utils/pack-cleanup.ts), a row whose pool isn't private any more is dropped without
- *       a call (the pool wants its pack again, and sync takes over), and a configuration answer
+ *       (src/utils/pack-cleanup.ts), a row whose pool isn't private any more (and has maps) is
+ *       dropped without a call (the pool wants its pack again, and sync takes over), and a configuration answer
  *       or two failures in a row stop the run (each try can take 15 s). Built pool ids are never reused, so a ref only ever names one pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -97,13 +97,13 @@ export const removePackOrQueue = async (
   return "queued";
 };
 
-/** True when the ref's pool still exists and isn't private: it wants its pack again. */
+/** True when the ref's pool still exists, isn't private and has maps: it wants its pack again. */
 const wantsPack = async (ref: string): Promise<boolean> => {
   const pool = await (await builtPoolsCollection()).findOne(
     { _id: ref },
-    { projection: { visibility: 1 } },
+    { projection: { visibility: 1, "slots.beatmapId": 1 } },
   );
-  return pool !== null && pool.visibility !== "private";
+  return pool !== null && pool.visibility !== "private" && pool.slots.length > 0;
 };
 
 /**

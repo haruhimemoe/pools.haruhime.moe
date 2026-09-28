@@ -8,8 +8,10 @@
  *       stores (osu! id, username, avatar, country, sessions, the pools you make, never osu!
  *       tokens), the readable signed-in cookie, who sees public, unlisted and private pools,
  *       moderation and deletion, and what the all-maps search sends the hinai mirror (privacy,
- *       dated 2026-09-27), per-account counters, the editor lookup and the cascade on deleting;
- *       the disclaimer's osu! and packs requests for built pools (2026-09-27); the terms (anyone with osu! can sign in, what's allowed, moderation,
+ *       dated 2026-09-27), per-account counters, the editor lookup, the cascade on deleting and
+ *       built pools' packs on packs;
+ *       the disclaimer's osu! and packs requests for built pools (2026-09-27); the terms (anyone
+ *       with osu! can sign in, what's allowed, shared pools published on packs, moderation,
  *       deletion, dated 2026-09-27). No em dashes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -65,6 +67,9 @@ describe("legal pages", () => {
     "osu! usernames and IDs of its owner and editors",
     "use your osu! user ID, so deleting your account and signing in again doesn't reset them",
     "your account and pools are still deleted",
+    "pack updates",
+    "Unlisted and public pools with maps also get a pack on packs.haruhime.moe",
+    "Making a pool private or deleting it removes its pack",
   ])("the privacy page says %j", (clause) => {
     expect(read("privacy")).toContain(clause);
   });
@@ -76,6 +81,7 @@ describe("legal pages", () => {
     "Delete my account",
     "can't be undone",
     "isn't affiliated with or endorsed by ppy Pty Ltd",
+    "published as a pack on packs.haruhime.moe",
   ])("the terms say %j", (clause) => {
     expect(read("terms")).toContain(clause);
   });

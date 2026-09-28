@@ -17,7 +17,7 @@
 
 import "server-only";
 import { type BucketEntry, bucketsOf, type PoolSlot } from "@haruhimemoe/pool";
-import { ObjectId } from "mongodb";
+import { type Filter, ObjectId } from "mongodb";
 import {
   BUILT_POOL_ID_PATTERN,
   MAX_POOLS_PER_OWNER,
@@ -28,13 +28,14 @@ import { getDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import {
   type BuiltEditor,
-  type BuiltPack,
   builtPoolReadSchema,
   type StoredBuiltPool,
   storedBuiltPoolSchema,
 } from "@/schemas/built-pool";
+import type { ClientPack } from "@/schemas/built-pool-view";
 import { type PackRemoval, removePackOrQueue } from "@/services/pack-cleanup";
 import { type Access, accessOf, type Caller } from "@/utils/built-access";
+import { clientPackOf, EMPTY_BUILT_PACK } from "@/utils/built-pack";
 
 export type Refusal = {
   ok: false;
@@ -66,8 +67,6 @@ export const refuse = (
 
 export const NOT_FOUND = "That pool isn't here.";
 
-export const EMPTY_PACK: BuiltPack = { state: "none", slug: null, syncedAt: null, error: null };
-
 /** What the API sends: the pool, its owner's osu! name, every bucket, and the caller's rights. */
 export type BuiltPoolView = {
   id: string;
@@ -83,7 +82,7 @@ export type BuiltPoolView = {
   buckets: BucketEntry[];
   slots: PoolSlot[];
   version: number;
-  pack: BuiltPack;
+  pack: ClientPack;
   startedFrom: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -128,7 +127,13 @@ export const toStored = (pool: StoredBuiltPool): StoredBuiltPool => {
   return buckets === undefined ? rest : { ...rest, buckets };
 };
 
-const ownerOf = async (ownerId: string): Promise<BuiltPoolView["owner"]> => {
+/**
+ * @function ownerOf
+ * @param ownerId {string} a pool's owner (a user id)
+ * @returns {Promise<BuiltPoolView["owner"]>} their osu! id and current username, or null when
+ *          the user row is gone
+ */
+export const ownerOf = async (ownerId: string): Promise<BuiltPoolView["owner"]> => {
   if (!ObjectId.isValid(ownerId)) return null;
   const user = await getDb()
     .collection("user")
@@ -160,7 +165,7 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     buckets: bucketsOf(pool).map((entry) => ({ ...entry })),
     slots: pool.slots,
     version: pool.version,
-    pack: pool.pack,
+    pack: clientPackOf(pool),
     startedFrom: pool.startedFrom,
     createdAt: pool.createdAt,
     updatedAt: pool.updatedAt,
@@ -208,6 +213,32 @@ export const loadFor = async (
 };
 
 /**
+ * Pools a change sends to packs: unlisted or public, not removed by packs' moderators, and with
+ * maps or a pack to take down.
+ */
+export const WANTS_PACK_SYNC: Filter<StoredBuiltPool> = {
+  visibility: { $ne: "private" },
+  "pack.gone": { $ne: true },
+  $or: [{ "slots.0": { $exists: true } }, { "pack.slug": { $ne: null } }],
+};
+
+/**
+ * @function markPackPending
+ * @param id {string} a built pool that just changed
+ * @returns {Promise<StoredBuiltPool | null>} the pool with its pack marked pending, or null when
+ *          it has nothing for packs: it's private, packs' moderators removed its pack, or it's
+ *          empty and has no pack yet
+ */
+export const markPackPending = async (id: string): Promise<StoredBuiltPool | null> =>
+  readBuiltPool(
+    await (await builtPoolsCollection()).findOneAndUpdate(
+      { _id: id, ...WANTS_PACK_SYNC },
+      { $set: { "pack.state": "pending" } },
+      { returnDocument: "after" },
+    ),
+  );
+
+/**
  * @function deleteBuiltPool
  * @param id {string} an untrusted built pool id
  * @param caller {Caller} the owner or an admin
@@ -247,13 +278,15 @@ export const setBuiltPoolVisibility = async (
     return { ok: true, value: { pool: await viewOf(pool, caller), packRemoval: "none" } };
   }
   const packRemoval = visibility === "private" ? await removePackOrQueue(pool) : "none";
-  const pack = visibility === "private" ? EMPTY_PACK : pool.pack;
+  const pack = visibility === "private" ? EMPTY_BUILT_PACK : pool.pack;
   const updated = await (await builtPoolsCollection()).findOneAndUpdate(
     { _id: id },
     { $set: { visibility, pack, updatedAt: new Date() }, $inc: { version: 1 } },
     { returnDocument: "after" },
   );
-  const parsed = readBuiltPool(updated);
+  // Unlisted and public pools' packs follow their visibility.
+  const parsed =
+    (visibility !== "private" && (await markPackPending(id))) || readBuiltPool(updated);
   if (!parsed) return refuse(404, "not_found", NOT_FOUND);
   return { ok: true, value: { pool: await viewOf(parsed, caller), packRemoval } };
 };
