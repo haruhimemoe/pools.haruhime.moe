@@ -6,12 +6,13 @@
  *       superseded pools and unused maps out, a map whose pools are all hidden is missing while
  *       one whose pools are all superseded stays, and history lists only current pools, newest
  *       first, one row per slot. The home page's Recently added lists the 8 visible pools added
- *       last on their own index. The home, sitemap and llms.txt reads let a database error
+ *       last on their own index; public built pools list only public, unhidden ones, newest
+ *       change first, with their owner. The home, sitemap and llms.txt reads let a database error
  *       through at runtime (so ISR keeps the last good version) and come back empty only under
  *       SKIP_ENV_VALIDATION.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { Collection } from "mongodb";

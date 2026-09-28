@@ -8,7 +8,7 @@
  *       scope winning when given, all-maps status and Show explicit maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { describe, expect, it } from "vitest";

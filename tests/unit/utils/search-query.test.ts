@@ -7,7 +7,7 @@
  *       missing values builds the "hidden, data missing" count query.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { describe, expect, it } from "vitest";

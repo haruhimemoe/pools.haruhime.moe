@@ -1,12 +1,13 @@
 /**
  * @file src/constants/search.ts
  * @desc Search limits and options: paging, caching, slider bounds, sorts and labels, the maps
- *       tab's scope (all osu! maps or maps played in pools), the all-maps statuses, the mirror's
+ *       tab's scope (all osu! maps or maps played in pools), the pools tab's type (past
+ *       tournament pools, built here, or both), the all-maps statuses, the mirror's
  *       search endpoint and its timeout, and the fixed copy the all-maps search shows. Shared by
  *       the page, the route and the queries.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { FIRST_YEAR } from "@/constants/pools";
