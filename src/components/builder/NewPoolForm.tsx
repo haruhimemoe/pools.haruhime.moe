@@ -5,10 +5,11 @@
  *       browser goes on to its editor. A refusal (50 pools already, too many new pools this
  *       hour) or no answer is said in the page. Started from a pool (/new?from=<id>), the form
  *       comes filled in with its details, says how many maps come with it, and sends
- *       startedFrom, so the new pool copies its maps and buckets.
+ *       startedFrom, so the new pool copies its maps and buckets. Every detail is sent, an
+ *       empty one as "" (a null year), so one cleared from the source pool stays cleared.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -51,7 +52,11 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
     const found: Partial<Record<Field, string>> = {};
     for (const { key } of FIELDS) {
       const text = values[key].trim();
-      if (key !== "name" && text === "") continue;
+      // An empty detail goes as empty: the server would otherwise take the source pool's.
+      if (key !== "name" && text === "") {
+        body[key] = key === "year" ? null : "";
+        continue;
+      }
       const parsed =
         key === "year" ? readYear(text) : builtDetailsFields[key].safeParse(values[key]);
       if (parsed?.success) body[key] = parsed.data;

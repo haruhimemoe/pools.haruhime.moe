@@ -11,7 +11,7 @@
  *       so instead of "Loading…"; with no total the count says the page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -70,6 +70,14 @@ export function SearchScreen() {
       setState(fromUrl);
     }
   }, [fromUrl]);
+
+  // A Built here link with badged or stars reads without them: say so in the URL too.
+  useEffect(() => {
+    const built = fromUrl.tab === "pools" && fromUrl.filters.type === "built";
+    if (!built || !(params.has("sr") || params.has("badged"))) return;
+    const text = serializeSearchState(fromUrl);
+    router.replace(text === "" ? "/search" : `/search?${text}`, { scroll: false });
+  }, [fromUrl, params, router]);
 
   // Our state changed: write the URL once changes stop.
   useEffect(() => {

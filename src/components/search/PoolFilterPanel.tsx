@@ -2,23 +2,25 @@
  * @file src/components/search/PoolFilterPanel.tsx
  * @desc The pools filter bar: which pools (past tournament pools, built here, or both, as
  *       chips that are a real radio group), text, year, badged (only once some pool knows it)
- *       and star rating without mods (neither for built pools only: they have no such data),
- *       map count, a contained map (with the route's message when it can't be read), and the
- *       sort. Clear keeps the type, the text and the sort.
+ *       and star rating without mods (neither for built pools only: they have no such data, so
+ *       picking Built here clears both and says so), map count, a contained map (with the
+ *       route's message when it can't be read), and the sort. Clear keeps the type, the text
+ *       and the sort.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import { FilterPanel, FilterRow, RangeSlider, Select, TextInput } from "@haruhimemoe/ui";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { ChoiceChips } from "@/components/search/ChoiceChips";
 import {
   BADGED_FILTERS,
   BADGED_LABELS,
   type BadgedFilter,
+  BUILT_CLEARED_NOTE,
   MAP_COUNT_RANGE,
   MAX_MAP_REF_LENGTH,
   MAX_QUERY_LENGTH,
@@ -27,6 +29,7 @@ import {
   POOL_TYPE_LABELS,
   POOL_TYPES,
   type PoolSort,
+  type PoolType,
   STAR_RANGE,
   YEAR_RANGE,
 } from "@/constants/search";
@@ -49,6 +52,14 @@ type Props = {
 export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, mapError }: Props) {
   const set = <K extends keyof PoolFilters>(key: K, value: PoolFilters[K]) =>
     onChange({ ...filters, [key]: value });
+  const [cleared, setCleared] = useState(false);
+  const setType = (type: PoolType) => {
+    const drops = type === "built" && (filters.badged !== "any" || filters.sr !== null);
+    setCleared(drops || (cleared && type === "built"));
+    onChange(
+      type === "built" ? { ...filters, type, badged: "any", sr: null } : { ...filters, type },
+    );
+  };
   // Built pools have no badged or star stats: those filters would match none of them.
   const builtOnly = filters.type === "built";
   return (
@@ -61,12 +72,17 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
       }
     >
       <FilterRow label="Pools">
-        <ChoiceChips
-          options={POOL_TYPES}
-          labels={POOL_TYPE_LABELS}
-          value={filters.type}
-          onChange={(type) => set("type", type)}
-        />
+        <div className="flex flex-col gap-2">
+          <ChoiceChips
+            options={POOL_TYPES}
+            labels={POOL_TYPE_LABELS}
+            value={filters.type}
+            onChange={setType}
+          />
+          <output aria-live="polite" className="text-c3 text-xs">
+            {cleared ? BUILT_CLEARED_NOTE : ""}
+          </output>
+        </div>
       </FilterRow>
       <FilterRow label="Search">
         <TextInput

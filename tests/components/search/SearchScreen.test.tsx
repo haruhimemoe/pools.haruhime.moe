@@ -13,13 +13,14 @@
  *       search drops the stale sets and their lines.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SearchScreen } from "@/components/search/SearchScreen";
+import { BUILT_CLEARED_NOTE } from "@/constants/search";
 
 const replace = vi.fn();
 let current = new URLSearchParams();
@@ -120,6 +121,34 @@ describe("SearchScreen", () => {
     expect(screen.getByText("3 maps · Built by peppy")).toBeInTheDocument();
     // Built pools have no badged or star data to filter by.
     expect(screen.queryByRole("group", { name: "Stars (no mod)" })).toBeNull();
+  });
+
+  it("clears the badged and star filters on Built here, from the URL too, and says so", async () => {
+    current = new URLSearchParams("badged=yes&sr=5-");
+    fetchMock.mockImplementation(async () => Response.json(POOLS));
+    const user = userEvent.setup();
+    render(<SearchScreen />);
+    fetchMock.mockImplementation(async () => Response.json(BUILT));
+    await user.click(await screen.findByRole("radio", { name: "Built here" }));
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith("/search?type=built", { scroll: false }),
+    );
+    expect(screen.getByText(BUILT_CLEARED_NOTE)).toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: "Both" }));
+    expect(screen.queryByText(BUILT_CLEARED_NOTE)).toBeNull();
+    expect(screen.getByRole("group", { name: "Stars (no mod)" })).toBeInTheDocument();
+  });
+
+  it("drops badged and stars from a Built here link, and from its URL", async () => {
+    current = new URLSearchParams("type=built&sr=5-&badged=yes");
+    fetchMock.mockImplementation(async () => Response.json(BUILT));
+    render(<SearchScreen />);
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith("/api/search?type=built", expect.anything()),
+    );
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith("/search?type=built", { scroll: false }),
+    );
   });
 
   it("reads type=both from the URL", async () => {

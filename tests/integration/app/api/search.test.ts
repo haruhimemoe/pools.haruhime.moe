@@ -11,7 +11,7 @@
  *       the same answer without asking it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -61,7 +61,8 @@ describe("GET /api/search", () => {
 
   it("answers pools built here for type=built, and past pools for a link without a type", async () => {
     await (await poolsCollection()).insertOne(makePool({ _id: "otdb-1" }));
-    const pool = makeBuiltPool({ visibility: "public", name: "Spring Build" });
+    const slots = [{ mod: "NM", index: 1, beatmapId: 5 }];
+    const pool = makeBuiltPool({ visibility: "public", name: "Spring Build", slots });
     await (await builtPoolsCollection()).insertOne({ ...pool, ...builtSearchFields(pool) });
     const ids = async (query: string) =>
       ((await (await get(query)).json()) as { results: { id: string }[] }).results.map(

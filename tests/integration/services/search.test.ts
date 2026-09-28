@@ -5,12 +5,12 @@
  *       "hidden, data missing" count; badged shown only once some pool knows it; every sort,
  *       unknowns last; paging past the end; a set link refused; no aggregation pipeline behind
  *       any search; and explain plans that prove each sort runs on its hinted index with no
- *       in-memory sort and no collection scan. Built here: public, unhidden built pools with
+ *       in-memory sort and no collection scan. Built here: public, unhidden built pools (with maps) with
  *       their owner, text and map filters, none under badged; Both lists built pools first and
  *       pages across into past pools; each built sort runs on its index.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { Collection } from "mongodb";
@@ -382,10 +382,16 @@ describe("searchPools: built here", () => {
     const slots = [{ mod: "NM", index: 1, beatmapId: 1 }];
     await (await builtPoolsCollection()).insertMany([
       built("b-a0000001", { name: "Café Cup Finals", year: 2026, slots }),
-      built("b-a0000002", { name: "Zeta Cup", year: 2025 }),
-      built("b-a0000003", { name: "Unlisted Cup", visibility: "unlisted" }),
-      built("b-a0000004", { name: "Private Cup", visibility: "private" }),
-      built("b-a0000005", { name: "Hidden Cup", hidden: true }),
+      built("b-a0000002", {
+        name: "Zeta Cup",
+        year: 2025,
+        slots: [{ mod: "NM", index: 1, beatmapId: 2 }],
+      }),
+      built("b-a0000003", { name: "Unlisted Cup", visibility: "unlisted", slots }),
+      built("b-a0000004", { name: "Private Cup", visibility: "private", slots }),
+      built("b-a0000005", { name: "Hidden Cup", hidden: true, slots }),
+      // Nothing to see yet: an empty pool isn't listed.
+      built("b-a0000006", { name: "Empty Cup" }),
     ]);
   };
   const built = (filters: Partial<PoolFilters> = {}, page = 1) =>
@@ -394,7 +400,7 @@ describe("searchPools: built here", () => {
       return answer;
     });
 
-  it("lists public pools moderators haven't hidden, with their owner", async () => {
+  it("lists public pools with maps that moderators haven't hidden, with their owner", async () => {
     await seedBuilt();
     await seedPools();
     const answer = await built();

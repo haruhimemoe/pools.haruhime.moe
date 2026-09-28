@@ -6,8 +6,8 @@
  *       fixed order, so equal searches share one URL (and one CDN entry). Ranges snap to their
  *       slider (open at the edges; a range covering the whole slider is no filter). The maps tab
  *       has a scope: all osu! maps (the default) or maps played in pools; the pools tab a type:
- *       past tournament pools (the default, and what a link without one means), built here, or
- *       both. `scope` wins when
+ *       past tournament pools (the default, and what a link without one means), built here (which
+ *       reads no badged or star filter: built pools have neither), or both. `scope` wins when
  *       given; without it, a link carrying a played-only filter (ar, od, cs, played, used,
  *       last, or a sort) reads as played, so links from before the scope still work. A played
  *       search always writes scope=played; an all-maps search never writes a scope. Also the
@@ -15,7 +15,7 @@
  *       map browser's params (src/utils/browse-params.ts). Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PLAYED_AS_CODES, type PlayedAsCode } from "@/constants/pools";
@@ -293,15 +293,18 @@ export const parseSearchState = (search: string | URLSearchParams): SearchState 
       },
     };
   }
+  const type = pick(params.get("type"), POOL_TYPES, DEFAULT_POOL_TYPE);
+  // Built pools have no badged or star data: those filters would hide every one of them.
+  const built = type === "built";
   return {
     tab: "pools",
     page,
     filters: {
-      type: pick(params.get("type"), POOL_TYPES, DEFAULT_POOL_TYPE),
+      type,
       q,
       year: parseRange(params.get("year"), YEAR_RANGE),
-      badged: pick(params.get("badged"), BADGED_FILTERS, "any"),
-      sr: parseRange(params.get("sr"), STAR_RANGE),
+      badged: built ? "any" : pick(params.get("badged"), BADGED_FILTERS, "any"),
+      sr: built ? null : parseRange(params.get("sr"), STAR_RANGE),
       maps: parseRange(params.get("maps"), MAP_COUNT_RANGE),
       map: (params.get("map") ?? "").trim().slice(0, MAX_MAP_REF_LENGTH),
       sort: pick(params.get("sort"), POOL_SORTS, DEFAULT_POOL_SORT),

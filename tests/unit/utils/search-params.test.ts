@@ -8,7 +8,7 @@
  *       scope winning when given, all-maps status and Show explicit maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -116,6 +116,17 @@ describe("the pools tab's type", () => {
     expect(parseSearchState("type=built").filters).toMatchObject({ type: "built" });
   });
 
+  it("drops badged and stars for built pools only: they have neither", () => {
+    expect(parseSearchState("type=built&sr=5-&badged=yes").filters).toMatchObject({
+      sr: null,
+      badged: "any",
+    });
+    expect(parseSearchState("type=both&sr=5-&badged=yes").filters).toMatchObject({
+      sr: [5, null],
+      badged: "yes",
+    });
+  });
+
   it("writes the type first, and none for past pools", () => {
     const built = { ...EMPTY_POOL_FILTERS, type: "built" as const, q: "cup" };
     expect(searchHref({ tab: "pools", page: 1, filters: built })).toBe("/search?type=built&q=cup");
@@ -156,7 +167,7 @@ describe("serializeSearchState", () => {
       tab: "pools",
       page: 7,
       filters: {
-        type: "built",
+        type: "both",
         q: "Café (20k-10k)",
         year: [2015, 2020],
         badged: "unknown",

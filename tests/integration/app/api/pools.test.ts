@@ -7,7 +7,7 @@
  *       at most 50 pools an owner (parallel creates can't go past it) and 10 new pools an hour.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -100,6 +100,21 @@ describe("starting from a pool", () => {
     });
     const named = await create(owner.cookie, { startedFrom: "otdb-9", name: "Mine" });
     expect(((await named.json()) as Created).pool).toMatchObject({ name: "Mine" });
+    // Details the person cleared stay cleared: what they sent wins over the pool's.
+    const cleared = {
+      startedFrom: "otdb-9",
+      name: "Practice",
+      tournament: "",
+      round: "",
+      year: null,
+    };
+    const generic = await create(owner.cookie, cleared);
+    expect(((await generic.json()) as Created).pool).toMatchObject({
+      name: "Practice",
+      tournament: "",
+      round: "",
+      year: null,
+    });
   });
 
   it("won't copy a hidden past pool, or a built pool the caller can't see", async () => {

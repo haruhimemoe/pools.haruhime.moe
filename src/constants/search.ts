@@ -2,12 +2,13 @@
  * @file src/constants/search.ts
  * @desc Search limits and options: paging, caching, slider bounds, sorts and labels, the maps
  *       tab's scope (all osu! maps or maps played in pools), the pools tab's type (past
- *       tournament pools, built here, or both), the all-maps statuses, the mirror's
+ *       tournament pools, built here, or both, and the note when Built here clears filters it
+ *       can't use), the all-maps statuses, the mirror's
  *       search endpoint and its timeout, and the fixed copy the all-maps search shows. Shared by
  *       the page, the route and the queries.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { FIRST_YEAR } from "@/constants/pools";
@@ -87,6 +88,10 @@ export const POOL_TYPE_LABELS: Readonly<Record<PoolType, string>> = Object.freez
   built: "Built here",
   both: "Both",
 });
+
+/** Said when picking "Built here" cleared the badged and star filters (built pools have neither). */
+export const BUILT_CLEARED_NOTE =
+  "Pools built here have no badged or star data, so those filters were cleared.";
 
 export const POOL_SORTS = ["year", "name", "maps"] as const;
 export type PoolSort = (typeof POOL_SORTS)[number];

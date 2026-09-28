@@ -7,7 +7,7 @@
  *       missing values builds the "hidden, data missing" count query.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -16,9 +16,11 @@ import { EMPTY_MAP_FILTERS, EMPTY_POOL_FILTERS } from "@/utils/search-params";
 import { builtPoolQuery, builtSearchable, mapQuery, poolQuery } from "@/utils/search-query";
 
 describe("builtPoolQuery", () => {
-  it("lists public pools moderators haven't hidden, by year, 50 a page", () => {
+  it("lists public pools with maps that moderators haven't hidden, by year, 50 a page", () => {
     expect(builtPoolQuery(EMPTY_POOL_FILTERS, 2, null)).toEqual({
-      filter: { $and: [{ visibility: "public" }, { hidden: false }] },
+      filter: {
+        $and: [{ visibility: "public" }, { hidden: false }, { "slots.0": { $exists: true } }],
+      },
       missing: null,
       sort: { year: -1, _id: 1 },
       hint: BUILT_POOL_INDEXES.searchYear,
@@ -41,6 +43,7 @@ describe("builtPoolQuery", () => {
       $and: [
         { visibility: "public" },
         { hidden: false },
+        { "slots.0": { $exists: true } },
         { searchText: { $regex: "cafe" } },
         { "slots.beatmapId": 75 },
         { mapCount: { $gte: 10, $lte: 20 } },

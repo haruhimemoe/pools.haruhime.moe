@@ -6,11 +6,12 @@
  *       generated source id, claimed by inserting it into built_pool_ids (a clash tries another),
  *       so an id is never handed out twice, even after its pool is deleted. Starting from a pool
  *       copies its maps, buckets and details: a past pool that isn't hidden, or a built pool the
- *       caller can see. Anything typed wins over what's copied. /new?from=<id> previews the pool
+ *       caller can see. Anything sent wins over what's copied, an empty tournament or round and
+ *       a null year included (cleared on purpose). /new?from=<id> previews the pool
  *       to start from (startPreview).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";

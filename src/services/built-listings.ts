@@ -1,13 +1,13 @@
 /**
  * @file src/services/built-listings.ts
- * @desc Public built pools where public pages list them: the sitemap (every one) and the home
- *       page's "Recently built" (the newest few). Public and not hidden only, newest change
- *       first, on the visibility-with-updatedAt index, each with its owner's osu! name. Empty
- *       under SKIP_ENV_VALIDATION (the CI build); at runtime a database error throws, so ISR
- *       keeps the last good page.
+ * @desc Public built pools where public pages list them: the sitemap (every one), llms.txt and
+ *       the home page's "Recently built" (the newest few). Public, not hidden and with maps
+ *       only, newest change first, on the visibility-with-updatedAt index, each with its
+ *       owner's osu! name. Empty under SKIP_ENV_VALIDATION (the CI build); at runtime a
+ *       database error throws, so ISR keeps the last good page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -34,7 +34,8 @@ const LISTED_MAX = 5000;
 /**
  * @function listPublicBuiltPools
  * @param limit {number} how many at most (default every one, up to 5000)
- * @returns {Promise<ListedBuiltPool[]>} public, unhidden built pools, newest change first
+ * @returns {Promise<ListedBuiltPool[]>} public, unhidden built pools with maps, newest change
+ *          first
  * @throws {Error} on a database error (ISR keeps the last good page)
  */
 export const listPublicBuiltPools = async (
@@ -43,7 +44,8 @@ export const listPublicBuiltPools = async (
   if (isEnvValidationSkipped()) return [];
   const rows = await (await builtPoolsCollection())
     .find(
-      { visibility: "public", hidden: false },
+      // A pool made public before its first map has nothing to show yet.
+      { visibility: "public", hidden: false, "slots.0": { $exists: true } },
       {
         projection: {
           name: 1,

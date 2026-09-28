@@ -12,7 +12,7 @@
  *       SKIP_ENV_VALIDATION.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { Collection } from "mongodb";
@@ -203,17 +203,27 @@ describe("maps", () => {
 });
 
 describe("public built pools", () => {
-  it("lists public, unhidden built pools, newest change first, with their owner", async () => {
+  it("lists public, unhidden built pools with maps, newest change first, with their owner", async () => {
     const cast = await createCast();
     const at = (minutes: number) => new Date(Date.UTC(2026, 8, 27, 12, minutes));
-    await insertPool(cast, { _id: "b-a0000001", visibility: "public", updatedAt: at(1) });
-    await insertPool(cast, { _id: "b-a0000002", visibility: "public", updatedAt: at(2) });
-    await insertPool(cast, { _id: "b-a0000003", visibility: "unlisted", updatedAt: at(3) });
-    await insertPool(cast, { _id: "b-a0000004", visibility: "public", hidden: true });
-    await insertPool(cast, { _id: "b-a0000005", updatedAt: at(5) });
+    const shared = (id: string, minutes: number, more = {}) =>
+      insertPool(cast, {
+        _id: id,
+        visibility: "public",
+        slots: [{ mod: "NM", index: 1, beatmapId: 5 }],
+        updatedAt: at(minutes),
+        ...more,
+      });
+    await shared("b-a0000001", 1);
+    await shared("b-a0000002", 2);
+    await shared("b-a0000003", 3, { visibility: "unlisted" });
+    await shared("b-a0000004", 4, { hidden: true });
+    await shared("b-a0000005", 5, { visibility: "private" });
+    // Made public before any map: "0 maps" leads nowhere.
+    await shared("b-a0000006", 6, { slots: [] });
     const listed = await listPublicBuiltPools();
     expect(listed.map((pool) => pool.id)).toEqual(["b-a0000002", "b-a0000001"]);
-    expect(listed[0]).toMatchObject({ builtBy: "owner", maps: 0, updatedAt: at(2) });
+    expect(listed[0]).toMatchObject({ builtBy: "owner", maps: 1, updatedAt: at(2) });
     expect((await listPublicBuiltPools(1)).map((pool) => pool.id)).toEqual(["b-a0000002"]);
   });
 });

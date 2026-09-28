@@ -10,7 +10,7 @@
  *       shows as hidden. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { Document } from "mongodb";
@@ -152,8 +152,8 @@ export const builtSearchable = (filters: PoolFilters): boolean =>
  * @param filters {PoolFilters} the pool filters (builtSearchable ones)
  * @param page {number} 1-based page
  * @param mapId {number | null} "contains map", already read as a beatmap id
- * @returns {BuiltQuery} the query over built pools that are public and not hidden: text, map,
- *          map count and year as for past pools
+ * @returns {BuiltQuery} the query over built pools that are public, not hidden and have maps:
+ *          text, map, map count and year as for past pools
  */
 export const builtPoolQuery = (
   filters: PoolFilters,
@@ -163,6 +163,8 @@ export const builtPoolQuery = (
   const base: Document[] = [
     { visibility: "public" },
     { hidden: false },
+    // A pool made public before its first map has nothing to show yet.
+    { "slots.0": { $exists: true } },
     ...textConditions(filters.q),
   ];
   if (mapId !== null) base.push({ "slots.beatmapId": mapId });

@@ -1,12 +1,13 @@
 /**
  * @file tests/components/builder/NewPoolForm.test.tsx
  * @desc "Make a pool": a missing name or a year that isn't one is said under its field (focus
- *       goes there) with nothing sent; a good form POSTs the name and the details given, then
- *       goes to the new pool's editor; a refusal is said in the page. Starting from a pool fills
- *       in its details, says how many maps come with it, and sends startedFrom.
+ *       goes there) with nothing sent; a good form POSTs the name and every detail (an empty one
+ *       as "" or a null year), then goes to the new pool's editor; a refusal is said in the page.
+ *       Starting from a pool fills in its details, says how many maps come with it, sends
+ *       startedFrom, and sends a detail cleared from it as empty.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen, waitFor } from "@testing-library/react";
@@ -68,6 +69,7 @@ describe("NewPoolForm", () => {
     expect(JSON.parse(String(init?.body))).toEqual({
       name: "Spring Cup Finals",
       tournament: "Spring Cup",
+      round: "",
       year: 2026,
     });
   });
@@ -100,6 +102,23 @@ describe("NewPoolForm", () => {
       tournament: "osu! World Cup",
       round: "Finals",
       year: 2023,
+      startedFrom: "otdb-9",
+    });
+  });
+
+  it("sends the details cleared from a pool it starts from as empty, not as the pool's", async () => {
+    const { fetcher, user, field, make } = setup(
+      () => Response.json({ id: "b-a0000002" }, { status: 201 }),
+      START,
+    );
+    for (const name of ["Tournament", "Round", "Year"]) await user.clear(field(name));
+    await make();
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/pools/b-a0000002/edit"));
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toEqual({
+      name: "OWC 2023 Finals",
+      tournament: "",
+      round: "",
+      year: null,
       startedFrom: "otdb-9",
     });
   });
