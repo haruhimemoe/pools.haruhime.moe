@@ -3,7 +3,7 @@
  * @desc GET /api/pools/<id>/values: each slot's values under its mods, keyed by map and combo,
  *       for the pool's owner and editors (signed out 401, can't see it 404, sees it but can't
  *       edit 403), within the per-user ops limit, never cached; a failed mirror call still
- *       answers, with complete false.
+ *       answers, with complete false, and the mirror's deadline sits well inside maxDuration.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -11,7 +11,8 @@
 
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GET } from "@/app/api/pools/[id]/values/route";
+import { GET, maxDuration } from "@/app/api/pools/[id]/values/route";
+import { SLOT_VALUES_DEADLINE_MS } from "@/constants/mod-values";
 import { resetMirrorCooldown } from "@/lib/map-search";
 import { mapsCollection } from "@/models/Map";
 import { ADMIN_OSU_ID } from "../../../helpers/auth";
@@ -68,6 +69,10 @@ describe("GET /api/pools/<id>/values", () => {
     };
     expect(body.complete).toBe(false);
     expect(body.values["2:DT"]?.source).toBe("math");
+  });
+
+  it("gives up on the mirror well within its own time limit", () => {
+    expect(SLOT_VALUES_DEADLINE_MS).toBeLessThanOrEqual((maxDuration * 1000) / 2);
   });
 
   it("is for the owner and editors only", async () => {

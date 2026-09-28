@@ -3,7 +3,7 @@
  * @desc A stand-in for the mirror's GET /v3/osu/pp/batch?ids=&mods=: rows shaped like the live
  *       answer ({ results: { "<id>": {...} }, missing, mods, game_mode }), answered for the ids a
  *       test knows under the asked combo (the rest missing), recording each call's ids, combo
- *       and User-Agent.
+ *       and User-Agent; or a mirror that never answers some combos (6.5 stars for the others).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -82,4 +82,24 @@ export const ppBatchAnswering = (answer: (url: URL) => Response, calls: BatchCal
     const url = new URL(request.url);
     calls.push({ ...asked(url), userAgent: request.headers.get("user-agent") });
     return answer(url);
+  });
+
+/**
+ * @function ppBatchHanging
+ * @param calls {BatchCall[]} filled with every request
+ * @param answersFor {(mods: string) => boolean} combos that get an answer (none by default); the
+ *        rest never answer, as a mirror that hangs
+ * @returns the msw handler
+ */
+export const ppBatchHanging = (
+  calls: BatchCall[] = [],
+  answersFor: (mods: string) => boolean = () => false,
+) =>
+  http.get(PP_BATCH_URL, async ({ request }) => {
+    const url = new URL(request.url);
+    calls.push({ ...asked(url), userAgent: request.headers.get("user-agent") });
+    const { ids, mods } = asked(url);
+    if (!answersFor(mods ?? "NM")) await new Promise(() => {});
+    const results = Object.fromEntries(ids.map((id) => [String(id), ppValues({ stars: 6.5 })]));
+    return HttpResponse.json({ mods: mods ?? "NM", results, success: true });
   });

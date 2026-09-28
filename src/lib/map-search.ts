@@ -10,7 +10,8 @@
  *       from total_count (the mirror's own pages), osu!'s total (capped at 10000) or not at all
  *       (osu.direct). A 429 or 503 with Retry-After makes this process skip the mirror that
  *       long (at most a minute) and fail at once meanwhile; the map browser's mirror calls
- *       share that cool-down (isMirrorCooling, noteMirrorRetryAfter). Lives here, not in
+ *       share that cool-down (isMirrorCooling, noteMirrorRetryAfter), and a pp/batch call that
+ *       times out starts it for 30 s (noteMirrorTimeout). Lives here, not in
  *       @haruhimemoe/hinai, until a second app needs it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
@@ -28,6 +29,7 @@ import {
   MIRROR_COOLDOWN_MAX_MS,
   MIRROR_SEARCH_TIMEOUT_MS,
   MIRROR_SEARCH_URL,
+  MIRROR_TIMEOUT_COOLDOWN_MS,
   MIRROR_TOTAL_CAP,
   SEARCH_PAGE_SIZE,
   STAR_RANGE,
@@ -161,6 +163,15 @@ export const noteMirrorRetryAfter = (response: Response, now: number): void => {
   const wait = parseRetryAfter(response.headers.get("Retry-After"), now);
   if (wait === null || wait <= 0) return;
   coolUntil = Math.max(coolUntil, now + Math.min(wait, MIRROR_COOLDOWN_MAX_MS));
+};
+
+/**
+ * @function noteMirrorTimeout
+ * @param now {number} ms since the epoch
+ * @returns {void} after a call that timed out, skips the mirror for MIRROR_TIMEOUT_COOLDOWN_MS
+ */
+export const noteMirrorTimeout = (now: number): void => {
+  coolUntil = Math.max(coolUntil, now + MIRROR_TIMEOUT_COOLDOWN_MS);
 };
 
 /** A set that parses, with only the osu!standard difficulties that parse. */

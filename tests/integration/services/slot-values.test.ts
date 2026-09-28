@@ -3,7 +3,7 @@
  * @desc Values under each pool slot's mods against a stand-in pp/batch (msw) and the mod_values
  *       cache: NM, FM and TB slots keep their no-mod values without asking; HD and modded slots
  *       take stars, AR, OD and CS from the mirror and BPM and length from the math, one call per
- *       combo; a map the mirror lacks keeps its no-mod rating with the rest computed ("math":
+ *       combo, all at once under one deadline; a map the mirror lacks keeps its no-mod rating with the rest computed ("math":
  *       no mod data); a failed call still answers, marked incomplete. A past pool's values follow
  *       its source slots, and a built pool's are keyed by map and combo, both from the maps'
  *       stored no-mod values.
@@ -13,8 +13,8 @@
  */
 
 import { HttpResponse } from "msw";
-import { beforeEach, describe, expect, it } from "vitest";
-import { resetMirrorCooldown } from "@/lib/map-search";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { isMirrorCooling, resetMirrorCooldown } from "@/lib/map-search";
 import {
   builtSlotValues,
   pastSlotValues,
@@ -23,7 +23,13 @@ import {
 } from "@/services/slot-values";
 import { setupTestDb } from "../../helpers/db";
 import { setupMsw } from "../../helpers/msw";
-import { type BatchCall, ppBatchAnswering, ppBatchHandler, ppValues } from "../../helpers/pp-batch";
+import {
+  type BatchCall,
+  ppBatchAnswering,
+  ppBatchHandler,
+  ppBatchHanging,
+  ppValues,
+} from "../../helpers/pp-batch";
 
 setupTestDb();
 const server = setupMsw();
@@ -63,7 +69,7 @@ describe("slotValues", () => {
       ),
     );
     const { values } = await slotValues([slot(1, "DT"), slot(2, "DT"), slot(3, "HDHR")]);
-    expect(calls.map((call) => [call.mods, call.ids])).toEqual([
+    expect(calls.map((call) => [call.mods, call.ids]).sort()).toEqual([
       ["DT", [1, 2]],
       ["HDHR", [3]],
     ]);
@@ -98,6 +104,20 @@ describe("slotValues", () => {
       source: "math",
     });
     expect(values[1]).toMatchObject({ ar: null, od: 9.78, bpm: null, length: 80, source: "math" });
+  });
+
+  it("asks every combo at once, and answers incomplete at one deadline for all", async () => {
+    const calls: BatchCall[] = [];
+    server.use(ppBatchHanging(calls, (mods) => mods === "HR"));
+    const started = Date.now();
+    const { values, complete } = await slotValues([slot(1, "DT"), slot(2, "EZ"), slot(3, "HR")], {
+      deadlineMs: 60,
+    });
+    expect(Date.now() - started).toBeLessThan(2000);
+    expect(calls.map((call) => call.mods).sort()).toEqual(["DT", "EZ", "HR"]);
+    expect(complete).toBe(false);
+    expect(values.map((value) => value.source)).toEqual(["math", "math", "mirror"]);
+    await vi.waitFor(() => expect(isMirrorCooling(Date.now())).toBe(true));
   });
 
   it("answers from the math, marked incomplete, when the mirror fails", async () => {

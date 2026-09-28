@@ -4,8 +4,8 @@
  *       and combo ("<id>:<combo>"), for the pool's editor as its slots change
  *       (src/services/slot-values.ts: the mod_values cache, else the hinai mirror, else the
  *       math). The owner or an editor only (signed out 401, can't see it 404, sees it but can't
- *       edit 403), within the per-user ops limit. `{ values, complete }`: a mirror failure
- *       still answers, complete false. Never cached.
+ *       edit 403), within the per-user ops limit. `{ values, complete }`: a mirror failure, or
+ *       the 8 s deadline, still answers, complete false. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -22,7 +22,7 @@ import { builtSlotValues } from "@/services/slot-values";
 
 type Context = { params: Promise<{ id: string }> };
 
-/** One pp/batch call per combo in the pool. */
+/** The mirror gets SLOT_VALUES_DEADLINE_MS (8 s) for all combos, so this answers well inside. */
 export const maxDuration = 30;
 
 export async function GET(request: Request, { params }: Context) {

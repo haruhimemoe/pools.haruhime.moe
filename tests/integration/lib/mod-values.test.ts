@@ -4,8 +4,9 @@
  *       pools' User-Agent and the combo, at most 100 ids a call, kept per id and combo (a second
  *       ask is a cache hit), ids the mirror lacks answered missing and never cached, and every
  *       way the mirror fails (an error status, a body that isn't the answer, success false,
- *       another combo than asked, a dropped connection, a Retry-After) answered missing with
- *       nothing cached. The TTL index keeps rows 30 days.
+ *       another combo than asked, a dropped connection, a Retry-After, a timeout or the caller's
+ *       deadline) answered missing with nothing cached; a timeout starts the cool-down. The TTL
+ *       index keeps rows 30 days.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -16,12 +17,18 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { MOD_VALUES_INDEXES } from "@/constants/db";
 import { MOD_VALUES_TTL_SECONDS } from "@/constants/mod-values";
 import { SERVER_USER_AGENT } from "@/constants/site";
-import { resetMirrorCooldown } from "@/lib/map-search";
+import { isMirrorCooling, resetMirrorCooldown } from "@/lib/map-search";
 import { getModValues } from "@/lib/mod-values";
 import { modValuesCollection } from "@/models/ModValues";
 import { setupTestDb } from "../../helpers/db";
 import { setupMsw } from "../../helpers/msw";
-import { type BatchCall, ppBatchAnswering, ppBatchHandler, ppValues } from "../../helpers/pp-batch";
+import {
+  type BatchCall,
+  ppBatchAnswering,
+  ppBatchHandler,
+  ppBatchHanging,
+  ppValues,
+} from "../../helpers/pp-batch";
 
 setupTestDb();
 const server = setupMsw();
@@ -145,6 +152,27 @@ describe("getModValues when the mirror fails", () => {
     expect(calls).toHaveLength(1);
     expect(cooling).toMatchObject({ failed: true, missing: [300] });
     expect(cooling.values.get(100)).toMatchObject({ stars: 1 });
+  });
+
+  it("gives up on a mirror that hangs, and then leaves it alone a while", async () => {
+    const calls: BatchCall[] = [];
+    server.use(ppBatchHanging(calls));
+    expect(await getModValues([100], "DT", { timeoutMs: 30 })).toMatchObject({
+      failed: true,
+      missing: [100],
+    });
+    expect(isMirrorCooling(Date.now())).toBe(true);
+    expect((await getModValues([200], "DT")).failed).toBe(true);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("stops at the caller's deadline", async () => {
+    server.use(ppBatchHanging());
+    const started = Date.now();
+    const result = await getModValues([100], "HR", { signal: AbortSignal.timeout(30) });
+    expect(result.failed).toBe(true);
+    expect(Date.now() - started).toBeLessThan(2000);
+    expect(isMirrorCooling(Date.now())).toBe(true);
   });
 });
 

@@ -5,8 +5,9 @@
  *       100 ids a call), kept 30 days in mod_values per beatmap id and combo. Ids the mirror
  *       lacks come back missing and aren't cached (the mirror computes cold maps soon after);
  *       a failed call (an error status, a body that isn't the answer, success false, another
- *       combo than asked, a dropped connection or timeout) answers its ids missing, caches
- *       nothing and says it failed. The mirror search's Retry-After cool-down applies here too.
+ *       combo than asked, a dropped connection, a timeout or the caller's deadline) answers its
+ *       ids missing, caches nothing and says it failed. The mirror search's Retry-After
+ *       cool-down applies here too, and a call that times out (or meets the deadline) starts it.
  *       The caller falls back to no-mod values and src/utils/mod-values.ts for missing ids.
  *       A cache read or write that fails is logged and skipped. Never rejects on the mirror.
  * @author David @dvhsh (https://dvh.sh)
@@ -19,7 +20,7 @@ import { z } from "zod";
 import { QUERY_TIME_MS } from "@/constants/db";
 import { PP_BATCH_SIZE, PP_BATCH_TIMEOUT_MS, PP_BATCH_URL } from "@/constants/mod-values";
 import { SERVER_USER_AGENT } from "@/constants/site";
-import { isMirrorCooling, noteMirrorRetryAfter } from "@/lib/map-search";
+import { isMirrorCooling, noteMirrorRetryAfter, noteMirrorTimeout } from "@/lib/map-search";
 import { modValuesCollection } from "@/models/ModValues";
 import { type ModValues, modValuesSchema, storedModValuesSchema } from "@/schemas/mod-values";
 import { modsCode, parseMods } from "@/utils/mod-values";
@@ -33,7 +34,13 @@ export type ModValuesResult = {
   failed: boolean;
 };
 
-export type ModValuesDeps = { fetch?: typeof fetch; timeoutMs?: number; now?: () => number };
+export type ModValuesDeps = {
+  fetch?: typeof fetch;
+  timeoutMs?: number;
+  now?: () => number;
+  /** The caller's deadline: a call still running when it aborts gives up. */
+  signal?: AbortSignal;
+};
 
 const answerSchema = z.object({
   success: z.boolean().optional(),
@@ -49,14 +56,17 @@ const askMirror = async (
     fetch: doFetch = globalThis.fetch,
     timeoutMs = PP_BATCH_TIMEOUT_MS,
     now = Date.now,
+    signal: deadline,
   }: ModValuesDeps,
 ): Promise<Map<number, ModValues> | null> => {
   const url = `${PP_BATCH_URL}?${new URLSearchParams({ ids: ids.join(","), mods: code })}`;
+  const timeout = AbortSignal.timeout(timeoutMs);
+  const signal = deadline ? AbortSignal.any([timeout, deadline]) : timeout;
   let body: unknown;
   try {
     const response = await doFetch(url, {
       headers: { Accept: "application/json", "User-Agent": SERVER_USER_AGENT },
-      signal: AbortSignal.timeout(timeoutMs),
+      signal,
     });
     if (!response.ok) {
       noteMirrorRetryAfter(response, now());
@@ -65,6 +75,7 @@ const askMirror = async (
     }
     body = await response.json();
   } catch (error) {
+    if (signal.aborted) noteMirrorTimeout(now());
     console.error("[mod-values] the mirror call failed", error);
     return null;
   }
@@ -148,7 +159,7 @@ export const getModValues = async (
   const asked = unique.filter((id) => !values.has(id));
   const now = deps.now ?? Date.now;
   let failed = false;
-  if (asked.length > 0 && isMirrorCooling(now())) failed = true;
+  if (asked.length > 0 && (isMirrorCooling(now()) || deps.signal?.aborted)) failed = true;
   else if (asked.length > 0) {
     const chunks: number[][] = [];
     for (let i = 0; i < asked.length; i += PP_BATCH_SIZE) {
