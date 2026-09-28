@@ -4,7 +4,8 @@
  *       own goes, its pack on packs removed, or the removal queued when packs can't be asked
  *       (after the first failure the rest are queued without asking, so a packs outage can't
  *       hold the request past its time), then they're taken off every pool they edit (whose
- *       packs are marked pending, since their name leaves the description), then a pool handed
+ *       packs are marked pending, since their name leaves the description, and whose candidates
+ *       lose their votes and "added by"), then a pool handed
  *       to them meanwhile goes too, so no pool is left owned by a deleted account. Then
  *       every session (so no cookie works again), every linked osu! account row, and the user
  *       last. A failure partway leaves a user row that the next osu! sign-in relinks
@@ -19,16 +20,35 @@ import "server-only";
 import { getAuth } from "@/lib/auth";
 import { connectDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
+import type { SlotCandidates } from "@/schemas/built-candidates";
 import type { SessionUser } from "@/schemas/session-user";
 import { deleteActivityOf, forgetActivityBy } from "@/services/built-pool-activity";
 import { WANTS_PACK_SYNC } from "@/services/built-pools";
 import { removePackOrQueue } from "@/services/pack-cleanup";
+import { forgetPerson } from "@/utils/candidate-view";
 
 /** Why the rest of an account's pack removals were queued without asking packs. */
 const PACKS_FAILED_EARLIER = "packs didn't answer for an earlier pool of this account.";
 
 /** Rounds of the owned-pools pass: a handover can land between the read and the $pull. */
 const OWNED_ROUNDS = 3;
+
+/** Their votes and "added by" leave the candidates of the pools they edit. */
+const forgetCandidatesBy = async (osuId: number): Promise<void> => {
+  const pools = await builtPoolsCollection();
+  const edited = await pools
+    .find({ "editors.osuId": osuId, candidates: { $exists: true } })
+    .project<{ _id: string; version: number; candidates: SlotCandidates }>({
+      candidates: 1,
+      version: 1,
+    })
+    .toArray();
+  for (const pool of edited) {
+    const candidates = forgetPerson(pool.candidates, osuId);
+    // Guarded by version: a change that lands meanwhile keeps its own copy.
+    await pools.updateOne({ _id: pool._id, version: pool.version }, { $set: { candidates } });
+  }
+};
 
 /**
  * @function removeUserFromBuiltPools
@@ -60,6 +80,7 @@ export const removeUserFromBuiltPools = async (
     { "editors.osuId": user.osuId, ...WANTS_PACK_SYNC },
     { $set: { "pack.state": "pending" } },
   );
+  await forgetCandidatesBy(user.osuId);
   await pools.updateMany(
     { "editors.osuId": user.osuId },
     {

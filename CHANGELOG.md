@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Candidates per slot: up to 10 maps a slot is still considering besides its pick (100 per pool). Add them from the map browser with "Add as candidate" (choose the slot, or a new one); each slot's "N candidates" list shows their stars under the slot's mods, who added them, a note and votes ("2 of 3 editors", yours as a toggle), with Promote and Remove. A pick can go "To candidates" and its slot stays. Drag a candidate onto a pick to promote it, a pick onto a list to demote it, or a candidate to another slot of the same bucket. Undo covers them, and the activity log records every candidate change but votes. Only the owner and editors ever see candidates: the pool's page, the API for anyone else, exports, the pack on packs, targets, the summary and the content rules check go by picks alone.
+- "Your candidates" in the map browser: every candidate (and, if you like, every pick) from the pools you own or edit, newest first, filtered by slot and text, with stars under the current bucket's mods. Add or Add as candidate copies one into the pool you're editing, with its note.
 - Drag and drop in the editor: drag a map by its handle onto another row or slot, with a mouse or on a touch screen. The Up, Down and Move buttons stay for the keyboard.
 - An activity log for built pools: every change records who made it, when and what, and the editor shows the last 20 under Recent changes (owner and editors only). A pool keeps its last 200 entries for up to 180 days; deleting an account renames its entries to "deleted user".
 - Export on built pool pages and in the editor: copy beatmap IDs, copy `!mp map` and `!mp mods` lines per slot, and download a CSV with values under each slot's mods.
@@ -43,6 +45,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Removing a pick from a slot that has candidates keeps the slot (with no pick) instead of closing the bucket up, and adding a map to such a slot makes it the pick. Moving a map within its bucket moves its slot's candidates with it; moving it to another bucket leaves them. A custom slot with candidates can't be removed.
+- Deleting an account also takes its votes and its name off the candidates of pools it edited.
+- `@haruhimemoe/next-kit` 0.2.1.
 - Adding an editor looks the osu! username up with `@haruhimemoe/osu` 0.4.0's `getUser` on the shared client, inside the same osu! budget, instead of pools' own token and request. `@haruhimemoe/hinai` is 0.3.1, on the same osu.
 - Sign in, sign out, the account menu and Delete my account now come from `@haruhimemoe/next-kit/auth-react` 0.2.0, and the pool's visibility picker from `@haruhimemoe/ui` 0.5.0 (`VisibilitySelect`), instead of pools' own copies. They look and work as before; the account page's delete button now goes home with a full page load, and the avatar in the header menu is a plain image.
 - The shared packages move to ui 0.4.0, osu 0.3.0, hinai 0.3.0, pool 0.2.0, compliance 0.1.1 and brand 0.4.0. Duration, star, BPM and stat text now comes from `@haruhimemoe/osu/format` (the same text as before). Past pools keep their slots in the order their source lists them.

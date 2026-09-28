@@ -136,3 +136,22 @@ export const candidateSlotOptions = (pool: {
       ...(next <= MAX_SLOT_INDEX ? [option(next, `New ${code}${next}`)] : []),
     ];
   });
+
+/**
+ * @function forgetPerson
+ * @param candidates {SlotCandidates} a pool's candidates
+ * @param osuId {number} an account being deleted
+ * @returns {SlotCandidates} the same candidates without that person's votes, and 0 ("a former
+ *          editor") as the adder where they added one
+ */
+export const forgetPerson = (candidates: SlotCandidates, osuId: number): SlotCandidates =>
+  Object.fromEntries(
+    Object.entries(candidates).map(([key, list]) => [
+      key,
+      list.map((entry) => ({
+        ...entry,
+        addedBy: entry.addedBy === osuId ? 0 : entry.addedBy,
+        votes: entry.votes.filter((id) => id !== osuId),
+      })),
+    ]),
+  );
