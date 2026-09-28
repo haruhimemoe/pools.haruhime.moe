@@ -76,7 +76,7 @@ describe("searchNekoha", () => {
         {
           id: 11,
           setId: 1,
-          artist: "Camellia",
+          artist: "Compact Artist",
           title: "Xeroa",
           creator: "Mapper",
           version: "Diff 11",

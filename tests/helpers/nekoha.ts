@@ -24,7 +24,7 @@ export const nekohaRow = (
   setId: number,
   extra: Record<string, unknown> = {},
 ): Record<string, unknown> => ({
-  artist: "Camellia",
+  artist: "Compact Artist",
   beatmap_id: id,
   beatmap_md5: "0d218c67b5928e4ebe405dae986c9037",
   beatmapset_id: setId,

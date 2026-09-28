@@ -37,7 +37,7 @@ import type { AllMapFilters, Range } from "@/utils/search-params";
 
 const count = z.number().int().nonnegative();
 
-/** An osu!standard difficulty, as the search lists it. */
+/** An osu!standard difficulty, as the search lists it (AR, OD and CS when it sends them). */
 const beatmapSchema = z
   .object({
     id: z.number().int().positive(),
@@ -46,13 +46,20 @@ const beatmapSchema = z
     difficulty_rating: z.number().nonnegative(),
     total_length: z.number().nonnegative(),
     bpm: z.number().nonnegative(),
+    ar: z.number().nullish(),
+    accuracy: z.number().nullish(),
+    cs: z.number().nullish(),
   })
-  .transform(({ id, version, difficulty_rating, total_length, bpm }) => ({
+  .transform(({ id, version, difficulty_rating, total_length, bpm, ar, accuracy, cs }) => ({
     id,
     version,
     stars: difficulty_rating,
     length: total_length,
     bpm,
+    /** Without mods; null when the mirror left it out (its own compact pages). */
+    ar: ar ?? null,
+    od: accuracy ?? null,
+    cs: cs ?? null,
   }));
 
 export type MirrorBeatmap = z.output<typeof beatmapSchema>;

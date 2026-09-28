@@ -6,7 +6,8 @@
  *       BROWSE_LENSES in any order (NC reads as DT); whether the mirror offers it is the
  *       service's call. Ranges snap to the search sliders and are under the lens. excludeIds
  *       ("hide maps in this pool") is 1 to 64 beatmap ids, kept once and sorted; one bad id or
- *       more than 64 reads as none. Pure, and safe in the browser.
+ *       more than 64 reads as none. Also the answer shapes the route sends. Pure, and safe in
+ *       the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -152,4 +153,62 @@ export const serializeBrowseParams = (params: BrowseParams): string => {
 export const browseApiUrl = (params: BrowseParams): string => {
   const search = serializeBrowseParams(params);
   return search === "" ? "/api/maps/browse" : `/api/maps/browse?${search}`;
+};
+
+/** One osu!standard difficulty in the browser, with its values under the lens. */
+export type BrowseDiff = {
+  id: number;
+  version: string;
+  /** Under the lens (without mods when modValuesAvailable is false). */
+  stars: number;
+  starsNoMod: number;
+  /** Under the lens; null when unknown. */
+  ar: number | null;
+  od: number | null;
+  cs: number | null;
+  bpm: number;
+  /** Seconds, under the lens. */
+  length: number;
+  /** Current past pools that played it; null when that lookup failed. */
+  playedIn: number | null;
+  /** "math": no mod data from the mirror, AR, OD and CS computed (or unknown). */
+  source: "mirror" | "math";
+};
+
+/** One beatmapset in the browser (disallowed ones never are). */
+export type BrowseSet = {
+  setId: number;
+  artist: string;
+  title: string;
+  creator: string;
+  status: string;
+  /** Graveyard, pending or WIP: it can change or disappear. */
+  unranked: boolean;
+  /** Null when nothing stands in its way; potential sets say why to check first. */
+  check: { text: string } | null;
+  diffs: BrowseDiff[];
+};
+
+/** What GET /api/maps/browse answers. */
+export type BrowseResponse = {
+  /** The lens used: NM for Qualified and Pending, and for a lens the mirror doesn't offer. */
+  lens: BrowseLens;
+  /** The lenses on offer, in picker order. */
+  lenses: BrowseLens[];
+  status: MapStatus;
+  page: number;
+  pageCount: number | null;
+  /** The mirror's total (difficulties with a lens, sets without), when it gives one. */
+  total: number | null;
+  /** Sets on this page left out as not allowed in officially supported tournaments. */
+  hidden: number;
+  /** Difficulties the BPM, length, AR and OD filters left out of this page. */
+  filteredOnPage: number;
+  /** Difficulties left out as already in the pool (excludeIds). */
+  excluded: number;
+  /** Difficulties left out as played in past pools (hidePlayed). */
+  playedHidden: number;
+  /** False for Qualified and Pending: stars, AR and OD are without mods. */
+  modValuesAvailable: boolean;
+  sets: BrowseSet[];
 };
