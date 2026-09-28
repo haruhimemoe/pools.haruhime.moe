@@ -3,7 +3,8 @@
  * @desc The editor's undo bookkeeping, beside its queue of ops: each change of this session gets
  *       a step with its inverse (src/utils/undo.ts; a change with none cuts the history), each
  *       queued op remembers its step and whether it is an undo, a saved call marks its steps
- *       saved, and a dropped queue drops the steps that never saved. At most 20 steps.
+ *       saved, and a dropped queue drops the steps that never saved; someone else's change
+ *       clears them all. At most 20 steps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -58,6 +59,9 @@ export const useUndoSteps = () => {
     set(dropUnsaved(history.current));
   }, [set]);
 
+  /** Someone else changed the pool: no step can go back safely any more. */
+  const clear = useCallback(() => set([]), [set]);
+
   /** Takes the last step off the history. */
   const pop = useCallback((): UndoStep | undefined => {
     const step = history.current.at(-1);
@@ -66,7 +70,7 @@ export const useUndoSteps = () => {
   }, [set]);
 
   return useMemo(
-    () => ({ count, queued, sent, saved, dropped, pop }),
-    [count, queued, sent, saved, dropped, pop],
+    () => ({ count, queued, sent, saved, dropped, clear, pop }),
+    [count, queued, sent, saved, dropped, clear, pop],
   );
 };

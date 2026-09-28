@@ -12,7 +12,10 @@
  *       404 (or 401) from a read or a save means the pool was deleted or access went: it says
  *       so once and stops asking. Undo sends the inverse of this session's last change
  *       (src/utils/undo.ts; up to 20 steps, no redo) as a change of its own; a 409 on it drops
- *       that step with a notice, and a step that no longer applies is dropped too.
+ *       that step with a notice, and a step that no longer applies is dropped too. Someone
+ *       else's change (a pool whose content differs from the last saved one, from a poll, a 409
+ *       or another request's answer) ends the whole history: steps name slots by place, so one
+ *       sent after it could undo their work instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -29,6 +32,7 @@ import { callPools, type Fetcher, UNREACHABLE } from "@/lib/pool-client";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import { type ClientPack, type ClientPool, clientPoolOf } from "@/schemas/built-pool-view";
 import { applyLocal } from "@/utils/built-editor";
+import { sameContent } from "@/utils/undo";
 
 export const POLL_MS = 15_000;
 
@@ -141,6 +145,7 @@ export const usePoolEditor = (
       steps.saved(sent.steps);
       rebase(clientPoolOf(answer.body.pool));
     } else if (answer.status === 409 && answer.pool) {
+      steps.clear();
       rollBack(answer.pool, sent.undoing ? { message: UNDO_DROPPED } : "conflict");
     } else if (answer.status === 404 || answer.status === 401) {
       dropQueue();
@@ -194,17 +199,25 @@ export const usePoolEditor = (
           rebase({ ...saved.current, pack: next.pack });
         }
         if (next.version <= saved.current.version) return;
+        if (!sameContent(next, saved.current)) steps.clear();
         if (queue.current.length > 0 && !own) rollBack(next, "conflict");
         else rebase(next);
       } else if (answer.status === 404 || answer.status === 401) setGone(true);
     },
-    [fetcher, rebase, rollBack],
+    [fetcher, rebase, rollBack, steps],
   );
 
   const poll = useCallback(() => void exclusive(() => reload()), [exclusive, reload]);
   usePoolPolling(poll, pollMs, gone);
 
-  const adopt = useCallback((next: ClientPool) => rebase(clientPoolOf(next)), [rebase]);
+  const adopt = useCallback(
+    (next: ClientPool) => {
+      const pool = clientPoolOf(next);
+      if (!sameContent(pool, saved.current)) steps.clear();
+      rebase(pool);
+    },
+    [rebase, steps],
+  );
   const dismiss = useCallback(() => {
     setFailure(null);
     setConflict(false);
