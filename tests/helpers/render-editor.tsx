@@ -6,7 +6,7 @@
  *       next/navigation itself.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -16,20 +16,23 @@ import type { ClientPool } from "@/schemas/built-pool-view";
 import type { SlotValueMap } from "@/utils/slot-values";
 import { clientPool, fakePoolApi, mapsFor, RULES } from "./pool-editor";
 
+type RenderOptions = {
+  me?: number;
+  pollMs?: number;
+  values?: SlotValueMap;
+  valuesComplete?: boolean;
+};
+
 /**
  * @function renderEditor
  * @param pool {ClientPool} the pool to edit (default: three NM maps, owned by osu! id 10)
- * @param options {{ me?: number; pollMs?: number; values?: SlotValueMap }} the signed-in osu! id,
- *        the poll interval and the values the page read
+ * @param options {RenderOptions} the signed-in osu! id, the poll interval, the values the page
+ *        read and whether that read was complete
  * @returns the fake API, user-event, bucket order, a wait for saving to end, and render's result
  */
 export const renderEditor = (
   pool: ClientPool = clientPool(),
-  {
-    me = pool.owner?.osuId ?? 10,
-    pollMs,
-    values = {},
-  }: { me?: number; pollMs?: number; values?: SlotValueMap } = {},
+  { me = pool.owner?.osuId ?? 10, pollMs, values = {}, valuesComplete = true }: RenderOptions = {},
 ) => {
   const api = fakePoolApi(pool);
   const user = userEvent.setup();
@@ -38,6 +41,7 @@ export const renderEditor = (
       initial={pool}
       maps={mapsFor(pool.slots.map((slot) => slot.beatmapId))}
       values={values}
+      valuesComplete={valuesComplete}
       me={me}
       rules={RULES}
       fetcher={api.fetcher}

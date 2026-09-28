@@ -2,20 +2,24 @@
  * @file tests/integration/lib/mod-values.test.ts
  * @desc Values under mods from a stand-in mirror (msw) and the mod_values cache: asked with
  *       pools' User-Agent and the combo, at most 100 ids a call, kept per id and combo (a second
- *       ask is a cache hit), ids the mirror lacks answered missing and never cached, and every
- *       way the mirror fails (an error status, a body that isn't the answer, success false,
- *       another combo than asked, a dropped connection, a Retry-After, a timeout or the caller's
- *       deadline) answered missing with nothing cached; a timeout starts the cool-down. The TTL
- *       index keeps rows 30 days.
+ *       ask is a cache hit), ids the mirror lacks answered missing and not asked again for 10
+ *       minutes, and every way the mirror fails (an error status, a body that isn't the answer,
+ *       success false, another combo than asked, a dropped connection, a Retry-After, a timeout
+ *       or the caller's deadline) answered missing with no values kept, those ids left a
+ *       minute; a timeout starts the cool-down. The TTL index keeps rows 30 days.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { MOD_VALUES_INDEXES } from "@/constants/db";
-import { MOD_VALUES_TTL_SECONDS } from "@/constants/mod-values";
+import {
+  MOD_VALUES_FAILED_REST_MS,
+  MOD_VALUES_MISSING_REST_MS,
+  MOD_VALUES_TTL_SECONDS,
+} from "@/constants/mod-values";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { isMirrorCooling, resetMirrorCooldown } from "@/lib/map-search";
 import { getModValues } from "@/lib/mod-values";
@@ -81,14 +85,21 @@ describe("getModValues", () => {
     expect(calls.map((call) => call.mods)).toEqual(["HDHR", "DT"]);
   });
 
-  it("answers ids the mirror lacks as missing, and asks for them again next time", async () => {
+  it("answers ids the mirror lacks as missing, and leaves them 10 minutes", async () => {
     const calls: BatchCall[] = [];
     knowing(calls);
-    const result = await getModValues([100, 5000], "DT");
+    const t0 = Date.now();
+    const at = (ms: number) => ({ now: () => t0 + ms });
+    const result = await getModValues([100, 5000], "DT", at(0));
     expect(result).toMatchObject({ failed: false, missing: [5000] });
-    await getModValues([100, 5000], "DT");
+    // A page loaded over and over doesn't ask the mirror for it each time.
+    const again = await getModValues([100, 5000], "DT", at(MOD_VALUES_MISSING_REST_MS - 1));
+    expect(again).toMatchObject({ failed: false, missing: [5000] });
+    expect(calls).toHaveLength(1);
+    await getModValues([100, 5000], "DT", at(MOD_VALUES_MISSING_REST_MS));
     expect(calls.map((call) => call.ids)).toEqual([[100, 5000], [5000]]);
-    expect(await (await modValuesCollection()).countDocuments()).toBe(1);
+    const values = { stars: { $exists: true } };
+    expect(await (await modValuesCollection()).countDocuments(values)).toBe(1);
   });
 
   it("answers an empty list without asking", async () => {
@@ -111,12 +122,23 @@ describe("getModValues when the mirror fails", () => {
     ["another combo", () => HttpResponse.json({ results: { 100: ppValues() }, mods: "NM" })],
     ["HTML", () => new HttpResponse("<html>Bad gateway</html>", { status: 200 })],
     ["a dropped connection", () => HttpResponse.error()],
-  ])("answers every id missing and caches nothing on %s", async (_name, answer) => {
-    server.use(ppBatchAnswering(answer));
-    const result = await getModValues([100, 200], "DT");
-    expect(result).toEqual({ values: new Map(), missing: [100, 200], failed: true });
-    expect(await (await modValuesCollection()).countDocuments()).toBe(0);
-  });
+  ])(
+    "answers every id missing, keeps no values, and leaves them a minute on %s",
+    async (_name, answer) => {
+      const calls: BatchCall[] = [];
+      server.use(ppBatchAnswering(answer, calls));
+      const t0 = Date.now();
+      const failed = { values: new Map(), missing: [100, 200], failed: true };
+      expect(await getModValues([100, 200], "DT", { now: () => t0 })).toEqual(failed);
+      const values = { stars: { $exists: true } };
+      expect(await (await modValuesCollection()).countDocuments(values)).toBe(0);
+      const soon = { now: () => t0 + MOD_VALUES_FAILED_REST_MS - 1 };
+      expect(await getModValues([100, 200], "DT", soon)).toEqual(failed);
+      expect(calls).toHaveLength(1);
+      await getModValues([100, 200], "DT", { now: () => t0 + MOD_VALUES_FAILED_REST_MS });
+      expect(calls).toHaveLength(2);
+    },
+  );
 
   it("answers a row it can't read as missing, keeping the rest", async () => {
     server.use(

@@ -6,7 +6,8 @@
  *       /pools/built/<id> (what /pools/<b- id> is rewritten to) shows a pool to whoever can see
  *       it, with Edit only for its owner and editors, 404s the rest, and keeps private, unlisted
  *       and hidden pools out of search engines. Both show each slot's values under its mods (the
- *       mirror stood in by msw), and the summary's star range uses them. A pack shows "Download
+ *       mirror stood in by msw; one it can't rate is asked for once, not on every load), and the
+ *       summary's star range uses them. A pack shows "Download
  *       on packs" while there is one, a change waiting included; a waiting one syncs after
  *       either page loads.
  * @author David @dvhsh (https://dvh.sh)
@@ -25,7 +26,7 @@ import { ADMIN_OSU_ID } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import { setupMsw } from "../../../helpers/msw";
 import { type Cast, createCast, insertPool } from "../../../helpers/pool-requests";
-import { ppBatchHandler, ppValues } from "../../../helpers/pp-batch";
+import { type BatchCall, ppBatchHandler, ppValues } from "../../../helpers/pp-batch";
 import { makeMap } from "../../../helpers/records";
 
 const { session } = vi.hoisted(() => ({ session: { cookie: null as string | null } }));
@@ -182,6 +183,20 @@ describe("values under each slot's mods", () => {
     expect(html).toMatch(/DT<\/dt><dd[^>]*>7\.25★/);
     as(cast, "owner");
     expect(await editPage()).toContain("7.25★ DT");
+  });
+
+  it("asks the mirror once, not on every load, for a map it can't rate", async () => {
+    const cast = await createCast();
+    const slots = [{ mod: "DT", index: 1, beatmapId: 200 }];
+    await insertPool(cast, { _id: ID, visibility: "public", slots });
+    await (await mapsCollection()).insertOne(makeMap({ _id: 200 }));
+    const calls: BatchCall[] = [];
+    server.use(ppBatchHandler(() => undefined, calls));
+    as(cast, "visitor");
+    for (let load = 0; load < 3; load++) {
+      expect((await builtPage()).html).toContain("no mod data");
+    }
+    expect(calls).toHaveLength(1);
   });
 });
 

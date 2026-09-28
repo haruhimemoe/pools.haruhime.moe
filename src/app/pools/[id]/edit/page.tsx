@@ -8,7 +8,7 @@
  *       to packs syncs after the page is sent.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -31,12 +31,14 @@ export default async function EditPoolPage({ params }: PageProps<"/pools/[id]/ed
   const loaded = await loadBuiltPoolFor(id, user);
   if (!loaded?.pool.access.canEdit) notFound();
   if (packWaiting(loaded.pool.pack)) schedulePackSync(id);
-  const { values } = await builtSlotValues(loaded.pool, loaded.maps);
+  // An incomplete read (the mirror failed, met the deadline or is cooling down) is asked again.
+  const { values, complete } = await builtSlotValues(loaded.pool, loaded.maps);
   return (
     <PoolEditor
       initial={loaded.pool}
       maps={loaded.maps}
       values={values}
+      valuesComplete={complete}
       me={user.osuId}
       rules={{
         contentUsage: RULE_LINKS.contentUsage,

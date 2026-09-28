@@ -3,10 +3,11 @@
  * @desc Values under a mod combo: what the mirror's pp/batch sends per beatmap id (stars, AR, OD,
  *       CS and BPM, already under the combo, DT timing included; its other fields are dropped)
  *       and the mod_values cache row that keeps them (keyed "<beatmap id>:<combo>", with the
- *       time they were fetched for the 30-day TTL).
+ *       time they were fetched for the 30-day TTL), or that says the mirror lacked the id or its
+ *       call failed, so a page loaded over and over doesn't ask again each time.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { z } from "zod";
@@ -30,3 +31,16 @@ export const storedModValuesSchema = modValuesSchema.extend({
 });
 
 export type StoredModValues = z.output<typeof storedModValuesSchema>;
+
+/** Why a mod_values row holds no values: the mirror lacked the id, or the call failed. */
+export const MOD_VALUES_RESTS = ["missing", "failed"] as const;
+
+export const storedModRestSchema = z.object({
+  _id: z.string(),
+  beatmapId: z.number().int().positive(),
+  mods: z.string(),
+  rest: z.enum(MOD_VALUES_RESTS),
+  fetchedAt: z.date(),
+});
+
+export type StoredModRest = z.output<typeof storedModRestSchema>;

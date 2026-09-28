@@ -9,7 +9,7 @@
  *       fake pool API applies the ops with the builder's own rules.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { cleanup, screen, waitFor, within } from "@testing-library/react";
@@ -203,9 +203,20 @@ describe("PoolEditor: values under each slot's mods", () => {
 
   it("says no mod data when the mirror had none", async () => {
     const pool = clientPool({ slots: [{ mod: "HR", index: 1, beatmapId: 10 }] });
-    renderEditor(pool, { values: { "10:HR": value(5, "HR", "math") } });
+    const { api } = renderEditor(pool, { values: { "10:HR": value(5, "HR", "math") } });
     expect(document.querySelector('li[data-map="10"]')).toHaveTextContent(
       "5.00★ no mod · AR 9 · OD 8 · 2:00 · 180 BPM · no mod data",
     );
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(api.valueCalls).toEqual([]);
+  });
+
+  it("asks again for the math of a page read the mirror didn't finish", async () => {
+    const pool = clientPool({ slots: [{ mod: "HR", index: 1, beatmapId: 10 }] });
+    const { api } = renderEditor(pool, {
+      values: { "10:HR": value(5, "HR", "math") },
+      valuesComplete: false,
+    });
+    await waitFor(() => expect(api.valueCalls).toEqual(["/api/pools/b-a0000001/values"]));
   });
 });

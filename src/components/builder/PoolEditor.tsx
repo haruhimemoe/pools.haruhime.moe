@@ -9,7 +9,7 @@
  *       settings, which go (with a notice) once the owner hands the pool over.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -43,6 +43,8 @@ type PoolEditorProps = {
   maps: BuiltMaps;
   /** Values under each slot's mods, as the page read them. */
   values: SlotValueMap;
+  /** The page's read had every answer from the mirror (false: its math is asked for again). */
+  valuesComplete?: boolean;
   /** The signed-in user's osu! id. */
   me: number;
   rules: CheckRules;
@@ -56,6 +58,7 @@ export function PoolEditor({
   initial,
   maps: known,
   values: knownValues,
+  valuesComplete = true,
   me,
   rules,
   fetcher = fetch,
@@ -65,7 +68,7 @@ export function PoolEditor({
   const editor = usePoolEditor(initial, { fetcher, ...(pollMs ? { pollMs } : {}) });
   const { pool, change } = editor;
   const maps = useSlotMaps(pool.id, pool.slots, known, fetcher);
-  const values = useSlotValues(pool, knownValues, !editor.saving, fetcher);
+  const values = useSlotValues(pool, knownValues, valuesComplete, !editor.saving, fetcher);
   const [openedFor, setOpenedFor] = useState<string | null>(null);
   const [openCount, setOpenCount] = useState(0);
   const [handedOver, setHandedOver] = useState<string | null>(null);

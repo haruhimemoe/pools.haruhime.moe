@@ -1,11 +1,12 @@
 /**
  * @file src/constants/mod-values.ts
  * @desc Values under mods from the hinai mirror's precomputed rosu-pp data: its batch endpoint,
- *       how many ids one call takes, its timeout, how long a page's slot values wait for it, and
- *       how long the mod_values cache keeps a row.
+ *       how many ids one call takes, its timeout, how long a page's slot values wait for it, how
+ *       long the mod_values cache keeps a row, and how long ids the mirror lacked, or whose call
+ *       failed, wait before they're asked for again.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 /** GET ?ids=<comma-separated>&mods=<combo>: stars, AR, OD, CS and BPM under the combo. */
@@ -18,3 +19,9 @@ export const SLOT_VALUES_DEADLINE_MS = 8_000;
 
 /** A map's values under a combo only change when osu! reworks difficulty: keep them 30 days. */
 export const MOD_VALUES_TTL_SECONDS = 30 * 86_400;
+
+/** Ids the mirror lacked: it computes cold maps soon after, so they're asked again after this. */
+export const MOD_VALUES_MISSING_REST_MS = 10 * 60_000;
+
+/** Ids whose call failed without a cool-down (an error status, a bad body): asked again after this. */
+export const MOD_VALUES_FAILED_REST_MS = 60_000;

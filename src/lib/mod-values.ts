@@ -3,26 +3,40 @@
  * @desc Stars, AR, OD, CS and BPM under a mod combo from the hinai mirror's precomputed rosu-pp
  *       values (GET /v3/osu/pp/batch?ids=&mods=, server only, SERVER_USER_AGENT, 10 s timeout,
  *       100 ids a call), kept 30 days in mod_values per beatmap id and combo. Ids the mirror
- *       lacks come back missing and aren't cached (the mirror computes cold maps soon after);
+ *       lacks come back missing and rest 10 minutes (the mirror computes cold maps soon after);
  *       a failed call (an error status, a body that isn't the answer, success false, another
  *       combo than asked, a dropped connection, a timeout or the caller's deadline) answers its
- *       ids missing, caches nothing and says it failed. The mirror search's Retry-After
- *       cool-down applies here too, and a call that times out (or meets the deadline) starts it.
- *       The caller falls back to no-mod values and src/utils/mod-values.ts for missing ids.
- *       A cache read or write that fails is logged and skipped. Never rejects on the mirror.
+ *       ids missing, keeps no values, rests those ids a minute and says it failed. A resting id
+ *       isn't asked for, so a page loaded over and over can't send the mirror a call each time.
+ *       The mirror search's Retry-After cool-down applies here too, and a call that times out
+ *       (or meets the deadline) starts it. The caller falls back to no-mod values and
+ *       src/utils/mod-values.ts for missing ids. A cache read or write that fails is logged and
+ *       skipped. Never rejects on the mirror.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
 import { z } from "zod";
 import { QUERY_TIME_MS } from "@/constants/db";
-import { PP_BATCH_SIZE, PP_BATCH_TIMEOUT_MS, PP_BATCH_URL } from "@/constants/mod-values";
+import {
+  MOD_VALUES_FAILED_REST_MS,
+  MOD_VALUES_MISSING_REST_MS,
+  PP_BATCH_SIZE,
+  PP_BATCH_TIMEOUT_MS,
+  PP_BATCH_URL,
+} from "@/constants/mod-values";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { isMirrorCooling, noteMirrorRetryAfter, noteMirrorTimeout } from "@/lib/map-search";
 import { modValuesCollection } from "@/models/ModValues";
-import { type ModValues, modValuesSchema, storedModValuesSchema } from "@/schemas/mod-values";
+import {
+  type ModValues,
+  modValuesSchema,
+  type StoredModRest,
+  storedModRestSchema,
+  storedModValuesSchema,
+} from "@/schemas/mod-values";
 import { modsCode, parseMods } from "@/utils/mod-values";
 
 export type ModValuesResult = {
@@ -93,9 +107,21 @@ const askMirror = async (
 /** A cache row's key. */
 const keyOf = (id: number, code: string): string => `${id}:${code}`;
 
-/** Cached values for the ids under the combo; none when the read fails. */
-const readCache = async (ids: readonly number[], code: string): Promise<Map<number, ModValues>> => {
-  const found = new Map<number, ModValues>();
+type Rest = StoredModRest["rest"];
+
+const REST_MS: Record<Rest, number> = {
+  missing: MOD_VALUES_MISSING_REST_MS,
+  failed: MOD_VALUES_FAILED_REST_MS,
+};
+
+type Cached = { values: Map<number, ModValues>; resting: Map<number, Rest> };
+
+/**
+ * Cached values for the ids under the combo, and the ids still resting (the mirror lacked them,
+ * or their call failed, not long ago); none when the read fails.
+ */
+const readCache = async (ids: readonly number[], code: string, now: number): Promise<Cached> => {
+  const cached: Cached = { values: new Map(), resting: new Map() };
   try {
     const rows = await (await modValuesCollection())
       .find({ _id: { $in: ids.map((id) => keyOf(id, code)) } }, { maxTimeMS: QUERY_TIME_MS })
@@ -104,31 +130,45 @@ const readCache = async (ids: readonly number[], code: string): Promise<Map<numb
       const parsed = storedModValuesSchema.safeParse(row);
       if (parsed.success && parsed.data.mods === code) {
         const { stars, ar, od, cs, bpm } = parsed.data;
-        found.set(parsed.data.beatmapId, { stars, ar, od, cs, bpm });
+        cached.values.set(parsed.data.beatmapId, { stars, ar, od, cs, bpm });
+        continue;
+      }
+      const rest = storedModRestSchema.safeParse(row);
+      if (rest.success && rest.data.mods === code) {
+        const { beatmapId, rest: why, fetchedAt } = rest.data;
+        if (now - fetchedAt.getTime() < REST_MS[why]) cached.resting.set(beatmapId, why);
       }
     }
   } catch (error) {
     console.error("[mod-values] couldn't read mod_values", error);
   }
-  return found;
+  return cached;
 };
 
-/** Keeps fetched values; a failed write is logged. */
+/** Keeps fetched values, and why the other ids have none; a failed write is logged. */
 const writeCache = async (
   values: ReadonlyMap<number, ModValues>,
+  rests: ReadonlyMap<number, Rest>,
   code: string,
   fetchedAt: Date,
 ): Promise<void> => {
-  if (values.size === 0) return;
+  const rows = [
+    ...[...values].map(([beatmapId, row]) => ({ beatmapId, ...row })),
+    ...[...rests].map(([beatmapId, rest]) => ({ beatmapId, rest })),
+  ];
+  if (rows.length === 0) return;
   try {
     await (await modValuesCollection()).bulkWrite(
-      [...values].map(([beatmapId, row]) => ({
-        replaceOne: {
-          filter: { _id: keyOf(beatmapId, code) },
-          replacement: { _id: keyOf(beatmapId, code), beatmapId, mods: code, ...row, fetchedAt },
-          upsert: true,
-        },
-      })),
+      rows.map((row) => {
+        const _id = keyOf(row.beatmapId, code);
+        return {
+          replaceOne: {
+            filter: { _id },
+            replacement: { _id, ...row, mods: code, fetchedAt },
+            upsert: true,
+          },
+        };
+      }),
       { ordered: false },
     );
   } catch (error) {
@@ -155,10 +195,11 @@ export const getModValues = async (
   const code = modsCode(parsed);
   const unique = [...new Set(ids)];
   if (unique.length === 0) return { values: new Map(), missing: [], failed: false };
-  const values = await readCache(unique, code);
-  const asked = unique.filter((id) => !values.has(id));
   const now = deps.now ?? Date.now;
-  let failed = false;
+  const { values, resting } = await readCache(unique, code, now());
+  // An id whose call failed a moment ago is still a failure; one the mirror lacked isn't.
+  let failed = [...resting.values()].includes("failed");
+  const asked = unique.filter((id) => !values.has(id) && !resting.has(id));
   if (asked.length > 0 && (isMirrorCooling(now()) || deps.signal?.aborted)) failed = true;
   else if (asked.length > 0) {
     const chunks: number[][] = [];
@@ -167,11 +208,15 @@ export const getModValues = async (
     }
     const answers = await Promise.all(chunks.map((chunk) => askMirror(chunk, code, deps)));
     const fetched = new Map<number, ModValues>();
-    for (const answer of answers) {
+    const rests = new Map<number, Rest>();
+    for (const [i, answer] of answers.entries()) {
       if (answer === null) failed = true;
       else for (const [id, row] of answer) fetched.set(id, row);
+      for (const id of chunks[i] ?? []) {
+        if (!answer?.has(id)) rests.set(id, answer === null ? "failed" : "missing");
+      }
     }
-    await writeCache(fetched, code, new Date(now()));
+    await writeCache(fetched, rests, code, new Date(now()));
     for (const [id, row] of fetched) values.set(id, row);
   }
   return { values, missing: unique.filter((id) => !values.has(id)), failed };
