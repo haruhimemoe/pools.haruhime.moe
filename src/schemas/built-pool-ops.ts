@@ -21,6 +21,7 @@ import {
   paletteColorSchema,
   storedSlotModsSchema,
 } from "@haruhimemoe/pool";
+import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { z } from "zod";
 import {
   MAX_OPS_PER_CALL,
@@ -32,7 +33,6 @@ import { TEMPLATE_IDS } from "@/constants/targets";
 import { slotNoteSchema, targetCountSchema, targetRangeSchema } from "@/schemas/built-plan";
 import { builtDetailsFields, FILTER_ISSUE } from "@/schemas/built-pool";
 import { poolIdSchema } from "@/schemas/pool";
-import { hasBlockedLanguage } from "@/utils/content-filter";
 
 const codeSchema = z
   .string()

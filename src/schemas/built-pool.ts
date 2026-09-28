@@ -27,6 +27,7 @@ import {
   poolFields,
   poolSlotSchema,
 } from "@haruhimemoe/pool";
+import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { z } from "zod";
 import {
   BUILT_PACK_STATES,
@@ -49,7 +50,6 @@ import {
   slotNotesShape,
 } from "@/schemas/built-plan";
 import { packSlugSchema } from "@/schemas/pool";
-import { hasBlockedLanguage } from "@/utils/content-filter";
 
 const FILTERED = "That fails the content filter.";
 /** A zod refinement's params for the filter: parseJsonBody sends the code. */

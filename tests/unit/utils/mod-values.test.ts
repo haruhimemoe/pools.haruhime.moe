@@ -7,7 +7,7 @@
  *       combos composing (HR or EZ first, then the timing); which mods a pool slot's values use.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -15,7 +15,6 @@ import {
   arToPreempt,
   arUnderMods,
   bpmUnderMods,
-  clockRate,
   csUnderMods,
   hitWindowToOd,
   lengthUnderMods,
@@ -57,14 +56,6 @@ describe("modsCode", () => {
   it("names no mods NM and a combo in canonical order", () => {
     expect(modsCode([])).toBe("NM");
     expect(modsCode(["HD", "HR", "DT"])).toBe("HDHRDT");
-  });
-});
-
-describe("clockRate", () => {
-  it("is 1.5 with DT, 0.75 with HT and 1 otherwise", () => {
-    expect(clockRate(["HD", "DT"])).toBe(1.5);
-    expect(clockRate(["EZ", "HT"])).toBe(0.75);
-    expect(clockRate(["HR", "FL"])).toBe(1);
   });
 });
 

@@ -6,7 +6,7 @@
  *       under its field. An empty custom bucket is removed from its own section.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -19,11 +19,11 @@ import {
   type ModAcronym,
   modSetProblem,
 } from "@haruhimemoe/pool";
+import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { Button, ChipGroup, Select, TextInput } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { ClientPool } from "@/schemas/built-pool-view";
-import { hasBlockedLanguage } from "@/utils/content-filter";
 
 type Kind = "none" | "forced" | "free";
 

@@ -11,6 +11,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { MAX_DESCRIPTION_LENGTH, poolsPackBodySchema } from "@haruhimemoe/pool/service";
 import { describe, expect, it } from "vitest";
 import {
   builtPackDescription,
@@ -74,6 +75,14 @@ describe("builtPackInput", () => {
     expect(unlisted).not.toHaveProperty("buckets");
     const hidden = makeBuiltPool({ visibility: "public", hidden: true, slots: SLOTS });
     expect(builtPackInput(hidden, []).visibility).toBe("unlisted");
+  });
+
+  it("sends what packs' service contract reads, a long list of names included", () => {
+    const pool = makeBuiltPool({ visibility: "public", slots: SLOTS });
+    const names = Array.from({ length: 60 }, (_, i) => `editor_number_${i}`);
+    const input = builtPackInput(pool, names);
+    expect(input.description.length).toBeLessThanOrEqual(MAX_DESCRIPTION_LENGTH);
+    expect(poolsPackBodySchema.safeParse(input).success).toBe(true);
   });
 });
 

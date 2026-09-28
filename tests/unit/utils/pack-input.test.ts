@@ -6,10 +6,11 @@
  *       notes or badged, not with slot order); the pack key; and "Open in packs".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { type BucketEntry, decodePackKey } from "@haruhimemoe/pool";
+import { poolsPackBodySchema } from "@haruhimemoe/pool/service";
 import { describe, expect, it } from "vitest";
 import { emptyPackSync } from "@/schemas/pool";
 import {
@@ -73,6 +74,13 @@ describe("packInputOf", () => {
       { code: "TB" },
     ];
     expect(packInputOf({ ...OWC, buckets }).buckets).toEqual(buckets);
+    expect(poolsPackBodySchema.safeParse(packInputOf({ ...OWC, buckets })).success).toBe(true);
+  });
+
+  it("sends what packs' service contract reads", () => {
+    for (const pool of [OWC, { ...OWC, hidden: true }]) {
+      expect(poolsPackBodySchema.safeParse(packInputOf(pool)).success).toBe(true);
+    }
   });
 });
 

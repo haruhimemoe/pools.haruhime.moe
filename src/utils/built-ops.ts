@@ -37,10 +37,10 @@ import {
   setBucketMods,
   sortSlots,
 } from "@haruhimemoe/pool";
+import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { hasDuplicateMaps, type StoredBuiltPool } from "@/schemas/built-pool";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import { type PlannedContent, tidyPlan, withNote, withTarget } from "@/utils/built-plan-ops";
-import { hasBlockedLanguage } from "@/utils/content-filter";
 
 /** What ops change: the details, the buckets, the slots and the targets. */
 export type BuiltContent = Pick<

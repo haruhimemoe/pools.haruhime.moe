@@ -15,17 +15,15 @@
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
+import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
+import { MAX_DESCRIPTION_LENGTH } from "@haruhimemoe/pool/service";
 import type { Visibility } from "@/constants/built-pools";
 import { PACKS_SITE_URL } from "@/constants/pools";
 import { SITE } from "@/constants/site";
 import type { BuiltPack, StoredBuiltPool } from "@/schemas/built-pool";
 import type { ClientPack } from "@/schemas/built-pool-view";
-import { hasBlockedLanguage } from "@/utils/content-filter";
 import type { PackInput, PackVisibility } from "@/utils/pack-input";
 import type { SyncAnswer } from "@/utils/sync";
-
-/** packs' description limit. */
-export const PACK_DESCRIPTION_MAX = 500;
 
 /** One sync per pool at most this often. */
 export const PACK_SYNC_INTERVAL_MS = 30_000;
@@ -69,7 +67,7 @@ export const builtPackDescription = (id: string, names: readonly string[]): stri
   const shown = names.map((name) => name.trim()).filter((n) => n && !hasBlockedLanguage(n));
   for (let count = shown.length; count > 0; count--) {
     const text = `Built on ${SITE.title} by ${joinNames(shown.slice(0, count), shown.length - count)}: ${link}`;
-    if (text.length <= PACK_DESCRIPTION_MAX && !hasBlockedLanguage(text)) return text;
+    if (text.length <= MAX_DESCRIPTION_LENGTH && !hasBlockedLanguage(text)) return text;
   }
   return `Built on ${SITE.title}: ${link}`;
 };

@@ -3,13 +3,13 @@
  * @desc A difficulty's values under mods, computed with osu!'s rules: BPM x1.5 with DT (NC reads
  *       as DT) and x0.75 with HT, length the other way; HR multiplies AR and OD by 1.4 and CS by
  *       1.3 (each capped at 10), EZ halves them; DT and HT change AR and OD through time, so AR
- *       goes to its preempt in ms and OD to its 300 hit window in ms, the clock rate divides
- *       those, and they come back as AR and OD. HR and EZ apply first, then the timing. Mod
+ *       goes to its preempt in ms and OD to its 300 hit window in ms, the speed rate (`speedRate` from
+ *       @haruhimemoe/pool) divides those, and they come back as AR and OD. HR and EZ apply first, then the timing. Mod
  *       combos use @haruhimemoe/pool's codes. The fallback when the mirror has no mod values.
  *       Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -18,6 +18,7 @@ import {
   type ModAcronym,
   modSetProblem,
   modsLabel,
+  speedRate,
 } from "@haruhimemoe/pool";
 
 /** The values mods change. */
@@ -51,16 +52,6 @@ export const parseMods = (text: string): ModAcronym[] | null => {
  */
 export const modsCode = (mods: readonly ModAcronym[]): string =>
   mods.length === 0 ? "NM" : modsLabel(mods);
-
-/**
- * @function clockRate
- * @param mods {readonly ModAcronym[]} mods
- * @returns {number} 1.5 with DT, 0.75 with HT, else 1
- */
-export const clockRate = (mods: readonly ModAcronym[]): number => {
-  if (mods.includes("DT")) return 1.5;
-  return mods.includes("HT") ? 0.75 : 1;
-};
 
 /**
  * @function arToPreempt
@@ -106,7 +97,7 @@ const scaled = (value: number, mods: readonly ModAcronym[], hardRock: number): n
  */
 export const arUnderMods = (ar: number, mods: readonly ModAcronym[]): number => {
   const base = scaled(ar, mods, 1.4);
-  const rate = clockRate(mods);
+  const rate = speedRate(mods);
   return rate === 1 ? base : preemptToAr(arToPreempt(base) / rate);
 };
 
@@ -118,7 +109,7 @@ export const arUnderMods = (ar: number, mods: readonly ModAcronym[]): number => 
  */
 export const odUnderMods = (od: number, mods: readonly ModAcronym[]): number => {
   const base = scaled(od, mods, 1.4);
-  const rate = clockRate(mods);
+  const rate = speedRate(mods);
   return rate === 1 ? base : hitWindowToOd(odToHitWindow(base) / rate);
 };
 
@@ -126,7 +117,7 @@ export const odUnderMods = (od: number, mods: readonly ModAcronym[]): number => 
  * @function csUnderMods
  * @param cs {number} the no-mod circle size
  * @param mods {readonly ModAcronym[]} mods
- * @returns {number} x1.3 with HR (at most 10), halved with EZ; the clock rate doesn't touch it
+ * @returns {number} x1.3 with HR (at most 10), halved with EZ; the speed rate doesn't touch it
  */
 export const csUnderMods = (cs: number, mods: readonly ModAcronym[]): number =>
   scaled(cs, mods, 1.3);
@@ -135,19 +126,19 @@ export const csUnderMods = (cs: number, mods: readonly ModAcronym[]): number =>
  * @function bpmUnderMods
  * @param bpm {number} the no-mod BPM
  * @param mods {readonly ModAcronym[]} mods
- * @returns {number} times the clock rate
+ * @returns {number} times the speed rate
  */
 export const bpmUnderMods = (bpm: number, mods: readonly ModAcronym[]): number =>
-  bpm * clockRate(mods);
+  bpm * speedRate(mods);
 
 /**
  * @function lengthUnderMods
  * @param seconds {number} the no-mod length
  * @param mods {readonly ModAcronym[]} mods
- * @returns {number} divided by the clock rate (not rounded)
+ * @returns {number} divided by the speed rate (not rounded)
  */
 export const lengthUnderMods = (seconds: number, mods: readonly ModAcronym[]): number =>
-  seconds / clockRate(mods);
+  seconds / speedRate(mods);
 
 /**
  * @function valuesUnderMods

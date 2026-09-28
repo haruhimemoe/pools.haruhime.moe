@@ -11,13 +11,13 @@
  *       it; a row that doesn't parse is left out, never shown half-broken.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { beatmapIdSchema, poolFields } from "@haruhimemoe/pool";
+import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { z } from "zod";
 import { MAX_CREDIT_NAME_LENGTH, POOL_ID_PATTERN } from "@/constants/pools";
-import { hasBlockedLanguage } from "@/utils/content-filter";
 import { SOURCE_ID_PATTERN } from "@/utils/source-ids";
 
 /** Source links end up in hrefs: https only. */

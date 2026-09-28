@@ -21,6 +21,7 @@
 import {
   addBuckets,
   bucketsOf,
+  changesStarRating,
   isModAcronym,
   isModBucket,
   MAX_SLOT_INDEX,
@@ -32,13 +33,14 @@ import {
   type PoolSlot,
   parsePoolText,
   poolSchema,
+  ratingMods,
   setBucketMods,
   slotKey,
   slotTitle,
 } from "@haruhimemoe/pool";
+import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { MAX_NOTES_LENGTH, type SourceKind } from "@/constants/pools";
 import type { PoolSource, SourceSlotRecord } from "@/schemas/pool";
-import { hasBlockedLanguage } from "@/utils/content-filter";
 import { type PoolShape, poolFingerprint } from "@/utils/fingerprint";
 import { slotModsMap } from "@/utils/slot-mods";
 
@@ -92,27 +94,6 @@ export const modsFromSlotCode = (code: string): ModAcronym[] | null => {
   const set = MOD_ACRONYMS.filter((mod) => pairs.includes(mod));
   if (set.length !== pairs.length) return null;
   return modSetProblem(set) === null ? set : null;
-};
-
-/** Mods that change a map's star rating, as sources write them: NC is DT, DC is HT. */
-const RATING_MODS: Readonly<Record<string, ModAcronym>> = Object.freeze({
-  EZ: "EZ",
-  HR: "HR",
-  DT: "DT",
-  NC: "DT",
-  HT: "HT",
-  DC: "HT",
-  FL: "FL",
-});
-
-/**
- * @function ratingModsOf
- * @param mods {readonly string[]} a map's mods as its source writes them ("ez", "NC", "HD")
- * @returns {ModAcronym[]} the ones that change its star rating, in canonical order
- */
-export const ratingModsOf = (mods: readonly string[]): ModAcronym[] => {
-  const found = new Set(mods.flatMap((mod) => RATING_MODS[mod.toUpperCase()] ?? []));
-  return MOD_ACRONYMS.filter((mod) => found.has(mod));
 };
 
 /** "#1", "12": a numbered map without a slot. */
@@ -201,7 +182,7 @@ const setLabel = (set: readonly ModAcronym[]): string => (set.length === 0 ? "NM
  *          extra mods can't be held, so the pool is skipped.
  */
 export const checkSourceMods = (pool: Pool, mods: readonly (readonly string[])[]): ModsCheck => {
-  const played = pool.slots.map((_, i) => ratingModsOf(mods[i] ?? []));
+  const played = pool.slots.map((_, i) => ratingMods(mods[i] ?? []));
   const everywhere = MOD_ACRONYMS.filter((mod) => played.every((set) => set.includes(mod)));
   const slotMods = slotModsMap(pool.slots, bucketsOf(pool));
   const groups = new Map<string | null, number[]>();
@@ -216,8 +197,8 @@ export const checkSourceMods = (pool: Pool, mods: readonly (readonly string[])[]
     if (own?.kind === "free") continue;
     const forced = own?.kind === "forced" ? own.set : [];
     const extras = members.map((i) => (played[i] ?? []).filter((mod) => !forced.includes(mod)));
+    if (!extras.some(changesStarRating)) continue;
     const labels = [...new Set(extras.map(setLabel))];
-    if (labels.length === 1 && labels[0] === "NM") continue;
     const extra = extras[0] ?? [];
     const shared =
       labels.length === 1 &&

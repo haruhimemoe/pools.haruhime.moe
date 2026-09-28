@@ -13,6 +13,7 @@
  */
 
 import { type BucketEntry, bucketsOf, findBucket } from "@haruhimemoe/pool";
+import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { z } from "zod";
 import {
   MAX_SLOT_NOTE_LENGTH,
@@ -20,7 +21,6 @@ import {
   TARGET_MESSAGES,
   TARGET_STARS,
 } from "@/constants/targets";
-import { hasBlockedLanguage } from "@/utils/content-filter";
 
 const starSchema = z.number().min(TARGET_STARS.min).max(TARGET_STARS.max);
 

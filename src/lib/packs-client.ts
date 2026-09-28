@@ -11,7 +11,8 @@
  *       410 is gone; 429, any other 5xx, a timeout or a network error is a retryable error
  *       (with packs' Retry-After); any other 4xx is a rejection with packs' message. Error
  *       bodies may be { error: { code, message } }, { code, message }, or not JSON at all.
- *       Never throws. The token is never logged.
+ *       Never throws. The token is never logged. The answers are read with
+ *       @haruhimemoe/pool/service, the contract packs checks the same bodies with.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Sun Sep 27, 2026
@@ -19,6 +20,7 @@
 
 import "server-only";
 import { parseRetryAfter } from "@haruhimemoe/hinai";
+import { poolsStatsAnswerSchema, poolsSyncAnswerSchema } from "@haruhimemoe/pool/service";
 import { z } from "zod";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import type { PacksService } from "@/env";
@@ -31,17 +33,6 @@ export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 export const PACKS_TIMEOUT_MS = 15_000;
 /** One stats batch looks up to 20 ratings on osu!. */
 export const STATS_TIMEOUT_MS = 60_000;
-
-const okSchema = z.object({
-  slug: z.string().regex(/^[A-Za-z0-9_-]{1,32}$/),
-  state: z.enum(["created", "updated", "unchanged"]),
-  listed: z.boolean(),
-});
-
-const statsSchema = z.object({
-  updated: z.number().int().nonnegative(),
-  remaining: z.number().int().nonnegative(),
-});
 
 const errorBodySchema = z.object({
   error: z.object({ code: z.string().optional(), message: z.string().optional() }).optional(),
@@ -148,7 +139,7 @@ export const putPoolPack = async (
   const body = await readBody(response);
   const failure = failureOf(response, errorInfo(body));
   if (failure) return failure;
-  const parsed = okSchema.safeParse(body);
+  const parsed = poolsSyncAnswerSchema.safeParse(body);
   if ((response.status === 200 || response.status === 201) && parsed.success) {
     return { kind: "ok", ...parsed.data };
   }
@@ -196,7 +187,7 @@ export const postStatsBackfill = async (
       message: "message" in failure ? failure.message : `packs answered ${response.status}.`,
     };
   }
-  const parsed = statsSchema.safeParse(body);
+  const parsed = poolsStatsAnswerSchema.safeParse(body);
   if (parsed.success) return { kind: "ok", ...parsed.data };
   return {
     kind: "error",

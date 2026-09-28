@@ -43,3 +43,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - The shared packages move to ui 0.4.0, osu 0.3.0, hinai 0.3.0, pool 0.2.0, compliance 0.1.1 and brand 0.4.0. Duration, star, BPM and stat text now comes from `@haruhimemoe/osu/format` (the same text as before). Past pools keep their slots in the order their source lists them.
+- The content filter, the mods that change a star rating, DT and HT speeds, and the packs service contract come from `@haruhimemoe/pool` 0.2.0, the same definitions packs uses. Tests check every pack input pools builds against that contract, the 500-character description limit included.

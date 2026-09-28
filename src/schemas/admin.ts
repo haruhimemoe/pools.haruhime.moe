@@ -9,9 +9,10 @@
  *       badged, notes and the maps as text; fieldErrors names each problem by its field.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { z } from "zod";
 import {
   CREDITED_SOURCE_KINDS,
@@ -21,7 +22,6 @@ import {
   MAX_TOURNAMENT_LENGTH,
 } from "@/constants/pools";
 import { sourceCreditSchema } from "@/schemas/pool";
-import { hasBlockedLanguage } from "@/utils/content-filter";
 
 const LAST_YEAR = 2099;
 

@@ -8,18 +8,23 @@
  *       works). Server code only (node:crypto).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { createHash } from "node:crypto";
 import { type BucketEntry, encodePackKey, type PoolSlot } from "@haruhimemoe/pool";
+import type { PackVisibility as ServiceVisibility } from "@haruhimemoe/pool/service";
 import { PACK_CONTRACT_VERSION, PACKS_SITE_URL } from "@/constants/pools";
 import { SITE } from "@/constants/site";
 import { LISTED_STATES, type PackSync } from "@/schemas/pool";
 
-export type PackVisibility = "public" | "unlisted";
+/** What pools asks packs for: a pool with a pack is never private on packs. */
+export type PackVisibility = Exclude<ServiceVisibility, "private">;
 
-/** The body of PUT /api/service/pools/{id} on packs. */
+/**
+ * The body of PUT /api/service/pools/{id} on packs, as @haruhimemoe/pool/service's
+ * `poolsPackBodySchema` reads it (tests parse every input pools builds with it).
+ */
 export type PackInput = {
   name: string;
   description: string;
