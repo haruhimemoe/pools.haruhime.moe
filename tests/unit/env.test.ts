@@ -98,6 +98,8 @@ describe("getDatabaseUri", () => {
   });
 
   it("names MONGODB_URI when it's missing or wrong, never printing it", () => {
+    // CI sets SKIP_ENV_VALIDATION for the whole job; this test needs validation on.
+    vi.stubEnv("SKIP_ENV_VALIDATION", "");
     for (const value of ["", "  ", "postgres://secret@x"]) {
       vi.stubEnv("MONGODB_URI", value);
       expect(() => getDatabaseUri()).toThrow(invalid("MONGODB_URI"));
