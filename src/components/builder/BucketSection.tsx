@@ -17,6 +17,7 @@ import { isCustomBucket, type PoolSlot } from "@haruhimemoe/pool";
 import { Button } from "@haruhimemoe/ui";
 import { useId } from "react";
 import { type MoveTarget, SlotRow } from "@/components/builder/SlotRow";
+import type { SlotDrag } from "@/hooks/useSlotDrag";
 import type { BucketTarget, SlotNotes } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { placeholderText, rangeBadgeText, rangeSide } from "@/utils/bucket-targets";
@@ -42,15 +43,18 @@ type BucketSectionProps = SlotActions & {
   plan?: BucketTarget | undefined;
   /** Each slot's note by beatmap id. */
   notes: SlotNotes;
+  /** Dragging slots between rows and buckets. */
+  drag?: SlotDrag | undefined;
   onFind: (code: string) => void;
   onRemoveBucket: (code: string) => void;
 };
 
 export function BucketSection(props: BucketSectionProps) {
-  const { group, maps, values, targets, plan, notes, ...on } = props;
+  const { group, maps, values, targets, plan, notes, drag, ...on } = props;
   const headingId = useId();
   const { title, detail } = groupHeading(group.entry);
   const { code, entry, slots } = group;
+  const over = drag?.over?.bucket === code && drag.over.index === null;
   const others = targets.filter((target) => target.code !== code);
   const missing = code === null ? 0 : (plan?.count ?? 0) - slots.length;
   const badgeOf = (slot: (typeof slots)[number]) => {
@@ -58,7 +62,13 @@ export function BucketSection(props: BucketSectionProps) {
     return side && plan?.sr ? rangeBadgeText(side, plan.sr) : null;
   };
   return (
-    <section aria-labelledby={headingId} data-bucket={code ?? ""} className="flex flex-col">
+    <section
+      aria-labelledby={headingId}
+      data-bucket={code ?? ""}
+      data-drop-bucket={code ?? ""}
+      {...drag?.target()}
+      className={`flex flex-col rounded-lg ${over ? "outline-dashed outline-2 outline-h1 outline-offset-4" : ""}`}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 id={headingId} tabIndex={-1} className="font-bold text-c1">
           {title}
@@ -98,6 +108,7 @@ export function BucketSection(props: BucketSectionProps) {
               values={values[slotValueKey(slot.beatmapId, groupSlotCode(slot, entry))]}
               badge={badgeOf(slot)}
               note={notes[String(slot.beatmapId)]}
+              drag={drag}
               onNote={(note) => on.onNote(slot, note)}
               first={i === 0}
               last={i === slots.length - 1}
