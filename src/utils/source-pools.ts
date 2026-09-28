@@ -178,7 +178,8 @@ export const poolFromLabels = (
     const set = modsFromSlotCode(bucket.code) ?? force.get(bucket.code);
     if (set) pool = setBucketMods(pool, bucket.code, { kind: "forced", set: [...set] });
   }
-  return { ok: true, pool };
+  // addBuckets puts the slots in bucket order; the source's order is what the mods line up with.
+  return { ok: true, pool: { ...pool, slots: ordered } };
 };
 
 type ModsCheck =

@@ -39,3 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Sign-in errors land on the sign-in page with a plain explanation, including "That osu! account isn't a pools admin."
 - `POOLS_ALLOW_SHARED_DB_USER`: set it to `true` to run on a database user that other apps share, like packs'. pools still needs readWrite on `pools` and logs a warning naming the other databases. Unset, pools keeps refusing any user that reaches another database.
 - A small "beta" tag beside the wordmark on every page while the site is built with `NEXT_PUBLIC_POOLS_BETA=true`. Pages stay indexable and titles don't change.
+
+### Changed
+
+- The shared packages move to ui 0.4.0, osu 0.3.0, hinai 0.3.0, pool 0.2.0, compliance 0.1.1 and brand 0.4.0. Duration, star, BPM and stat text now comes from `@haruhimemoe/osu/format` (the same text as before). Past pools keep their slots in the order their source lists them.

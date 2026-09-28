@@ -5,10 +5,10 @@
  *       and no-mod stars. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import { formatStars } from "@/utils/format";
+import { formatStars } from "@haruhimemoe/osu/format";
 
 /**
  * @function yearText

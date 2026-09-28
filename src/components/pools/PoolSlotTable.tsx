@@ -6,14 +6,14 @@
  *       Scrolls sideways on phones.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatBpm, formatDuration, formatStat } from "@haruhimemoe/osu/format";
 import { CopyButton } from "@haruhimemoe/ui";
 import Link from "next/link";
 import type { SourceSlotRecord } from "@/schemas/pool";
 import type { MapSummary } from "@/services/pools";
-import { formatBpm, formatDuration, formatStat } from "@/utils/format";
 import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";
 import { noModOf, type SlotValueAnswer, slotAnswer } from "@/utils/slot-values";

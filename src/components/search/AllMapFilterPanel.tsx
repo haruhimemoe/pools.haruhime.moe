@@ -6,11 +6,12 @@
  *       (no mod), length and BPM ranges, and Show explicit maps (hidden unless ticked).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
+import { formatDuration, formatStars } from "@haruhimemoe/osu/format";
 import { Checkbox, FilterPanel, FilterRow, RangeSlider, TextInput } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
 import { StatusChips } from "@/components/search/StatusChips";
@@ -21,7 +22,6 @@ import {
   MAX_QUERY_LENGTH,
   STAR_RANGE,
 } from "@/constants/search";
-import { formatDuration, formatStars } from "@/utils/format";
 import {
   type AllMapFilters,
   EMPTY_ALL_MAP_FILTERS,

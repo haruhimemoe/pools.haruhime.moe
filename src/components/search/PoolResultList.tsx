@@ -5,11 +5,11 @@
  *       for a pool built here "Built by <owner>".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatRange, formatStars } from "@haruhimemoe/osu/format";
 import Link from "next/link";
-import { formatRange, formatStars } from "@/utils/format";
 import { badgedText, builtHeadline, poolHeadline } from "@/utils/pool-text";
 import type { PoolResult } from "@/utils/search-params";
 

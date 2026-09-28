@@ -13,13 +13,13 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { formatBpm, formatDuration, formatStat } from "@haruhimemoe/osu/format";
 import type { BucketEntry } from "@haruhimemoe/pool";
 import Link from "next/link";
 import { AddToPool } from "@/components/builder/AddToPool";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SET_STATUS_LABELS } from "@/constants/search";
 import type { BrowseDiff, BrowseSet } from "@/utils/browse-params";
-import { formatBpm, formatDuration, formatStat } from "@/utils/format";
 import { starsText } from "@/utils/pool-text";
 
 type BrowseSetCardProps = {

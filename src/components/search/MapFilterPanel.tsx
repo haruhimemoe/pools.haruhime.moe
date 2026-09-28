@@ -4,11 +4,12 @@
  *       (a map needs every ticked code), times used, last used year, and the sort.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
+import { formatDuration, formatStars } from "@haruhimemoe/osu/format";
 import { ChipGroup, FilterPanel, FilterRow, RangeSlider, Select, TextInput } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
 import { PLAYED_AS_CODES, type PlayedAsCode } from "@/constants/pools";
@@ -27,7 +28,6 @@ import {
   USED_RANGE,
   YEAR_RANGE,
 } from "@/constants/search";
-import { formatDuration, formatStars } from "@/utils/format";
 import {
   EMPTY_MAP_FILTERS,
   hasMapFilters,

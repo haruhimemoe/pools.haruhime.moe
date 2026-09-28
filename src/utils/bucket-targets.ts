@@ -10,6 +10,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { formatRange, formatStars } from "@haruhimemoe/osu/format";
 import { slotLabel } from "@haruhimemoe/pool";
 import {
   POOL_TEMPLATES,
@@ -23,7 +24,6 @@ import { bucketTargetSchema } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import type { SlotGroup } from "@/utils/built-editor";
 import { starsUnderMods } from "@/utils/built-summary";
-import { formatRange, formatStars } from "@/utils/format";
 import type { SlotValueMap } from "@/utils/slot-values";
 
 /**

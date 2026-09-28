@@ -9,9 +9,10 @@
  *       the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatBpm, formatDuration, formatStat } from "@haruhimemoe/osu/format";
 import {
   type BucketEntry,
   type ModAcronym,
@@ -19,7 +20,6 @@ import {
   slotKey,
   slotModsFor,
 } from "@haruhimemoe/pool";
-import { formatBpm, formatDuration, formatStat } from "@/utils/format";
 import {
   arUnderMods,
   bpmUnderMods,

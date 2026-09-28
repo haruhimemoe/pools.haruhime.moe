@@ -8,12 +8,12 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { formatStars } from "@haruhimemoe/osu/format";
 import { useId } from "react";
 import type { BucketTargets } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { targetGaps, targetRangeText, targetsOutOfRange } from "@/utils/bucket-targets";
 import type { SlotGroup } from "@/utils/built-editor";
-import { formatStars } from "@/utils/format";
 import type { SlotValueMap } from "@/utils/slot-values";
 
 type TargetSummaryProps = {

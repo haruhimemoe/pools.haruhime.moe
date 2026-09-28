@@ -4,11 +4,11 @@
  *       BPM, and what it was played as.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
 import Link from "next/link";
-import { formatBpm, formatDuration } from "@/utils/format";
 import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";
 import type { MapResult } from "@/utils/search-params";

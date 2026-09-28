@@ -5,11 +5,12 @@
  *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
+import { formatDuration, formatStars } from "@haruhimemoe/osu/format";
 import { FilterRow, RangeSlider } from "@haruhimemoe/ui";
 import {
   AR_RANGE,
@@ -20,7 +21,6 @@ import {
   STAR_RANGE,
 } from "@/constants/search";
 import type { BrowseState } from "@/utils/browse-state";
-import { formatDuration, formatStars } from "@/utils/format";
 import { normalizeRange, parseLengthText, type Range } from "@/utils/search-params";
 
 type RangeKey = "sr" | "bpm" | "len" | "ar" | "od";

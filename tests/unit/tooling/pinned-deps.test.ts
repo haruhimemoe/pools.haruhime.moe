@@ -5,7 +5,7 @@
  *       @haruhimemoe packages sit at the versions pools is built and tested against.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -13,14 +13,14 @@ import pkg from "../../../package.json";
 
 const EXACT = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
 
-/** The shared packages and the versions pools uses (ui 0.3.0 brings the footer's Discord link). */
+/** The shared packages and the versions pools uses (hinai 0.3 needs osu 0.3, one copy). */
 const SHARED: Readonly<Record<string, string>> = {
-  "@haruhimemoe/ui": "0.3.0",
-  "@haruhimemoe/osu": "0.2.0",
-  "@haruhimemoe/hinai": "0.2.0",
-  "@haruhimemoe/pool": "0.1.0",
-  "@haruhimemoe/compliance": "0.1.0",
-  "@haruhimemoe/brand": "0.3.0",
+  "@haruhimemoe/ui": "0.4.0",
+  "@haruhimemoe/osu": "0.3.0",
+  "@haruhimemoe/hinai": "0.3.0",
+  "@haruhimemoe/pool": "0.2.0",
+  "@haruhimemoe/compliance": "0.1.1",
+  "@haruhimemoe/brand": "0.4.0",
 };
 
 describe("package.json", () => {

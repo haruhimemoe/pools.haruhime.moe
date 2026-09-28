@@ -10,6 +10,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { formatRange, formatStars } from "@haruhimemoe/osu/format";
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import Link from "next/link";
 import { TargetSummary } from "@/components/builder/TargetSummary";
@@ -18,7 +19,6 @@ import type { BucketTargets } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { groupSlots } from "@/utils/built-editor";
 import { playedBefore, repeatedSets, type StarRange, starRanges } from "@/utils/built-summary";
-import { formatRange, formatStars } from "@/utils/format";
 import type { SlotValueMap } from "@/utils/slot-values";
 import { usageSummary } from "@/utils/usage";
 

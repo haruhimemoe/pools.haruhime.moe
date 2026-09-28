@@ -7,12 +7,12 @@
  *       and BPM. "Beatmap <id>" until its details are known. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
 import { beatmapUrl } from "@haruhimemoe/osu/shapes";
 import type { BuiltMap } from "@/schemas/built-pool-view";
-import { formatBpm, formatDuration } from "@/utils/format";
 import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";
 import { type SlotValueAnswer, slotValuesText } from "@/utils/slot-values";

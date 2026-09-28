@@ -13,6 +13,7 @@
 
 "use client";
 
+import { formatStars } from "@haruhimemoe/osu/format";
 import { FilterPanel, FilterRow, RangeSlider, Select, TextInput } from "@haruhimemoe/ui";
 import { type ReactNode, useState } from "react";
 import { ChoiceChips } from "@/components/search/ChoiceChips";
@@ -33,7 +34,6 @@ import {
   STAR_RANGE,
   YEAR_RANGE,
 } from "@/constants/search";
-import { formatStars } from "@/utils/format";
 import {
   EMPTY_POOL_FILTERS,
   hasPoolFilters,

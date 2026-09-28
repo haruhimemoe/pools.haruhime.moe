@@ -5,16 +5,16 @@
  *       tournament history. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { setDownloadUrl } from "@haruhimemoe/hinai";
+import { formatBpm, formatDuration, formatStat } from "@haruhimemoe/osu/format";
 import { beatmapUrl, coverUrl } from "@haruhimemoe/osu/shapes";
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import Image from "next/image";
 import { MapHistoryTable } from "@/components/maps/MapHistoryTable";
 import type { StoredMap } from "@/schemas/map";
-import { formatBpm, formatDuration, formatStat } from "@/utils/format";
 import type { HistoryRow } from "@/utils/history";
 import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";

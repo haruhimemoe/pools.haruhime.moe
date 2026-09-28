@@ -8,12 +8,12 @@
  *       set on osu!.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
 import Link from "next/link";
 import { SET_STATUS_LABELS } from "@/constants/search";
-import { formatBpm, formatDuration } from "@/utils/format";
 import { starsText } from "@/utils/pool-text";
 import type { AllMapDifficulty, AllMapSet } from "@/utils/search-params";
 
