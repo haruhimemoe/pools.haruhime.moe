@@ -21,16 +21,11 @@ import { MAX_SEARCH_PAGE, SEARCH_PAGE_SIZE } from "@/constants/search";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { mapsCollection } from "@/models/Map";
 import { poolsCollection } from "@/models/Pool";
+import type { MapResult, PoolResult, SearchResponse } from "@/schemas/search-response";
 import { ownerNamesOf } from "@/services/built-pool-read";
 import { countMatching } from "@/services/count";
 import { builtSearchFieldsOf } from "@/utils/built-record";
-import type {
-  MapFilters,
-  MapResult,
-  PoolFilters,
-  PoolResult,
-  SearchResponse,
-} from "@/utils/search-params";
+import type { MapFilters, PoolFilters } from "@/utils/search-filters";
 import {
   type BuiltQuery,
   builtPoolQuery,

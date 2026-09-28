@@ -38,11 +38,9 @@ import { useSearchResults } from "@/hooks/useSearchResults";
 import {
   EMPTY_ALL_MAP_FILTERS,
   EMPTY_POOL_FILTERS,
-  parseSearchState,
   type SearchState,
-  searchHref,
-  serializeSearchState,
-} from "@/utils/search-params";
+} from "@/utils/search-filters";
+import { parseSearchState, searchHref, serializeSearchState } from "@/utils/search-params";
 
 /** Pools, maps played in pools, or beatmapsets (all maps; with no total, the page). */
 const countText = (total: number | null, page: number, state: SearchState): string => {

@@ -21,7 +21,7 @@ import { STAR_RANGE } from "@/constants/search";
 import type { TargetRange } from "@/schemas/built-plan";
 import { type BrowseState, isLensStatus } from "@/utils/browse-state";
 import { modsCode, parseMods } from "@/utils/mod-values";
-import { normalizeRange } from "@/utils/search-params";
+import { normalizeRange } from "@/utils/search-ranges";
 
 /** Lenses whose maps go straight to the built-in slot of the same name. */
 const DIRECT: readonly string[] = ["NM", "HD", "HR", "DT"];

@@ -10,8 +10,8 @@
 
 import { formatRange, formatStars } from "@haruhimemoe/osu/format";
 import { TextLink } from "@haruhimemoe/ui";
+import type { PoolResult } from "@/schemas/search-response";
 import { badgedText, builtHeadline, poolHeadline } from "@/utils/pool-text";
-import type { PoolResult } from "@/utils/search-params";
 
 const starsOf = ({ srMin, srMax, complete }: PoolResult["stats"]): string =>
   complete && srMin !== null && srMax !== null

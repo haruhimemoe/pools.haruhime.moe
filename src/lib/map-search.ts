@@ -35,7 +35,7 @@ import {
   STAR_RANGE,
 } from "@/constants/search";
 import { SERVER_USER_AGENT } from "@/constants/site";
-import type { AllMapFilters, Range } from "@/utils/search-params";
+import type { AllMapFilters, Range } from "@/utils/search-filters";
 
 const count = z.number().int().nonnegative();
 

@@ -6,7 +6,7 @@
  *       database error is logged, never thrown.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { Db } from "mongodb";
@@ -15,7 +15,7 @@ import { backfillBuiltSearchFields } from "@/lib/built-backfill";
 import { closeDb, connectDb, getDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { searchPools } from "@/services/search";
-import { EMPTY_POOL_FILTERS } from "@/utils/search-params";
+import { EMPTY_POOL_FILTERS } from "@/utils/search-filters";
 import { makeBuiltPool } from "../../helpers/built-pools";
 import { setupTestDb } from "../../helpers/db";
 

@@ -6,14 +6,16 @@
  *       when the request didn't reach it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import { useEffect, useState } from "react";
 import { FETCH_DELAY_MS } from "@/constants/search";
-import { type SearchResponse, type SearchState, serializeSearchState } from "@/utils/search-params";
+import type { SearchResponse } from "@/schemas/search-response";
+import type { SearchState } from "@/utils/search-filters";
+import { serializeSearchState } from "@/utils/search-params";
 
 export type SearchResults = {
   status: "loading" | "ready" | "error";

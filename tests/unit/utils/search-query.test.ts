@@ -12,7 +12,7 @@
 
 import { describe, expect, it } from "vitest";
 import { BUILT_POOL_INDEXES, MAP_INDEXES, POOL_INDEXES } from "@/constants/db";
-import { EMPTY_MAP_FILTERS, EMPTY_POOL_FILTERS } from "@/utils/search-params";
+import { EMPTY_MAP_FILTERS, EMPTY_POOL_FILTERS } from "@/utils/search-filters";
 import { builtPoolQuery, builtSearchable, mapQuery, poolQuery } from "@/utils/search-query";
 
 describe("builtPoolQuery", () => {

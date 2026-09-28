@@ -31,7 +31,7 @@ import {
   YEAR_RANGE,
 } from "@/constants/search";
 import { escapeRegExp, searchTerms } from "@/utils/fold";
-import type { MapFilters, PoolFilters, Range } from "@/utils/search-params";
+import type { MapFilters, PoolFilters, Range } from "@/utils/search-filters";
 
 export type BuiltQuery = {
   filter: Document;

@@ -40,12 +40,8 @@ import {
   STAR_RANGE,
   YEAR_RANGE,
 } from "@/constants/search";
-import {
-  EMPTY_POOL_FILTERS,
-  hasPoolFilters,
-  normalizeRange,
-  type PoolFilters,
-} from "@/utils/search-params";
+import { EMPTY_POOL_FILTERS, hasPoolFilters, type PoolFilters } from "@/utils/search-filters";
+import { normalizeRange } from "@/utils/search-ranges";
 
 type Props = {
   filters: PoolFilters;

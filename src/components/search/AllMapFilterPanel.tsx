@@ -26,10 +26,9 @@ import {
   type AllMapFilters,
   EMPTY_ALL_MAP_FILTERS,
   hasAllMapFilters,
-  normalizeRange,
-  parseLengthText,
   type Range,
-} from "@/utils/search-params";
+} from "@/utils/search-filters";
+import { normalizeRange, parseLengthText } from "@/utils/search-ranges";
 
 type Props = {
   filters: AllMapFilters;

@@ -4,7 +4,7 @@
  *       page, filtered by text and by hidden, superseded or failed syncs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { Button, ButtonLink, PageHeader, Select, TextInput } from "@haruhimemoe/ui";
@@ -13,7 +13,7 @@ import { AdminPoolTable } from "@/components/admin/AdminPoolTable";
 import { MAX_QUERY_LENGTH } from "@/constants/search";
 import { requireAdmin } from "@/lib/auth-session";
 import { ADMIN_SHOWS, type AdminShow, listPoolsForAdmin } from "@/services/admin";
-import { parsePageParam } from "@/utils/search-params";
+import { parsePageParam } from "@/utils/search-ranges";
 
 export const metadata: Metadata = { title: "Every pool", robots: { index: false } };
 

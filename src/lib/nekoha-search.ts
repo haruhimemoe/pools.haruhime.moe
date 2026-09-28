@@ -30,7 +30,7 @@ import {
 import { STAR_RANGE } from "@/constants/search";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { isMirrorCooling, noteMirrorRetryAfter } from "@/lib/map-search";
-import type { Range } from "@/utils/search-params";
+import type { Range } from "@/utils/search-filters";
 
 export type NekohaQuery = {
   lens: BrowseLens;

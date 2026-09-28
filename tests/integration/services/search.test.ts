@@ -28,7 +28,7 @@ import {
   EMPTY_POOL_FILTERS,
   type MapFilters,
   type PoolFilters,
-} from "@/utils/search-params";
+} from "@/utils/search-filters";
 import { builtPoolQuery, mapQuery, poolQuery } from "@/utils/search-query";
 import { makeBuiltPool } from "../../helpers/built-pools";
 import { setupTestDb } from "../../helpers/db";

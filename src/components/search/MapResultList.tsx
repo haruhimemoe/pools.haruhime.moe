@@ -9,9 +9,9 @@
 
 import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
 import { TextLink } from "@haruhimemoe/ui";
+import type { MapResult } from "@/schemas/search-response";
 import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";
-import type { MapResult } from "@/utils/search-params";
 import { usageSummary } from "@/utils/usage";
 
 export function MapResultList({ results }: { results: readonly MapResult[] }) {

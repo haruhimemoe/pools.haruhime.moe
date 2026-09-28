@@ -8,7 +8,7 @@
  *       to 2 decimals, length to whole seconds. Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { ModAcronym } from "@haruhimemoe/pool";
@@ -22,7 +22,7 @@ import {
   lengthUnderMods,
   odUnderMods,
 } from "@/utils/mod-values";
-import type { Range } from "@/utils/search-params";
+import type { Range } from "@/utils/search-filters";
 
 /** AR, OD and CS without mods. */
 export type BaseValues = { ar: number; od: number; cs: number };

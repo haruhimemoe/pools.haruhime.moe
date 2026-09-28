@@ -10,9 +10,10 @@
  *       reads no badged or star filter: built pools have neither), or both. `scope` wins when
  *       given; without it, a link carrying a played-only filter (ar, od, cs, played, used,
  *       last, or a sort) reads as played, so links from before the scope still work. A played
- *       search always writes scope=played; an all-maps search never writes a scope. Also the
- *       answer shapes the route sends. The range, length and query helpers are shared with the
- *       map browser's params (src/utils/browse-params.ts). Pure, and safe in the browser.
+ *       search always writes scope=played; an all-maps search never writes a scope. The
+ *       filters live in src/utils/search-filters.ts, the range, length and text helpers (shared
+ *       with the map browser) in src/utils/search-ranges.ts, and the answers the route sends in
+ *       src/schemas/search-response.ts. Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
@@ -22,115 +23,40 @@ import { PLAYED_AS_CODES, type PlayedAsCode } from "@/constants/pools";
 import {
   AR_RANGE,
   BADGED_FILTERS,
-  type BadgedFilter,
   BPM_RANGE,
   CS_RANGE,
   DEFAULT_MAP_SORT,
   DEFAULT_MAP_STATUS,
   DEFAULT_POOL_SORT,
   DEFAULT_POOL_TYPE,
-  type FilterBounds,
-  LENGTH_RANGE,
   MAP_COUNT_RANGE,
   MAP_SORTS,
   MAP_STATUSES,
   MAX_MAP_REF_LENGTH,
   MAX_QUERY_LENGTH,
-  MAX_SEARCH_PAGE,
   type MapScope,
-  type MapSort,
-  type MapStatus,
   OD_RANGE,
   POOL_SORTS,
   POOL_TYPES,
-  type PoolSort,
-  type PoolType,
   STAR_RANGE,
   USED_RANGE,
   YEAR_RANGE,
 } from "@/constants/search";
+import type { Range, SearchState } from "@/utils/search-filters";
+import {
+  parseLengthRange,
+  parsePageParam,
+  parseRange,
+  rangeText,
+  wellFormed,
+} from "@/utils/search-ranges";
 
 /** `[low, high]`, `high` null for no upper limit. */
-export type Range = readonly [number, number | null];
-
-export type PoolFilters = {
-  /** Past tournament pools, pools built here, or both. */
-  type: PoolType;
-  q: string;
-  year: Range | null;
-  badged: BadgedFilter;
-  sr: Range | null;
-  maps: Range | null;
-  /** "Contains map": a beatmap ID or link as typed. */
-  map: string;
-  sort: PoolSort;
-};
-
-export type MapFilters = {
-  q: string;
-  sr: Range | null;
-  len: Range | null;
-  bpm: Range | null;
-  ar: Range | null;
-  od: Range | null;
-  cs: Range | null;
-  played: PlayedAsCode[];
-  used: Range | null;
-  last: Range | null;
-  sort: MapSort;
-};
-
-export const EMPTY_POOL_FILTERS: PoolFilters = Object.freeze({
-  type: DEFAULT_POOL_TYPE,
-  q: "",
-  year: null,
-  badged: "any",
-  sr: null,
-  maps: null,
-  map: "",
-  sort: DEFAULT_POOL_SORT,
-}) as PoolFilters;
-
-export const EMPTY_MAP_FILTERS: MapFilters = Object.freeze({
-  q: "",
-  sr: null,
-  len: null,
-  bpm: null,
-  ar: null,
-  od: null,
-  cs: null,
-  played: [],
-  used: null,
-  last: null,
-  sort: DEFAULT_MAP_SORT,
-}) as MapFilters;
 
 /** Searching every osu! map through the mirror. */
-export type AllMapFilters = {
-  q: string;
-  status: MapStatus;
-  sr: Range | null;
-  len: Range | null;
-  bpm: Range | null;
-  /** Show explicit maps (the mirror hides them unless asked). */
-  explicit: boolean;
-};
-
-export const EMPTY_ALL_MAP_FILTERS: AllMapFilters = Object.freeze({
-  q: "",
-  status: DEFAULT_MAP_STATUS,
-  sr: null,
-  len: null,
-  bpm: null,
-  explicit: false,
-}) as AllMapFilters;
-
-export type SearchState =
-  | { tab: "pools"; page: number; filters: PoolFilters }
-  | { tab: "maps"; scope: "played"; page: number; filters: MapFilters }
-  | { tab: "maps"; scope: "all"; page: number; filters: AllMapFilters };
 
 /** Params only a played-in-pools search has: a link carrying one predates the scope. */
+
 const PLAYED_ONLY_PARAMS = ["ar", "od", "cs", "played", "used", "last", "sort"] as const;
 
 /**
@@ -144,101 +70,6 @@ export const mapScopeOf = (params: URLSearchParams): MapScope => {
   if (scope === "all" || scope === "played") return scope;
   return PLAYED_ONLY_PARAMS.some((name) => (params.get(name) ?? "") !== "") ? "played" : "all";
 };
-
-const round = (n: number, decimals: number): number => {
-  const scale = 10 ** decimals;
-  return Math.round(n * scale) / scale;
-};
-
-/**
- * @function normalizeRange
- * @param range {readonly [number, number | null]} a range from a slider or a URL
- * @param bounds {FilterBounds} the slider's bounds
- * @returns {Range | null} the range inside the bounds and rounded, its top null at the maximum;
- *          null when it covers the whole slider, is crossed, or isn't a number
- */
-export const normalizeRange = (
-  range: readonly [number, number | null],
-  bounds: FilterBounds,
-): Range | null => {
-  const [rawLow, rawHigh] = range;
-  if (!Number.isFinite(rawLow) || (rawHigh !== null && !Number.isFinite(rawHigh))) return null;
-  const low = round(Math.min(Math.max(rawLow, bounds.min), bounds.max), bounds.decimals);
-  const high =
-    rawHigh === null || rawHigh >= bounds.max
-      ? null
-      : round(Math.max(rawHigh, bounds.min), bounds.decimals);
-  if (high !== null && high < low) return null;
-  if (low <= bounds.min && high === null) return null;
-  return [low, high];
-};
-
-/**
- * @function parseLengthText
- * @param text {string} a typed length
- * @returns {number | null} seconds: "1:35" is 95, a bare number is minutes ("2,5" is 150); null
- *          for anything else
- */
-export const parseLengthText = (text: string): number | null => {
-  const trimmed = text.trim().replace(",", ".");
-  const clock = /^(\d+):(\d+)$/.exec(trimmed);
-  if (clock) return Number(clock[1]) * 60 + Number(clock[2]);
-  if (/^\d+(\.\d+)?$/.test(trimmed)) return Math.round(Number(trimmed) * 60);
-  return null;
-};
-
-const NUMBER = String.raw`\d+(?:[.,]\d+)?`;
-const RANGE_TEXT = new RegExp(`^(${NUMBER})?-(${NUMBER})?$`);
-const OPEN_TEXT = new RegExp(`^(${NUMBER})\\+?$`);
-const toNumber = (text: string): number => Number(text.replace(",", "."));
-
-/**
- * @function parseRange
- * @param raw {string | null} a range as written: "5.5-6.5", "6-", "-6.5", "6+" (6 and up)
- * @param bounds {FilterBounds} its slider
- * @returns {Range | null} the range snapped to the slider (normalizeRange), or null
- */
-export const parseRange = (raw: string | null, bounds: FilterBounds): Range | null => {
-  if (raw === null) return null;
-  const text = raw.trim();
-  const open = OPEN_TEXT.exec(text);
-  if (open?.[1] !== undefined) return normalizeRange([toNumber(open[1]), null], bounds);
-  const range = RANGE_TEXT.exec(text);
-  if (!range || (range[1] === undefined && range[2] === undefined)) return null;
-  return normalizeRange(
-    [
-      range[1] === undefined ? bounds.min : toNumber(range[1]),
-      range[2] === undefined ? null : toNumber(range[2]),
-    ],
-    bounds,
-  );
-};
-
-/**
- * @function parseLengthRange
- * @param raw {string | null} a length range in seconds, or clock times ("1:30-3:00")
- * @returns {Range | null} the range in seconds on LENGTH_RANGE, or null
- */
-export const parseLengthRange = (raw: string | null): Range | null => {
-  if (raw === null) return null;
-  const [low, high, ...rest] = raw.split("-");
-  if (rest.length > 0 || low === undefined || high === undefined)
-    return parseRange(raw, LENGTH_RANGE);
-  if (!low.includes(":") && !high.includes(":")) return parseRange(raw, LENGTH_RANGE);
-  const from =
-    low === "" ? LENGTH_RANGE.min : parseLengthText(low.includes(":") ? low : `0:${low}`);
-  const to = high === "" ? null : parseLengthText(high.includes(":") ? high : `0:${high}`);
-  if (from === null || (high !== "" && to === null)) return null;
-  return normalizeRange([from, to], LENGTH_RANGE);
-};
-
-/**
- * @function parsePageParam
- * @param raw {string | null} an untrusted page number
- * @returns {number} 1 for anything that isn't a whole number from 1; at most MAX_SEARCH_PAGE
- */
-export const parsePageParam = (raw: string | null): number =>
-  raw !== null && /^[1-9]\d{0,5}$/.test(raw) ? Math.min(Number(raw), MAX_SEARCH_PAGE) : 1;
 
 const pick = <T extends string>(raw: string | null, allowed: readonly T[], fallback: T): T =>
   (allowed as readonly string[]).includes(raw ?? "") ? (raw as T) : fallback;
@@ -312,23 +143,7 @@ export const parseSearchState = (search: string | URLSearchParams): SearchState 
   };
 };
 
-/**
- * @function rangeText
- * @param range {Range} a range
- * @returns {string} "5.5-6.5", or "6-" with no upper limit
- */
-export const rangeText = ([low, high]: Range): string => `${low}-${high ?? ""}`;
-
 /** A surrogate pair, or a surrogate on its own. */
-const SURROGATES = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDFFF]/g;
-
-/**
- * @function wellFormed
- * @param text {string} typed text
- * @returns {string} the text with each lone surrogate as U+FFFD (encodeURIComponent throws on one)
- */
-export const wellFormed = (text: string): string =>
-  text.replace(SURROGATES, (match) => (match.length === 2 ? match : "�"));
 
 /**
  * @function serializeSearchState
@@ -389,125 +204,12 @@ export const searchHref = (state: SearchState): string => {
   return search === "" ? "/search" : `/search?${search}`;
 };
 
-/**
- * @function hasPoolFilters
- * @param filters {PoolFilters} pool filters
- * @returns {boolean} whether any filter row is set (the type, text and sort aside)
- */
-export const hasPoolFilters = (filters: PoolFilters): boolean =>
-  filters.year !== null ||
-  filters.badged !== "any" ||
-  filters.sr !== null ||
-  filters.maps !== null ||
-  filters.map !== "";
-
-/**
- * @function hasMapFilters
- * @param filters {MapFilters} map filters
- * @returns {boolean} whether any filter row is set (the text and sort aside)
- */
-export const hasMapFilters = (filters: MapFilters): boolean =>
-  [
-    filters.sr,
-    filters.len,
-    filters.bpm,
-    filters.ar,
-    filters.od,
-    filters.cs,
-    filters.used,
-    filters.last,
-  ].some((value) => value !== null) || filters.played.length > 0;
-
-/**
- * @function hasAllMapFilters
- * @param filters {AllMapFilters} all-maps filters
- * @returns {boolean} whether any filter row is set (the text aside; Ranked is the default)
- */
-export const hasAllMapFilters = (filters: AllMapFilters): boolean =>
-  filters.status !== DEFAULT_MAP_STATUS ||
-  filters.explicit ||
-  [filters.sr, filters.len, filters.bpm].some((value) => value !== null);
-
 /** A pool in search results: a past tournament pool, or one built here (with its owner). */
-export type PoolResult = {
-  kind: "past" | "built";
-  /** A built pool's owner's osu! username (null when unknown); null for past pools. */
-  builtBy: string | null;
-  id: string;
-  name: string;
-  tournament: string;
-  round: string | null;
-  year: number | null;
-  badged: boolean | null;
-  stats: { srMin: number | null; srMax: number | null; count: number; complete: boolean };
-};
 
 /** A map in search results. */
-export type MapResult = {
-  id: number;
-  artist: string | null;
-  title: string | null;
-  version: string | null;
-  setHost: string | null;
-  stars: number | null;
-  length: number | null;
-  bpm: number | null;
-  usage: { count: number; lastYear: number | null; playedAs: PlayedAsCode[] };
-};
 
 /** One osu! difficulty in all-maps results. */
-export type AllMapDifficulty = {
-  id: number;
-  version: string;
-  stars: number;
-  length: number;
-  bpm: number;
-  /** Current pools that played it; null when that lookup failed. */
-  playedIn: number | null;
-};
 
 /** One beatmapset in all-maps results (disallowed ones never are). */
-export type AllMapSet = {
-  setId: number;
-  artist: string;
-  title: string;
-  creator: string;
-  status: string;
-  /** Graveyard, pending or WIP: it can change or disappear. */
-  unranked: boolean;
-  /** Null when nothing stands in its way; potential sets say why to check first. */
-  check: { text: string } | null;
-  maps: AllMapDifficulty[];
-};
 
 /** What GET /api/search answers. */
-export type SearchResponse =
-  | {
-      tab: "pools";
-      page: number;
-      pageCount: number;
-      total: number;
-      hiddenMissing: number;
-      badgedKnown: boolean;
-      results: PoolResult[];
-    }
-  | {
-      tab: "maps";
-      scope: "played";
-      page: number;
-      pageCount: number;
-      total: number;
-      hiddenMissing: number;
-      results: MapResult[];
-    }
-  | {
-      tab: "maps";
-      scope: "all";
-      page: number;
-      pageCount: number;
-      /** The mirror's total, when it gives one. */
-      total: number | null;
-      /** Sets on this page left out as not allowed in officially supported tournaments. */
-      hidden: number;
-      results: AllMapSet[];
-    };

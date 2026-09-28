@@ -21,7 +21,8 @@ import {
   STAR_RANGE,
 } from "@/constants/search";
 import type { BrowseState } from "@/utils/browse-state";
-import { normalizeRange, parseLengthText, type Range } from "@/utils/search-params";
+import type { Range } from "@/utils/search-filters";
+import { normalizeRange, parseLengthText } from "@/utils/search-ranges";
 
 type RangeKey = "sr" | "bpm" | "len" | "ar" | "od";
 

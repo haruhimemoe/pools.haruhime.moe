@@ -15,7 +15,7 @@ import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
 import { Badge, TextLink } from "@haruhimemoe/ui";
 import { StarsUnder } from "@/components/maps/StarsUnder";
 import { SET_STATUS_LABELS } from "@/constants/search";
-import type { AllMapDifficulty, AllMapSet } from "@/utils/search-params";
+import type { AllMapDifficulty, AllMapSet } from "@/schemas/search-response";
 
 const playedText = (map: AllMapDifficulty) => {
   if (map.playedIn === null) return <span>Pool history unavailable</span>;

@@ -18,12 +18,10 @@ import {
   EMPTY_MAP_FILTERS,
   EMPTY_POOL_FILTERS,
   hasPoolFilters,
-  parseLengthText,
-  parseSearchState,
   type SearchState,
-  searchHref,
-  serializeSearchState,
-} from "@/utils/search-params";
+} from "@/utils/search-filters";
+import { parseSearchState, searchHref, serializeSearchState } from "@/utils/search-params";
+import { parseLengthText } from "@/utils/search-ranges";
 
 describe("parseSearchState", () => {
   it("reads nothing as the pools tab, page 1, no filters", () => {

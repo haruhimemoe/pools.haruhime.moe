@@ -10,7 +10,7 @@
  *       the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { beatmapIdSchema } from "@haruhimemoe/pool";
@@ -34,14 +34,14 @@ import {
   STAR_RANGE,
 } from "@/constants/search";
 import { modsCode, parseMods } from "@/utils/mod-values";
+import type { Range } from "@/utils/search-filters";
 import {
   parseLengthRange,
   parsePageParam,
   parseRange,
-  type Range,
   rangeText,
   wellFormed,
-} from "@/utils/search-params";
+} from "@/utils/search-ranges";
 
 export type BrowseParams = {
   q: string;

@@ -25,7 +25,7 @@ import {
   resetMirrorCooldown,
   searchMirror,
 } from "@/lib/map-search";
-import { EMPTY_ALL_MAP_FILTERS } from "@/utils/search-params";
+import { EMPTY_ALL_MAP_FILTERS } from "@/utils/search-filters";
 import {
   compactSet,
   fixtureSet,

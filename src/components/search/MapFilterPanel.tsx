@@ -32,10 +32,9 @@ import {
   EMPTY_MAP_FILTERS,
   hasMapFilters,
   type MapFilters,
-  normalizeRange,
-  parseLengthText,
   type Range,
-} from "@/utils/search-params";
+} from "@/utils/search-filters";
+import { normalizeRange, parseLengthText } from "@/utils/search-ranges";
 
 type Props = { filters: MapFilters; onChange: (next: MapFilters) => void; resultCount: ReactNode };
 

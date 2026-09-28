@@ -15,8 +15,8 @@ import {
   EMPTY_ALL_MAP_FILTERS,
   EMPTY_MAP_FILTERS,
   type MapFilters,
-  searchHref,
-} from "@/utils/search-params";
+} from "@/utils/search-filters";
+import { searchHref } from "@/utils/search-params";
 
 /**
  * @function scopeHref

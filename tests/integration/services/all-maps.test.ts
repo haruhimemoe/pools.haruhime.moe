@@ -22,7 +22,7 @@ import { getDb } from "@/lib/db";
 import { resetMirrorCooldown } from "@/lib/map-search";
 import { mapsCollection } from "@/models/Map";
 import { searchAllMaps } from "@/services/all-maps";
-import { EMPTY_ALL_MAP_FILTERS } from "@/utils/search-params";
+import { EMPTY_ALL_MAP_FILTERS } from "@/utils/search-filters";
 import { setupTestDb } from "../../helpers/db";
 import {
   compactSet,

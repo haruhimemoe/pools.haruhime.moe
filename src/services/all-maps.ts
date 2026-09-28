@@ -32,8 +32,9 @@ import { connectDb, getDb } from "@/lib/db";
 import { type MirrorSet, mirrorPageCount, searchMirror } from "@/lib/map-search";
 import { mapsCollection } from "@/models/Map";
 import { setFactsDocSchema } from "@/schemas/compliance";
+import type { AllMapSet, SearchResponse } from "@/schemas/search-response";
 import { factsOf } from "@/services/compliance";
-import type { AllMapFilters, AllMapSet, Range, SearchResponse } from "@/utils/search-params";
+import type { AllMapFilters, Range } from "@/utils/search-filters";
 
 export type AllMapsAnswer = Omit<Extract<SearchResponse, { scope: "all" }>, "tab" | "scope">;
 
