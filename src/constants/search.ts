@@ -77,6 +77,16 @@ export const BADGED_LABELS: Readonly<Record<BadgedFilter, string>> = Object.free
   unknown: "Not known",
 });
 
+/** The pools tab lists past tournament pools (old links too), pools built here, or both. */
+export const POOL_TYPES = ["past", "built", "both"] as const;
+export type PoolType = (typeof POOL_TYPES)[number];
+export const DEFAULT_POOL_TYPE: PoolType = "past";
+export const POOL_TYPE_LABELS: Readonly<Record<PoolType, string>> = Object.freeze({
+  past: "Past tournament pools",
+  built: "Built here",
+  both: "Both",
+});
+
 export const POOL_SORTS = ["year", "name", "maps"] as const;
 export type PoolSort = (typeof POOL_SORTS)[number];
 export const DEFAULT_POOL_SORT: PoolSort = "year";

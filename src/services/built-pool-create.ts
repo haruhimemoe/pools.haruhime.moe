@@ -37,6 +37,7 @@ import {
 import { getPublicPool } from "@/services/pools";
 import { accessOf } from "@/utils/built-access";
 import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
+import type { BuiltSearchFields } from "@/utils/built-record";
 import { newSourceId, type RandomBytes } from "@/utils/source-ids";
 
 const MAX_CLAIM_TRIES = 5;
@@ -148,7 +149,7 @@ export const createBuiltPool = async (
     createdAt: now,
     updatedAt: now,
   };
-  let pool: StoredBuiltPool;
+  let pool: StoredBuiltPool & BuiltSearchFields;
   try {
     pool = toStored(draft);
   } catch {

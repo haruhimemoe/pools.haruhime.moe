@@ -1,7 +1,7 @@
 /**
  * @file src/utils/search-query.ts
  * @desc Search filters to MongoDB queries. Every query starts with the public filter (visible
- *       pools; maps some current pool uses), hints the index behind its sort (so no public
+ *       pools; built pools that are public and not hidden; maps some current pool uses), hints the index behind its sort (so no public
  *       search sorts in memory or scans the collection), pages 50 at a time and runs under
  *       maxTimeMS. Text: every folded term must appear as an escaped substring of the stored
  *       search text. Ranges: inclusive, open at the slider edges; a pool's star range overlaps
@@ -10,11 +10,11 @@
  *       shows as hidden. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import type { Document } from "mongodb";
-import { MAP_INDEXES, POOL_INDEXES, QUERY_TIME_MS } from "@/constants/db";
+import { BUILT_POOL_INDEXES, MAP_INDEXES, POOL_INDEXES, QUERY_TIME_MS } from "@/constants/db";
 import {
   AR_RANGE,
   BPM_RANGE,
@@ -130,6 +130,47 @@ export const poolQuery = (filters: PoolFilters, page: number, mapId: number | nu
     });
   }
   return build(base, ranges, POOL_SORT_SPECS[filters.sort], page);
+};
+
+export const BUILT_POOL_SORT_SPECS: Readonly<Record<PoolSort, SortSpec>> = Object.freeze({
+  year: { sort: { year: -1, _id: 1 }, hint: BUILT_POOL_INDEXES.searchYear },
+  name: { sort: { sortName: 1, _id: 1 }, hint: BUILT_POOL_INDEXES.searchName },
+  maps: { sort: { mapCount: -1, _id: 1 }, hint: BUILT_POOL_INDEXES.searchMaps },
+});
+
+/**
+ * @function builtSearchable
+ * @param filters {PoolFilters} the pool filters
+ * @returns {boolean} false when badged or a star range is set: built pools have neither, so
+ *          none can match
+ */
+export const builtSearchable = (filters: PoolFilters): boolean =>
+  filters.badged === "any" && filters.sr === null;
+
+/**
+ * @function builtPoolQuery
+ * @param filters {PoolFilters} the pool filters (builtSearchable ones)
+ * @param page {number} 1-based page
+ * @param mapId {number | null} "contains map", already read as a beatmap id
+ * @returns {BuiltQuery} the query over built pools that are public and not hidden: text, map,
+ *          map count and year as for past pools
+ */
+export const builtPoolQuery = (
+  filters: PoolFilters,
+  page: number,
+  mapId: number | null,
+): BuiltQuery => {
+  const base: Document[] = [
+    { visibility: "public" },
+    { hidden: false },
+    ...textConditions(filters.q),
+  ];
+  if (mapId !== null) base.push({ "slots.beatmapId": mapId });
+  if (filters.maps) base.push({ mapCount: bounds(filters.maps, MAP_COUNT_RANGE) });
+  const ranges: RangeCondition[] = [];
+  if (filters.year)
+    ranges.push({ match: { year: bounds(filters.year, YEAR_RANGE) }, absent: { year: null } });
+  return build(base, ranges, BUILT_POOL_SORT_SPECS[filters.sort], page);
 };
 
 /**

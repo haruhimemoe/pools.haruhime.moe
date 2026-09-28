@@ -4,10 +4,11 @@
  *       (src/schemas/built-pool.ts is the zod shape reads parse against) and its indexes, by the
  *       names src/constants/db.ts gives them: owner with updatedAt (your pools, the per-owner
  *       count), editor osu! id (pools you edit, pulling a deleted user), visibility with
- *       updatedAt (public listings), hidden (moderation). builtPoolsCollection() hands out the
- *       typed driver collection once the indexes exist; builtPoolIdsCollection() holds every id
- *       ever handed out, so a deleted pool's id is never reused. Registered lazily on the
- *       shared connection.
+ *       updatedAt (public listings), hidden (moderation), one per search sort (public and not
+ *       hidden, by year, sort name or map count), and createdAt (the admin's recent pools).
+ *       builtPoolsCollection() hands out the typed driver collection once the indexes exist;
+ *       builtPoolIdsCollection() holds every id ever handed out, so a deleted pool's id is never
+ *       reused. Registered lazily on the shared connection.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -43,6 +44,10 @@ const builtPoolSchema = new Schema(
     pack: { type: Schema.Types.Mixed, required: true },
     hidden: { type: Boolean, default: false },
     startedFrom: { type: String, default: null },
+    // Search fields, rewritten with the content (src/utils/built-record.ts).
+    searchText: { type: String },
+    sortName: { type: String },
+    mapCount: { type: Number },
     createdAt: { type: Date, required: true },
     updatedAt: { type: Date, required: true },
   },
@@ -53,6 +58,19 @@ builtPoolSchema.index({ ownerId: 1, updatedAt: -1 }, { name: BUILT_POOL_INDEXES.
 builtPoolSchema.index({ "editors.osuId": 1 }, { name: BUILT_POOL_INDEXES.editor });
 builtPoolSchema.index({ visibility: 1, updatedAt: -1 }, { name: BUILT_POOL_INDEXES.listed });
 builtPoolSchema.index({ hidden: 1 }, { name: BUILT_POOL_INDEXES.hidden });
+builtPoolSchema.index(
+  { visibility: 1, hidden: 1, year: -1, _id: 1 },
+  { name: BUILT_POOL_INDEXES.searchYear },
+);
+builtPoolSchema.index(
+  { visibility: 1, hidden: 1, sortName: 1, _id: 1 },
+  { name: BUILT_POOL_INDEXES.searchName },
+);
+builtPoolSchema.index(
+  { visibility: 1, hidden: 1, mapCount: -1, _id: 1 },
+  { name: BUILT_POOL_INDEXES.searchMaps },
+);
+builtPoolSchema.index({ createdAt: -1 }, { name: BUILT_POOL_INDEXES.recent });
 
 /**
  * @function getBuiltPoolModel

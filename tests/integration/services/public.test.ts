@@ -19,6 +19,7 @@ import { describe, expect, it, vi } from "vitest";
 import { MAP_INDEXES, POOL_INDEXES, QUERY_TIME_MS } from "@/constants/db";
 import { mapsCollection } from "@/models/Map";
 import { poolsCollection } from "@/models/Pool";
+import { listPublicBuiltPools } from "@/services/built-listings";
 import { countMatching } from "@/services/count";
 import { getMapHistory, getPublicMap, listListedMaps } from "@/services/maps";
 import {
@@ -31,6 +32,7 @@ import {
 } from "@/services/pools";
 import { recomputeUsage } from "@/services/usage";
 import { setupTestDb } from "../../helpers/db";
+import { createCast, insertPool } from "../../helpers/pool-requests";
 import { makeMap, makePool } from "../../helpers/records";
 
 setupTestDb();
@@ -199,6 +201,22 @@ describe("maps", () => {
   });
 });
 
+describe("public built pools", () => {
+  it("lists public, unhidden built pools, newest change first, with their owner", async () => {
+    const cast = await createCast();
+    const at = (minutes: number) => new Date(Date.UTC(2026, 8, 27, 12, minutes));
+    await insertPool(cast, { _id: "b-a0000001", visibility: "public", updatedAt: at(1) });
+    await insertPool(cast, { _id: "b-a0000002", visibility: "public", updatedAt: at(2) });
+    await insertPool(cast, { _id: "b-a0000003", visibility: "unlisted", updatedAt: at(3) });
+    await insertPool(cast, { _id: "b-a0000004", visibility: "public", hidden: true });
+    await insertPool(cast, { _id: "b-a0000005", updatedAt: at(5) });
+    const listed = await listPublicBuiltPools();
+    expect(listed.map((pool) => pool.id)).toEqual(["b-a0000002", "b-a0000001"]);
+    expect(listed[0]).toMatchObject({ builtBy: "owner", maps: 0, updatedAt: at(2) });
+    expect((await listPublicBuiltPools(1)).map((pool) => pool.id)).toEqual(["b-a0000002"]);
+  });
+});
+
 describe("home, sitemap and llms.txt reads", () => {
   it("let a database error through at runtime, so ISR keeps the last good version", async () => {
     await seed();
@@ -212,6 +230,7 @@ describe("home, sitemap and llms.txt reads", () => {
       await expect(listCurrentPools()).rejects.toThrow("server selection timed out");
       await expect(listRecentPools()).rejects.toThrow("server selection timed out");
       await expect(listListedMaps()).rejects.toThrow("server selection timed out");
+      await expect(listPublicBuiltPools()).rejects.toThrow("server selection timed out");
     } finally {
       vi.restoreAllMocks();
     }
@@ -226,6 +245,7 @@ describe("home, sitemap and llms.txt reads", () => {
       expect(await listCurrentPools()).toEqual([]);
       expect(await listRecentPools()).toEqual([]);
       expect(await listListedMaps()).toEqual([]);
+      expect(await listPublicBuiltPools()).toEqual([]);
       expect(find).not.toHaveBeenCalled();
     } finally {
       vi.restoreAllMocks();

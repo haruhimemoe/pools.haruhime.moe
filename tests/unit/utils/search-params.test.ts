@@ -17,6 +17,7 @@ import {
   EMPTY_ALL_MAP_FILTERS,
   EMPTY_MAP_FILTERS,
   EMPTY_POOL_FILTERS,
+  hasPoolFilters,
   parseLengthText,
   parseSearchState,
   type SearchState,
@@ -32,12 +33,13 @@ describe("parseSearchState", () => {
   it("reads every pools param", () => {
     expect(
       parseSearchState(
-        "?q=owc&year=2019-2023&badged=yes&sr=5.5-6.5&maps=10-&map=129891&sort=maps&page=3",
+        "?type=both&q=owc&year=2019-2023&badged=yes&sr=5.5-6.5&maps=10-&map=129891&sort=maps&page=3",
       ),
     ).toEqual({
       tab: "pools",
       page: 3,
       filters: {
+        type: "both",
         q: "owc",
         year: [2019, 2023],
         badged: "yes",
@@ -107,6 +109,25 @@ describe("parseSearchState", () => {
   });
 });
 
+describe("the pools tab's type", () => {
+  it("reads past pools from a link without one, or with one it doesn't know", () => {
+    expect(parseSearchState("q=owc").filters).toMatchObject({ type: "past" });
+    expect(parseSearchState("type=secret").filters).toMatchObject({ type: "past" });
+    expect(parseSearchState("type=built").filters).toMatchObject({ type: "built" });
+  });
+
+  it("writes the type first, and none for past pools", () => {
+    const built = { ...EMPTY_POOL_FILTERS, type: "built" as const, q: "cup" };
+    expect(searchHref({ tab: "pools", page: 1, filters: built })).toBe("/search?type=built&q=cup");
+    const past = { ...EMPTY_POOL_FILTERS, q: "cup" };
+    expect(searchHref({ tab: "pools", page: 1, filters: past })).toBe("/search?q=cup");
+  });
+
+  it("isn't a filter the Clear button clears", () => {
+    expect(hasPoolFilters({ ...EMPTY_POOL_FILTERS, type: "both" })).toBe(false);
+  });
+});
+
 describe("serializeSearchState", () => {
   it("writes only what's set, in a fixed order, the query last", () => {
     const state: SearchState = {
@@ -135,6 +156,7 @@ describe("serializeSearchState", () => {
       tab: "pools",
       page: 7,
       filters: {
+        type: "built",
         q: "Café (20k-10k)",
         year: [2015, 2020],
         badged: "unknown",

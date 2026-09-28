@@ -23,6 +23,7 @@ import {
   MAX_POOLS_PER_OWNER,
   type Visibility,
 } from "@/constants/built-pools";
+import { QUERY_TIME_MS } from "@/constants/db";
 import type { SessionUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
@@ -36,6 +37,7 @@ import type { ClientPack } from "@/schemas/built-pool-view";
 import { type PackRemoval, removePackOrQueue } from "@/services/pack-cleanup";
 import { type Access, accessOf, type Caller } from "@/utils/built-access";
 import { clientPackOf, EMPTY_BUILT_PACK } from "@/utils/built-pack";
+import { type BuiltSearchFields, builtSearchFields } from "@/utils/built-record";
 
 export type Refusal = {
   ok: false;
@@ -118,13 +120,15 @@ export const findBuiltPool = async (id: string): Promise<StoredBuiltPool | null>
 /**
  * @function toStored
  * @param pool {StoredBuiltPool} a pool about to be written
- * @returns {StoredBuiltPool} the same pool, checked, with `buckets` left out for the default
- *          list (the driver would store an undefined value as null)
+ * @returns {StoredBuiltPool & BuiltSearchFields} the same pool, checked, with `buckets` left out
+ *          for the default list (the driver would store an undefined value as null), and its
+ *          search fields
  * @throws {z.ZodError} when it doesn't satisfy the stored schema (a bug)
  */
-export const toStored = (pool: StoredBuiltPool): StoredBuiltPool => {
+export const toStored = (pool: StoredBuiltPool): StoredBuiltPool & BuiltSearchFields => {
   const { buckets, ...rest } = storedBuiltPoolSchema.parse(pool);
-  return buckets === undefined ? rest : { ...rest, buckets };
+  const stored = buckets === undefined ? rest : { ...rest, buckets };
+  return { ...stored, ...builtSearchFields(stored) };
 };
 
 /**
@@ -141,6 +145,29 @@ export const ownerOf = async (ownerId: string): Promise<BuiltPoolView["owner"]> 
   return typeof user?.osuId === "number" && typeof user.username === "string"
     ? { osuId: user.osuId, username: user.username }
     : null;
+};
+
+/**
+ * @function ownerNamesOf
+ * @param ownerIds {readonly string[]} pools' owners (user ids)
+ * @returns {Promise<Map<string, string>>} each one's current osu! username, where the user row is
+ *          there (one query)
+ */
+export const ownerNamesOf = async (ownerIds: readonly string[]): Promise<Map<string, string>> => {
+  const ids = [...new Set(ownerIds)].filter((id) => ObjectId.isValid(id));
+  if (ids.length === 0) return new Map();
+  const users = await getDb()
+    .collection("user")
+    .find(
+      { _id: { $in: ids.map((id) => new ObjectId(id)) } },
+      { projection: { username: 1 }, maxTimeMS: QUERY_TIME_MS },
+    )
+    .toArray();
+  return new Map(
+    users.flatMap((user) =>
+      typeof user.username === "string" ? [[String(user._id), user.username] as const] : [],
+    ),
+  );
 };
 
 /**

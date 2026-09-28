@@ -1,17 +1,20 @@
 /**
  * @file src/components/search/PoolFilterPanel.tsx
- * @desc The pools filter bar: text, year, badged (only once some pool knows it), star rating
- *       without mods, map count, a contained map (with the route's message when it can't be
- *       read), and the sort.
+ * @desc The pools filter bar: which pools (past tournament pools, built here, or both, as
+ *       chips that are a real radio group), text, year, badged (only once some pool knows it)
+ *       and star rating without mods (neither for built pools only: they have no such data),
+ *       map count, a contained map (with the route's message when it can't be read), and the
+ *       sort. Clear keeps the type, the text and the sort.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 "use client";
 
 import { FilterPanel, FilterRow, RangeSlider, Select, TextInput } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
+import { ChoiceChips } from "@/components/search/ChoiceChips";
 import {
   BADGED_FILTERS,
   BADGED_LABELS,
@@ -21,6 +24,8 @@ import {
   MAX_QUERY_LENGTH,
   POOL_SORT_LABELS,
   POOL_SORTS,
+  POOL_TYPE_LABELS,
+  POOL_TYPES,
   type PoolSort,
   STAR_RANGE,
   YEAR_RANGE,
@@ -44,13 +49,25 @@ type Props = {
 export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, mapError }: Props) {
   const set = <K extends keyof PoolFilters>(key: K, value: PoolFilters[K]) =>
     onChange({ ...filters, [key]: value });
+  // Built pools have no badged or star stats: those filters would match none of them.
+  const builtOnly = filters.type === "built";
   return (
     <FilterPanel
       title="Filter pools"
       resultCount={resultCount}
       active={hasPoolFilters(filters)}
-      onClear={() => onChange({ ...EMPTY_POOL_FILTERS, q: filters.q, sort: filters.sort })}
+      onClear={() =>
+        onChange({ ...EMPTY_POOL_FILTERS, type: filters.type, q: filters.q, sort: filters.sort })
+      }
     >
+      <FilterRow label="Pools">
+        <ChoiceChips
+          options={POOL_TYPES}
+          labels={POOL_TYPE_LABELS}
+          value={filters.type}
+          onChange={(type) => set("type", type)}
+        />
+      </FilterRow>
       <FilterRow label="Search">
         <TextInput
           id="pools-q"
@@ -72,7 +89,7 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
           onChange={(value) => set("year", normalizeRange(value, YEAR_RANGE))}
         />
       </FilterRow>
-      {badgedKnown ? (
+      {badgedKnown && !builtOnly ? (
         <FilterRow label="Badged">
           <Select
             id="pools-badged"
@@ -88,19 +105,21 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
           </Select>
         </FilterRow>
       ) : null}
-      <FilterRow label="Stars (no mod)">
-        <RangeSlider
-          label="Star rating without mods"
-          hideLabel
-          min={STAR_RANGE.min}
-          max={STAR_RANGE.max}
-          step={STAR_RANGE.step}
-          openEnded
-          format={formatStars}
-          value={filters.sr ?? [STAR_RANGE.min, null]}
-          onChange={(value) => set("sr", normalizeRange(value, STAR_RANGE))}
-        />
-      </FilterRow>
+      {builtOnly ? null : (
+        <FilterRow label="Stars (no mod)">
+          <RangeSlider
+            label="Star rating without mods"
+            hideLabel
+            min={STAR_RANGE.min}
+            max={STAR_RANGE.max}
+            step={STAR_RANGE.step}
+            openEnded
+            format={formatStars}
+            value={filters.sr ?? [STAR_RANGE.min, null]}
+            onChange={(value) => set("sr", normalizeRange(value, STAR_RANGE))}
+          />
+        </FilterRow>
+      )}
       <FilterRow label="Maps">
         <RangeSlider
           label="Number of maps"

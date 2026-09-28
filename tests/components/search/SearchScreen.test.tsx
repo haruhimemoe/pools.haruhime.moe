@@ -52,8 +52,31 @@ const POOLS = {
       tournament: "osu! World Cup",
       round: "Grand Finals",
       year: 2023,
+      kind: "past",
+      builtBy: null,
       badged: true,
       stats: { srMin: 6.1, srMax: 7.4, count: 20, complete: true },
+    },
+  ],
+};
+
+const BUILT = {
+  ...POOLS,
+  total: 1,
+  pageCount: 1,
+  hiddenMissing: 0,
+  badgedKnown: false,
+  results: [
+    {
+      kind: "built",
+      builtBy: "peppy",
+      id: "b-a0000001",
+      name: "My Cup Finals",
+      tournament: "",
+      round: null,
+      year: null,
+      badged: null,
+      stats: { srMin: null, srMax: null, count: 3, complete: false },
     },
   ],
 };
@@ -74,6 +97,38 @@ describe("SearchScreen", () => {
     expect(screen.getByRole("link", { name: "Next" })).toHaveAttribute(
       "href",
       "/search?page=2&q=owc",
+    );
+  });
+
+  it("picks past pools by default, built here or both as radio chips, kept in the URL", async () => {
+    current = new URLSearchParams("q=cup");
+    fetchMock.mockImplementation(async () => Response.json(POOLS));
+    const user = userEvent.setup();
+    render(<SearchScreen />);
+    const past = await screen.findByRole("radio", { name: "Past tournament pools" });
+    expect(past).toBeChecked();
+    expect(screen.getByRole("group", { name: "Pools" })).toBeInTheDocument();
+    fetchMock.mockImplementation(async () => Response.json(BUILT));
+    await user.click(screen.getByRole("radio", { name: "Built here" }));
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith("/search?type=built&q=cup", { scroll: false }),
+    );
+    expect(await screen.findByRole("link", { name: "My Cup Finals" })).toHaveAttribute(
+      "href",
+      "/pools/b-a0000001",
+    );
+    expect(screen.getByText("3 maps · Built by peppy")).toBeInTheDocument();
+    // Built pools have no badged or star data to filter by.
+    expect(screen.queryByRole("group", { name: "Stars (no mod)" })).toBeNull();
+  });
+
+  it("reads type=both from the URL", async () => {
+    current = new URLSearchParams("type=both");
+    fetchMock.mockImplementation(async () => Response.json(POOLS));
+    render(<SearchScreen />);
+    expect(await screen.findByRole("radio", { name: "Both" })).toBeChecked();
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith("/api/search?type=both", expect.anything()),
     );
   });
 

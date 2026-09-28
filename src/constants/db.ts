@@ -60,6 +60,12 @@ export const BUILT_POOL_INDEXES = Object.freeze({
   editor: "editors.osuId_1",
   listed: "visibility_1_updatedAt_-1",
   hidden: "hidden_1",
+  /** Search's "Built here", one per sort: public, not hidden. */
+  searchYear: "visibility_1_hidden_1_year_-1__id_1",
+  searchName: "visibility_1_hidden_1_sortName_1__id_1",
+  searchMaps: "visibility_1_hidden_1_mapCount_-1__id_1",
+  /** Admin's recent built pools. */
+  recent: "createdAt_-1",
 });
 
 /** Index names on maps. */

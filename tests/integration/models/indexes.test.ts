@@ -1,7 +1,8 @@
 /**
  * @file tests/integration/models/indexes.test.ts
  * @desc The Mongoose schemas build every index by the names searches hint (built pools' too:
- *       owner, editor osu! id, visibility with updatedAt, hidden), and the fingerprint index
+ *       owner, editor osu! id, visibility with updatedAt, hidden, each search sort, the newest),
+ *       and the fingerprint index
  *       keeps one current pool per fingerprint while superseded ones share it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026

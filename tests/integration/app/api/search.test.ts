@@ -20,7 +20,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { GET } from "@/app/api/search/route";
 import { ALL_MAPS_FAILED } from "@/constants/search";
 import { resetMirrorCooldown } from "@/lib/map-search";
+import { builtPoolsCollection } from "@/models/BuiltPool";
 import { poolsCollection } from "@/models/Pool";
+import { builtSearchFields } from "@/utils/built-record";
+import { makeBuiltPool } from "../../../helpers/built-pools";
 import { setupTestDb } from "../../../helpers/db";
 import {
   fixtureSet,
@@ -54,6 +57,19 @@ describe("GET /api/search", () => {
     };
     expect(body).toMatchObject({ tab: "pools", total: 1 });
     expect(body.results.map((result) => result.id)).toEqual(["otdb-1"]);
+  });
+
+  it("answers pools built here for type=built, and past pools for a link without a type", async () => {
+    await (await poolsCollection()).insertOne(makePool({ _id: "otdb-1" }));
+    const pool = makeBuiltPool({ visibility: "public", name: "Spring Build" });
+    await (await builtPoolsCollection()).insertOne({ ...pool, ...builtSearchFields(pool) });
+    const ids = async (query: string) =>
+      ((await (await get(query)).json()) as { results: { id: string }[] }).results.map(
+        (result) => result.id,
+      );
+    expect(await ids("q=spring")).toEqual(["otdb-1"]);
+    expect(await ids("type=built&q=spring")).toEqual(["b-a0000001"]);
+    expect(await ids("type=both&q=spring")).toEqual(["b-a0000001", "otdb-1"]);
   });
 
   it("answers maps played in pools on the maps tab's played scope", async () => {

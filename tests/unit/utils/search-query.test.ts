@@ -11,9 +11,60 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { MAP_INDEXES, POOL_INDEXES } from "@/constants/db";
+import { BUILT_POOL_INDEXES, MAP_INDEXES, POOL_INDEXES } from "@/constants/db";
 import { EMPTY_MAP_FILTERS, EMPTY_POOL_FILTERS } from "@/utils/search-params";
-import { mapQuery, poolQuery } from "@/utils/search-query";
+import { builtPoolQuery, builtSearchable, mapQuery, poolQuery } from "@/utils/search-query";
+
+describe("builtPoolQuery", () => {
+  it("lists public pools moderators haven't hidden, by year, 50 a page", () => {
+    expect(builtPoolQuery(EMPTY_POOL_FILTERS, 2, null)).toEqual({
+      filter: { $and: [{ visibility: "public" }, { hidden: false }] },
+      missing: null,
+      sort: { year: -1, _id: 1 },
+      hint: BUILT_POOL_INDEXES.searchYear,
+      skip: 50,
+      limit: 50,
+      maxTimeMS: 2000,
+    });
+  });
+
+  it("matches folded text, a contained map, map count and year, by name or map count", () => {
+    const filters = {
+      ...EMPTY_POOL_FILTERS,
+      q: "Café",
+      maps: [10, 20] as const,
+      year: [2024, null] as const,
+      sort: "name" as const,
+    };
+    const query = builtPoolQuery(filters, 1, 75);
+    expect(query.filter).toEqual({
+      $and: [
+        { visibility: "public" },
+        { hidden: false },
+        { searchText: { $regex: "cafe" } },
+        { "slots.beatmapId": 75 },
+        { mapCount: { $gte: 10, $lte: 20 } },
+        { year: { $gte: 2024 } },
+      ],
+    });
+    expect(query.missing).not.toBeNull();
+    expect(query).toMatchObject({
+      sort: { sortName: 1, _id: 1 },
+      hint: BUILT_POOL_INDEXES.searchName,
+    });
+    const maps = builtPoolQuery({ ...EMPTY_POOL_FILTERS, sort: "maps" }, 1, null);
+    expect(maps).toMatchObject({
+      sort: { mapCount: -1, _id: 1 },
+      hint: BUILT_POOL_INDEXES.searchMaps,
+    });
+  });
+
+  it("can't take badged or a star range: built pools have neither", () => {
+    expect(builtSearchable(EMPTY_POOL_FILTERS)).toBe(true);
+    expect(builtSearchable({ ...EMPTY_POOL_FILTERS, badged: "yes" })).toBe(false);
+    expect(builtSearchable({ ...EMPTY_POOL_FILTERS, sr: [5, null] })).toBe(false);
+  });
+});
 
 describe("poolQuery", () => {
   it("lists visible pools newest first, 50 a page, under maxTimeMS", () => {

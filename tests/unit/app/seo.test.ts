@@ -2,7 +2,7 @@
  * @file tests/unit/app/seo.test.ts
  * @desc robots.txt keeps crawlers out of /api, /admin, /signin and /account; the sitemap lists
  *       the static pages (/submit and /data among them), the legal pages (terms included),
- *       current pools and used maps (daily); llms.txt is a daily text route.
+ *       current pools, public built pools and used maps (daily); llms.txt is a daily text route.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Sun Sep 27, 2026
@@ -19,6 +19,20 @@ vi.mock("@/services/pools", () => ({
       tournament: "osu! World Cup",
       round: "Grand Finals",
       year: 2023,
+      updatedAt: DATE,
+    },
+  ]),
+}));
+vi.mock("@/services/built-listings", () => ({
+  listPublicBuiltPools: vi.fn(async () => [
+    {
+      id: "b-a0000001",
+      name: "My Cup",
+      tournament: "",
+      round: "",
+      year: null,
+      maps: 3,
+      builtBy: "peppy",
       updatedAt: DATE,
     },
   ]),
@@ -46,7 +60,7 @@ describe("robots.txt", () => {
 });
 
 describe("sitemap.xml", () => {
-  it("lists static and legal pages, current pools and used maps, daily", async () => {
+  it("lists static and legal pages, current and public built pools and used maps, daily", async () => {
     const sitemap = await import("@/app/sitemap");
     expect(sitemap.revalidate).toBe(86_400);
     const urls = (await sitemap.default()).map((entry) => entry.url);
@@ -61,6 +75,7 @@ describe("sitemap.xml", () => {
       "https://pools.haruhime.moe/legal/privacy",
       "https://pools.haruhime.moe/legal/terms",
       "https://pools.haruhime.moe/pools/otdb-657",
+      "https://pools.haruhime.moe/pools/b-a0000001",
       "https://pools.haruhime.moe/maps/129891",
     ]);
   });

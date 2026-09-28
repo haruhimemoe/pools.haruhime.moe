@@ -1,7 +1,8 @@
 /**
  * @file src/components/search/SearchScreen.tsx
  * @desc The search page: Pools and Maps tabs, the tab's filter bar, the results and pages. The
- *       URL is the state: it's read on load and on Back/Forward, and written (replaceState, a
+ *       URL is the state (the pools tab's type too: past tournament pools, built here, or both):
+ *       it's read on load and on Back/Forward, and written (replaceState, a
  *       moment after the last change) as filters change, so a search can be shared. Results
  *       come from /api/search. Filter changes go back to page 1. The maps tab searches all osu!
  *       maps by default (hidden sets counted, the unranked line, both also read out with the
@@ -10,7 +11,7 @@
  *       so instead of "Loading…"; with no total the count says the page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 "use client";
@@ -113,7 +114,7 @@ export function SearchScreen() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Search"
-        lead="Past osu! tournament pools, the maps they played, and every osu! map. Star ratings are without mods."
+        lead="Past osu! tournament pools, pools built here, the maps they played, and every osu! map. Star ratings are without mods."
       />
       <nav aria-label="What to search" className="flex gap-4 font-bold">
         {(["pools", "maps"] as const).map((tab) => (

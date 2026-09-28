@@ -35,6 +35,7 @@ import {
 } from "@/services/built-pools";
 import { accessOf } from "@/utils/built-access";
 import { applyOps } from "@/utils/built-ops";
+import type { BuiltSearchFields } from "@/utils/built-record";
 
 export const CONFLICT_MESSAGE = "Someone else changed this pool. Here it is as it is now.";
 
@@ -45,9 +46,12 @@ const conflict = async (id: string, caller: SessionUser): Promise<Answer<BuiltPo
   return refuse(409, "conflict", CONFLICT_MESSAGE, { pool: await viewOf(current, caller) });
 };
 
-/** What an ops write sets: the content, the version and when. */
-const contentOf = ({ buckets, ...pool }: StoredBuiltPool) => ({
+/** What an ops write sets: the content, its search fields, the version and when. */
+const contentOf = ({ buckets, ...pool }: StoredBuiltPool & BuiltSearchFields) => ({
   $set: {
+    searchText: pool.searchText,
+    sortName: pool.sortName,
+    mapCount: pool.mapCount,
     name: pool.name,
     tournament: pool.tournament,
     round: pool.round,
@@ -87,7 +91,7 @@ export const applyBuiltPoolOps = async (
     const { code, message, op, lines } = result;
     return refuse(400, code, message, { details: { op, ...(lines ? { lines } : {}) } });
   }
-  let next: StoredBuiltPool;
+  let next: StoredBuiltPool & BuiltSearchFields;
   try {
     next = toStored({ ...pool, ...result.pool, version: baseVersion + 1, updatedAt: now });
   } catch (error) {

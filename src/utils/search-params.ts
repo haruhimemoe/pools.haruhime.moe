@@ -5,7 +5,9 @@
  *       be read counts as unset (never an error), and written back with only what's set, in a
  *       fixed order, so equal searches share one URL (and one CDN entry). Ranges snap to their
  *       slider (open at the edges; a range covering the whole slider is no filter). The maps tab
- *       has a scope: all osu! maps (the default) or maps played in pools. `scope` wins when
+ *       has a scope: all osu! maps (the default) or maps played in pools; the pools tab a type:
+ *       past tournament pools (the default, and what a link without one means), built here, or
+ *       both. `scope` wins when
  *       given; without it, a link carrying a played-only filter (ar, od, cs, played, used,
  *       last, or a sort) reads as played, so links from before the scope still work. A played
  *       search always writes scope=played; an all-maps search never writes a scope. Also the
@@ -26,6 +28,7 @@ import {
   DEFAULT_MAP_SORT,
   DEFAULT_MAP_STATUS,
   DEFAULT_POOL_SORT,
+  DEFAULT_POOL_TYPE,
   type FilterBounds,
   LENGTH_RANGE,
   MAP_COUNT_RANGE,
@@ -39,7 +42,9 @@ import {
   type MapStatus,
   OD_RANGE,
   POOL_SORTS,
+  POOL_TYPES,
   type PoolSort,
+  type PoolType,
   STAR_RANGE,
   USED_RANGE,
   YEAR_RANGE,
@@ -49,6 +54,8 @@ import {
 export type Range = readonly [number, number | null];
 
 export type PoolFilters = {
+  /** Past tournament pools, pools built here, or both. */
+  type: PoolType;
   q: string;
   year: Range | null;
   badged: BadgedFilter;
@@ -74,6 +81,7 @@ export type MapFilters = {
 };
 
 export const EMPTY_POOL_FILTERS: PoolFilters = Object.freeze({
+  type: DEFAULT_POOL_TYPE,
   q: "",
   year: null,
   badged: "any",
@@ -289,6 +297,7 @@ export const parseSearchState = (search: string | URLSearchParams): SearchState 
     tab: "pools",
     page,
     filters: {
+      type: pick(params.get("type"), POOL_TYPES, DEFAULT_POOL_TYPE),
       q,
       year: parseRange(params.get("year"), YEAR_RANGE),
       badged: pick(params.get("badged"), BADGED_FILTERS, "any"),
@@ -353,6 +362,7 @@ export const serializeSearchState = (state: SearchState): string => {
     if (f.sort !== DEFAULT_MAP_SORT) parts.push(`sort=${f.sort}`);
   } else {
     const f = state.filters;
+    if (f.type !== DEFAULT_POOL_TYPE) parts.push(`type=${f.type}`);
     range("year", f.year);
     if (f.badged !== "any") parts.push(`badged=${f.badged}`);
     range("sr", f.sr);
@@ -379,7 +389,7 @@ export const searchHref = (state: SearchState): string => {
 /**
  * @function hasPoolFilters
  * @param filters {PoolFilters} pool filters
- * @returns {boolean} whether any filter row is set (the text and sort aside)
+ * @returns {boolean} whether any filter row is set (the type, text and sort aside)
  */
 export const hasPoolFilters = (filters: PoolFilters): boolean =>
   filters.year !== null ||
@@ -415,8 +425,11 @@ export const hasAllMapFilters = (filters: AllMapFilters): boolean =>
   filters.explicit ||
   [filters.sr, filters.len, filters.bpm].some((value) => value !== null);
 
-/** A pool in search results. */
+/** A pool in search results: a past tournament pool, or one built here (with its owner). */
 export type PoolResult = {
+  kind: "past" | "built";
+  /** A built pool's owner's osu! username (null when unknown); null for past pools. */
+  builtBy: string | null;
   id: string;
   name: string;
   tournament: string;

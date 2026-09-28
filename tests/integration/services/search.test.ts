@@ -5,27 +5,34 @@
  *       "hidden, data missing" count; badged shown only once some pool knows it; every sort,
  *       unknowns last; paging past the end; a set link refused; no aggregation pipeline behind
  *       any search; and explain plans that prove each sort runs on its hinted index with no
- *       in-memory sort and no collection scan.
+ *       in-memory sort and no collection scan. Built here: public, unhidden built pools with
+ *       their owner, text and map filters, none under badged; Both lists built pools first and
+ *       pages across into past pools; each built sort runs on its index.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { Collection } from "mongodb";
 import { describe, expect, it, vi } from "vitest";
 import { MAP_SORTS, POOL_SORTS } from "@/constants/search";
+import { builtPoolsCollection } from "@/models/BuiltPool";
 import { mapsCollection } from "@/models/Map";
 import { poolsCollection } from "@/models/Pool";
+import type { StoredBuiltPool } from "@/schemas/built-pool";
 import type { StoredPool } from "@/schemas/pool";
 import { searchMaps, searchPools } from "@/services/search";
+import { builtSearchFields } from "@/utils/built-record";
 import {
   EMPTY_MAP_FILTERS,
   EMPTY_POOL_FILTERS,
   type MapFilters,
   type PoolFilters,
 } from "@/utils/search-params";
-import { mapQuery, poolQuery } from "@/utils/search-query";
+import { builtPoolQuery, mapQuery, poolQuery } from "@/utils/search-query";
+import { makeBuiltPool } from "../../helpers/built-pools";
 import { setupTestDb } from "../../helpers/db";
+import { createCast } from "../../helpers/pool-requests";
 import { makeMap, makePool } from "../../helpers/records";
 
 setupTestDb();
@@ -358,4 +365,98 @@ describe("explain", () => {
     expect(plan).not.toContain('"COLLSCAN"');
     expect(plan).not.toContain('"stage":"SORT"');
   });
+});
+
+describe("searchPools: built here", () => {
+  const seedBuilt = async () => {
+    const cast = await createCast();
+    const built = (id: string, over: Partial<StoredBuiltPool>) => {
+      const pool = makeBuiltPool({
+        _id: id,
+        ownerId: cast.owner.id,
+        visibility: "public",
+        ...over,
+      });
+      return { ...pool, ...builtSearchFields(pool) };
+    };
+    const slots = [{ mod: "NM", index: 1, beatmapId: 1 }];
+    await (await builtPoolsCollection()).insertMany([
+      built("b-a0000001", { name: "Café Cup Finals", year: 2026, slots }),
+      built("b-a0000002", { name: "Zeta Cup", year: 2025 }),
+      built("b-a0000003", { name: "Unlisted Cup", visibility: "unlisted" }),
+      built("b-a0000004", { name: "Private Cup", visibility: "private" }),
+      built("b-a0000005", { name: "Hidden Cup", hidden: true }),
+    ]);
+  };
+  const built = (filters: Partial<PoolFilters> = {}, page = 1) =>
+    searchPools({ ...EMPTY_POOL_FILTERS, type: "built", ...filters }, page).then((answer) => {
+      if ("error" in answer) throw new Error(answer.error);
+      return answer;
+    });
+
+  it("lists public pools moderators haven't hidden, with their owner", async () => {
+    await seedBuilt();
+    await seedPools();
+    const answer = await built();
+    expect(answer.results.map((pool) => pool.id)).toEqual(["b-a0000001", "b-a0000002"]);
+    expect(answer.results[0]).toMatchObject({
+      kind: "built",
+      builtBy: "owner",
+      stats: { count: 1 },
+    });
+    expect(answer).toMatchObject({ total: 2, badgedKnown: false });
+  });
+
+  it("matches folded text, a contained map, and sorts by name", async () => {
+    await seedBuilt();
+    expect((await built({ q: "cafe" })).results.map((pool) => pool.id)).toEqual(["b-a0000001"]);
+    expect((await built({ map: "1" })).total).toBe(1);
+    expect((await built({ sort: "name" })).results[0]?.id).toBe("b-a0000001");
+    expect((await built({ badged: "yes" })).total).toBe(0);
+  });
+
+  it("lists built pools first under Both, then past pools, paging across them", async () => {
+    await seedBuilt();
+    const pools = await poolsCollection();
+    await pools.insertMany(
+      Array.from({ length: 60 }, (_, i) =>
+        makePool({ _id: `otdb-${100 + i}`, slots: [{ mod: "NM", index: 1, beatmapId: 1000 + i }] }),
+      ),
+    );
+    const both = (page: number) => searchPools({ ...EMPTY_POOL_FILTERS, type: "both" }, page);
+    const first = await both(1);
+    if ("error" in first) throw new Error(first.error);
+    expect(first.total).toBe(62);
+    expect(first.results.slice(0, 3).map((pool) => pool.kind)).toEqual(["built", "built", "past"]);
+    expect(first.results).toHaveLength(50);
+    const second = await both(2);
+    if ("error" in second) throw new Error(second.error);
+    expect(second.results).toHaveLength(12);
+    expect(second.results.every((pool) => pool.kind === "past")).toBe(true);
+    const ids = [...first.results, ...second.results].map((pool) => pool.id);
+    expect(new Set(ids).size).toBe(62);
+  });
+
+  it.each(POOL_SORTS)(
+    "built pools sorted by %s run on their index, no sort stage",
+    async (sort) => {
+      await seedBuilt();
+      const query = builtPoolQuery(
+        { ...EMPTY_POOL_FILTERS, sort, q: "cup", year: [2020, null], maps: [1, 10] },
+        1,
+        null,
+      );
+      const plan = JSON.stringify(
+        await (await builtPoolsCollection())
+          .find(query.filter)
+          .sort(query.sort)
+          .hint(query.hint)
+          .limit(query.limit)
+          .explain("executionStats"),
+      );
+      expect(plan).toContain(query.hint);
+      expect(plan).not.toContain('"COLLSCAN"');
+      expect(plan).not.toContain('"stage":"SORT"');
+    },
+  );
 });
