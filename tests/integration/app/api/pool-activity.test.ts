@@ -12,6 +12,7 @@
 
 import { describe, expect, it } from "vitest";
 import { GET } from "@/app/api/pools/[id]/activity/route";
+import { DELETE as removeEditor } from "@/app/api/pools/[id]/editors/[osuId]/route";
 import { POST as postOps } from "@/app/api/pools/[id]/ops/route";
 import { PUT as putVisibility } from "@/app/api/pools/[id]/visibility/route";
 import { BUILT_POOL_ACTIVITY_INDEXES } from "@/constants/db";
@@ -19,6 +20,7 @@ import { builtPoolActivityCollection } from "@/models/BuiltPoolActivity";
 import { removeUserFromBuiltPools } from "@/services/account";
 import { recordActivity } from "@/services/built-pool-activity";
 import { deleteBuiltPool } from "@/services/built-pools";
+import { ownerActivity } from "@/utils/activity";
 import { setupTestDb } from "../../../helpers/db";
 import {
   type Cast,
@@ -118,5 +120,29 @@ describe("the activity log", () => {
       osuId: null,
       username: "deleted user",
     });
+  });
+
+  it("takes a deleted account's name out of entries about them, too", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { _id: ID });
+    const removed = await removeEditor(
+      poolRequest("DELETE", `/api/pools/${ID}/editors/20`, cast.owner.cookie),
+      params({ id: ID, osuId: "20" }),
+    );
+    expect(removed.status).toBe(204);
+    await recordActivity(
+      ID,
+      { osuId: 10, username: "owner" },
+      ownerActivity({ osuId: 20, username: "editor" }),
+    );
+    await removeUserFromBuiltPools({ id: cast.editor.id, osuId: 20 });
+    const shown = await entries(await read(cast));
+    expect(shown.map(({ username, summary }) => ({ username, summary }))).toEqual([
+      { username: "owner", summary: "Handed the pool to deleted user" },
+      { username: "owner", summary: "Removed deleted user as an editor" },
+    ]);
+    const log = await builtPoolActivityCollection();
+    expect(await log.countDocuments({ "subject.osuId": 20 })).toBe(0);
+    expect(JSON.stringify(await log.find({}).toArray())).not.toContain('"editor"');
   });
 });

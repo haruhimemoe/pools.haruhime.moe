@@ -3,21 +3,25 @@
  * @desc What the activity log says about a change to a built pool: an ops call is one entry,
  *       with its first op's kind and each op's summary joined (worked out on the pool as it was
  *       at that op, so slot labels are the ones people saw), cut to 300 characters; and the
- *       entries for a visibility, editor or owner change. Pure.
+ *       entries for a visibility, editor or owner change (which name their subject, so a deleted
+ *       account's name can be taken out of them). Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
  */
 
 import { slotLabel } from "@haruhimemoe/pool";
-import { type ActivityKind, MAX_SUMMARY_LENGTH } from "@/constants/activity";
+import { type ActivityKind, DELETED_USER, MAX_SUMMARY_LENGTH } from "@/constants/activity";
 import type { Visibility } from "@/constants/built-pools";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import { targetText } from "@/utils/bucket-targets";
 import { applyOps, type BuiltContent } from "@/utils/built-ops";
 import { formatShortDate } from "@/utils/date";
 
-export type ActivityNote = { kind: ActivityKind; summary: string };
+/** Someone an entry names besides its author: an editor added or removed, a new owner. */
+export type ActivitySubject = { osuId: number; username: string };
+
+export type ActivityNote = { kind: ActivityKind; summary: string; subject?: ActivitySubject };
 
 const listed = (words: string[]): string =>
   words.length < 2 ? (words[0] ?? "") : `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`;
@@ -116,29 +120,52 @@ export const visibilityActivity = (visibility: Visibility): ActivityNote => ({
 /**
  * @function editorActivity
  * @param change {"added" | "removed" | "left"} what happened
- * @param username {string} the editor's osu! name
- * @returns {ActivityNote} the entry (an editor who left is the one who made it)
+ * @param editor {ActivitySubject} the editor
+ * @returns {ActivityNote} the entry (an editor who left is the one who made it, so it names no
+ *          subject)
  */
 export const editorActivity = (
   change: "added" | "removed" | "left",
-  username: string,
-): ActivityNote => ({
-  kind: "editors",
-  summary:
-    change === "left"
-      ? "Stopped editing the pool"
-      : `${change === "added" ? "Added" : "Removed"} ${username} as an editor`,
-});
+  editor: ActivitySubject,
+): ActivityNote =>
+  change === "left"
+    ? { kind: "editors", summary: "Stopped editing the pool" }
+    : {
+        kind: "editors",
+        summary: `${change === "added" ? "Added" : "Removed"} ${editor.username} as an editor`,
+        subject: { osuId: editor.osuId, username: editor.username },
+      };
 
 /**
  * @function ownerActivity
- * @param username {string} the new owner's osu! name
+ * @param owner {ActivitySubject} the new owner
  * @returns {ActivityNote} the entry
  */
-export const ownerActivity = (username: string): ActivityNote => ({
+export const ownerActivity = (owner: ActivitySubject): ActivityNote => ({
   kind: "owner",
-  summary: `Handed the pool to ${username}`,
+  summary: `Handed the pool to ${owner.username}`,
+  subject: { osuId: owner.osuId, username: owner.username },
 });
+
+const NOBODY: ActivitySubject = { osuId: 0, username: DELETED_USER };
+
+/**
+ * @function withoutSubject
+ * @param entry {{ kind: ActivityKind; summary: string }} an editor or owner entry
+ * @returns {string} its summary rebuilt naming "deleted user" (from the same wording, never by
+ *          replacing text, since a name can be any word the summary also has)
+ */
+export const withoutSubject = ({
+  kind,
+  summary,
+}: {
+  kind: ActivityKind;
+  summary: string;
+}): string => {
+  if (kind === "owner") return ownerActivity(NOBODY).summary;
+  if (kind !== "editors") return summary;
+  return editorActivity(summary.startsWith("Added ") ? "added" : "removed", NOBODY).summary;
+};
 
 /**
  * @function activityWhen

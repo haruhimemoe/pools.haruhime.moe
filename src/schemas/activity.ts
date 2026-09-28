@@ -20,6 +20,8 @@ export const storedActivitySchema = z.object({
   username: z.string(),
   kind: z.enum(ACTIVITY_KINDS),
   summary: z.string(),
+  /** Who an editor or owner entry names; gone once their account is deleted. */
+  subject: z.object({ osuId: z.number().int().positive(), username: z.string() }).optional(),
 });
 
 export type StoredActivity = z.infer<typeof storedActivitySchema>;

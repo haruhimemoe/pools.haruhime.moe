@@ -106,7 +106,7 @@ export const addBuiltPoolEditor = async (
   // Someone else added them (or filled the list) since the read.
   const after = readBuiltPool(updated);
   if (!after) return taken();
-  await recordFor(caller, id, editorActivity("added", found.username));
+  await recordFor(caller, id, editorActivity("added", found));
   return { ok: true, value: await viewOf((await markPackPending(id)) ?? after, caller) };
 };
 
@@ -133,7 +133,7 @@ export const removeBuiltPoolEditor = async (
   );
   if (updated.matchedCount === 0) return refuse(404, "not_found", NOT_FOUND);
   await markPackPending(id);
-  await recordFor(caller, id, editorActivity(self ? "left" : "removed", leaving.username));
+  await recordFor(caller, id, editorActivity(self ? "left" : "removed", leaving));
   return { ok: true, value: null };
 };
 

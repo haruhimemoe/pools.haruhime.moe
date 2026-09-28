@@ -16,6 +16,7 @@ import {
   opsActivity,
   ownerActivity,
   visibilityActivity,
+  withoutSubject,
 } from "@/utils/activity";
 import type { BuiltContent } from "@/utils/built-ops";
 
@@ -84,19 +85,40 @@ describe("other changes", () => {
       kind: "visibility",
       summary: "Made the pool public",
     });
-    expect(editorActivity("added", "peppy")).toEqual({
+    const peppy = { osuId: 2, username: "peppy" };
+    expect(editorActivity("added", peppy)).toEqual({
       kind: "editors",
       summary: "Added peppy as an editor",
+      subject: peppy,
     });
-    expect(editorActivity("removed", "peppy")).toEqual({
+    expect(editorActivity("removed", peppy)).toEqual({
       kind: "editors",
       summary: "Removed peppy as an editor",
+      subject: peppy,
     });
-    expect(editorActivity("left", "peppy")).toEqual({
+    expect(editorActivity("left", peppy)).toEqual({
       kind: "editors",
       summary: "Stopped editing the pool",
     });
-    expect(ownerActivity("peppy")).toEqual({ kind: "owner", summary: "Handed the pool to peppy" });
+    expect(ownerActivity(peppy)).toEqual({
+      kind: "owner",
+      summary: "Handed the pool to peppy",
+      subject: peppy,
+    });
+  });
+
+  it("rewords an entry about a deleted account, whatever its name", () => {
+    for (const username of ["editor", "Added", "pool", "as an"]) {
+      const who = { osuId: 3, username };
+      expect(withoutSubject(editorActivity("added", who))).toBe("Added deleted user as an editor");
+      expect(withoutSubject(editorActivity("removed", who))).toBe(
+        "Removed deleted user as an editor",
+      );
+      expect(withoutSubject(ownerActivity(who))).toBe("Handed the pool to deleted user");
+    }
+    expect(withoutSubject({ kind: "note", summary: "Changed the note on NM1" })).toBe(
+      "Changed the note on NM1",
+    );
   });
 });
 

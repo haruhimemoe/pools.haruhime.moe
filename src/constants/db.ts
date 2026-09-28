@@ -97,4 +97,6 @@ export const BUILT_POOL_ACTIVITY_INDEXES = Object.freeze({
   ttl: "built_pool_activity_at_ttl",
   /** A deleted account's entries, to rename. */
   osuId: "osuId_1",
+  /** Entries naming a deleted account, to take the name out. */
+  subject: "subject.osuId_1",
 });

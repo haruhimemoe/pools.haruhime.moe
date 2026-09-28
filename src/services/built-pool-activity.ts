@@ -5,7 +5,8 @@
  *       on each write; the TTL index drops any after 180 days). A failed write is logged and
  *       never fails the change. Only the owner and editors read it (the last 20). Deleting a
  *       pool deletes its entries; deleting an account renames its entries on other pools to
- *       "deleted user" with no osu! id.
+ *       "deleted user" with no osu! id, and rewords entries that name it (an editor added or
+ *       removed, a new owner) the same way.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -17,7 +18,7 @@ import { QUERY_TIME_MS } from "@/constants/db";
 import { builtPoolActivityCollection } from "@/models/BuiltPoolActivity";
 import { type ClientActivity, storedActivitySchema } from "@/schemas/activity";
 import { type Answer, loadFor } from "@/services/built-pools";
-import type { ActivityNote } from "@/utils/activity";
+import { type ActivityNote, withoutSubject } from "@/utils/activity";
 import type { Caller } from "@/utils/built-access";
 
 /** Who made a change. */
@@ -114,11 +115,23 @@ export const deleteActivityOf = async (poolIds: readonly string[]): Promise<void
 /**
  * @function forgetActivityBy
  * @param osuId {number} a deleted account's osu! id
- * @returns {Promise<void>} once their entries say "deleted user", with no osu! id
+ * @returns {Promise<void>} once their entries say "deleted user", with no osu! id, and entries
+ *          naming them (as an editor added or removed, or a new owner) say "deleted user" too
  */
 export const forgetActivityBy = async (osuId: number): Promise<void> => {
-  await (await builtPoolActivityCollection()).updateMany(
-    { osuId },
-    { $set: { osuId: null, username: DELETED_USER } },
-  );
+  const log = await builtPoolActivityCollection();
+  await log.updateMany({ osuId }, { $set: { osuId: null, username: DELETED_USER } });
+  const about = await log
+    .find({ "subject.osuId": osuId }, { projection: { kind: 1, summary: 1 } })
+    .toArray();
+  const writes = about.map(({ _id, kind, summary }) => ({
+    updateOne: {
+      filter: { _id },
+      update: {
+        $set: { summary: withoutSubject({ kind, summary }) },
+        $unset: { subject: "" as const },
+      },
+    },
+  }));
+  if (writes.length > 0) await log.bulkWrite(writes);
 };

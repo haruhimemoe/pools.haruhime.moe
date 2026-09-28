@@ -151,6 +151,6 @@ export const transferBuiltPool = async (
     const now = await asItStands(id, caller);
     return now.ok ? { ok: true, value: now.value.view } : now;
   }
-  await recordFor(caller, id, ownerActivity(username));
+  await recordFor(caller, id, ownerActivity({ osuId, username }));
   return { ok: true, value: await viewOf((await markPackPending(id)) ?? after, caller) };
 };

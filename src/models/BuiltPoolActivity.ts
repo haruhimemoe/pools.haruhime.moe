@@ -26,6 +26,7 @@ const activitySchema = new Schema(
     username: { type: String, required: true },
     kind: { type: String, required: true },
     summary: { type: String, required: true },
+    subject: { type: { osuId: Number, username: String }, default: undefined },
   },
   { collection: BUILT_POOL_ACTIVITY_COLLECTION, versionKey: false },
 );
@@ -36,6 +37,10 @@ activitySchema.index(
   { name: BUILT_POOL_ACTIVITY_INDEXES.ttl, expireAfterSeconds: ACTIVITY_TTL_SECONDS },
 );
 activitySchema.index({ osuId: 1 }, { name: BUILT_POOL_ACTIVITY_INDEXES.osuId });
+activitySchema.index(
+  { "subject.osuId": 1 },
+  { name: BUILT_POOL_ACTIVITY_INDEXES.subject, sparse: true },
+);
 
 /**
  * @function getActivityModel
