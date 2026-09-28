@@ -5,7 +5,7 @@
  *       change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 export const LEGAL_SLUGS = ["disclaimer", "privacy"] as const;
@@ -20,7 +20,7 @@ export const LEGAL_DOCS: Record<
     title: "Disclaimer",
     description:
       "Who pools isn't affiliated with, what its data, star ratings and checks mean, and how its requests identify themselves.",
-    lastUpdated: "2026-09-26",
+    lastUpdated: "2026-09-27",
   },
   privacy: {
     title: "Privacy",
