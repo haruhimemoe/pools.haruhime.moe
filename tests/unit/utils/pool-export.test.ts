@@ -69,6 +69,36 @@ describe("pool export", () => {
     expect(lines.slice(5)).toEqual(["TB1,6,60,xi,Song 6,Hard,Mapper,5.00,120,180,9,8,4", ""]);
   });
 
+  it("keeps every text cell from starting a formula, full-width and leading-space ones too", () => {
+    const risky = [
+      "=1+1",
+      "+1",
+      "-1",
+      "@SUM(A1)",
+      "|calc",
+      "\t=1",
+      "\r=1",
+      "\n=1",
+      " =1",
+      "＝1+1",
+      "＋1",
+      "－1",
+      "＠SUM",
+      "﹦1",
+      "﹢1",
+      "﹣1",
+    ];
+    const cells = csvOf([risky]).split("\r\n").slice(1).join("\r\n");
+    // Each cell starts with an apostrophe, inside its quotes when it has to be quoted.
+    const firsts = cells.match(/(^|,)"?./g)?.map((m) => m.replace(/^,/, "").replace(/^"/, ""));
+    expect(firsts).toEqual(risky.map(() => "'"));
+  });
+
+  it("quotes cells with commas, quotes and line breaks, and leaves plain text and numbers", () => {
+    const line = csvOf([["a,b", 'say "hi"', "two\nlines", "Normal", -1, 5.5, null]]);
+    expect(line).toContain(`\r\n"a,b","say ""hi""","two\nlines",Normal,-1,5.5,\r\n`);
+  });
+
   it("names the file after the pool", () => {
     expect(csvFileName("Spring Cup 2026: Finals!")).toBe("spring-cup-2026-finals.csv");
     expect(csvFileName("春")).toBe("pool.csv");

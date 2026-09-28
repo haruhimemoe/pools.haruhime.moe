@@ -2,8 +2,9 @@
  * @file src/components/builder/ExportPanel.tsx
  * @desc Export on a built pool's page and in its editor, made from what the page already holds:
  *       Copy beatmap IDs (slot label and ID per line), Copy !mp lines (per slot, `!mp map <id> 0`
- *       and `!mp mods`, in slot order) and Download CSV (the file is made in the browser and
- *       saved from there). Nothing is fetched.
+ *       and `!mp mods`, in slot order) and Download CSV (the file is made in the browser, UTF-8
+ *       with a byte order mark so Excel reads it right, and saved from there; its URL is revoked
+ *       once the download has had time to start). Nothing is fetched.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -24,13 +25,22 @@ type ExportPanelProps = {
   values: SlotValueMap;
 };
 
+/** A byte order mark: without it Excel reads a CSV as the system's code page, not UTF-8. */
+const UTF8_BOM = "﻿";
+/** How long the file's URL lives: revoked at once, some browsers cancel the download. */
+const REVOKE_AFTER_MS = 40_000;
+
 const download = (name: string, text: string) => {
-  const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+  const blob = new Blob([UTF8_BOM, text], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = name;
+  // Firefox only follows a link that's in the document.
+  document.body.append(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), REVOKE_AFTER_MS);
 };
 
 export function ExportPanel({ pool, maps, values }: ExportPanelProps) {

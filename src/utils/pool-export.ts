@@ -113,11 +113,16 @@ export const exportRows = (pool: ExportPool, maps: BuiltMaps, values: SlotValueM
     ];
   });
 
+/**
+ * Text a spreadsheet could run as a formula: a leading tab or line break, or =, +, -, @ or |
+ * (DDE) after any spaces or control characters, in their ASCII, full-width or small forms (some
+ * spreadsheets fold those to ASCII).
+ */
+const FORMULA_START = /^(?:[\t\r\n]|[\s\p{Cc}]*[=+\-@|＝＋－＠｜﹦﹢﹣])/u;
+
 const cell = (value: string | number | null): string => {
   if (value === null) return "";
-  // A leading =, +, - or @ would make a spreadsheet run the cell as a formula.
-  const text =
-    typeof value === "string" && /^[=+\-@\t\r]/.test(value) ? `'${value}` : String(value);
+  const text = typeof value === "string" && FORMULA_START.test(value) ? `'${value}` : String(value);
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };
 
