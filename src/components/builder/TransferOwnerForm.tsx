@@ -15,9 +15,9 @@
 
 import { RadioGroup, TypeToConfirm } from "@haruhimemoe/ui";
 import { useState } from "react";
-import type { PoolEditor } from "@/hooks/usePoolEditor";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientPool } from "@/schemas/built-pool-view";
+import type { PoolEditor } from "@/schemas/pool-editor";
 
 export const NO_HANDOVER =
   "Only an editor who has signed in to pools can take the pool over. Add one above first.";

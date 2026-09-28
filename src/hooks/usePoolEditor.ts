@@ -23,61 +23,30 @@
 
 "use client";
 
-import type { SlotLineError } from "@haruhimemoe/pool";
 import { useCallback, useRef, useState } from "react";
 import { MAX_OPS_PER_CALL } from "@/constants/built-pools";
+import { POLL_MS, UNDO_DROPPED, UNDO_STALE } from "@/constants/editor";
+import { useExclusive } from "@/hooks/useExclusive";
 import { usePoolPolling } from "@/hooks/usePoolPolling";
 import { useUndoSteps } from "@/hooks/useUndoSteps";
 import { callPools, type Fetcher, UNREACHABLE } from "@/lib/pool-client";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import { type ClientPack, type ClientPool, clientPoolOf } from "@/schemas/built-pool-view";
+import type { EditorFailure, PoolEditor } from "@/schemas/pool-editor";
 import { applyLocal } from "@/utils/built-editor";
 import { sameContent } from "@/utils/undo";
-
-export const POLL_MS = 15_000;
-
-export const CONFLICT =
-  "Someone else changed this pool. It's reloaded; your last change wasn't saved.";
-
-export const GONE = "This pool was deleted or you no longer have access.";
-
-export const UNDO_DROPPED =
-  "Someone else changed this pool since, so that undo was dropped. It's reloaded.";
-
-export const UNDO_STALE = "The pool changed since, so that step can't be undone any more.";
-
-export type EditorFailure = { message: string; lines?: SlotLineError[] };
-
-export type PoolEditor = {
-  /** The copy on screen: the saved pool with the queued changes on top. */
-  pool: ClientPool;
-  saving: boolean;
-  failure: EditorFailure | null;
-  conflict: boolean;
-  gone: boolean;
-  /** Applies a change and queues it; false (with `failure` set) when it can't apply. */
-  change: (ops: PoolOp[]) => boolean;
-  /** How many of this session's own changes can be undone (at most 20). */
-  undoSteps: number;
-  /** Sends the inverse of this session's last change; false when there's none or it can't. */
-  undo: () => boolean;
-  /** Runs a request in turn with the ops. */
-  exclusive: <T>(task: () => Promise<T>) => Promise<T>;
-  /** Takes a pool a request answered with as the saved copy. */
-  adopt: (pool: ClientPool) => void;
-  /**
-   * Asks for the pool again. `own`: the new version is this editor's own change (one answered
-   * without the pool), so queued changes go on top instead of counting as a conflict.
-   */
-  reload: (own?: boolean) => Promise<void>;
-  dismiss: () => void;
-};
 
 type PoolBody = { pool: ClientPool };
 
 const samePack = (a: ClientPack, b: ClientPack): boolean =>
   a.state === b.state && a.href === b.href && a.error === b.error && a.gone === b.gone;
 
+/**
+ * @function usePoolEditor
+ * @param initial {ClientPool} the pool as the page read it
+ * @param options {{ fetcher?: Fetcher; pollMs?: number }} fetch and the poll interval (tests)
+ * @returns {PoolEditor} the copy on screen and the calls that change and save it
+ */
 export const usePoolEditor = (
   initial: ClientPool,
   { fetcher = fetch, pollMs = POLL_MS }: { fetcher?: Fetcher; pollMs?: number } = {},
@@ -91,7 +60,7 @@ export const usePoolEditor = (
   const view = useRef(initial);
   const queue = useRef<PoolOp[]>([]);
   const steps = useUndoSteps();
-  const lock = useRef<Promise<unknown>>(Promise.resolve());
+  const exclusive = useExclusive();
 
   /** Nothing queued any more: steps whose change never saved can't be undone. */
   const dropQueue = useCallback(() => {
@@ -114,12 +83,6 @@ export const usePoolEditor = (
     },
     [show, dropQueue],
   );
-
-  const exclusive = useCallback(<T>(task: () => Promise<T>): Promise<T> => {
-    const run = lock.current.then(task, task);
-    lock.current = run.catch(() => undefined);
-    return run;
-  }, []);
 
   const rollBack = useCallback(
     (next: ClientPool, why: EditorFailure | "conflict") => {

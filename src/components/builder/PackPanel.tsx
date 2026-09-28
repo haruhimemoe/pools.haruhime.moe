@@ -17,9 +17,9 @@
 import { Button } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { PACK_STATUS_TEXT } from "@/constants/built-pools";
-import type { PoolEditor } from "@/hooks/usePoolEditor";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientPool } from "@/schemas/built-pool-view";
+import type { PoolEditor } from "@/schemas/pool-editor";
 
 type PackPanelProps = {
   pool: ClientPool;

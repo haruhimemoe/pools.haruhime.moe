@@ -15,8 +15,8 @@
 
 import { ButtonLink, TypeToConfirm } from "@haruhimemoe/ui";
 import { useState } from "react";
-import type { PoolEditor } from "@/hooks/usePoolEditor";
 import { callPools, type Fetcher } from "@/lib/pool-client";
+import type { PoolEditor } from "@/schemas/pool-editor";
 
 type DeleteAnswer = { packRemoval?: "queued"; notice?: string } | null;
 

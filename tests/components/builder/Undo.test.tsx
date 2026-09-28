@@ -13,7 +13,7 @@
 
 import { screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { UNDO_DROPPED } from "@/hooks/usePoolEditor";
+import { UNDO_DROPPED } from "@/constants/editor";
 import { clientPool, nm } from "../../helpers/pool-editor";
 import { renderEditor } from "../../helpers/render-editor";
 

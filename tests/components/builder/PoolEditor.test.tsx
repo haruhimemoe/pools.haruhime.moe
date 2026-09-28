@@ -15,7 +15,7 @@
 import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { HIDDEN_BY_MODERATION } from "@/constants/built-pools";
-import { CONFLICT, GONE } from "@/hooks/usePoolEditor";
+import { CONFLICT, GONE } from "@/constants/editor";
 import type { ClientPool } from "@/schemas/built-pool-view";
 import { clientPool, nm } from "../../helpers/pool-editor";
 import { renderEditor } from "../../helpers/render-editor";

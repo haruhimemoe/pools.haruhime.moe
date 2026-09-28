@@ -16,9 +16,9 @@ import { userUrl } from "@haruhimemoe/osu/shapes";
 import { Button, TextLink } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { AddEditorForm } from "@/components/builder/AddEditorForm";
-import type { PoolEditor } from "@/hooks/usePoolEditor";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientPool, PoolPerson } from "@/schemas/built-pool-view";
+import type { PoolEditor } from "@/schemas/pool-editor";
 
 type EditorsPanelProps = {
   pool: ClientPool;

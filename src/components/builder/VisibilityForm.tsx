@@ -14,10 +14,10 @@
 import { Button, RadioGroup } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
 import { PACK_NOTE, VISIBILITIES, VISIBILITY_TEXT, type Visibility } from "@/constants/built-pools";
-import type { PoolEditor } from "@/hooks/usePoolEditor";
 import { useStoredField } from "@/hooks/useStoredField";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientPool } from "@/schemas/built-pool-view";
+import type { PoolEditor } from "@/schemas/pool-editor";
 
 type VisibilityFormProps = {
   pool: ClientPool;

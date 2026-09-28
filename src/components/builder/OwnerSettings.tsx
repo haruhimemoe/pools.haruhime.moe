@@ -13,9 +13,9 @@ import { Card } from "@haruhimemoe/ui";
 import { DeletePoolForm } from "@/components/builder/DeletePoolForm";
 import { TransferOwnerForm } from "@/components/builder/TransferOwnerForm";
 import { VisibilityForm } from "@/components/builder/VisibilityForm";
-import type { PoolEditor } from "@/hooks/usePoolEditor";
 import type { Fetcher } from "@/lib/pool-client";
 import type { ClientPool } from "@/schemas/built-pool-view";
+import type { PoolEditor } from "@/schemas/pool-editor";
 
 type OwnerSettingsProps = {
   pool: ClientPool;

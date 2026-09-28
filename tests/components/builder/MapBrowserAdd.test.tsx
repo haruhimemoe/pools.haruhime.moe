@@ -16,7 +16,7 @@
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CONFLICT } from "@/hooks/usePoolEditor";
+import { CONFLICT } from "@/constants/editor";
 import { diff, renderPane, set } from "../../helpers/browse-pane";
 import { browsePage, clientPool, DEFAULT_BUCKETS, nm } from "../../helpers/pool-editor";
 import { renderEditor } from "../../helpers/render-editor";

@@ -5,7 +5,7 @@
  *       doesn't know, a repeat, the owner or an 11th editor is said under the field.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -13,9 +13,9 @@
 import { Button, TextInput } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
 import { MAX_EDITORS } from "@/constants/built-pools";
-import type { PoolEditor } from "@/hooks/usePoolEditor";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientPool } from "@/schemas/built-pool-view";
+import type { PoolEditor } from "@/schemas/pool-editor";
 
 type AddEditorFormProps = {
   pool: ClientPool;

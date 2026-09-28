@@ -11,7 +11,8 @@
 
 import { Button, Notice } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
-import { CONFLICT, type EditorFailure, GONE } from "@/hooks/usePoolEditor";
+import { CONFLICT, GONE } from "@/constants/editor";
+import type { EditorFailure } from "@/schemas/pool-editor";
 
 type SaveStateProps = {
   saving: boolean;
