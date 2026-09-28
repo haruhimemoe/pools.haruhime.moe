@@ -6,7 +6,8 @@
  *       that isn't hidden, unlisted otherwise; bare slots; buckets when the pool has its own
  *       list), when a pool is due a sync (unlisted or public, not removed by packs' moderators,
  *       pending or failed, and 30 s since the last try), the state each packs answer leaves,
- *       and what the browser sees (the state, a link once synced, the reason once failed). Pure.
+ *       and what the browser sees (the state, a link once synced: the pack's page for a public
+ *       pool packs lists, else the pack key; the reason once failed). Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -167,8 +168,9 @@ const keyHref = (pool: PackPool): string | null => {
  * @param options {{ withError?: boolean }} give packs' reason when failed (the owner and
  *        editors; default true)
  * @returns {ClientPack} its pack as the pages show it: none for a private pool; once synced, a
- *          link to the pack's page on packs (its key when packs' moderators hid a public one);
- *          the reason when failed, to those who may see it
+ *          link to the pack's page on packs for a public pool packs lists, else its pack key
+ *          (/k#…: an unlisted pack's page is closed, and so is a public one packs' moderators
+ *          hid; the key works in every case); the reason when failed, to those who may see it
  */
 export const clientPackOf = (
   pool: PackPool & { pack: BuiltPack },
@@ -178,7 +180,7 @@ export const clientPackOf = (
   if (pool.visibility === "private") return { state: "none", href: null, error: null, gone: false };
   let href: string | null = null;
   if (pack.state === "synced" && pack.slug !== null) {
-    const pageOpen = pack.listed || packVisibilityOf(pool) === "unlisted";
+    const pageOpen = pack.listed && packVisibilityOf(pool) === "public";
     href = pageOpen ? `${PACKS_SITE_URL}/p/${pack.slug}` : keyHref(pool);
   }
   return {

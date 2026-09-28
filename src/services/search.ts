@@ -23,6 +23,7 @@ import { mapsCollection } from "@/models/Map";
 import { poolsCollection } from "@/models/Pool";
 import { ownerNamesOf } from "@/services/built-pools";
 import { countMatching } from "@/services/count";
+import { builtSearchFieldsOf } from "@/utils/built-record";
 import type {
   MapFilters,
   MapResult,
@@ -128,7 +129,7 @@ const builtPools = async (
 ): Promise<PoolRows> => {
   if (!builtSearchable(filters)) return NO_ROWS;
   const query = { ...builtPoolQuery(filters, 1, mapId), skip, limit };
-  // Slots only for rows written before mapCount was stored.
+  // Slots only for rows written before mapCount was stored (builtSearchFieldsOf counts them).
   const projection = {
     name: 1,
     tournament: 1,
@@ -157,7 +158,7 @@ const builtPools = async (
         stats: {
           srMin: null,
           srMax: null,
-          count: row.mapCount ?? row.slots?.length ?? 0,
+          count: builtSearchFieldsOf(row).mapCount,
           complete: false,
         },
       }),

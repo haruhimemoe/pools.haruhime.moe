@@ -147,19 +147,27 @@ describe("clientPackOf", () => {
       pack: { ...synced, listed: true, ...over },
     });
 
-  it("links a synced pack's page while packs shows it, else its key", () => {
+  it("links a public pool's pack page while packs lists it, and the pack key otherwise", () => {
+    const key = /^https:\/\/packs\.haruhime\.moe\/k#pk\d\./;
     expect(clientPackOf(shared())).toEqual({
       state: "synced",
       href: "https://packs.haruhime.moe/p/Abc123",
       error: null,
       gone: false,
     });
+    // An unlisted pool's pack has no page anyone can open: the key works for everyone.
     const unlisted = makeBuiltPool({ visibility: "unlisted", slots: SLOTS, pack: synced });
-    expect(clientPackOf(unlisted).href).toBe("https://packs.haruhime.moe/p/Abc123");
+    expect(clientPackOf(unlisted).href).toMatch(key);
+    // A public pool our moderators hid is unlisted on packs too.
+    const hidden = makeBuiltPool({
+      visibility: "public",
+      hidden: true,
+      slots: SLOTS,
+      pack: synced,
+    });
+    expect(clientPackOf(hidden).href).toMatch(key);
     // A public pool packs doesn't list: packs' moderators hid it, so its page is closed.
-    expect(clientPackOf(shared({ listed: false })).href).toMatch(
-      /^https:\/\/packs\.haruhime\.moe\/k#pk\d\./,
-    );
+    expect(clientPackOf(shared({ listed: false })).href).toMatch(key);
   });
 
   it("gives no link unless synced, the reason when failed, and none for a private pool", () => {
