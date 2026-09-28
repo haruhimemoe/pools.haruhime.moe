@@ -11,20 +11,21 @@
  *       the fingerprint index (another add got there first) is planned again once, so it
  *       becomes a merge. Then maps pools never saw get blank rows, the mirror fills the pool's
  *       maps at once, stats, usage and search keys follow, the pack is sent, and the touched
- *       pages are marked stale. Problems come back per field; nothing is written then.
+ *       pages are marked stale. Problems come back per field; nothing is written then. The
+ *       guarded join is src/services/add-pool-join.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
  * @modified Sat Sep 26, 2026
  */
 
 import "server-only";
-import { MongoServerError } from "mongodb";
 import type { PacksService } from "@/env";
 import type { Fetch } from "@/lib/packs-client";
 import { revalidatePoolPages } from "@/lib/revalidate";
 import { poolsCollection } from "@/models/Pool";
 import type { AddPoolBody } from "@/schemas/admin";
 import { type PoolSource, parseStoredPool } from "@/schemas/pool";
+import { isDuplicateKey, joinStored, sameCredit, takenIds } from "@/services/add-pool-join";
 import { type SyncOutcome, syncPoolNow } from "@/services/admin";
 import { loadExistingPools, newPoolDoc, seedBlankMaps } from "@/services/import";
 import { type FillResult, fillMaps, type MapLookup } from "@/services/map-fill";
@@ -32,7 +33,7 @@ import { recomputePoolStats } from "@/services/pool-stats";
 import { recomputeUsage } from "@/services/usage";
 import { type AddPoolMaps, addedPoolName, readAddPoolMaps } from "@/utils/add-pool-input";
 import { type ExistingPool, type PlannedPool, planImport, sourceKey } from "@/utils/import-plan";
-import { editsFrom, isVisible } from "@/utils/pool-record";
+import { editsFrom } from "@/utils/pool-record";
 import { type RandomBytes, uniqueSourceId } from "@/utils/source-ids";
 import { normalizePool, type SourceRef } from "@/utils/source-pools";
 
@@ -65,72 +66,15 @@ export type AddPoolResult =
   | { ok: false; fields: Record<string, string> };
 
 /** Every id taken for a kind: current and former sources, and inside pool ids. */
-const takenIds = (kind: string, existing: readonly ExistingPool[]) => {
-  const ids = new Set<string>();
-  const poolIds = existing.map((record) => record.id);
-  for (const record of existing) {
-    for (const source of [...record.sources, ...record.formerSources]) {
-      if (source.kind === kind) ids.add(source.id);
-    }
-  }
-  return (id: string): boolean =>
-    ids.has(id) || poolIds.some((poolId) => poolId.startsWith(`${kind}-${id}`));
-};
 
 /** Where the source landed, or null when the record changed under us (plan again). */
+
 type Landing = { outcome: "created" | "merged"; id: string; revived: boolean; credited: boolean };
 
-const isDuplicateKey = (error: unknown): boolean =>
-  error instanceof MongoServerError && error.code === 11000;
-
 /** The same kind, credit name and credit link. */
-const sameCredit = (entry: PoolSource, source: SourceRef): boolean =>
-  entry.kind === source.kind &&
-  "credit" in entry &&
-  "credit" in source &&
-  entry.credit.name === source.credit.name &&
-  (entry.credit.url ?? null) === (source.credit.url ?? null);
-
-/**
- * Pushes the source onto the record as planning read it (same fingerprint, same superseded
- * state, and on a revival the same hidden) unless that credit is there by then.
- */
-const joinStored = async (before: ExistingPool, entry: PoolSource, at: Date): Promise<boolean> => {
-  const revived = before.supersededBy !== null;
-  const credit = "credit" in entry ? entry.credit : null;
-  const filter = {
-    _id: before.id,
-    fingerprint: before.fingerprint,
-    supersededBy: before.supersededBy,
-    ...(revived ? { hidden: before.hidden } : {}),
-    ...(credit
-      ? {
-          sources: {
-            $not: {
-              $elemMatch: {
-                kind: entry.kind,
-                "credit.name": credit.name,
-                "credit.url": credit.url ?? null,
-              },
-            },
-          },
-        }
-      : {}),
-  };
-  const set = revived
-    ? { supersededBy: null, visible: isVisible({ ...before, supersededBy: null }), updatedAt: at }
-    : { updatedAt: at };
-  try {
-    const pools = await poolsCollection();
-    const result = await pools.updateOne(filter as never, { $push: { sources: entry }, $set: set });
-    return result.matchedCount === 1;
-  } catch (error) {
-    if (isDuplicateKey(error)) return false;
-    throw error;
-  }
-};
 
 /** Which field a normalize refusal belongs to. */
+
 const fieldOfReason = (reason: string): string =>
   /^The notes/u.test(reason) ? "notes" : /pool name/u.test(reason) ? "tournament" : "maps";
 
@@ -139,6 +83,7 @@ type Attempt =
   | { ok: true; landing: Landing | null; mapIds: number[] };
 
 /** Plans the add over the stored records and writes it once: null landing means plan again. */
+
 const landSource = async (
   body: AddPoolBody,
   read: Extract<AddPoolMaps, { ok: true }>,

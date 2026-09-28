@@ -1,101 +1,30 @@
 /**
  * @file src/utils/import-report.ts
- * @desc The import runner's arguments and its report: counts (new, updated, unchanged, the same
- *       pool twice, changed at the source, superseded, revived, not in this export, skipped),
- *       each skipped pool with its reason, what merged, moved and was superseded, the map fill,
- *       usage, the pack sync and the stats backfill; and the row stored in `imports` (with why
- *       the run stopped, when it threw). Every piece of source text has its control characters
- *       replaced and is cut short, so an export can't drive the admin's terminal. The runner
- *       reads IMPORT_SOURCES only (otdb): host and community pools come in through the admin
- *       page, so naming them is refused like any unknown source. A report names an otdb pool
- *       "otdb #58" and a host or community one by kind, id and credit. Pure.
+ * @desc The import runner's report: counts (new, updated, unchanged, the same pool twice, changed
+ *       at the source, superseded, revived, not in this export, skipped), each skipped pool with
+ *       its reason, what merged, moved and was superseded, the map fill, usage, the pack sync and
+ *       the stats backfill; and the row stored in `imports` (with why the run stopped, when it
+ *       threw). Every piece of source text has its control characters replaced and is cut
+ *       short, so an export can't drive the admin's terminal. A report names an otdb pool "otdb
+ *       #58" and a host or community one by kind, id and credit. The arguments are
+ *       src/utils/import-args.ts. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
-import {
-  IMPORT_SOURCES,
-  type ImportSource,
-  SOURCE_CREDITS,
-  type SourceKind,
-} from "@/constants/pools";
+import { SOURCE_CREDITS, type SourceKind } from "@/constants/pools";
 import { SYNC_STATES } from "@/schemas/pool";
 import type { ImportPlan } from "@/utils/import-plan";
 import type { SkippedPool, SourceRef } from "@/utils/source-pools";
 import type { BackfillResult, SyncSummary } from "@/utils/sync";
 
-export const IMPORT_USAGE =
-  "Usage: bun run import otdb [--dry-run] [--file <path>] [--no-sync] [--resync rejected]";
-
-export type ImportArgs = {
-  source: ImportSource;
-  dryRun: boolean;
-  file: string | null;
-  noSync: boolean;
-  resyncRejected: boolean;
-};
-
-/**
- * @function parseImportArgs
- * @param argv {readonly string[]} the runner's arguments (after the script name)
- * @returns {{ ok: true; args: ImportArgs } | { ok: false; error: string }} the source and
- *          options, or what's wrong: a missing source or one the runner doesn't read (anything
- *          but IMPORT_SOURCES, host and community included), a repeated option, --file
- *          without a path, --resync with anything but "rejected", --resync with --no-sync, or
- *          an unknown option
- */
-export const parseImportArgs = (
-  argv: readonly string[],
-): { ok: true; args: ImportArgs } | { ok: false; error: string } => {
-  let source: ImportSource | null = null;
-  let dryRun = false;
-  let noSync = false;
-  let file: string | null = null;
-  let resync: string | null = null;
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i] ?? "";
-    if (arg === "--dry-run") {
-      if (dryRun) return { ok: false, error: "--dry-run is given twice." };
-      dryRun = true;
-    } else if (arg === "--no-sync") {
-      if (noSync) return { ok: false, error: "--no-sync is given twice." };
-      noSync = true;
-    } else if (arg === "--file" || arg.startsWith("--file=")) {
-      if (file !== null) return { ok: false, error: "--file is given twice." };
-      const value = arg === "--file" ? argv[++i] : arg.slice("--file=".length);
-      if (!value || value.startsWith("--")) return { ok: false, error: "--file needs a path." };
-      file = value;
-    } else if (arg === "--resync" || arg.startsWith("--resync=")) {
-      if (resync !== null) return { ok: false, error: "--resync is given twice." };
-      const value = arg === "--resync" ? argv[++i] : arg.slice("--resync=".length);
-      if (value !== "rejected") return { ok: false, error: "--resync takes one value: rejected." };
-      resync = value;
-    } else if (arg.startsWith("-")) {
-      return { ok: false, error: `Unknown option ${arg}.` };
-    } else if (source !== null) {
-      return { ok: false, error: `Only one source at a time (got ${source} and ${arg}).` };
-    } else {
-      const kind = IMPORT_SOURCES.find((known) => known === arg);
-      if (!kind) {
-        return {
-          ok: false,
-          error: `Can't import from ${arg}. Sources: ${IMPORT_SOURCES.join(", ")}.`,
-        };
-      }
-      source = kind;
-    }
-  }
-  if (source === null) return { ok: false, error: "Name a source to import from." };
-  if (noSync && resync !== null) {
-    return { ok: false, error: "--resync rejected needs a sync: drop --no-sync." };
-  }
-  return { ok: true, args: { source, dryRun, file, noSync, resyncRejected: resync !== null } };
-};
-
 /** C0 and C1 control characters, DEL included (Unicode's Cc). */
+
 const CONTROL = /\p{Cc}/gu;
+
 /** The most characters of one piece of source text the report prints. */
+
 const REPORT_TEXT_MAX = 200;
 
 /**
@@ -147,6 +76,7 @@ export const importCounts = (plan: ImportPlan) => ({
 });
 
 /** "otdb #58", or a host or community pool's kind, id and credit: "host hz9y8x7w (Name)". */
+
 const labelOf = (source: SourceRef | SkippedPool): string => {
   const { label } = SOURCE_CREDITS[source.kind];
   const id = reportText(source.id);
@@ -247,6 +177,7 @@ export const formatImportReport = (summary: ImportSummary): string => {
 };
 
 /** One real run, as stored in `imports` and listed on /admin. */
+
 export type ImportReportRow = {
   source: SourceKind;
   startedAt: Date;

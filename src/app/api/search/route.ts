@@ -20,7 +20,8 @@ import { RATE_LIMITS } from "@/constants/api";
 import { ALL_MAPS_FAILED, MIRROR_UNAVAILABLE_CODE, SEARCH_CACHE } from "@/constants/search";
 import { refuseOverLimit } from "@/lib/rate-limit";
 import { searchAllMaps } from "@/services/all-maps";
-import { searchMaps, searchPools } from "@/services/search";
+import { searchMaps } from "@/services/search";
+import { searchPools } from "@/services/search-pools";
 import { parseSearchState } from "@/utils/search-params";
 
 export async function GET(request: Request) {

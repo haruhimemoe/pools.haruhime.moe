@@ -8,7 +8,7 @@
  *       indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { renderToStaticMarkup } from "react-dom/server";
@@ -57,7 +57,7 @@ vi.mock("@/services/slot-values", () => ({
 }));
 vi.mock("@/lib/auth-session", () => ({ requireAdmin }));
 vi.mock("@/services/pools", () => ({ getPoolById, getMapSummaries }));
-vi.mock("@/services/admin", () => ({
+vi.mock("@/services/admin-pools", () => ({
   ADMIN_SHOWS: ["all", "hidden", "superseded", "failed"],
   listPoolsForAdmin,
   countSyncStates,

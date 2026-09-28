@@ -12,7 +12,7 @@ import type { Metadata } from "next";
 import { AdminPoolTable } from "@/components/admin/AdminPoolTable";
 import { MAX_QUERY_LENGTH } from "@/constants/search";
 import { requireAdmin } from "@/lib/auth-session";
-import { ADMIN_SHOWS, type AdminShow, listPoolsForAdmin } from "@/services/admin";
+import { ADMIN_SHOWS, type AdminShow, listPoolsForAdmin } from "@/services/admin-pools";
 import { parsePageParam } from "@/utils/search-ranges";
 
 export const metadata: Metadata = { title: "Every pool", robots: { index: false } };

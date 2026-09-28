@@ -22,14 +22,8 @@ import { describe, expect, it } from "vitest";
 import { mapsCollection } from "@/models/Map";
 import { poolsCollection } from "@/models/Pool";
 import { emptyPackSync, type StoredPool } from "@/schemas/pool";
-import {
-  type AdminShow,
-  countSyncStates,
-  listPoolsForAdmin,
-  retrySyncs,
-  savePoolEdit,
-  setBadged,
-} from "@/services/admin";
+import { retrySyncs, savePoolEdit, setBadged } from "@/services/admin";
+import { type AdminShow, countSyncStates, listPoolsForAdmin } from "@/services/admin-pools";
 import { applyImportPlan, loadExistingPools, seedMaps } from "@/services/import";
 import { recomputeUsage } from "@/services/usage";
 import { planImport } from "@/utils/import-plan";

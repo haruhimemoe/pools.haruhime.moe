@@ -14,7 +14,7 @@ import { describe, expect, it, vi } from "vitest";
 import { backfillBuiltSearchFields } from "@/lib/built-backfill";
 import { closeDb, connectDb, getDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import { searchPools } from "@/services/search";
+import { searchPools } from "@/services/search-pools";
 import { EMPTY_POOL_FILTERS } from "@/utils/search-filters";
 import { makeBuiltPool } from "../../helpers/built-pools";
 import { setupTestDb } from "../../helpers/db";

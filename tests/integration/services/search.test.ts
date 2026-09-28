@@ -21,7 +21,8 @@ import { mapsCollection } from "@/models/Map";
 import { poolsCollection } from "@/models/Pool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 import type { StoredPool } from "@/schemas/pool";
-import { searchMaps, searchPools } from "@/services/search";
+import { searchMaps } from "@/services/search";
+import { searchPools } from "@/services/search-pools";
 import { builtSearchFields } from "@/utils/built-record";
 import {
   EMPTY_MAP_FILTERS,

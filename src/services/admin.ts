@@ -5,9 +5,9 @@
  *       usage when hidden or year changed, and PUTs its pack at once when the pack input changed
  *       and packs hasn't deleted it (a failed PUT stays as error and the answer says so). badged
  *       for every pool of a tournament (one year, unknown years, or all). Retries for failed
- *       syncs, 50 pools at most per click, and for queued pack removals. The admin pool list. Every change revalidates the
- *       public pages it touches. syncPoolNow sends one pool's pack at once (the edit and an
- *       added pool use it).
+ *       syncs, 50 pools at most per click, and for queued pack removals. Every change
+ *       revalidates the public pages it touches. syncPoolNow sends one pool's pack at once (the
+ *       edit and an added pool use it). The admin pool list is src/services/admin-pools.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
@@ -15,7 +15,6 @@
 
 import "server-only";
 import { EnvError } from "@haruhimemoe/next-kit/env";
-import type { Filter } from "mongodb";
 import { BATCH_QUERY_MS, QUERY_TIME_MS } from "@/constants/db";
 import { getPacksService, type PacksService } from "@/env";
 import type { Fetch } from "@/lib/packs-client";
@@ -26,7 +25,6 @@ import { parseStoredPool, type StoredPool, SYNC_STATES, type SyncState } from "@
 import { CLEANUP_PER_RETRY, countPackCleanup, retryPackCleanup } from "@/services/pack-cleanup";
 import { syncPools } from "@/services/sync";
 import { recomputeUsage } from "@/services/usage";
-import { escapeRegExp, searchTerms } from "@/utils/fold";
 import type { PackCleanupSummary } from "@/utils/pack-cleanup";
 import { packInputHash, packInputOf } from "@/utils/pack-input";
 import { derivedFields, editsFrom, effectiveFields, isVisible } from "@/utils/pool-record";
@@ -138,6 +136,7 @@ export const setBadged = async (
 };
 
 /** Pools one retry click sends at most (a function has a minute). */
+
 export const RETRY_LIMIT = 50;
 
 /**
@@ -214,88 +213,4 @@ export const retryQueuedPackRemovals = async ({
     now,
     ...(fetch ? { fetch } : {}),
   });
-};
-
-export const ADMIN_SHOWS = ["all", "hidden", "superseded", "failed"] as const;
-export type AdminShow = (typeof ADMIN_SHOWS)[number];
-
-export const ADMIN_PAGE_SIZE = 50;
-
-export type AdminPoolRow = Pick<
-  StoredPool,
-  "_id" | "name" | "tournament" | "round" | "year" | "hidden" | "supersededBy" | "badged" | "pack"
->;
-
-const SHOW_FILTERS: Readonly<Record<AdminShow, Record<string, unknown>>> = {
-  all: {},
-  hidden: { hidden: true },
-  superseded: { supersededBy: { $ne: null } },
-  failed: { "pack.state": { $in: ["error", "rejected"] } },
-};
-
-/**
- * @function listPoolsForAdmin
- * @param options {{ q: string; show: AdminShow; page: number }} text, which pools, 1-based page
- * @returns {Promise<{ rows: AdminPoolRow[]; total: number; page: number; pageCount: number }>}
- *          every pool (hidden and superseded included) matching, by id
- */
-export const listPoolsForAdmin = async ({
-  q,
-  show,
-  page,
-}: {
-  q: string;
-  show: AdminShow;
-  page: number;
-}) => {
-  const pools = await poolsCollection();
-  const filter = {
-    $and: [
-      SHOW_FILTERS[show],
-      ...searchTerms(q).map((term) => ({ searchText: { $regex: escapeRegExp(term) } })),
-    ],
-  } as Filter<StoredPool>;
-  const [rows, total] = await Promise.all([
-    pools
-      .find(filter, {
-        projection: {
-          name: 1,
-          tournament: 1,
-          round: 1,
-          year: 1,
-          hidden: 1,
-          supersededBy: 1,
-          badged: 1,
-          pack: 1,
-        },
-        sort: { _id: 1 },
-        skip: (page - 1) * ADMIN_PAGE_SIZE,
-        limit: ADMIN_PAGE_SIZE,
-        maxTimeMS: QUERY_TIME_MS,
-      })
-      .toArray(),
-    pools.countDocuments(filter, { maxTimeMS: QUERY_TIME_MS }),
-  ]);
-  return {
-    rows: rows as AdminPoolRow[],
-    total,
-    page,
-    pageCount: Math.ceil(total / ADMIN_PAGE_SIZE),
-  };
-};
-
-/**
- * @function countSyncStates
- * @returns {Promise<Record<SyncState | "never", number>>} pools per pack state
- */
-export const countSyncStates = async (): Promise<Record<SyncState | "never", number>> => {
-  const pools = await poolsCollection();
-  const counts = await Promise.all(
-    [...SYNC_STATES, null].map((state) =>
-      pools.countDocuments({ "pack.state": state }, { maxTimeMS: QUERY_TIME_MS }),
-    ),
-  );
-  return Object.fromEntries(
-    [...SYNC_STATES, "never"].map((state, i) => [state, counts[i] ?? 0]),
-  ) as Record<SyncState | "never", number>;
 };

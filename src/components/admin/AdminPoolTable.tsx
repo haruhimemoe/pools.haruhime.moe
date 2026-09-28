@@ -8,7 +8,7 @@
  */
 
 import { Table, TBody, Td, TextLink, THead, Th } from "@haruhimemoe/ui";
-import type { AdminPoolRow } from "@/services/admin";
+import type { AdminPoolRow } from "@/services/admin-pools";
 import { poolHeadline } from "@/utils/pool-text";
 
 export function AdminPoolTable({ rows }: { rows: readonly AdminPoolRow[] }) {

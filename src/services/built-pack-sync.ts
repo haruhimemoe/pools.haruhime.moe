@@ -15,6 +15,7 @@
  *       deleted while its PUT was out loses the pack it just got. Every run also retries due
  *       pack removals (retryDuePackCleanup). packs not set up here leaves pools pending. Never
  *       throws for packs; the database can.
+ *       The claim and the guarded writes are src/services/built-pack-claims.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -22,21 +23,15 @@
 
 import "server-only";
 import { getPacksService, type PacksService } from "@/env";
-import { type Fetch, PACKS_TIMEOUT_MS, putPoolPack } from "@/lib/packs-client";
+import { type Fetch, putPoolPack } from "@/lib/packs-client";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 import type { SessionUser } from "@/schemas/session-user";
-import { findBuiltPool, loadFor, ownerOf, readBuiltPool, viewOf } from "@/services/built-pool-read";
-import { markPackPending } from "@/services/built-pools";
+import { claimAt, claimForced, sleep, storeIfUnchanged } from "@/services/built-pack-claims";
+import { findBuiltPool, loadFor, ownerOf, viewOf } from "@/services/built-pool-read";
 import { removePackOrQueue, retryDuePackCleanup } from "@/services/pack-cleanup";
 import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
-import {
-  builtPackInput,
-  EMPTY_BUILT_PACK,
-  nextBuiltPack,
-  PACK_GONE,
-  PACK_SYNC_INTERVAL_MS,
-} from "@/utils/built-pack";
+import { builtPackInput, EMPTY_BUILT_PACK, nextBuiltPack, PACK_GONE } from "@/utils/built-pack";
 
 export type PackSyncOptions = {
   /** "Update pack now": don't wait out the 30 s. */
@@ -66,68 +61,11 @@ export const packsService = (): PacksService | null => {
   }
 };
 
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-/**
- * Takes the pool for one sync, or null when it's not due (or not there). A forced claim skips
- * the 30 s but not a claim younger than the PUT timeout: that sync may still be out at packs.
- */
-const claim = async (id: string, at: Date, force: boolean): Promise<StoredBuiltPool | null> => {
-  const since = new Date(at.getTime() - (force ? PACKS_TIMEOUT_MS : PACK_SYNC_INTERVAL_MS));
-  const free = { $or: [{ "pack.lastAttemptAt": null }, { "pack.lastAttemptAt": { $lte: since } }] };
-  // A refusal waits for the next change (pending) or a forced sync.
-  const waiting = {
-    $or: [{ "pack.state": "pending" }, { "pack.state": "failed", "pack.retry": { $ne: false } }],
-  };
-  const due = force ? free : { $and: [free, waiting] };
-  const row = await (await builtPoolsCollection()).findOneAndUpdate(
-    { _id: id, visibility: { $ne: "private" }, "pack.gone": { $ne: true }, ...due },
-    { $set: { "pack.lastAttemptAt": at } },
-    { returnDocument: "after" },
-  );
-  return readBuiltPool(row);
-};
-
-/**
- * A forced claim: one that meets a sync still out waits until that claim is older than the PUT
- * timeout and tries once more; still busy (another claim came meanwhile), the pool is left
- * pending. Null when the pool isn't there, private or gone, or was left pending.
- */
-const claimForced = async (
-  id: string,
-  now: () => Date,
-  wait: (ms: number) => Promise<void>,
-): Promise<{ pool: StoredBuiltPool; at: Date } | null> => {
-  for (let tries = 0; tries < 2; tries++) {
-    const at = now();
-    const pool = await claim(id, at, true);
-    if (pool) return { pool, at };
-    const current = await findBuiltPool(id);
-    const last = current?.pack.lastAttemptAt;
-    if (!current || !last || current.visibility === "private" || current.pack.gone) return null;
-    if (tries === 0) await wait(Math.max(0, last.getTime() + PACKS_TIMEOUT_MS - at.getTime()));
-  }
-  await markPackPending(id);
-  return null;
-};
-
 /** A regular claim at `at`: due (pending, or failed and worth trying again), 30 s since the last. */
-const claimAt = async (id: string, at: Date) => {
-  const pool = await claim(id, at, false);
-  return pool ? { pool, at } : null;
-};
 
 /** The pool as the claim at `at` left it: the same version, and no newer claim since. */
-const asClaimed = (pool: StoredBuiltPool, at: Date) => ({
-  _id: pool._id,
-  version: pool.version,
-  "pack.lastAttemptAt": at,
-});
 
 /** Stores the pack unless the pool changed or a newer sync claimed it; true when stored. */
-const storeIfUnchanged = async (pool: StoredBuiltPool, at: Date, pack: StoredBuiltPool["pack"]) =>
-  (await (await builtPoolsCollection()).updateOne(asClaimed(pool, at), { $set: { pack } }))
-    .matchedCount === 1;
 
 const namesOf = async (pool: StoredBuiltPool): Promise<string[]> => {
   const owner = await ownerOf(pool.ownerId);
@@ -177,6 +115,7 @@ const afterChange = async (pool: StoredBuiltPool, at: Date, pack: StoredBuiltPoo
 };
 
 /** packs removed the pack (410): whatever claim is newest, the pool never syncs again. */
+
 const storeGone = async (id: string, pack: StoredBuiltPool["pack"]) => {
   const { state, error, listed, gone } = pack;
   await (await builtPoolsCollection()).updateOne(
