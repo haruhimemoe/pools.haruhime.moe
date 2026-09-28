@@ -24,7 +24,7 @@ type StarsUnderProps = {
  */
 export function StarsUnder({ stars, under }: StarsUnderProps) {
   return (
-    <span className="inline-flex items-center gap-1">
+    <span className="inline-flex items-center gap-1 whitespace-nowrap">
       {stars === null ? <span>–</span> : <StarRating value={stars} />}
       <span className="text-c3 text-xs">{under}</span>
     </span>

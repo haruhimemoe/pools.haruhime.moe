@@ -45,7 +45,7 @@ export function RetrySyncButtons() {
   };
   const failed = "The retry didn't reach the server.";
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
       <AsyncButton action={retry(false)} pendingLabel="Retrying…" failedMessage={failed}>
         Retry failed syncs
       </AsyncButton>

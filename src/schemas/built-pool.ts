@@ -95,7 +95,7 @@ export const builtYearSchema = z
   .refine((year) => year <= new Date().getUTCFullYear() + 1, "That year hasn't come yet.")
   .nullable();
 
-/** An editor: osu! id, username, and their user id once they've signed in. */
+/** An editor: osu! id, username, their user id once they've signed in, and when they were added. */
 export const builtEditorSchema = z.object({
   /** The editor's user id once they've signed in; null until then. */
   userId: z.string().min(1).nullable(),

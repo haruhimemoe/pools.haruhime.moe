@@ -62,7 +62,7 @@ export function AccountMenu() {
       }
       items={ITEMS}
     >
-      <SignOutButton variant="ghost" className="justify-start" />
+      <SignOutButton variant="ghost" className="h-auto justify-start rounded px-3 py-2" />
     </HeaderMenu>
   );
 }
