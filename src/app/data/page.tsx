@@ -8,7 +8,7 @@
  *       (Discord or email). Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -83,6 +83,11 @@ export default function DataPage() {
           <p>
             Where a map was played before comes from the pools on this site, so it only knows the
             pools we have.
+          </p>
+          <p>
+            Map covers and preview clips load in your browser straight from osu!'s servers; pools
+            never passes them through its own. A slot's star range badge uses the same values as the
+            slot, so a map without mod data counts as unknown there.
           </p>
         </section>
         <section id="rules" aria-labelledby="rules-title">
