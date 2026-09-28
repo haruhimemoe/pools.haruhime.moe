@@ -17,20 +17,7 @@
 
 import { Button, Select, Textarea, TextInput, TextLink } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
-import type { SyncState } from "@/schemas/pool";
-
-type Sync =
-  | { status: "not-needed" }
-  | { status: "sent"; state: SyncState; error: string | null }
-  | { status: "failed"; message: string };
-
-type Answer = {
-  outcome: "created" | "merged";
-  revived: boolean;
-  alreadyCredited: boolean;
-  pool: { id: string; name: string; href: string };
-  sync: Sync;
-};
+import { type AddPoolAnswer as Answer, outcomeText } from "@/utils/add-pool-text";
 
 type Refusal = { error?: { message?: string; fields?: Record<string, string> } };
 
@@ -38,35 +25,10 @@ const BADGED_VALUES = { unknown: null, yes: true, no: false } as const;
 
 const YEAR_FORMAT = "Type the year as four digits, like 2024, or leave it empty.";
 
-const syncText = (sync: Sync): string => {
-  if (sync.status === "not-needed") return "Its pack didn't need an update.";
-  if (sync.status === "failed") return `The pack wasn't sent: ${sync.message}`;
-  if (sync.state === "error") return `packs didn't take the pack: ${sync.error ?? "no answer"}`;
-  if (sync.state === "rejected") return `packs refused the pack: ${sync.error ?? ""}`;
-  return sync.state === "created" ? "packs made its pack." : "packs updated its pack.";
-};
-
 /**
- * What happened, after the pool's name (which the form links).
- * @function outcomeText
- * @param answer {Answer} the route's answer
- * @returns {{ before: string; after: string }} the text around the pool's link
+ * @function AddPoolForm
+ * @returns {JSX.Element} the add-a-pool form, with what happened (or each refusal) beside it
  */
-const outcomeText = (answer: Answer): { before: string; after: string } => {
-  if (answer.outcome === "created")
-    return { before: "Added ", after: `. ${syncText(answer.sync)}` };
-  if (answer.alreadyCredited)
-    return {
-      before: "These maps are already in ",
-      after: ", which already credits this sender with this link, so nothing was added.",
-    };
-  const back = answer.revived ? " and it's back from superseded" : "";
-  return {
-    before: "These maps are already in ",
-    after: `, so the source joined it${back}. Its name, round, year and notes stay as they were: edit them there. ${syncText(answer.sync)}`,
-  };
-};
-
 export function AddPoolForm() {
   const [kind, setKind] = useState<"host" | "community">("host");
   const [creditName, setCreditName] = useState("");
