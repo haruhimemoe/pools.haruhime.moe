@@ -47,7 +47,7 @@ To run your own copy you need Bun 1.4+, Node 24+ and a MongoDB database. Copy `.
 
 ## Stack
 
-Next.js 16 (App Router), React 19, TypeScript 7, Tailwind CSS v4 and MDX, on Bun. MongoDB with Mongoose and zod, and better-auth with osu! sign-in for everyone (admins are listed by osu! ID). Tests run on Vitest, lint and format on Biome.
+Next.js 16 (App Router), React 19, TypeScript 7, Tailwind CSS v4 and MDX, on Bun. MongoDB with Mongoose and zod, and better-auth with osu! sign-in for everyone (admins are listed by osu! ID). The server plumbing (route helpers, rate limits, env, the database client and sign-in) is `@haruhimemoe/next-kit`, which packs uses too, and the interface is built from `@haruhimemoe/ui`. Tests run on Vitest, lint and format on Biome.
 
 ## Packages
 
@@ -67,4 +67,4 @@ MIT. See [LICENSE](LICENSE). Not affiliated with or endorsed by ppy Pty Ltd or t
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Report security issues as described in [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report a vulnerability through GitHub's [private vulnerability reporting](https://github.com/haruhimemoe/pools.haruhime.moe/security/advisories/new), or by email as [SECURITY.md](SECURITY.md) describes.

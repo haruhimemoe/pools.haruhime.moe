@@ -12,11 +12,12 @@
 - [README](https://github.com/haruhimemoe/pools.haruhime.moe#readme): what pools does, its features, stack and the shared packages it uses
 - [AGENTS.md](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/AGENTS.md): conventions, data rules and file layout for AI coding agents
 - [CONTRIBUTING.md](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/CONTRIBUTING.md): setup, environment variables, tests, the importer and the checks a PR must pass
-- [SECURITY.md](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/SECURITY.md): how to report a vulnerability
+- [SECURITY.md](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/SECURITY.md): how to report a vulnerability (GitHub private vulnerability reporting first, then email)
 
 ## Source
 
-- [src/utils/](https://github.com/haruhimemoe/pools.haruhime.moe/tree/main/src/utils): the pure code: name parsing, fingerprints, import planning, usage, the pack input, search params and queries
+- [src/utils/](https://github.com/haruhimemoe/pools.haruhime.moe/tree/main/src/utils): the pure code: name parsing, source labels, fingerprints, import planning, usage, the pack input, search params, filters and queries
+- [src/lib/](https://github.com/haruhimemoe/pools.haruhime.moe/tree/main/src/lib) and [src/env.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/env.ts): pools' wiring of @haruhimemoe/next-kit (route helpers, rate limits and the osu! budget, env, MongoDB, osu! sign-in and the account store) and the mirror, osu! and packs clients
 - [src/lib/import-runner.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/lib/import-runner.ts): the import run
 - [src/services/add-pool.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/add-pool.ts): an admin adding a host or community pool through the importer's planner
 - [src/lib/map-search.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/lib/map-search.ts) and [src/services/all-maps.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/all-maps.ts): searching every osu! map and judging each set
@@ -25,15 +26,16 @@
 - [src/components/builder/](https://github.com/haruhimemoe/pools.haruhime.moe/tree/main/src/components/builder) and [src/hooks/usePoolEditor.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/hooks/usePoolEditor.ts): the pool editor (slot targets and templates, slot notes, map previews, undo, export, recent changes, drag and drop) and the map browser
 - [src/utils/built-ops.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/utils/built-ops.ts) and [src/utils/built-plan-ops.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/utils/built-plan-ops.ts): what each editor op does (shared by the server and the browser), and [src/utils/undo.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/utils/undo.ts): the inverses undo sends
 - [src/services/built-pool-activity.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/built-pool-activity.ts): the built pools' activity log (owner and editors only, last 200 per pool, 180 days)
-- [src/services/built-pack-sync.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/built-pack-sync.ts): keeping a built pool's pack on packs in step
+- [src/services/built-pack-sync.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/built-pack-sync.ts) and [src/services/built-pack-claims.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/built-pack-claims.ts): keeping a built pool's pack on packs in step
 - [src/utils/llms-txt.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/utils/llms-txt.ts): builds the live /llms.txt
 - [.env.example](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/.env.example): every environment variable, with what it's for
 
 ## Elsewhere
 
-- [@haruhimemoe/pool](https://github.com/haruhimemoe/pool): the mappool shape and the pack key codec
-- [@haruhimemoe/osu](https://github.com/haruhimemoe/osu): osu! API v2 shapes and the server client
-- [@haruhimemoe/hinai](https://github.com/haruhimemoe/hinai): the client for the hinai beatmap mirror
+- [@haruhimemoe/pool](https://github.com/haruhimemoe/pool): the mappool shape, mod rules, the pack key codec, the content filter and the packs service contract
+- [@haruhimemoe/osu](https://github.com/haruhimemoe/osu): osu! API v2 shapes, the server client and text formatting
+- [@haruhimemoe/hinai](https://github.com/haruhimemoe/hinai): the client for the hinai beatmap mirror, and msw handlers for tests
+- [@haruhimemoe/next-kit](https://github.com/haruhimemoe/next-kit): the Next.js server plumbing packs and pools share
 - [@haruhimemoe/compliance](https://github.com/haruhimemoe/compliance): the content rules for officially supported tournaments
 - [@haruhimemoe/ui](https://github.com/haruhimemoe/ui): the React components and theme the site is built from
 - [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview

@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Sign-in errors land on the sign-in page with a plain explanation, including "That osu! account isn't a pools admin."
 - `POOLS_ALLOW_SHARED_DB_USER`: set it to `true` to run on a database user that other apps share, like packs'. pools still needs readWrite on `pools` and logs a warning naming the other databases. Unset, pools keeps refusing any user that reaches another database.
 - A small "beta" tag beside the wordmark on every page while the site is built with `NEXT_PUBLIC_POOLS_BETA=true`. Pages stay indexable and titles don't change.
+- /llms.txt ends with an About section: the source on GitHub, GitHub private vulnerability reporting and security.txt.
 
 ### Changed
 
@@ -47,6 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The server plumbing (JSON route helpers, the same-origin guard, rate limits and the osu! budget, env parsing, the MongoDB client and its indexes, osu! sign-in, the signed-in marker, `useAccount` and `RestoreSignedIn`, security.txt) comes from `@haruhimemoe/next-kit` 0.1.0, which packs uses too. Behavior stays the same, except that the privilege check at connect now runs after Mongoose is attached (a failed check still refuses the connect), the osu! budget retries once on a duplicate key like rate limits, and its failure log reads `[osu-api] budget`.
 - The chips, radios and confirmations come from `@haruhimemoe/ui` 0.4.0: `ChoiceChips` for the pool type and map status, `RadioGroup` for visibility and the new owner, `TypeToConfirm` for deleting a pool or your account and handing a pool over, and `InlineConfirm` for an admin deleting a built pool, which now puts focus on Cancel when it asks.
 - Tags, links, tab strips and tables use ui 0.4.0's `Badge`, `TextLink`, `LinkTabs` and table primitives. Links in running text are underlined at rest, and the Pools / Maps switch on /search is a row of pill tabs like the maps scope.
-- Star ratings on pool pages, the map browser, the maps search and map pages are ui's `StarRating` pills (read as "5.23 stars"), slot labels are `ModBadge` pills colored by mod, and the map browser and map pages list CS, AR, OD, HP, BPM and length with `BeatmapStats`, which leaves out a value that isn't known instead of showing "?" or "–".
+- Star ratings on pool pages, the map browser, all-maps results and map pages are ui's `StarRating` pills (read as "5.23 stars"), slot labels are `ModBadge` pills colored by mod, and the map browser and map pages list CS, AR, OD, HP, BPM and length with `BeatmapStats`, which leaves out a value that isn't known instead of showing "?" or "–".
 - The admin buttons that run something (Refresh public pages, Retry pack cleanup, the two sync retries) are ui's `AsyncButton`, each with its own result; the account menu is ui's `HeaderMenu` (it now also closes when focus leaves it); the map browser pages with ui's `Pagination` in button mode.
 - SECURITY.md and /.well-known/security.txt name GitHub private vulnerability reporting first, then the email.
+- Inside: no source file over about 250 lines, no import cycles, a doc comment on every export (with a test that keeps it so), GitHub Actions pinned to commit SHAs, and components that export only components.

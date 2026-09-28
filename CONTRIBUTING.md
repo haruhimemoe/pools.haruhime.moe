@@ -36,7 +36,7 @@ Searching every osu! map calls the hinai mirror from the server, so the maps tab
 4. Run the full check before opening a PR:
 
    ```sh
-   bun run check && bun run typecheck && bun run test && SKIP_ENV_VALIDATION=true bun run build
+   bun run check && bun run typecheck && bun run test:coverage && SKIP_ENV_VALIDATION=true bun run build
    ```
 
 5. Open a PR using the template. CI must be green before merge.
@@ -49,9 +49,11 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:
 
 - `tests/unit/`: pure code, in Node, with `TZ=America/Los_Angeles`.
 - `tests/components/`: React components in jsdom.
-- `tests/integration/`: route handlers, services and the importer against an in-memory MongoDB (mongodb-memory-server). The first run downloads the MongoDB binary.
+- `tests/integration/`: route handlers, services and the importer against an in-memory MongoDB (next-kit's `startMemoryMongo`, mongodb-memory-server). The first run downloads the MongoDB binary.
 
-Tests never reach osu!, the mirror (its batch lookup and its search), otdb or packs: msw stands in for them (`tests/helpers/*-server.ts`, `tests/helpers/mirror-search.ts`), with recorded fixtures in `tests/fixtures/`.
+Tests never reach osu!, the mirror (its batch lookup and its search), otdb or packs: msw stands in for them (`setupMsw` from `@haruhimemoe/next-kit/testing`, `tests/helpers/*-server.ts`, `tests/helpers/mirror-search.ts`, and `@haruhimemoe/hinai/testing`'s answers recorded from the mirror), with recorded fixtures in `tests/fixtures/`.
+
+`tests/unit/tooling/` checks the repo itself: pinned dependencies and actions, file headers and a doc comment on every export, client imports, and the docs that list the packages.
 
 ## Scripts
 

@@ -5,7 +5,8 @@
  *       community members; star ratings with mods from the mirror; packs for past and built
  *       pools and no file hosting; every osu! map searchable; sending a pool; beta; the check
  *       is guidance; no API), then the pages (Make a pool among them), every current past pool,
- *       every public built pool with who built it, the most used maps and the legal pages.
+ *       every public built pool with who built it, the most used maps, the legal pages, and the
+ *       source and how to report a vulnerability.
  *       Link titles and descriptions come from sources and builders, so their markdown is
  *       escaped. Sections with nothing in them are left out. Pure.
  * @author David @dvhsh (https://dvh.sh)
@@ -170,6 +171,27 @@ export const llmsSections = ({
       url: at(`/legal/${slug}`),
       description: LEGAL_DOCS[slug].description,
     })),
+  },
+  {
+    heading: "About",
+    links: [
+      {
+        title: "Source on GitHub",
+        url: SITE.repoUrl,
+        description: "the site's code, MIT licensed",
+      },
+      {
+        title: "Report a vulnerability",
+        url: SITE.advisoriesUrl,
+        description:
+          "GitHub private vulnerability reporting; SECURITY.md in the repo gives the email too",
+      },
+      {
+        title: "security.txt",
+        url: at("/.well-known/security.txt"),
+        description: "the security contacts, as RFC 9116 asks",
+      },
+    ],
   },
 ];
 
