@@ -11,7 +11,7 @@
  *       (errors count), or packs refuses the token.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -30,16 +30,20 @@ import {
 } from "@/utils/sync";
 import { runPool } from "@/utils/task-pool";
 
+/** Past pools sent to packs at once. */
 export const SYNC_CONCURRENCY = 5;
 /** The longest a Retry-After holds the rest of a run. */
 export const MAX_RETRY_WAIT_MS = 60_000;
+/** How long the stats backfill waits between batches. */
 export const BACKFILL_INTERVAL_MS = 60_000;
+/** Batches that update nothing before the backfill stops. */
 export const BACKFILL_MAX_IDLE = 5;
 /** About 8 hours at one call a minute: far past the 2.5 hours the otdb backlog needs. */
 export const BACKFILL_MAX_CALLS = 500;
 
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Which pools, whether to resend rejected ones, the service and the clock (tests). */
 export type SyncOptions = {
   service: PacksService;
   /** Only these pools (default: every pool). */

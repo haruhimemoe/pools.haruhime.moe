@@ -36,13 +36,16 @@ import type { AllMapSet, SearchResponse } from "@/schemas/search-response";
 import { factsOf } from "@/services/compliance";
 import type { AllMapFilters, Range } from "@/utils/search-filters";
 
+/** One all-maps page as the route sends it. */
 export type AllMapsAnswer = Omit<Extract<SearchResponse, { scope: "all" }>, "tab" | "scope">;
 
+/** The page and whether it may be cached, or a failure. */
 export type AllMapsResult = { ok: true; answer: AllMapsAnswer; cacheable: boolean } | { ok: false };
 
 /** Current pools per beatmap id (0 for a map no pool has). */
 export type PlayedCounts = (ids: readonly number[]) => Promise<Map<number, number>>;
 
+/** The mirror search, the played counts and the clock (tests). */
 export type AllMapsDeps = {
   fetch?: typeof fetch;
   timeoutMs?: number;
@@ -129,14 +132,6 @@ export const shownMaps = (set: MirrorSet, sr: Range | null): MirrorSet["beatmaps
   return inside.length > 0 ? inside : sorted;
 };
 
-/**
- * @function searchAllMaps
- * @param filters {AllMapFilters} the search
- * @param page {number} the page, from 1
- * @param deps {AllMapsDeps} fetch, timeout, the played counts and clock (tests)
- * @returns {Promise<AllMapsResult>} the page (hidden sets counted), whether it may be cached,
- *          or a failure when the mirror failed
- */
 /** A set's verdict text: null when nothing stands in its way, else why to check first. */
 export type SetJudgement = { check: { text: string } | null };
 
@@ -169,6 +164,14 @@ export const judgeSets = async (
   return { allowed, ok: cached.ok };
 };
 
+/**
+ * @function searchAllMaps
+ * @param filters {AllMapFilters} the search
+ * @param page {number} the page, from 1
+ * @param deps {AllMapsDeps} fetch, timeout, the played counts and clock (tests)
+ * @returns {Promise<AllMapsResult>} the page (hidden sets counted), whether it may be cached,
+ *          or a failure when the mirror failed
+ */
 export const searchAllMaps = async (
   filters: AllMapFilters,
   page: number,

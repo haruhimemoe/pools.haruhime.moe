@@ -23,6 +23,7 @@ import { SOURCE_ID_PATTERN } from "@/utils/source-ids";
 /** Source links end up in hrefs: https only. */
 const httpsUrl = z.url({ protocol: /^https$/ });
 
+/** Where a past pool's pack stands on packs. */
 export const SYNC_STATES = [
   "created",
   "updated",
@@ -32,11 +33,13 @@ export const SYNC_STATES = [
   "gone",
 ] as const;
 
+/** One of SYNC_STATES. */
 export type SyncState = (typeof SYNC_STATES)[number];
 
 /** States in which packs has the pool's current pack. */
 export const LISTED_STATES: readonly SyncState[] = ["created", "updated", "unchanged"];
 
+/** A past pool id: <source>-<id>, with -2, -3 for later versions. */
 export const poolIdSchema = z.string().regex(POOL_ID_PATTERN);
 
 /** packs' slugs are nanoids; anything else never reaches an href. */
@@ -44,6 +47,7 @@ export const packSlugSchema = z.string().regex(/^[A-Za-z0-9_-]{1,32}$/);
 
 const sha256Schema = z.string().regex(/^[0-9a-f]{64}$/);
 
+/** A past pool's pack: its state, slug, input hash and last answer. */
 export const packSyncSchema = z.object({
   slug: packSlugSchema.nullable(),
   state: z.enum(SYNC_STATES).nullable(),
@@ -54,6 +58,7 @@ export const packSyncSchema = z.object({
   error: z.string().nullable(),
 });
 
+/** A past pool's pack. */
 export type PackSync = z.infer<typeof packSyncSchema>;
 
 /**
@@ -85,6 +90,7 @@ export const sourceCreditSchema = z.object({
   url: httpsUrl.optional(),
 });
 
+/** A host or community source's credit: a name and maybe an https link. */
 export type SourceCreditRecord = z.infer<typeof sourceCreditSchema>;
 
 /** A pool in otdb's export, as v1 stored it. */
@@ -107,12 +113,14 @@ const creditedSource = <K extends "host" | "community">(kind: K) =>
 const hostSourceSchema = creditedSource("host");
 const communitySourceSchema = creditedSource("community");
 
+/** A pool's source: otdb, host or community. */
 export const poolSourceSchema = z.discriminatedUnion("kind", [
   otdbSourceSchema,
   hostSourceSchema,
   communitySourceSchema,
 ]);
 
+/** A pool's source. */
 export type PoolSource = z.infer<typeof poolSourceSchema>;
 
 /** A source that pointed here until its pool changed there. */
@@ -122,6 +130,7 @@ export const formerSourceSchema = z.discriminatedUnion("kind", [
   communitySourceSchema.extend({ leftAt: z.date() }),
 ]);
 
+/** A source the record lost, with when. */
 export type FormerSource = z.infer<typeof formerSourceSchema>;
 
 /** A map as the source listed it: label, beatmap id and the mods it named. */
@@ -131,8 +140,10 @@ export const sourceSlotSchema = z.object({
   mods: z.array(z.string()),
 });
 
+/** A slot as its source labelled it. */
 export type SourceSlotRecord = z.infer<typeof sourceSlotSchema>;
 
+/** A pool's stats from packs. */
 export const poolStatsSchema = z.object({
   srMin: z.number().nullable(),
   srMax: z.number().nullable(),
@@ -144,6 +155,7 @@ export const poolStatsSchema = z.object({
   complete: z.boolean(),
 });
 
+/** A pool's stats. */
 export type PoolStats = z.infer<typeof poolStatsSchema>;
 
 /** Admin overrides: a key that's there wins (round and year may be set to null on purpose). */
@@ -154,8 +166,10 @@ export const poolEditsSchema = z.object({
   notes: z.string().optional(),
 });
 
+/** An admin's edits over what the name reads. */
 export type PoolEdits = z.infer<typeof poolEditsSchema>;
 
+/** A past pool record as stored. */
 export const storedPoolSchema = poolFields.extend({
   _id: poolIdSchema,
   tournament: z.string().min(1),
@@ -180,6 +194,7 @@ export const storedPoolSchema = poolFields.extend({
   updatedAt: z.date(),
 });
 
+/** A past pool record. */
 export type StoredPool = z.infer<typeof storedPoolSchema>;
 
 /**

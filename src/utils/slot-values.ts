@@ -42,6 +42,7 @@ export type SlotMapValues = {
   length: number | null;
 };
 
+/** A slot's values under its mods, the combo, and where they came from. */
 export type SlotValueAnswer = SlotMapValues & {
   /** The combo the values are under ("NM" for none). */
   mods: string;

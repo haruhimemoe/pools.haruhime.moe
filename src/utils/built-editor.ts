@@ -25,6 +25,7 @@ import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
 import type { OpFailure } from "@/utils/built-content";
 import { applyOps } from "@/utils/built-ops";
 
+/** Ops applied to the browser's copy, or the first that couldn't apply. */
 export type LocalResult = { ok: true; pool: ClientPool } | OpFailure;
 
 /**
@@ -41,6 +42,7 @@ export const applyLocal = (pool: ClientPool, ops: readonly PoolOp[]): LocalResul
   return { ok: true, pool: { ...pool, ...result.pool, buckets } };
 };
 
+/** A bucket's slots, in order (code null: maps without a slot). */
 export type SlotGroup = { code: string | null; entry: BucketEntry | null; slots: PoolSlot[] };
 
 /**

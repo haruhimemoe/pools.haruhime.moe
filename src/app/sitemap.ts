@@ -8,7 +8,7 @@
  *       serving the last good sitemap.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { MetadataRoute } from "next";
@@ -18,12 +18,18 @@ import { listPublicBuiltPools } from "@/services/built-listings";
 import { listListedMaps } from "@/services/maps";
 import { listCurrentPools } from "@/services/pools";
 
+/** Rebuilt once a day, and on an admin's Refresh public pages. */
 export const revalidate = 86400;
 
 const STATIC_PATHS = ["/", "/search", "/check", "/submit", "/data", "/credits"] as const;
 
 const at = (path: string): string => `${SITE.url}${path}`;
 
+/**
+ * @function sitemap
+ * @returns {Promise<MetadataRoute.Sitemap>} the static pages, current past pools, public built
+ *          pools with maps, and listed maps
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [pools, built, maps] = await Promise.all([
     listCurrentPools(),

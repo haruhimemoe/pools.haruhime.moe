@@ -42,6 +42,11 @@ const SourceEntry = ({ source }: { source: PoolSource | FormerSource }) => {
 const keyOf = (source: PoolSource | FormerSource): string =>
   `${source.kind}:${source.id}${"leftAt" in source ? `:${source.leftAt.toISOString()}` : ""}`;
 
+/**
+ * @function PoolSources
+ * @param props {PoolSourcesProps} the pool's sources and former sources
+ * @returns {JSX.Element} each source with its credit and link, and who the data comes from
+ */
 export function PoolSources({
   sources,
   formerSources,

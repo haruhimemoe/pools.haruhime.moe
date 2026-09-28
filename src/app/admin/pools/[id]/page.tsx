@@ -5,7 +5,7 @@
  *       sync state, the edit form, and badged for the whole tournament. 404 for an unknown id.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { Card } from "@haruhimemoe/ui";
@@ -20,8 +20,15 @@ import { pastSlotValues } from "@/services/slot-values";
 import { openInPacksHref } from "@/utils/pack-input";
 import { shownNotes } from "@/utils/pool-record";
 
+/** The admin preview's title; it's never indexed. */
 export const metadata: Metadata = { title: "Pool (admin)", robots: { index: false } };
 
+/**
+ * @function AdminPoolPage
+ * @param props {PageProps<"/admin/pools/[id]">} the pool's id
+ * @returns {Promise<JSX.Element>} the pool as the public sees it (hidden ones too) with the admin's
+ *          edit form
+ */
 export default async function AdminPoolPage({ params }: PageProps<"/admin/pools/[id]">) {
   const { id } = await params;
   await requireAdmin(`/admin/pools/${id}`);

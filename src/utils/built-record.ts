@@ -7,11 +7,12 @@
  *       computed when it's read. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { foldForSearch, searchTextOf } from "@/utils/fold";
 
+/** What search reads from a built pool: text, sort name and map count. */
 export type BuiltSearchFields = { searchText: string; sortName: string; mapCount: number };
 
 /**

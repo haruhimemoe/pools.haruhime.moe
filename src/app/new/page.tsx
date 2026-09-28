@@ -9,7 +9,7 @@
  *       session, so it's rendered per request; never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { Card, Notice, PageHeader } from "@haruhimemoe/ui";
@@ -21,8 +21,14 @@ import { getCurrentUser } from "@/lib/auth-session";
 import { startPreview } from "@/services/built-pool-create";
 import { startFromHref } from "@/utils/pool-links";
 
+/** /new's title; it's never indexed. */
 export const metadata: Metadata = { title: "Make a pool", robots: { index: false } };
 
+/**
+ * @function NewPoolPage
+ * @param props {PageProps<"/new">} `from`, the pool to start from
+ * @returns {Promise<JSX.Element>} the new pool form, or a sign-in prompt that comes back here
+ */
 export default async function NewPoolPage({ searchParams }: PageProps<"/new">) {
   const raw = (await searchParams).from;
   const from = typeof raw === "string" && raw !== "" ? raw.slice(0, 80) : null;

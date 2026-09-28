@@ -7,7 +7,7 @@
  *       version the sync hash includes, and packs' public address.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 /**
@@ -16,16 +16,19 @@
  */
 export const SOURCE_KINDS = ["otdb", "host", "community"] as const;
 
+/** Where a past pool came from: otdb, a host or a community member. */
 export type SourceKind = (typeof SOURCE_KINDS)[number];
 
 /** Kinds an admin adds by hand, each carrying the credit the admin typed (a name, maybe a link). */
 export const CREDITED_SOURCE_KINDS = ["host", "community"] as const;
 
+/** A source kind credited by name: host or community. */
 export type CreditedSourceKind = (typeof CREDITED_SOURCE_KINDS)[number];
 
 /** What `bun run import` reads. Host and community pools come in through /admin/pools/new. */
 export const IMPORT_SOURCES = ["otdb"] as const;
 
+/** A source the import command reads. */
 export type ImportSource = (typeof IMPORT_SOURCES)[number];
 
 /** How a source kind is credited. */
@@ -63,8 +66,11 @@ export const OTDB_POOL_URL_PREFIX = "https://otdb.sheppsu.me/db/mappools/";
 /** "<source>-<id>", then "-2", "-3" for later versions. Also packs' ref for the pool. */
 export const POOL_ID_PATTERN = /^[a-z0-9-]{1,64}$/;
 
+/** The longest tournament name. */
 export const MAX_TOURNAMENT_LENGTH = 100;
+/** The longest round name. */
 export const MAX_ROUND_LENGTH = 100;
+/** The longest pool notes. */
 export const MAX_NOTES_LENGTH = 2000;
 
 /** osu!'s first year: the earliest a pool's year can be (admin edits, the year slider). */
@@ -73,6 +79,7 @@ export const FIRST_YEAR = 2007;
 /** What a map was played as, in chip order: the built-in slots, then mods a custom slot forces. */
 export const PLAYED_AS_CODES = ["NM", "HD", "HR", "DT", "FM", "TB", "EZ", "HT", "FL"] as const;
 
+/** A slot code a map was played as. */
 export type PlayedAsCode = (typeof PLAYED_AS_CODES)[number];
 
 /** Part of every pack input hash: bump it when what pools sends packs changes shape. */

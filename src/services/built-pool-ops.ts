@@ -37,6 +37,7 @@ import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/buil
 import { applyOps } from "@/utils/built-ops";
 import type { BuiltSearchFields } from "@/utils/built-record";
 
+/** The 409's message: the pool comes with it. */
 export const CONFLICT_MESSAGE = "Someone else changed this pool. Here it is as it is now.";
 
 const conflict = async (id: string, caller: SessionUser): Promise<Answer<BuiltPoolView>> => {

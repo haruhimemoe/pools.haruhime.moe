@@ -27,6 +27,7 @@ import { markPackPending } from "@/services/built-pools";
 import { editorActivity } from "@/utils/activity";
 import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
 
+/** Looks an osu! username up (tests pass their own). */
 export type LookupUser = (
   username: string,
   options: { beforeCall: () => Promise<boolean> },

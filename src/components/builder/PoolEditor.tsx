@@ -59,6 +59,13 @@ type PoolEditorProps = {
 
 const YOUR_POOLS = "/account#pools";
 
+/**
+ * @function PoolEditor
+ * @param props {PoolEditorProps} the pool, its maps and values, who's editing, the content rules
+ *        and a fetcher (tests)
+ * @returns {JSX.Element} the editor: maps, browser, details, targets, summary, check, activity and
+ *          settings
+ */
 export function PoolEditor({
   initial,
   maps: known,

@@ -6,7 +6,7 @@
  *       once). At most 64 distinct maps. Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -24,6 +24,7 @@ import { MAX_CHECK_IDS } from "@/constants/compliance";
 /** One map to show: its slot label (a key or pasted pool) or none (bare IDs). */
 export type CheckRow = { label: string | null; beatmapId: number };
 
+/** Pasted maps read into ids, or why not. */
 export type CheckInput =
   | { kind: "key" | "pool" | "ids"; name: string | null; rows: CheckRow[]; problems: string[] }
   | { kind: "empty"; problems: string[] };

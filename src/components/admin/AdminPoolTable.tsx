@@ -11,6 +11,11 @@ import { Table, TBody, Td, TextLink, THead, Th } from "@haruhimemoe/ui";
 import type { AdminPoolRow } from "@/services/admin-pools";
 import { poolHeadline } from "@/utils/pool-text";
 
+/**
+ * @function AdminPoolTable
+ * @param props {{ rows: readonly AdminPoolRow[] }} one page of the admin pool list
+ * @returns {JSX.Element} the table of pools with their state and sync
+ */
 export function AdminPoolTable({ rows }: { rows: readonly AdminPoolRow[] }) {
   return (
     <Table>

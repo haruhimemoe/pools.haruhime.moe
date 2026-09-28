@@ -13,6 +13,11 @@ import { getAdminFromHeaders } from "@/lib/auth";
 import { badgedBodySchema } from "@/schemas/admin";
 import { setBadged } from "@/services/admin";
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} what setBadged changed for the tournament, or a refusal
+ */
 export async function POST(request: Request) {
   if (!(await getAdminFromHeaders(request.headers))) return jsonError(404, "Not found.");
   const crossSite = refuseCrossSite(request);

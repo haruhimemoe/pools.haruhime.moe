@@ -26,6 +26,11 @@ type SignOutButtonProps = {
   className?: string;
 };
 
+/**
+ * @function SignOutButton
+ * @param props {SignOutButtonProps} the button's variant and classes
+ * @returns {JSX.Element} a button that signs out, tells the header, and goes home
+ */
 export function SignOutButton({
   signOut = defaultSignOut,
   variant = "secondary",

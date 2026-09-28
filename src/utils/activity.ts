@@ -22,6 +22,7 @@ import { formatShortDate } from "@/utils/date";
 /** Someone an entry names besides its author: an editor added or removed, a new owner. */
 export type ActivitySubject = { osuId: number; username: string };
 
+/** What one change records: its kind, the summary, and whom it names. */
 export type ActivityNote = { kind: ActivityKind; summary: string; subject?: ActivitySubject };
 
 const listed = (words: string[]): string =>

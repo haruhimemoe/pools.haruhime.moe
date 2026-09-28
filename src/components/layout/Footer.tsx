@@ -6,13 +6,14 @@
  *       brand, the Discord server and the haruhimemoe GitHub org.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { SiteFooter, type SiteFooterColumn } from "@haruhimemoe/ui";
 import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
 import { SITE } from "@/constants/site";
 
+/** The footer's link columns: pools, Data, About and Legal. */
 export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
   {
     title: "pools",
@@ -43,6 +44,11 @@ export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
   },
 ];
 
+/**
+ * @function Footer
+ * @returns {JSX.Element} ui's SiteFooter with the columns, the Discord and GitHub links and the
+ *          trademark notice
+ */
 export function Footer() {
   return (
     <SiteFooter

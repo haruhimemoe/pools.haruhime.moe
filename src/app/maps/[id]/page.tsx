@@ -6,7 +6,7 @@
  *       current pools".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { Metadata } from "next";
@@ -17,8 +17,13 @@ import { getMapHistory, getPublicMap } from "@/services/maps";
 import { mapLabel } from "@/utils/map-record";
 import { usageSummary } from "@/utils/usage";
 
+/** ISR: rebuilt at most once an hour, and on an admin's Refresh public pages. */
 export const revalidate = 3600;
 
+/**
+ * @function generateStaticParams
+ * @returns {{ id: string }[]} none at build: map pages build on first visit
+ */
 export function generateStaticParams() {
   return [];
 }
@@ -30,6 +35,11 @@ const loadMap = cache(async (raw: string) => {
   return id === null ? null : getPublicMap(id);
 });
 
+/**
+ * @function generateMetadata
+ * @param props {PageProps<"/maps/[id]">} the beatmap id
+ * @returns {Promise<Metadata>} the map's title and canonical URL (a 404's when it has no page)
+ */
 export async function generateMetadata({ params }: PageProps<"/maps/[id]">): Promise<Metadata> {
   const { id } = await params;
   const map = await loadMap(id);
@@ -41,6 +51,11 @@ export async function generateMetadata({ params }: PageProps<"/maps/[id]">): Pro
   };
 }
 
+/**
+ * @function MapPage
+ * @param props {PageProps<"/maps/[id]">} the beatmap id
+ * @returns {Promise<JSX.Element>} the map and the current pools it's in, or a 404
+ */
 export default async function MapPage({ params }: PageProps<"/maps/[id]">) {
   const { id } = await params;
   const map = await loadMap(id);

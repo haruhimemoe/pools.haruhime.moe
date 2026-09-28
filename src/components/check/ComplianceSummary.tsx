@@ -25,6 +25,11 @@ type ComplianceSummaryProps = {
   className?: string;
 };
 
+/**
+ * @function ComplianceSummary
+ * @param props {ComplianceSummaryProps} the check's summary
+ * @returns {JSX.Element} the headline verdict and the counts behind it
+ */
 export function ComplianceSummary({
   summary,
   title = "Summary",

@@ -16,6 +16,11 @@ import { authClient } from "@/lib/auth-client";
 
 const FAILED = "Couldn't start osu! sign-in. Try again.";
 
+/**
+ * @function SignInWithOsu
+ * @param props {{ next: string }} where to land after signing in
+ * @returns {JSX.Element} the "Sign in with osu!" button, with an error when sign-in can't start
+ */
 export function SignInWithOsu({ next }: { next: string }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);

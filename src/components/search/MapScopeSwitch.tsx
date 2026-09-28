@@ -36,6 +36,11 @@ export const scopeHref = (scope: MapScope, filters: AllMapFilters | MapFilters):
     : searchHref({ tab: "maps", scope, page: 1, filters: { ...EMPTY_MAP_FILTERS, ...shared } });
 };
 
+/**
+ * @function MapScopeSwitch
+ * @param props {{ scope; filters }} the scope on screen and the maps filters
+ * @returns {JSX.Element} All maps / Played in pools as ui's LinkTabs, keeping the shared filters
+ */
 export function MapScopeSwitch({
   scope,
   filters,

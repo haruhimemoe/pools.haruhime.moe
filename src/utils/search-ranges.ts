@@ -1,3 +1,14 @@
+/**
+ * @file src/utils/search-ranges.ts
+ * @desc Reading and writing filter values in URLs, shared by the search and the map browser
+ *       (src/utils/browse-params.ts): ranges that snap to their slider (open at the edges; one
+ *       covering the whole slider is no filter), lengths as m:ss or seconds, the page number,
+ *       and query text made well formed. Pure, and safe in the browser.
+ * @author David @dvhsh (https://dvh.sh)
+ * @created Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
+ */
+
 import { type FilterBounds, LENGTH_RANGE, MAX_SEARCH_PAGE } from "@/constants/search";
 import type { Range } from "@/utils/search-filters";
 
@@ -106,6 +117,7 @@ export const parsePageParam = (raw: string | null): number =>
  */
 export const rangeText = ([low, high]: Range): string => `${low}-${high ?? ""}`;
 
+/** A surrogate pair, or a surrogate on its own. */
 const SURROGATES = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDFFF]/g;
 
 /**

@@ -4,7 +4,7 @@
  *       (AddPoolForm). Admins only (sign-in otherwise); never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { Card, PageHeader } from "@haruhimemoe/ui";
@@ -12,8 +12,13 @@ import type { Metadata } from "next";
 import { AddPoolForm } from "@/components/admin/AddPoolForm";
 import { requireAdmin } from "@/lib/auth-session";
 
+/** The add-a-pool page's title; it's never indexed. */
 export const metadata: Metadata = { title: "Add a pool", robots: { index: false } };
 
+/**
+ * @function AddPoolPage
+ * @returns {Promise<JSX.Element>} the admin's form for a host or community pool
+ */
 export default async function AddPoolPage() {
   await requireAdmin("/admin/pools/new");
   return (

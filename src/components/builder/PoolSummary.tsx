@@ -36,6 +36,11 @@ const rangeText = ({ low, high, maps, known }: StarRange): string => {
 
 const H3 = "font-bold text-c1";
 
+/**
+ * @function PoolSummary
+ * @param props {PoolSummaryProps} the pool, its maps and values
+ * @returns {JSX.Element} each bucket's map count and star range, and the targets
+ */
 export function PoolSummary({ pool, maps, values = {} }: PoolSummaryProps) {
   const groups = groupSlots(pool);
   const ordered = groups.flatMap((group) => group.slots);

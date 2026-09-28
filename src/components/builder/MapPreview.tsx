@@ -30,6 +30,12 @@ type MapPreviewProps = {
   song: string;
 };
 
+/**
+ * @function MapPreview
+ * @param props {MapPreviewProps} the set id and the song's name
+ * @returns {JSX.Element} the set's cover with a play button for its preview clip, or nothing
+ *          without a set id
+ */
 export function MapPreview({ setId, song }: MapPreviewProps) {
   const playing = usePlayingSet();
   const valid = isSetId(setId);

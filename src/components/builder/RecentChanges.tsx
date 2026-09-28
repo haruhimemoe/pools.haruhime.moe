@@ -18,6 +18,11 @@ import { activityWhen } from "@/utils/activity";
 
 type RecentChangesProps = { poolId: string; version: number; fetcher: Fetcher };
 
+/**
+ * @function RecentChanges
+ * @param props {RecentChangesProps} the pool's id and version, and a fetcher (tests)
+ * @returns {JSX.Element} the last 20 changes, asked again whenever the version moves
+ */
 export function RecentChanges({ poolId, version, fetcher }: RecentChangesProps) {
   const [entries, setEntries] = useState<ClientActivity[] | null>(null);
   const [failed, setFailed] = useState(false);

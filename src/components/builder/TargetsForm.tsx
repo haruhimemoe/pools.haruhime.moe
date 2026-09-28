@@ -29,6 +29,11 @@ const inputOf = (target: BucketTarget | undefined): TargetInput => ({
   max: target?.sr ? String(target.sr.max) : "",
 });
 
+/**
+ * @function TargetsForm
+ * @param props {TargetsFormProps} the pool and the change call
+ * @returns {JSX.Element} each bucket's map count and star range
+ */
 export function TargetsForm({ pool, change }: TargetsFormProps) {
   const [picked, setCode] = useState(pool.buckets[0]?.code ?? "NM");
   // A custom slot removed meanwhile falls back to the first one.

@@ -25,6 +25,11 @@ type AddEditorFormProps = {
   onDone: (message: string) => void;
 };
 
+/**
+ * @function AddEditorForm
+ * @param props {AddEditorFormProps} the pool, the editor, a fetcher (tests) and what to do after
+ * @returns {JSX.Element} the owner's form that adds an editor by osu! username
+ */
 export function AddEditorForm({ pool, editor, fetcher, onDone }: AddEditorFormProps) {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);

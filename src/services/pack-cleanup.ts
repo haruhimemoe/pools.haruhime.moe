@@ -73,6 +73,7 @@ export const queuePackRemoval = async (ref: string, reason: string, now: Date): 
   );
 };
 
+/** What happened to a pack: none to remove, removed, or queued. */
 export type PackRemoval = "none" | "removed" | "queued";
 
 /**

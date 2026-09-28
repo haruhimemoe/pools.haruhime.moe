@@ -51,6 +51,13 @@ type Props = {
   mapError: string | null;
 };
 
+/**
+ * @function PoolFilterPanel
+ * @param props {Props} the filters, the change handler, whether badged is known, the count and a
+ *        map error
+ * @returns {JSX.Element} the pools filters: type, text, map, year, badged, stars, map count and
+ *          sort
+ */
 export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, mapError }: Props) {
   const set = <K extends keyof PoolFilters>(key: K, value: PoolFilters[K]) =>
     onChange({ ...filters, [key]: value });

@@ -24,24 +24,30 @@ import {
 
 const starSchema = z.number().min(TARGET_STARS.min).max(TARGET_STARS.max);
 
+/** How many maps a bucket should have: 0 to MAX_TARGET_COUNT. */
 export const targetCountSchema = z.number().int().min(0).max(MAX_TARGET_COUNT);
 
+/** A bucket's star range: min at most max, both within the star slider. */
 export const targetRangeSchema = z
   .strictObject({ min: starSchema, max: starSchema })
   .refine((sr) => sr.min <= sr.max, TARGET_MESSAGES.crossed);
 
+/** A bucket's star range. */
 export type TargetRange = z.infer<typeof targetRangeSchema>;
 
+/** A bucket's target: a map count and maybe a star range. */
 export const bucketTargetSchema = z.strictObject({
   count: targetCountSchema,
   sr: targetRangeSchema.optional(),
 });
 
+/** A bucket's target. */
 export type BucketTarget = z.infer<typeof bucketTargetSchema>;
 
 /** Targets by bucket code. */
 export const bucketTargetsSchema = z.record(z.string(), bucketTargetSchema);
 
+/** Each bucket's target, by code. */
 export type BucketTargets = Readonly<Record<string, BucketTarget>>;
 
 /** Targets as read: shape only, so a stored pool a newer limit would refuse still reads. */
@@ -87,6 +93,7 @@ export const slotNoteSchema = z
 /** Notes by beatmap id (as a string key). */
 export const slotNotesSchema = z.record(z.string().regex(/^\d+$/), slotNoteSchema.min(1));
 
+/** Each slot's note, by beatmap id. */
 export type SlotNotes = Readonly<Record<string, string>>;
 
 /** Notes as read: shape only. */

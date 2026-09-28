@@ -60,8 +60,8 @@ export const findBuiltPool = async (id: string): Promise<StoredBuiltPool | null>
  * @function toStored
  * @param pool {StoredBuiltPool} a pool about to be written
  * @returns {StoredBuiltPool & BuiltSearchFields} the same pool, checked, with `buckets` left out
- *          for the default list and `targets` and `slotNotes` when there are none (the driver would store an
- *          undefined value as null), and its search fields
+ *          for the default list and `targets` and `slotNotes` when there are none (the driver
+ *          would store an undefined value as null), and its search fields
  * @throws {z.ZodError} when it doesn't satisfy the stored schema (a bug)
  */
 export const toStored = (pool: StoredBuiltPool): StoredBuiltPool & BuiltSearchFields => {

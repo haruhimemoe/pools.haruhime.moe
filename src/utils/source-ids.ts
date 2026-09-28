@@ -9,7 +9,7 @@
  *       passes its own bytes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 /** A generated source id: a letter, then 7 base36 characters. */
@@ -21,6 +21,7 @@ const ID_LENGTH = 8;
 /** How many new ids to try before giving up on finding a free one. */
 const MAX_TRIES = 20;
 
+/** Random bytes (tests pass their own). */
 export type RandomBytes = (length: number) => Uint8Array;
 
 const webCryptoBytes: RandomBytes = (length) => crypto.getRandomValues(new Uint8Array(length));

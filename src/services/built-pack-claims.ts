@@ -18,11 +18,21 @@ import { findBuiltPool, readBuiltPool } from "@/services/built-pool-read";
 import { markPackPending } from "@/services/built-pools";
 import { PACK_SYNC_INTERVAL_MS } from "@/utils/built-pack";
 
+/**
+ * @function sleep
+ * @param ms {number} how long
+ * @returns {Promise<void>} resolves after that long
+ */
 export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
- * Takes the pool for one sync, or null when it's not due (or not there). A forced claim skips
- * the 30 s but not a claim younger than the PUT timeout: that sync may still be out at packs.
+ * @function claim
+ * @param id {string} a built pool
+ * @param at {Date} the claim's time, stamped as pack.lastAttemptAt
+ * @param force {boolean} skip the 30 s (but not a claim younger than the PUT timeout: that sync
+ *        may still be out at packs)
+ * @returns {Promise<StoredBuiltPool | null>} the pool taken for one sync, or null when it's not
+ *          due (or not there)
  */
 export const claim = async (
   id: string,
@@ -45,9 +55,14 @@ export const claim = async (
 };
 
 /**
- * A forced claim: one that meets a sync still out waits until that claim is older than the PUT
- * timeout and tries once more; still busy (another claim came meanwhile), the pool is left
- * pending. Null when the pool isn't there, private or gone, or was left pending.
+ * @function claimForced
+ * @param id {string} a built pool
+ * @param now {() => Date} the clock
+ * @param wait {(ms: number) => Promise<void>} waits out a sync still out at packs
+ * @returns {Promise<{ pool: StoredBuiltPool; at: Date } | null>} the pool and its claim; one
+ *          that meets a sync still out waits until that claim is older than the PUT timeout and
+ *          tries once more. Null when the pool isn't there, private or gone, or was left pending
+ *          (another claim came meanwhile).
  */
 export const claimForced = async (
   id: string,
@@ -67,17 +82,38 @@ export const claimForced = async (
   return null;
 };
 
+/**
+ * @function claimAt
+ * @param id {string} a built pool
+ * @param at {Date} the claim's time
+ * @returns {Promise<StoredBuiltPool | null>} a regular claim: the pool when it's due (pending, or
+ *          failed and worth trying again) and 30 s past its last claim, else null
+ */
 export const claimAt = async (id: string, at: Date) => {
   const pool = await claim(id, at, false);
   return pool ? { pool, at } : null;
 };
 
+/**
+ * @function asClaimed
+ * @param pool {StoredBuiltPool} the pool as the claim read it
+ * @param at {Date} the claim's time
+ * @returns the filter for the pool as that claim left it: the same version, and no newer claim
+ */
 export const asClaimed = (pool: StoredBuiltPool, at: Date) => ({
   _id: pool._id,
   version: pool.version,
   "pack.lastAttemptAt": at,
 });
 
+/**
+ * @function storeIfUnchanged
+ * @param pool {StoredBuiltPool} the pool as the claim read it
+ * @param at {Date} the claim's time
+ * @param pack {StoredBuiltPool["pack"]} the pack to store
+ * @returns {Promise<boolean>} true when stored; false when the pool changed or a newer sync
+ *          claimed it
+ */
 export const storeIfUnchanged = async (
   pool: StoredBuiltPool,
   at: Date,

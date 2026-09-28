@@ -38,6 +38,11 @@ const valueFacts = (values: SlotValueAnswer): string[] => {
   return note ? [stars, ...facts, note] : [stars, ...facts];
 };
 
+/**
+ * @function SlotMapText
+ * @param props {SlotMapTextProps} the beatmap id, its details, its values and whether to link it
+ * @returns {JSX.Element} the map's name and a line of facts under the slot's mods
+ */
 export function SlotMapText({ beatmapId, map, values, link = false }: SlotMapTextProps) {
   const label = mapLabel(map, beatmapId);
   const facts = [

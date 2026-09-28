@@ -22,6 +22,13 @@ type Context = { params: Promise<{ id: string }> };
 /** Up to three mirror tries with their waits. */
 export const maxDuration = 30;
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} the pool's map details, maps pools never saw filled from the mirror
+ *          first
+ */
 export async function GET(request: Request, { params }: Context) {
   const { id } = await params;
   const user = await getUserFromHeaders(request.headers);

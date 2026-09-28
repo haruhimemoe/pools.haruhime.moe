@@ -26,6 +26,12 @@ type Context = { params: Promise<{ id: string }> };
 /** A delete may wait on one DELETE to packs; a GET, on a PUT after the answer. */
 export const maxDuration = 60;
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} the pool as the caller sees it, or a refusal
+ */
 export async function GET(request: Request, { params }: Context) {
   const { id } = await params;
   const answer = await getBuiltPoolFor(id, await getUserFromHeaders(request.headers));
@@ -35,6 +41,13 @@ export async function GET(request: Request, { params }: Context) {
   return poolResponse({ pool: answer.value });
 }
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} 204 once the pool is gone (200 with a notice when its pack removal
+ *          was queued), or a refusal
+ */
 export async function DELETE(request: Request, { params }: Context) {
   const { id } = await params;
   const caller = await guardWrite(request);

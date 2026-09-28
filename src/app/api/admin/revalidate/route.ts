@@ -15,6 +15,11 @@ import { getAdminFromHeaders } from "@/lib/auth";
 import { revalidateAllPoolAndMapPages } from "@/lib/revalidate";
 import { revalidateBodySchema } from "@/schemas/admin";
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} { ok: true } once every public page is marked to rebuild
+ */
 export async function POST(request: Request) {
   if (!(await getAdminFromHeaders(request.headers))) return jsonError(404, "Not found.");
   const crossSite = refuseCrossSite(request);

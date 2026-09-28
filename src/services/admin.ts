@@ -30,12 +30,14 @@ import { packInputHash, packInputOf } from "@/utils/pack-input";
 import { derivedFields, editsFrom, effectiveFields, isVisible } from "@/utils/pool-record";
 import type { SyncSummary } from "@/utils/sync";
 
+/** The packs service and the clock (tests). */
 export type AdminDeps = {
   packsService?: () => PacksService | null;
   fetch?: Fetch;
   now?: () => Date;
 };
 
+/** What an admin save did to the pack: not needed, sent (with packs' answer), or failed. */
 export type SyncOutcome =
   | { status: "not-needed" }
   | { status: "sent"; state: SyncState; error: string | null }
@@ -136,7 +138,6 @@ export const setBadged = async (
 };
 
 /** Pools one retry click sends at most (a function has a minute). */
-
 export const RETRY_LIMIT = 50;
 
 /**

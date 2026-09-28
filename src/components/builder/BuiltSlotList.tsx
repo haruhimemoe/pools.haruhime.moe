@@ -25,6 +25,11 @@ type BuiltSlotListProps = {
   values: SlotValueMap;
 };
 
+/**
+ * @function BuiltSlotList
+ * @param props {BuiltSlotListProps} the pool, its maps and values
+ * @returns {JSX.Element} the pool's slots by bucket with each map's values and note
+ */
 export function BuiltSlotList({ pool, maps, values }: BuiltSlotListProps) {
   const groups = groupSlots(pool).filter((group) => group.slots.length > 0);
   if (groups.length === 0) return <p className="text-c3 text-sm">No maps yet.</p>;

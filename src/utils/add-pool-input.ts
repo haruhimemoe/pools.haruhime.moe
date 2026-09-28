@@ -7,7 +7,7 @@
  *       a pack by slug needs a packs API key. Also the added pool's name. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -25,13 +25,16 @@ import type { PoolShape } from "@/utils/fingerprint";
 /** A map as the admin listed it: its slot label and beatmap id. */
 export type AddedSlot = { label: string; beatmapId: number };
 
+/** The maps field read: a pool shape (a pack key's), labelled slots, or why not. */
 export type AddPoolMaps =
   | { ok: true; from: "key"; slots: AddedSlot[]; shape: PoolShape }
   | { ok: true; from: "paste"; slots: AddedSlot[]; shape: null }
   | { ok: false; message: string };
 
+/** Said when the maps field is empty. */
 export const NO_MAPS =
   "Paste the maps: a packs link, a pack key, or beatmap IDs or links with their slots.";
+/** Said for a pack's /p/ link, which names no maps. */
 export const SLUG_LINK_REFUSED =
   "pools can't read a pack from its /p/ link. Paste the pack key or the pack's /k link instead.";
 

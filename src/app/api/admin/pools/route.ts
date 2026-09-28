@@ -35,6 +35,12 @@ const fieldsError = (fields: Record<string, string>): Response =>
     ),
   );
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} the pool the source created or joined, with its pack sync, or the
+ *          refusals per field
+ */
 export async function POST(request: Request) {
   if (!(await getAdminFromHeaders(request.headers))) return jsonError(404, "Not found.");
   const crossSite = refuseCrossSite(request);

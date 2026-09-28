@@ -9,7 +9,7 @@
  *       the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -28,12 +28,14 @@ import {
   serializeBrowseParams,
 } from "@/utils/browse-params";
 
+/** The browser's state in the editor URL: its params and whether to hide the pool's maps. */
 export type BrowseState = Omit<BrowseParams, "excludeIds"> & {
   /** "Hide maps in this pool". */
   hideInPool: boolean;
 };
 
 const { excludeIds: _, ...defaults } = DEFAULT_BROWSE_PARAMS;
+/** The browser as it opens. */
 export const DEFAULT_BROWSE_STATE: BrowseState = Object.freeze({ ...defaults, hideInPool: false });
 
 /** The editor URL's param that holds the browser's query. */

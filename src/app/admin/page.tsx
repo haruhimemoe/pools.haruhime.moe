@@ -26,8 +26,14 @@ import { ADMIN_BUILT_LIMIT, listRecentBuiltPools } from "@/services/built-modera
 import { listImportReports } from "@/services/imports";
 import { countPackCleanup } from "@/services/pack-cleanup";
 
+/** The admin page's title; it's never indexed. */
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 
+/**
+ * @function AdminPage
+ * @returns {Promise<JSX.Element>} the admin's tools: sync states, retries, recent built pools and
+ *          import reports
+ */
 export default async function AdminPage() {
   const admin = await requireAdmin("/admin");
   const [reports, states, waiting, built] = await Promise.all([

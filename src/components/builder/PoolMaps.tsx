@@ -37,6 +37,11 @@ type PoolMapsProps = {
 const inRow = (id: number, controls: readonly string[]) =>
   controls.map((control) => `[data-map="${id}"] [data-control="${control}"]`);
 
+/**
+ * @function PoolMaps
+ * @param props {PoolMapsProps} the pool, its maps and values, the change call and Find maps
+ * @returns {JSX.Element} the maps card: every bucket with its rows
+ */
 export function PoolMaps({ pool, maps, values, change, onFind }: PoolMapsProps) {
   const box = useRef<HTMLDivElement>(null);
   /** Where focus goes once the change is on screen, and the pool it was made from. */

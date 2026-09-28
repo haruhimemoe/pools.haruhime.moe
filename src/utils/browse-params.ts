@@ -43,6 +43,7 @@ import {
   wellFormed,
 } from "@/utils/search-ranges";
 
+/** One map browser search: lens, status, text, sort, page, ranges and what to leave out. */
 export type BrowseParams = {
   q: string;
   lens: BrowseLens;
@@ -64,6 +65,7 @@ export type BrowseParams = {
   page: number;
 };
 
+/** Ranked under NM, most favourited, page 1, no filters. */
 export const DEFAULT_BROWSE_PARAMS: BrowseParams = Object.freeze({
   q: "",
   lens: DEFAULT_LENS,

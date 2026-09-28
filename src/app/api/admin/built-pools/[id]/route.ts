@@ -27,6 +27,12 @@ type Context = { params: Promise<{ id: string }> };
 /** A delete may wait on one DELETE to packs; a hide, on a PUT after the answer. */
 export const maxDuration = 60;
 
+/**
+ * @function PATCH
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} the pool with its new hidden state, or a refusal
+ */
 export async function PATCH(request: Request, { params }: Context) {
   const { id } = await params;
   if (!(await getAdminFromHeaders(request.headers))) return jsonError(404, "Not found.");
@@ -46,6 +52,13 @@ export async function PATCH(request: Request, { params }: Context) {
   );
 }
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} 204 once the pool is gone (200 with a notice when its pack removal
+ *          was queued), or a refusal
+ */
 export async function DELETE(request: Request, { params }: Context) {
   const { id } = await params;
   const admin = await getAdminFromHeaders(request.headers);

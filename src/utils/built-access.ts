@@ -7,7 +7,7 @@
  *       public pool unless it's hidden. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { StoredBuiltPool } from "@/schemas/built-pool";
@@ -15,6 +15,7 @@ import type { StoredBuiltPool } from "@/schemas/built-pool";
 /** The signed-in caller (the parts access needs), or null for a visitor. */
 export type Caller = { id: string; osuId: number; isAdmin: boolean } | null;
 
+/** What a caller may do with a built pool. */
 export type Access = {
   isOwner: boolean;
   isEditor: boolean;

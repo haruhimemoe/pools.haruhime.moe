@@ -6,7 +6,7 @@
  *       who to credit. An admin checks every pool by hand before it appears. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PageHeader, Prose } from "@haruhimemoe/ui";
@@ -15,6 +15,7 @@ import Link from "next/link";
 import { PACKS_SITE_URL } from "@/constants/pools";
 import { SITE } from "@/constants/site";
 
+/** /submit's title, description and canonical URL. */
 export const metadata: Metadata = {
   title: "Submit a pool",
   description:
@@ -24,6 +25,10 @@ export const metadata: Metadata = {
 const discord = <a href={SITE.discordUrl}>Discord server</a>;
 const email = <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>;
 
+/**
+ * @function SubmitPage
+ * @returns {JSX.Element} how to send a pool: the Discord server and what to include
+ */
 export default function SubmitPage() {
   return (
     <article>

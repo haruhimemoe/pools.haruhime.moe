@@ -3,11 +3,15 @@
  * @desc 404 page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { ButtonLink, PageHeader } from "@haruhimemoe/ui";
 
+/**
+ * @function NotFound
+ * @returns {JSX.Element} the 404 page with links back
+ */
 export default function NotFound() {
   return (
     <PageHeader

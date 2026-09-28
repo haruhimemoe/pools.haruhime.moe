@@ -30,6 +30,12 @@ const Stars = ({ values }: { values: SlotValueAnswer }) => (
   </>
 );
 
+/**
+ * @function PoolSlotTable
+ * @param props {{ slots; maps; values }} the pool's slots, their maps and values under each slot's
+ *        mods
+ * @returns {JSX.Element} the maps table with Copy ID per row
+ */
 export function PoolSlotTable({
   slots,
   maps,

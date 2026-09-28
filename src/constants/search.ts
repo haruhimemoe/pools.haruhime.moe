@@ -16,9 +16,12 @@ import { FIRST_YEAR } from "@/constants/pools";
 /** A search query is cut to this many characters before it's folded and matched. */
 export const MAX_QUERY_LENGTH = 100;
 
+/** The search page's tabs. */
 export const SEARCH_TABS = ["pools", "maps"] as const;
+/** One of SEARCH_TABS. */
 export type SearchTab = (typeof SEARCH_TABS)[number];
 
+/** Results per search page. */
 export const SEARCH_PAGE_SIZE = 50;
 /** A page number past this reads as this. */
 export const MAX_SEARCH_PAGE = 200;
@@ -47,11 +50,17 @@ export type FilterBounds = {
   readonly decimals: number;
 };
 
+/** The star rating slider. */
 export const STAR_RANGE: FilterBounds = Object.freeze({ min: 0, max: 10, step: 0.01, decimals: 2 });
+/** The length slider, in seconds (600 and over is open). */
 export const LENGTH_RANGE: FilterBounds = Object.freeze({ min: 0, max: 600, step: 1, decimals: 0 });
+/** The BPM slider. */
 export const BPM_RANGE: FilterBounds = Object.freeze({ min: 60, max: 300, step: 1, decimals: 0 });
+/** The AR slider. */
 export const AR_RANGE: FilterBounds = Object.freeze({ min: 0, max: 11, step: 0.1, decimals: 1 });
+/** The OD slider. */
 export const OD_RANGE: FilterBounds = Object.freeze({ min: 0, max: 11, step: 0.1, decimals: 1 });
+/** The CS slider. */
 export const CS_RANGE: FilterBounds = Object.freeze({ min: 0, max: 10, step: 0.1, decimals: 1 });
 /** Times a map was used: 1 to 20+. */
 export const USED_RANGE: FilterBounds = Object.freeze({ min: 1, max: 20, step: 1, decimals: 0 });
@@ -70,8 +79,11 @@ export const YEAR_RANGE: FilterBounds = Object.freeze({
   decimals: 0,
 });
 
+/** The badged filter's choices. */
 export const BADGED_FILTERS = ["any", "yes", "no", "unknown"] as const;
+/** One of BADGED_FILTERS. */
 export type BadgedFilter = (typeof BADGED_FILTERS)[number];
+/** What each badged choice is called. */
 export const BADGED_LABELS: Readonly<Record<BadgedFilter, string>> = Object.freeze({
   any: "Any",
   yes: "Badged",
@@ -81,8 +93,11 @@ export const BADGED_LABELS: Readonly<Record<BadgedFilter, string>> = Object.free
 
 /** The pools tab lists past tournament pools (old links too), pools built here, or both. */
 export const POOL_TYPES = ["past", "built", "both"] as const;
+/** Which pools the pools tab lists: past, built here or both. */
 export type PoolType = (typeof POOL_TYPES)[number];
+/** Past pools: what a link without a type means. */
 export const DEFAULT_POOL_TYPE: PoolType = "past";
+/** What each pool type is called. */
 export const POOL_TYPE_LABELS: Readonly<Record<PoolType, string>> = Object.freeze({
   past: "Past tournament pools",
   built: "Built here",
@@ -93,18 +108,26 @@ export const POOL_TYPE_LABELS: Readonly<Record<PoolType, string>> = Object.freez
 export const BUILT_CLEARED_NOTE =
   "Pools built here have no badged or star data, so those filters were cleared.";
 
+/** The pools tab's orders. */
 export const POOL_SORTS = ["year", "name", "maps"] as const;
+/** One of POOL_SORTS. */
 export type PoolSort = (typeof POOL_SORTS)[number];
+/** Newest year first. */
 export const DEFAULT_POOL_SORT: PoolSort = "year";
+/** What each pool order is called. */
 export const POOL_SORT_LABELS: Readonly<Record<PoolSort, string>> = Object.freeze({
   year: "Year, newest first",
   name: "Name, A to Z",
   maps: "Most maps",
 });
 
+/** The played-maps orders. */
 export const MAP_SORTS = ["used", "last", "stars", "length", "title"] as const;
+/** One of MAP_SORTS. */
 export type MapSort = (typeof MAP_SORTS)[number];
+/** Most used first. */
 export const DEFAULT_MAP_SORT: MapSort = "used";
+/** What each map order is called. */
 export const MAP_SORT_LABELS: Readonly<Record<MapSort, string>> = Object.freeze({
   used: "Most used",
   last: "Last used",
@@ -115,7 +138,9 @@ export const MAP_SORT_LABELS: Readonly<Record<MapSort, string>> = Object.freeze(
 
 /** The maps tab searches every osu! map (the mirror) or the maps played in pools (ours). */
 export const MAP_SCOPES = ["all", "played"] as const;
+/** Which maps the maps tab searches: all osu! maps or maps played in pools. */
 export type MapScope = (typeof MAP_SCOPES)[number];
+/** What each scope is called. */
 export const MAP_SCOPE_LABELS: Readonly<Record<MapScope, string>> = Object.freeze({
   all: "All osu! maps",
   played: "Played in pools",
@@ -127,8 +152,11 @@ export const MAP_SCOPE_LABELS: Readonly<Record<MapScope, string>> = Object.freez
  * default of ranked and qualified), so an old status=any link reads as the default.
  */
 export const MAP_STATUSES = ["ranked", "loved", "qualified", "pending", "graveyard"] as const;
+/** An osu! status the all-maps search takes. */
 export type MapStatus = (typeof MAP_STATUSES)[number];
+/** Ranked maps first. */
 export const DEFAULT_MAP_STATUS: MapStatus = "ranked";
+/** What each status is called. */
 export const MAP_STATUS_LABELS: Readonly<Record<MapStatus, string>> = Object.freeze({
   ranked: "Ranked",
   loved: "Loved",
@@ -150,6 +178,7 @@ export const SET_STATUS_LABELS: Readonly<Record<string, string>> = Object.freeze
 
 /** The hinai mirror's search, called from our server only. */
 export const MIRROR_SEARCH_URL = "https://mirror.hinamizawa.ai/v3/osu/beatmaps/search/v2";
+/** How long an all-maps search call to the mirror may take. */
 export const MIRROR_SEARCH_TIMEOUT_MS = 10_000;
 /** The longest we skip the mirror's search after it answers 429 or 503 with Retry-After. */
 export const MIRROR_COOLDOWN_MAX_MS = 60_000;
@@ -158,12 +187,14 @@ export const MIRROR_TIMEOUT_COOLDOWN_MS = 30_000;
 /** osu! reports at most this many results for a search the mirror passes on to it. */
 export const MIRROR_TOTAL_CAP = 10_000;
 
+/** Said (with a 503) when the all-maps search can't answer. */
 export const ALL_MAPS_FAILED =
   "Searching all osu! maps isn't working right now. Maps played in pools still work.";
 /** The code the route sends with ALL_MAPS_FAILED (a 503, never a 429 or a network error). */
 export const MIRROR_UNAVAILABLE_CODE = "mirror_unavailable";
 /** The live count when a search failed. */
 export const SEARCH_FAILED_COUNT = "Couldn't search";
+/** Said over results with unranked sets. */
 export const UNRANKED_WARNING =
   "Unranked maps can change or disappear after you pool them. Check the map before your round.";
 

@@ -108,11 +108,13 @@ export const setBuiltPoolVisibility = async (
   return { ok: true, value: { pool: await viewOf(parsed, caller), packRemoval } };
 };
 
+/** A pool on the account page. */
 export type PoolListItem = Pick<StoredBuiltPool, "name" | "visibility" | "updatedAt"> & {
   id: string;
   maps: number;
 };
 
+/** The pools a user owns and edits. */
 export type YourPools = { owned: PoolListItem[]; editing: PoolListItem[] };
 
 const listItem = (pool: StoredBuiltPool): PoolListItem => ({

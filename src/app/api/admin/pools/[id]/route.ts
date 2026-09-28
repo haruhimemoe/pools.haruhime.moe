@@ -20,6 +20,12 @@ type Context = { params: Promise<{ id: string }> };
 /** A save can wait on one PUT to packs. */
 export const maxDuration = 30;
 
+/**
+ * @function PATCH
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} the saved pool and its pack sync, or a refusal
+ */
 export async function PATCH(request: Request, { params }: Context) {
   const { id } = await params;
   if (!(await getAdminFromHeaders(request.headers))) return jsonError(404, "Not found.");

@@ -81,6 +81,7 @@ export const getMapSummaries = async (ids: readonly number[]): Promise<Map<numbe
   return new Map(rows.map((row) => [row._id, row as MapSummary]));
 };
 
+/** The home page's counts and the kinds of source there are. */
 export type HomeCounts = { pools: number; maps: number; sources: SourceKind[] };
 
 const NO_COUNTS: HomeCounts = { pools: 0, maps: 0, sources: [] };

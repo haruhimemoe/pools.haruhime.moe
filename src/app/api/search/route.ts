@@ -24,6 +24,12 @@ import { searchMaps } from "@/services/search";
 import { searchPools } from "@/services/search-pools";
 import { parseSearchState } from "@/utils/search-params";
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} one page of pools or maps (CDN cached 5 minutes), or a 503 for the
+ *          all-maps search
+ */
 export async function GET(request: Request) {
   const limited = await refuseOverLimit(
     RATE_LIMITS.search,

@@ -31,6 +31,12 @@ type AddToPoolProps = {
 
 const NO_SLOT = "";
 
+/**
+ * @function AddToPool
+ * @param props {AddToPoolProps} the difficulty, the pool's buckets, the default one and the add
+ *        call
+ * @returns {JSX.Element} Add to <slot>, or Choose slot with an inline picker, or "In this pool"
+ */
 export function AddToPool(props: AddToPoolProps) {
   const { beatmapId, version, buckets, defaultBucket, inPool, onAdd } = props;
   const selectId = useId();

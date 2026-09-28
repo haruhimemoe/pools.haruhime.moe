@@ -16,6 +16,12 @@ import { listActivityFor } from "@/services/built-pool-activity";
 
 type Context = { params: Promise<{ id: string }> };
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} the pool's last 20 changes, for its owner and editors
+ */
 export async function GET(request: Request, { params }: Context) {
   const { id } = await params;
   const user = await getUserFromHeaders(request.headers);

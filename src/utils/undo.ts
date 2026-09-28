@@ -21,6 +21,7 @@ import { applyOps } from "@/utils/built-ops";
 /** Steps the editor can undo. */
 export const MAX_UNDO_STEPS = 20;
 
+/** One change that can be undone: its inverse ops, and whether the change saved. */
 export type UndoStep = { id: number; ops: PoolOp[]; saved: boolean };
 
 type Op<K extends PoolOp["type"]> = Extract<PoolOp, { type: K }>;

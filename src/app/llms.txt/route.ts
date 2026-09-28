@@ -5,7 +5,7 @@
  *       a database error fails the render, so ISR keeps serving the last good one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { listPublicBuiltPools } from "@/services/built-listings";
@@ -13,8 +13,13 @@ import { listListedMaps } from "@/services/maps";
 import { listCurrentPools } from "@/services/pools";
 import { buildLlmsTxt, LLMS_MAP_LIMIT, llmsSections } from "@/utils/llms-txt";
 
+/** Rebuilt once a day, and on an admin's Refresh public pages. */
 export const revalidate = 86400;
 
+/**
+ * @function GET
+ * @returns {Promise<Response>} the site's llms.txt as plain text
+ */
 export async function GET() {
   const [pools, built, maps] = await Promise.all([
     listCurrentPools(),

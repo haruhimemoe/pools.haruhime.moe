@@ -5,7 +5,7 @@
  *       submits to /search?tab=maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -15,6 +15,10 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { mapSearchTarget } from "@/utils/search-links";
 
+/**
+ * @function MapSearchForm
+ * @returns {JSX.Element} a search box that opens /search on the maps tab
+ */
 export function MapSearchForm() {
   const router = useRouter();
   const [query, setQuery] = useState("");

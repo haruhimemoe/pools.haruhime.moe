@@ -49,6 +49,11 @@ function PoolList({ title, pools }: { title: string; pools: PoolListItem[] }) {
   );
 }
 
+/**
+ * @function YourPools
+ * @param props {Pools} the pools they own and edit
+ * @returns {JSX.Element} Your pools: each pool with its page and editor links, and Make a pool
+ */
 export function YourPools({ owned, editing }: Pools) {
   const make = (
     <ButtonLink href="/new" className="self-start">

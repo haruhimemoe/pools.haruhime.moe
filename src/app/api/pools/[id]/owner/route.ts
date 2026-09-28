@@ -9,7 +9,7 @@
  *       names the owner) syncs after the answer. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { RATE_LIMITS } from "@/constants/api";
@@ -26,6 +26,12 @@ import { transferBuiltPool } from "@/services/built-pool-owner";
 
 type Context = { params: Promise<{ id: string }> };
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} the pool as the old owner now sees it, or a refusal
+ */
 export async function POST(request: Request, { params }: Context) {
   const { id } = await params;
   const caller = await guardWrite(request);

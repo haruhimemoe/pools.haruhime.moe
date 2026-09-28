@@ -17,6 +17,7 @@ import { groupHeading } from "@/utils/built-editor";
 import { mapLabel } from "@/utils/map-record";
 import { groupSlotCode, type SlotValueMap, slotValueKey } from "@/utils/slot-values";
 
+/** A bucket's star range under its mods, and how many stars aren't known. */
 export type StarRange = {
   title: string;
   /** Lowest and highest stars under each slot's mods, null when none are known. */
@@ -76,6 +77,7 @@ export const starRanges = (
       };
     });
 
+/** A set with more than one map in the pool, and their slots. */
 export type SetRepeat = { setId: number; name: string; slots: string[] };
 
 /**
@@ -98,6 +100,7 @@ export const repeatedSets = (slots: readonly PoolSlot[], maps: BuiltMaps): SetRe
   return [...bySet.values()].filter((entry) => entry.slots.length > 1);
 };
 
+/** A map played in past pools, with where. */
 export type PlayedMap = {
   beatmapId: number;
   slot: string;

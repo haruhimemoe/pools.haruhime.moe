@@ -20,11 +20,9 @@ import type { SkippedPool, SourceRef } from "@/utils/source-pools";
 import type { BackfillResult, SyncSummary } from "@/utils/sync";
 
 /** C0 and C1 control characters, DEL included (Unicode's Cc). */
-
 const CONTROL = /\p{Cc}/gu;
 
 /** The most characters of one piece of source text the report prints. */
-
 const REPORT_TEXT_MAX = 200;
 
 /**
@@ -37,6 +35,7 @@ export const reportText = (text: string): string => {
   return safe.length > REPORT_TEXT_MAX ? `${safe.slice(0, REPORT_TEXT_MAX - 1)}…` : safe;
 };
 
+/** The mirror fill's part of the report. */
 export type FillSummary = {
   seeded: number;
   asked: number;
@@ -45,6 +44,7 @@ export type FillSummary = {
   error: string | null;
 };
 
+/** Everything a run did, for its report. */
 export type ImportSummary = {
   source: SourceKind;
   read: number;
@@ -76,7 +76,6 @@ export const importCounts = (plan: ImportPlan) => ({
 });
 
 /** "otdb #58", or a host or community pool's kind, id and credit: "host hz9y8x7w (Name)". */
-
 const labelOf = (source: SourceRef | SkippedPool): string => {
   const { label } = SOURCE_CREDITS[source.kind];
   const id = reportText(source.id);
@@ -177,7 +176,6 @@ export const formatImportReport = (summary: ImportSummary): string => {
 };
 
 /** One real run, as stored in `imports` and listed on /admin. */
-
 export type ImportReportRow = {
   source: SourceKind;
   startedAt: Date;

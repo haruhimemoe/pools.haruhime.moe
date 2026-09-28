@@ -39,6 +39,7 @@ import {
 } from "@/schemas/mod-values";
 import { modsCode, parseMods } from "@/utils/mod-values";
 
+/** Values per id and combo, which ids the mirror lacked, and whether it answered. */
 export type ModValuesResult = {
   /** Values under the combo, by beatmap id. */
   values: Map<number, ModValues>;
@@ -48,6 +49,7 @@ export type ModValuesResult = {
   failed: boolean;
 };
 
+/** The mirror call, the clock and the database (tests). */
 export type ModValuesDeps = {
   fetch?: typeof fetch;
   timeoutMs?: number;

@@ -71,6 +71,11 @@ const RANGES: readonly {
   { key: "last", row: "Last used", label: "Last used year", bounds: YEAR_RANGE },
 ];
 
+/**
+ * @function MapFilterPanel
+ * @param props {Props} the filters, the change handler and the result count
+ * @returns {JSX.Element} the played-maps filters and sort
+ */
 export function MapFilterPanel({ filters, onChange, resultCount }: Props) {
   const setRange = (key: RangeKey, value: Range | null) => onChange({ ...filters, [key]: value });
   return (

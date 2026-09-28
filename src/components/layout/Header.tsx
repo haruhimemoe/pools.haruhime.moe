@@ -19,6 +19,11 @@ type HeaderProps = {
   beta?: boolean;
 };
 
+/**
+ * @function Header
+ * @param props {HeaderProps} whether to show the beta tag
+ * @returns {JSX.Element} ui's SiteHeader with the wordmark, the nav and the account menu
+ */
 export function Header({ beta = false }: HeaderProps) {
   return (
     <SiteHeader

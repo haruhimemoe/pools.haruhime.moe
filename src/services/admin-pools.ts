@@ -14,12 +14,16 @@ import { poolsCollection } from "@/models/Pool";
 import { type StoredPool, SYNC_STATES, type SyncState } from "@/schemas/pool";
 import { escapeRegExp, searchTerms } from "@/utils/fold";
 
+/** Which pools the admin list shows. */
 export const ADMIN_SHOWS = ["all", "hidden", "superseded", "failed"] as const;
 
+/** One of ADMIN_SHOWS. */
 export type AdminShow = (typeof ADMIN_SHOWS)[number];
 
+/** Pools per admin list page. */
 export const ADMIN_PAGE_SIZE = 50;
 
+/** One row of the admin pool list. */
 export type AdminPoolRow = Pick<
   StoredPool,
   "_id" | "name" | "tournament" | "round" | "year" | "hidden" | "supersededBy" | "badged" | "pack"

@@ -27,6 +27,7 @@ import type { BuiltMap } from "@/schemas/built-pool-view";
 import { songOf } from "@/utils/map-preview";
 import type { SlotValueAnswer } from "@/utils/slot-values";
 
+/** A bucket a map can move to: its code and label. */
 export type MoveTarget = { code: string; label: string };
 
 type SlotRowProps = {
@@ -50,6 +51,11 @@ type SlotRowProps = {
   onRemove: () => void;
 };
 
+/**
+ * @function SlotRow
+ * @param props {SlotRowProps} the slot, its map, values, note, move targets and actions
+ * @returns {JSX.Element} one slot: label, preview, map text, note, and its move and remove controls
+ */
 export function SlotRow(props: SlotRowProps) {
   const { slot, map, values, badge, note, drag, first, last, targets, ...on } = props;
   const dragged = drag?.dragging === slot.beatmapId;

@@ -7,16 +7,20 @@
  *       Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { CheckResponse } from "@/schemas/compliance";
 
+/** A map osu! doesn't have. */
 export const MISSING_TEXT = "Not on osu!";
+/** A map the check couldn't ask osu! about. */
 export const UNCHECKED_TEXT = "Couldn't check";
 
+/** How a map's row reads: ok, potential, disallowed, missing or unchecked. */
 export type RowTone = "ok" | "potential" | "disallowed" | "missing" | "unchecked";
 
+/** A map's row: its tone, text, the rules' notes, and whether it's ranked. */
 export type RowVerdict = { tone: RowTone; text: string; notes: string | null; ranked: boolean };
 
 /**
@@ -36,6 +40,7 @@ export const rowVerdict = (result: CheckResponse, id: number): RowVerdict => {
   return { tone: "unchecked", text: UNCHECKED_TEXT, notes: null, ranked: false };
 };
 
+/** The check's headline, its tone and the counts behind it. */
 export type CheckSummary = {
   tone: "disallowed" | "potential" | "unchecked" | "ok";
   headline: string;

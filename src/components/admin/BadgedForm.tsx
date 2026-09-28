@@ -4,7 +4,7 @@
  *       no year, when this one has none) or every year's.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -15,6 +15,11 @@ import { type FormEvent, useState } from "react";
 
 const VALUES = { unknown: null, yes: true, no: false } as const;
 
+/**
+ * @function BadgedForm
+ * @param props {BadgedFormProps} the tournament and its years
+ * @returns {JSX.Element} the form that sets badged for a tournament's pools
+ */
 export function BadgedForm({
   tournamentKey,
   year,

@@ -27,6 +27,7 @@ import type { Range } from "@/utils/search-filters";
 /** AR, OD and CS without mods. */
 export type BaseValues = { ar: number; od: number; cs: number };
 
+/** A difficulty's values under the lens, and where they came from. */
 export type DiffValues = {
   ar: number | null;
   od: number | null;

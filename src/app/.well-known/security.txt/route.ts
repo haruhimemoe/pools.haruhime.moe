@@ -10,6 +10,7 @@
 import { buildSecurityTxt } from "@haruhimemoe/next-kit/server";
 import { SITE } from "@/constants/site";
 
+/** Built on deploy: Expires is a year from the last deploy. */
 export const dynamic = "force-static";
 
 /**

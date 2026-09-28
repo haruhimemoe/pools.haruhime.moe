@@ -19,6 +19,11 @@ import { confirmSteps, dropUnsaved, inverseOf, pushStep, type UndoStep } from "@
 
 type Tag = { step: number | null; undo: boolean };
 
+/**
+ * @function useUndoSteps
+ * @returns {UndoSteps} this session's undo steps: queued, sent, saved, dropped, popped and cleared,
+ *          at most 20
+ */
 export const useUndoSteps = () => {
   const tags = useRef<Tag[]>([]);
   const history = useRef<UndoStep[]>([]);

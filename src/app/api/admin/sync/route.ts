@@ -17,6 +17,11 @@ import { retrySyncs } from "@/services/admin";
 /** 50 PUTs, 5 at a time. */
 export const maxDuration = 60;
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} what the retry sent to packs
+ */
 export async function POST(request: Request) {
   if (!(await getAdminFromHeaders(request.headers))) return jsonError(404, "Not found.");
   const crossSite = refuseCrossSite(request);

@@ -22,6 +22,7 @@ import { refuseOverLimit } from "@/lib/rate-limit";
 import type { SessionUser } from "@/schemas/session-user";
 import type { Refusal } from "@/utils/built-answer";
 
+/** A route guard's result: the value, or the response to send. */
 export type Guarded<T> = { ok: true; value: T } | { ok: false; response: Response };
 
 /**

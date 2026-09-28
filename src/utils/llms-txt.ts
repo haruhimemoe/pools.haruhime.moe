@@ -19,7 +19,9 @@ import { mapLabel } from "@/utils/map-record";
 import { builtHeadline, poolHeadline } from "@/utils/pool-text";
 import { usageSummary } from "@/utils/usage";
 
+/** One link in llms.txt, with a short description. */
 export type LlmsLink = { title: string; url: string; description?: string };
+/** A heading and its links. */
 export type LlmsSection = { heading: string; links: LlmsLink[] };
 
 /** A current pool as llms.txt lists it. */
@@ -45,6 +47,7 @@ export const LLMS_MAP_LIMIT = 500;
 
 const at = (path: string): string => `${SITE.url}${path}`;
 
+/** The paragraphs at the top of llms.txt. */
 export const LLMS_NOTES: readonly string[] = [
   "pools is where you build an osu! tournament mappool: sign in with osu!, search every osu! map under a mod (star rating, AR, OD, BPM and length with that mod), put maps in slots, check the pool against the content rules for officially supported tournaments, see where each map was played before, work on it with co-editors, and download it on packs. Pools start private; the owner can make one unlisted or public.",
   "Past osu! tournament mappools are there as reference: the maps in them, and where each map was played before. Past pools come from several places: some from otdb's public export (by Sheppsu), others sent by tournament hosts and community members. Each pool page names its sources. Map details and star ratings come from the hinai mirror, which serves osu! API data; a map the mirror doesn't have keeps what its source gave. Pool slots show star rating, AR, OD, BPM and length under the slot's mods; star ratings with mods come from the hinai mirror and can differ slightly from osu!'s.",

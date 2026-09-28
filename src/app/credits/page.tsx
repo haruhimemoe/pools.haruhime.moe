@@ -7,7 +7,7 @@
  *       packages it's built with, and the affiliation notice. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -16,6 +16,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE } from "@/constants/site";
 
+/** /credits' title, description and canonical URL. */
 export const metadata: Metadata = {
   title: "Credits",
   description: "Where pools' pool data, map details and content rules come from.",
@@ -23,6 +24,10 @@ export const metadata: Metadata = {
 
 const PACKAGES = ["pool", "osu", "hinai", "compliance", "ui", "brand"] as const;
 
+/**
+ * @function CreditsPage
+ * @returns {JSX.Element} who the data and code come from
+ */
 export default function CreditsPage() {
   return (
     <article>

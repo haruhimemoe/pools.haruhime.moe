@@ -17,6 +17,7 @@ import { z } from "zod";
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { getServerEnv } from "@/env";
 
+/** An osu! username looked up: found, not found, or why it couldn't be. */
 export type OsuUserLookup =
   | { kind: "found"; osuId: number; username: string }
   | { kind: "missing" }
@@ -24,6 +25,7 @@ export type OsuUserLookup =
 
 type Credentials = { clientId: string; clientSecret: string };
 
+/** The budget check before the call, and fetch (tests). */
 export type LookupOptions = {
   /** Asked before the user request; false means osu! isn't asked (default: always ask). */
   beforeCall?: () => Promise<boolean>;

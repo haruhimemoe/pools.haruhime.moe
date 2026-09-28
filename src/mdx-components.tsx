@@ -4,7 +4,7 @@
  *       use next/link, external http(s) links open in a new tab without an opener.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { MDXComponents } from "mdx/types";
@@ -24,6 +24,10 @@ const components: MDXComponents = {
   },
 };
 
+/**
+ * @function useMDXComponents
+ * @returns {MDXComponents} the legal pages' elements, styled like the rest of the site
+ */
 export function useMDXComponents(): MDXComponents {
   return components;
 }

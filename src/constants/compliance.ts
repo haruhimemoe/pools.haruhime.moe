@@ -5,12 +5,14 @@
  *       how many maps one check takes, and how long a complete answer stays on the CDN.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 /** A beatmapset's facts are asked for again after a day (status, a DMCA, tags can change). */
 export const SET_FACTS_TTL_SECONDS = 86_400;
+/** The 24-hour TTL index on cached beatmapset facts. */
 export const SET_FACTS_TTL_INDEX = "setFacts_fetchedAt_ttl";
+/** setFacts' index on difficulty ids. */
 export const SET_FACTS_BEATMAPS_INDEX = "beatmapIds_1";
 
 /** Our calls to osu!, across every function instance. osu! asks for about 60 a minute. */

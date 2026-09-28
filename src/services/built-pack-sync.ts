@@ -33,6 +33,7 @@ import { removePackOrQueue, retryDuePackCleanup } from "@/services/pack-cleanup"
 import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
 import { builtPackInput, EMPTY_BUILT_PACK, nextBuiltPack, PACK_GONE } from "@/utils/built-pack";
 
+/** force skips the 30 s wait; the service and clock are for tests. */
 export type PackSyncOptions = {
   /** "Update pack now": don't wait out the 30 s. */
   force?: boolean;
@@ -60,12 +61,6 @@ export const packsService = (): PacksService | null => {
     return null;
   }
 };
-
-/** A regular claim at `at`: due (pending, or failed and worth trying again), 30 s since the last. */
-
-/** The pool as the claim at `at` left it: the same version, and no newer claim since. */
-
-/** Stores the pack unless the pool changed or a newer sync claimed it; true when stored. */
 
 const namesOf = async (pool: StoredBuiltPool): Promise<string[]> => {
   const owner = await ownerOf(pool.ownerId);
@@ -115,7 +110,6 @@ const afterChange = async (pool: StoredBuiltPool, at: Date, pack: StoredBuiltPoo
 };
 
 /** packs removed the pack (410): whatever claim is newest, the pool never syncs again. */
-
 const storeGone = async (id: string, pack: StoredBuiltPool["pack"]) => {
   const { state, error, listed, gone } = pack;
   await (await builtPoolsCollection()).updateOne(

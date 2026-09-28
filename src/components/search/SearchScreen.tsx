@@ -53,6 +53,10 @@ const countText = (total: number | null, page: number, state: SearchState): stri
 const kindOf = (value: { tab: string; scope?: string }): string =>
   value.tab === "maps" ? `maps:${value.scope}` : value.tab;
 
+/**
+ * @function SearchScreen
+ * @returns {JSX.Element} the search page: tabs, filters, results and paging, all in the URL
+ */
 export function SearchScreen() {
   const router = useRouter();
   const params = useSearchParams();

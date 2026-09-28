@@ -8,7 +8,7 @@
  *       skipped with a reason. Submitters and favorite counts are never read. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { OTDB_POOL_URL_PREFIX } from "@/constants/pools";
@@ -34,6 +34,7 @@ export const otdbSource = (id: number | string): SourceRef => ({
   url: otdbPoolUrl(id),
 });
 
+/** The otdb export read into source pools, with the maps' seeds and what it skipped. */
 export type OtdbRead = {
   pools: SourcePool[];
   /** What the export says about each map, by osu! beatmap id (the first entry wins). */

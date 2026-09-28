@@ -12,6 +12,11 @@ import Link from "next/link";
 import type { HistoryRow } from "@/utils/history";
 import { yearText } from "@/utils/pool-text";
 
+/**
+ * @function MapHistoryTable
+ * @param props {{ rows: readonly HistoryRow[] }} the current pools the map is in
+ * @returns {JSX.Element} a table of pool, year, slot and (when known) badged
+ */
 export function MapHistoryTable({ rows }: { rows: readonly HistoryRow[] }) {
   const showBadged = rows.some((row) => row.badged !== null);
   return (

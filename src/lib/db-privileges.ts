@@ -12,7 +12,7 @@
  *       can't read and write every collection in pools.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -32,6 +32,7 @@ export type ConnectionStatus = {
   };
 };
 
+/** Thrown when the database user can reach more than pools, or can't write to it. */
 export class DatabasePrivilegeError extends Error {
   constructor(message: string) {
     super(message);

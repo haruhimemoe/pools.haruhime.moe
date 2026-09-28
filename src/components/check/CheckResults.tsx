@@ -24,6 +24,11 @@ const TONE_CLASSES: Readonly<Record<RowTone, string>> = {
   unchecked: "text-c3",
 };
 
+/**
+ * @function CheckResults
+ * @param props {CheckResultsProps} the check's answer and the pasted ids
+ * @returns {JSX.Element} a table of each map's verdict and where pools used it
+ */
 export function CheckResults({
   rows,
   result,

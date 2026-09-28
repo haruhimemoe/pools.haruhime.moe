@@ -22,8 +22,14 @@ import { requireUser } from "@/lib/auth-session";
 import { listBuiltPoolsFor } from "@/services/built-pools";
 import { avatarSrc } from "@/utils/avatar";
 
+/** The account page's title; it's never indexed. */
 export const metadata: Metadata = { title: "Account", robots: { index: false } };
 
+/**
+ * @function AccountPage
+ * @returns {Promise<JSX.Element>} the signed-in user's osu! account, their pools and the delete
+ *          form (a visitor goes to sign in)
+ */
 export default async function AccountPage() {
   const user = await requireUser("/account");
   const avatar = avatarSrc(user.avatarUrl);

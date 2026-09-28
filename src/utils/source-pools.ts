@@ -26,17 +26,13 @@ import {
 } from "@/utils/source-labels";
 
 /** One pool at one source: a stored source without its importedAt. */
-
 export type SourceRef = PoolSource extends infer S
   ? S extends PoolSource
     ? Omit<S, "importedAt">
     : never
   : never;
 
-/** A map as a source lists it: its label, osu! difficulty id, and the mods it names, if any. */
-
 /** A pool as a source gives it. */
-
 export type SourcePool = {
   source: SourceRef;
   name: string;
@@ -50,7 +46,6 @@ export type SourcePool = {
 };
 
 /** A pool ready to become (or match) a pool record. */
-
 export type NormalizedPool = {
   source: SourceRef;
   name: string;
@@ -61,10 +56,7 @@ export type NormalizedPool = {
 };
 
 /** A pool the import leaves out, and why. */
-
 export type SkippedPool = { kind: SourceKind; id: string; name: string; reason: string };
-
-/** "#1", "12": a numbered map without a slot. */
 
 /**
  * @function normalizeNotes

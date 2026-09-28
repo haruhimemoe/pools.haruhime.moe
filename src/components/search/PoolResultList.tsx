@@ -25,6 +25,11 @@ const headlineOf = (pool: PoolResult): string =>
 const builtByText = (owner: string | null): string =>
   owner ? `Built by ${owner}` : "Built on pools";
 
+/**
+ * @function PoolResultList
+ * @param props {{ results: readonly PoolResult[] }} one page of pools
+ * @returns {JSX.Element} each pool with its round, year, maps and star range
+ */
 export function PoolResultList({ results }: { results: readonly PoolResult[] }) {
   return (
     <ul className="flex flex-col gap-3">

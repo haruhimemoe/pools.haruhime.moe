@@ -8,7 +8,7 @@
  *       the built-in list is used, and the mirror is asked again after a minute.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -25,6 +25,7 @@ import {
 import { SERVER_USER_AGENT } from "@/constants/site";
 import { isMirrorCooling, noteMirrorRetryAfter } from "@/lib/map-search";
 
+/** fetch, the timeout and the clock (tests). */
 export type LensDeps = { fetch?: typeof fetch; timeoutMs?: number; now?: () => number };
 
 const statsSchema = z.object({ available_mods: z.array(z.string()) });

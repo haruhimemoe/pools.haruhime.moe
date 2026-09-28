@@ -5,7 +5,7 @@
  *       gets the header's beta tag; the title template and robots stay the same.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PageShell } from "@haruhimemoe/ui";
@@ -20,6 +20,7 @@ import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", display: "swap" });
 
+/** The site's default title template, description, icons and link preview. */
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: { default: SITE.title, template: `%s · ${SITE.title}` },
@@ -29,6 +30,12 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
+/**
+ * @function RootLayout
+ * @param props {{ children: ReactNode }} the page
+ * @returns {JSX.Element} the html frame: header (with the beta tag when set), the page and the
+ *          footer
+ */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={nunito.variable}>

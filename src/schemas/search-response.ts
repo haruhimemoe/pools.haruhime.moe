@@ -9,6 +9,7 @@
 
 import type { PlayedAsCode } from "@/constants/pools";
 
+/** A pool in search results: a past tournament pool, or one built here (with its owner). */
 export type PoolResult = {
   kind: "past" | "built";
   /** A built pool's owner's osu! username (null when unknown); null for past pools. */
@@ -22,6 +23,7 @@ export type PoolResult = {
   stats: { srMin: number | null; srMax: number | null; count: number; complete: boolean };
 };
 
+/** A map in search results. */
 export type MapResult = {
   id: number;
   artist: string | null;
@@ -34,6 +36,7 @@ export type MapResult = {
   usage: { count: number; lastYear: number | null; playedAs: PlayedAsCode[] };
 };
 
+/** One osu! difficulty in all-maps results. */
 export type AllMapDifficulty = {
   id: number;
   version: string;
@@ -44,6 +47,7 @@ export type AllMapDifficulty = {
   playedIn: number | null;
 };
 
+/** One beatmapset in all-maps results (disallowed ones never are). */
 export type AllMapSet = {
   setId: number;
   artist: string;
@@ -57,6 +61,7 @@ export type AllMapSet = {
   maps: AllMapDifficulty[];
 };
 
+/** What GET /api/search answers. */
 export type SearchResponse =
   | {
       tab: "pools";

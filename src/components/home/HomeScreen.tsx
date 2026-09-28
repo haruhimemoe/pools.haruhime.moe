@@ -43,6 +43,11 @@ type HomeScreenProps = {
   built?: readonly ListedBuiltPool[];
 };
 
+/**
+ * @function HomeScreen
+ * @param props {HomeScreenProps} the counts, the pools added last and the pools built last
+ * @returns {JSX.Element} the home page: Make a pool, Recently built, the map search and past pools
+ */
 export function HomeScreen({ counts, recent = [], built = [] }: HomeScreenProps) {
   return (
     <div className="flex flex-col gap-8">

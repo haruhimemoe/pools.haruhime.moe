@@ -24,6 +24,11 @@ type SaveStateProps = {
   actions?: ReactNode;
 };
 
+/**
+ * @function SaveState
+ * @param props {SaveStateProps} the editor's saving state, failure, conflict and gone
+ * @returns {JSX.Element} what's happening to the changes, with Dismiss
+ */
 export function SaveState(props: SaveStateProps) {
   const { saving, failure, conflict, gone, onDismiss, actions } = props;
   return (

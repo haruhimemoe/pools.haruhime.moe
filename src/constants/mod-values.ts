@@ -13,6 +13,7 @@
 export const PP_BATCH_URL = "https://mirror.hinamizawa.ai/v3/osu/pp/batch";
 /** The mirror answers at most this many ids a call. */
 export const PP_BATCH_SIZE = 100;
+/** How long one pp/batch call to the mirror may take. */
 export const PP_BATCH_TIMEOUT_MS = 10_000;
 /** A page's slot values wait at most this long for the mirror, over all combos at once. */
 export const SLOT_VALUES_DEADLINE_MS = 8_000;

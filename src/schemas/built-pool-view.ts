@@ -41,6 +41,7 @@ export type ClientPack = {
   retry: boolean;
 };
 
+/** A built pool as the browser holds it: the API's view with dates as strings. */
 export type ClientPool = {
   id: string;
   name: string;

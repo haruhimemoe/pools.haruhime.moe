@@ -5,10 +5,12 @@
  *       retry's summary, and what it says to an admin. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+/** The first wait before a queued removal is tried again. */
 export const CLEANUP_FIRST_WAIT_MS = 5 * 60_000;
+/** The longest wait between tries. */
 export const CLEANUP_MAX_WAIT_MS = 6 * 60 * 60_000;
 
 /** One queued removal: packs' ref (the pool id), why the last try failed, tries so far. */
@@ -21,6 +23,7 @@ export type PackCleanupEntry = {
   queuedAt: Date;
 };
 
+/** What one run over the removal queue did. */
 export type PackCleanupSummary = {
   /** Entries this run looked at. */
   due: number;

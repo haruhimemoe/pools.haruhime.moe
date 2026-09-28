@@ -16,11 +16,13 @@ export { MAX_CUSTOM_BUCKETS, MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/poo
 /** Built pool ids are this and a generated source id (a letter, then 7 base36 characters). */
 export const BUILT_POOL_ID_PREFIX = "b-";
 
+/** A built pool's id: b- and a generated source id. */
 export const BUILT_POOL_ID_PATTERN = /^b-[a-z][0-9a-z]{7}$/;
 
 /** private: owner and editors only. unlisted: anyone with the link. public: listed too. */
 export const VISIBILITIES = ["private", "unlisted", "public"] as const;
 
+/** Who can see a built pool: private, unlisted or public. */
 export type Visibility = (typeof VISIBILITIES)[number];
 
 /** How the builder names each visibility and says who sees it. */
@@ -75,6 +77,7 @@ export const packRemovalsQueuedText = (count: number): string =>
 /** Where the pool's pack on packs stands: none (private or empty), pending, synced, failed. */
 export const BUILT_PACK_STATES = ["none", "synced", "pending", "failed"] as const;
 
+/** Where a built pool's pack stands on packs. */
 export type BuiltPackState = (typeof BUILT_PACK_STATES)[number];
 
 /** Co-editors per pool. */

@@ -20,6 +20,7 @@ import { hiddenSetsText, MAX_SEARCH_PAGE, UNRANKED_WARNING } from "@/constants/s
 import type { MapBrowse } from "@/hooks/useMapBrowse";
 import type { BrowseResponse } from "@/utils/browse-params";
 
+/** Where the browser's values under mods come from. */
 export const MOD_VALUES_NOTE =
   "Values with mods come from the hinai mirror and can differ slightly from osu!'s.";
 
@@ -47,6 +48,11 @@ const leftOut = (data: BrowseResponse): string[] =>
       : "",
   ].filter(Boolean);
 
+/**
+ * @function BrowseResults
+ * @param props {BrowseResultsProps} the search, the page change and each card's add props
+ * @returns {JSX.Element} what the page left out, the sets, the pager and the note
+ */
 export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) {
   const { status, data, error } = browse;
   if (status === "error") {

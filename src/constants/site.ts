@@ -7,6 +7,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+/** The site's name, URL, description, contact and links. */
 export const SITE = {
   name: "pools",
   title: "pools.haruhime.moe",
@@ -35,6 +36,7 @@ export const DEFAULT_AFTER_SIGN_IN = "/account";
 /** The readable "signed in" marker cookie: pages ask for the session only when it's there. */
 export const SIGNED_IN_COOKIE = "pools-signed-in";
 
+/** The header's links. */
 export const NAV_LINKS: readonly { href: string; label: string }[] = [
   { href: "/", label: "Home" },
   { href: "/search", label: "Search" },

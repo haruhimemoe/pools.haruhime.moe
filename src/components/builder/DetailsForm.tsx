@@ -5,7 +5,7 @@
  *       (src/schemas/built-pool.ts), so what the editor shows is what gets saved.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -36,6 +36,11 @@ const checkYear = (text: string): FieldCheck => {
 
 type DetailsFormProps = { pool: ClientPool; change: (ops: PoolOp[]) => boolean };
 
+/**
+ * @function DetailsForm
+ * @param props {DetailsFormProps} the pool and the change call
+ * @returns {JSX.Element} the name, tournament, round, year and notes fields
+ */
 export function DetailsForm({ pool, change }: DetailsFormProps) {
   const save = (key: DetailKey) => (value: unknown) =>
     change([{ type: "setDetails", [key]: value } as PoolOp]);

@@ -19,6 +19,11 @@ const STATUS_OPTIONS = MAP_STATUSES.map((status) => ({
   label: MAP_STATUS_LABELS[status],
 }));
 
+/**
+ * @function StatusChips
+ * @param props {Props} the status and the change handler
+ * @returns {JSX.Element} one status at a time as ui's ChoiceChips
+ */
 export function StatusChips({ value, onChange }: Props) {
   return (
     <ChoiceChips

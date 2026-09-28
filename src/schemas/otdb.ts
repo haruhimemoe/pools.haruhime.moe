@@ -7,7 +7,7 @@
  *       dropped on parse and never stored.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { z } from "zod";
@@ -37,8 +37,10 @@ export const otdbConnectionSchema = z.object({
   }),
 });
 
+/** One map of an otdb pool, as the export writes it. */
 export type OtdbConnection = z.infer<typeof otdbConnectionSchema>;
 
+/** One otdb pool in the export. */
 export const otdbPoolSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
@@ -49,4 +51,5 @@ export const otdbPoolSchema = z.object({
   beatmap_connections: z.array(otdbConnectionSchema),
 });
 
+/** An otdb pool. */
 export type OtdbPool = z.infer<typeof otdbPoolSchema>;

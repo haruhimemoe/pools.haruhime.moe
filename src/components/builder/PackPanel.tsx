@@ -43,6 +43,11 @@ const statusOf = ({ visibility, slots, pack, access }: ClientPool): string => {
 
 type Note = { text: string; error: boolean };
 
+/**
+ * @function PackPanel
+ * @param props {PackPanelProps} the pool, the editor and a fetcher (tests)
+ * @returns {JSX.Element} the pack's state, its link, and Update pack now
+ */
 export function PackPanel({ pool, editor, fetcher = fetch }: PackPanelProps) {
   const [pending, setPending] = useState(false);
   // One live region: a refusal is shown, what came back is only announced (the line above shows it).

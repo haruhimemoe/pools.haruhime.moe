@@ -21,8 +21,10 @@ import {
   type PoolType,
 } from "@/constants/search";
 
+/** `[low, high]`, `high` null for no upper limit. */
 export type Range = readonly [number, number | null];
 
+/** The pools tab's filters. */
 export type PoolFilters = {
   /** Past tournament pools, pools built here, or both. */
   type: PoolType;
@@ -36,6 +38,7 @@ export type PoolFilters = {
   sort: PoolSort;
 };
 
+/** The played-maps filters. */
 export type MapFilters = {
   q: string;
   sr: Range | null;
@@ -50,6 +53,7 @@ export type MapFilters = {
   sort: MapSort;
 };
 
+/** The pools tab with nothing set. */
 export const EMPTY_POOL_FILTERS: PoolFilters = Object.freeze({
   type: DEFAULT_POOL_TYPE,
   q: "",
@@ -61,6 +65,7 @@ export const EMPTY_POOL_FILTERS: PoolFilters = Object.freeze({
   sort: DEFAULT_POOL_SORT,
 }) as PoolFilters;
 
+/** The played-maps tab with nothing set. */
 export const EMPTY_MAP_FILTERS: MapFilters = Object.freeze({
   q: "",
   sr: null,
@@ -75,6 +80,7 @@ export const EMPTY_MAP_FILTERS: MapFilters = Object.freeze({
   sort: DEFAULT_MAP_SORT,
 }) as MapFilters;
 
+/** Searching every osu! map through the mirror. */
 export type AllMapFilters = {
   q: string;
   status: MapStatus;
@@ -85,6 +91,7 @@ export type AllMapFilters = {
   explicit: boolean;
 };
 
+/** The all-maps tab with nothing set. */
 export const EMPTY_ALL_MAP_FILTERS: AllMapFilters = Object.freeze({
   q: "",
   status: DEFAULT_MAP_STATUS,
@@ -94,6 +101,7 @@ export const EMPTY_ALL_MAP_FILTERS: AllMapFilters = Object.freeze({
   explicit: false,
 }) as AllMapFilters;
 
+/** A search: the tab (and the maps tab's scope), the page and the filters. */
 export type SearchState =
   | { tab: "pools"; page: number; filters: PoolFilters }
   | { tab: "maps"; scope: "played"; page: number; filters: MapFilters }

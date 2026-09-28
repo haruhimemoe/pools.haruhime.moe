@@ -22,8 +22,15 @@ import { loadBuiltPoolFor } from "@/services/built-pool-maps";
 import { builtSlotValues } from "@/services/slot-values";
 import { packWaiting } from "@/utils/built-pack";
 
+/** The editor's title; it's never indexed. */
 export const metadata: Metadata = { title: "Edit a pool", robots: { index: false } };
 
+/**
+ * @function EditPoolPage
+ * @param props {PageProps<"/pools/[id]/edit">} the built pool's id
+ * @returns {Promise<JSX.Element>} the editor for its owner and editors; a visitor goes to sign in,
+ *          anyone else gets a 404
+ */
 export default async function EditPoolPage({ params }: PageProps<"/pools/[id]/edit">) {
   const { id } = await params;
   if (!BUILT_POOL_ID_PATTERN.test(id)) notFound();

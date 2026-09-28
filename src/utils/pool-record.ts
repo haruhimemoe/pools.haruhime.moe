@@ -7,15 +7,17 @@
  *       (only what differs from the name and the source notes). Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { PoolEdits } from "@/schemas/pool";
 import { foldForSearch, searchTextOf } from "@/utils/fold";
 import { namePartsOf, tournamentKey } from "@/utils/pool-names";
 
+/** The tournament, round and year a pool shows: an admin's edit, else what the name reads. */
 export type EffectiveFields = { tournament: string; round: string | null; year: number | null };
 
+/** What search and sorting read, computed from the effective fields. */
 export type DerivedFields = { tournamentKey: string; searchText: string; sortName: string };
 
 /**

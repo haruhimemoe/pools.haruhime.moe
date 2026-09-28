@@ -5,11 +5,12 @@
  *       pool and slot, in code-unit order so it's the same everywhere. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { SourceSlotRecord } from "@/schemas/pool";
 
+/** A current pool a map is in, with its slot there. */
 export type HistoryRow = {
   poolId: string;
   tournament: string;

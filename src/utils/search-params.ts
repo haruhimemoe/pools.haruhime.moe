@@ -51,12 +51,7 @@ import {
   wellFormed,
 } from "@/utils/search-ranges";
 
-/** `[low, high]`, `high` null for no upper limit. */
-
-/** Searching every osu! map through the mirror. */
-
 /** Params only a played-in-pools search has: a link carrying one predates the scope. */
-
 const PLAYED_ONLY_PARAMS = ["ar", "od", "cs", "played", "used", "last", "sort"] as const;
 
 /**
@@ -143,8 +138,6 @@ export const parseSearchState = (search: string | URLSearchParams): SearchState 
   };
 };
 
-/** A surrogate pair, or a surrogate on its own. */
-
 /**
  * @function serializeSearchState
  * @param state {SearchState} a search
@@ -203,13 +196,3 @@ export const searchHref = (state: SearchState): string => {
   const search = serializeSearchState(state);
   return search === "" ? "/search" : `/search?${search}`;
 };
-
-/** A pool in search results: a past tournament pool, or one built here (with its owner). */
-
-/** A map in search results. */
-
-/** One osu! difficulty in all-maps results. */
-
-/** One beatmapset in all-maps results (disallowed ones never are). */
-
-/** What GET /api/search answers. */

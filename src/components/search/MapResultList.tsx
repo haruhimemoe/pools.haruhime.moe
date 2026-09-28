@@ -14,6 +14,11 @@ import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";
 import { usageSummary } from "@/utils/usage";
 
+/**
+ * @function MapResultList
+ * @param props {{ results: readonly MapResult[] }} one page of played maps
+ * @returns {JSX.Element} each map with its usage and values
+ */
 export function MapResultList({ results }: { results: readonly MapResult[] }) {
   return (
     <ul className="flex flex-col gap-3">

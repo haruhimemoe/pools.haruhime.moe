@@ -22,6 +22,7 @@ import { markPackPending } from "@/services/built-pools";
 /** Built pools /admin lists. */
 export const ADMIN_BUILT_LIMIT = 50;
 
+/** A built pool as /admin lists it. */
 export type AdminBuiltPool = {
   id: string;
   name: string;

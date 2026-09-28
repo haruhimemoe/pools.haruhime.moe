@@ -25,6 +25,12 @@ type Context = { params: Promise<{ id: string }> };
 /** The mirror gets SLOT_VALUES_DEADLINE_MS (8 s) for all combos, so this answers well inside. */
 export const maxDuration = 30;
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} each slot's values under its mods, marked complete or not
+ */
 export async function GET(request: Request, { params }: Context) {
   const { id } = await params;
   const user = await getUserFromHeaders(request.headers);

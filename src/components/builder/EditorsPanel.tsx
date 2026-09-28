@@ -38,6 +38,12 @@ function Person({ person }: { person: PoolPerson }) {
   );
 }
 
+/**
+ * @function EditorsPanel
+ * @param props {EditorsPanelProps} the pool, the editor, who's looking, what to do on leaving, and
+ *        a fetcher (tests)
+ * @returns {JSX.Element} the editors list with Remove (owner) or Leave (an editor)
+ */
 export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: EditorsPanelProps) {
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);

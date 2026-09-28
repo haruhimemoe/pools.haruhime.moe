@@ -3,10 +3,10 @@
  * @desc A difficulty's values under mods, computed with osu!'s rules: BPM x1.5 with DT (NC reads
  *       as DT) and x0.75 with HT, length the other way; HR multiplies AR and OD by 1.4 and CS by
  *       1.3 (each capped at 10), EZ halves them; DT and HT change AR and OD through time, so AR
- *       goes to its preempt in ms and OD to its 300 hit window in ms, the speed rate (`speedRate` from
- *       @haruhimemoe/pool) divides those, and they come back as AR and OD. HR and EZ apply first, then the timing. Mod
- *       combos use @haruhimemoe/pool's codes. The fallback when the mirror has no mod values.
- *       Pure, and safe in the browser.
+ *       goes to its preempt in ms and OD to its 300 hit window in ms, the speed rate
+ *       (@haruhimemoe/pool's `speedRate`) divides those, and they come back as AR and OD. HR and
+ *       EZ apply first, then the timing. Mod combos use @haruhimemoe/pool's codes. The fallback
+ *       when the mirror has no mod values. Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026

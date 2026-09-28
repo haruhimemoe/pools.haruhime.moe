@@ -6,11 +6,13 @@
  *       (src/lib/rate-limit.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+/** A fixed-window limit: its scope, how many hits, and the window in seconds. */
 export type RateLimitRule = { scope: string; limit: number; windowSeconds: number };
 
+/** Every rate limit pools counts, per IP or per osu! account. */
 export const RATE_LIMITS = {
   /** GET /api/search, per IP. */
   search: { scope: "search", limit: 60, windowSeconds: 60 },

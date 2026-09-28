@@ -23,6 +23,12 @@ import { checkCompliance, checkMaps } from "@/services/compliance";
 /** A check with many uncached sets makes a few osu! calls. */
 export const maxDuration = 30;
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} each map's verdict and where pools used it (CDN cached when
+ *          complete)
+ */
 export async function GET(request: Request) {
   const ids = parseBeatmapIds(new URL(request.url).searchParams.get("ids"));
   if (!ids) return noStore(jsonError(400, BAD_CHECK_IDS));

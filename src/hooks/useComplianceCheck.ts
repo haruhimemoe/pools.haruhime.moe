@@ -6,7 +6,7 @@
  *       couldn't be checked, or when the same paste is checked again).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CheckResponse } from "@/schemas/compliance";
 
+/** The check's state: idle, running, its answer, or why it failed. */
 export type ComplianceCheck =
   | { status: "idle" }
   | { status: "loading" }

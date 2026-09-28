@@ -8,10 +8,13 @@
  * @modified Mon Sep 28, 2026
  */
 
+/** The legal pages, by slug. */
 export const LEGAL_SLUGS = ["disclaimer", "privacy", "terms"] as const;
 
+/** One of LEGAL_SLUGS. */
 export type LegalSlug = (typeof LEGAL_SLUGS)[number];
 
+/** Each legal page's title, MDX file and last update. */
 export const LEGAL_DOCS: Record<
   LegalSlug,
   { title: string; description: string; lastUpdated: string }

@@ -33,6 +33,7 @@ import {
 } from "@haruhimemoe/pool";
 import { slotModsMap } from "@/utils/slot-mods";
 
+/** A map as a source lists it: its label, osu! difficulty id, and the mods it names, if any. */
 export type SourceSlot = { label: string; beatmapId: number; mods?: readonly string[] };
 
 /**
@@ -51,6 +52,7 @@ export const modsFromSlotCode = (code: string): ModAcronym[] | null => {
   return modSetProblem(set) === null ? set : null;
 };
 
+/** "#1", "12": a numbered map without a slot. */
 const NUMBERED = /^#?\s*(\d{1,3})$/u;
 
 /** Labels read into a pool, or the first reason they can't be. */

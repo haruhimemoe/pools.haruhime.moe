@@ -8,7 +8,7 @@
  *       back to page 1. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -26,8 +26,10 @@ import {
 import { MAX_QUERY_LENGTH } from "@/constants/search";
 import { type BrowseState, DEFAULT_BROWSE_STATE, isLensStatus, lensOf } from "@/utils/browse-state";
 
+/** Said under a mod lens: values the mirror has no mod data for are worked out. */
 export const NO_MOD_VALUES =
   "Mod values aren't available for Qualified and Pending maps, so these are without mods.";
+/** Said instead of the explicit checkbox, which only Qualified and Pending have. */
 export const EXPLICIT_LINE = "Mod searches can include explicit maps.";
 
 type BrowseFiltersProps = {
@@ -45,6 +47,11 @@ const isActive = (state: BrowseState): boolean => {
   return JSON.stringify(rest) !== JSON.stringify(defaults);
 };
 
+/**
+ * @function BrowseFilters
+ * @param props {BrowseFiltersProps} the browser's state, the lens and a change handler
+ * @returns {JSX.Element} the text, status, lens, sort and explicit filters
+ */
 export function BrowseFilters(props: BrowseFiltersProps) {
   const { state, lenses, valuesLens, onChange, resultCount } = props;
   const set = (patch: Partial<BrowseState>) => onChange({ ...state, ...patch, page: 1 });

@@ -6,7 +6,7 @@
  *       of a pool's maps it can leave out, and the failure copy and code.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 /** Mod lenses in picker order. The browser offers the ones the mirror lists too. */
@@ -25,11 +25,14 @@ export const BROWSE_LENSES = [
   "EZDT",
   "EZHT",
 ] as const;
+/** A mod combo the browser searches under. */
 export type BrowseLens = (typeof BROWSE_LENSES)[number];
+/** The lens the browser opens with. */
 export const DEFAULT_LENS: BrowseLens = "NM";
 
 /** Statuses the mirror's mod data covers; Qualified and Pending are searched without mods. */
 export const LENS_STATUSES = ["ranked", "loved", "graveyard"] as const;
+/** A status the browser can search. */
 export type LensStatus = (typeof LENS_STATUSES)[number];
 
 /** "Hide maps in this pool": a pool holds at most 64 maps. */
@@ -39,6 +42,7 @@ export const MAX_EXCLUDE_IDS = 64;
 export const NEKOHA_SEARCH_URL = "https://mirror.hinamizawa.ai/api/v1/nekoha-collab/search";
 /** Lists the combos the mirror has data for (available_mods). */
 export const PP_MAPS_STATS_URL = "https://mirror.hinamizawa.ai/v3/osu/pp-maps/stats";
+/** How long a browse call to the mirror may take. */
 export const BROWSE_TIMEOUT_MS = 10_000;
 /** Rows a page asks for. */
 export const BROWSE_PAGE_SIZE = 50;
@@ -53,8 +57,11 @@ export const BROWSE_SORTS = [
   "bpm_desc",
   "length_desc",
 ] as const;
+/** An order the mirror's mod search takes. */
 export type BrowseSort = (typeof BROWSE_SORTS)[number];
+/** The browser's order: most favourited first. */
 export const DEFAULT_BROWSE_SORT: BrowseSort = "favourites_desc";
+/** What each order is called in the browser. */
 export const BROWSE_SORT_LABELS: Readonly<Record<BrowseSort, string>> = Object.freeze({
   favourites_desc: "Most favourited",
   pp: "Most pp",
@@ -65,8 +72,10 @@ export const BROWSE_SORT_LABELS: Readonly<Record<BrowseSort, string>> = Object.f
 
 /** The mirror's lens list is kept an hour; after a failed fetch the built-in list is used a minute. */
 export const LENS_LIST_TTL_MS = 3_600_000;
+/** How soon a failed read of the mirror's lens list is tried again. */
 export const LENS_LIST_RETRY_MS = 60_000;
 
+/** Said when the map search fails. */
 export const BROWSE_FAILED = "Map search isn't working right now.";
 /** The code the route sends with BROWSE_FAILED (a 503, never cached). */
 export const BROWSE_UNAVAILABLE_CODE = "browse_unavailable";

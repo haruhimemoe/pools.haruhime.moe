@@ -16,6 +16,12 @@ import type { AdminBuiltPool } from "@/services/built-moderation";
 
 const HEADINGS = ["Pool", "Owner", "Seen by", "Maps", "Pack", "Made", "Moderation"] as const;
 
+/**
+ * @function AdminBuiltPoolTable
+ * @param props {{ pools: readonly AdminBuiltPool[] }} the newest unlisted and public built pools
+ * @returns {JSX.Element} the moderation table: owner, visibility, hidden, maps, pack and the
+ *          buttons
+ */
 export function AdminBuiltPoolTable({ pools }: { pools: readonly AdminBuiltPool[] }) {
   if (pools.length === 0) {
     return <p className="text-c3 text-sm">No unlisted or public pool has been built yet.</p>;

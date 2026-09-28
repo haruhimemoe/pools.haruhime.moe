@@ -9,7 +9,7 @@
  *       result says why. Mirror errors never throw.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -27,6 +27,7 @@ export type MapLookup = (
   ids: readonly number[],
 ) => Promise<{ found: Map<number, BeatmapMeta>; missing: number[] }>;
 
+/** What a fill did: ids asked, rows filled, ids missing, and why it stopped. */
 export type FillResult = { asked: number; filled: number; missing: number; error: string | null };
 
 const MAX_TRIES = 3;

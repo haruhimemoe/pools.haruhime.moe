@@ -27,6 +27,7 @@ import type { PacksService } from "@/env";
 import type { PackInput } from "@/utils/pack-input";
 import type { SyncAnswer } from "@/utils/sync";
 
+/** fetch, replaced in tests. */
 export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
 /** A PUT validates, writes and revalidates on packs: a few seconds at most. */
@@ -150,6 +151,7 @@ export const putPoolPack = async (
   };
 };
 
+/** One stats backfill batch: what packs updated, or why not. */
 export type BackfillAnswer =
   | { kind: "ok"; updated: number; remaining: number }
   | { kind: "error"; message: string }
@@ -195,6 +197,7 @@ export const postStatsBackfill = async (
   };
 };
 
+/** A pack removal: done, gone already, or why not. */
 export type DeleteAnswer =
   | { kind: "ok" }
   | { kind: "error"; message: string }

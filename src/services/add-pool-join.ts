@@ -17,6 +17,13 @@ import type { ExistingPool } from "@/utils/import-plan";
 import { isVisible } from "@/utils/pool-record";
 import type { SourceRef } from "@/utils/source-pools";
 
+/**
+ * @function takenIds
+ * @param kind {string} a source kind
+ * @param existing {readonly ExistingPool[]} the stored records
+ * @returns {(id: string) => boolean} whether an id is taken for that kind: by a current or
+ *          former source, or inside a pool id
+ */
 export const takenIds = (kind: string, existing: readonly ExistingPool[]) => {
   const ids = new Set<string>();
   const poolIds = existing.map((record) => record.id);
@@ -29,9 +36,20 @@ export const takenIds = (kind: string, existing: readonly ExistingPool[]) => {
     ids.has(id) || poolIds.some((poolId) => poolId.startsWith(`${kind}-${id}`));
 };
 
+/**
+ * @function isDuplicateKey
+ * @param error {unknown} a write's error
+ * @returns {boolean} true for MongoDB's duplicate key error (E11000)
+ */
 export const isDuplicateKey = (error: unknown): boolean =>
   error instanceof MongoServerError && error.code === 11000;
 
+/**
+ * @function sameCredit
+ * @param entry {PoolSource} a source the record has
+ * @param source {SourceRef} the source being added
+ * @returns {boolean} true for the same kind, credit name and credit link
+ */
 export const sameCredit = (entry: PoolSource, source: SourceRef): boolean =>
   entry.kind === source.kind &&
   "credit" in entry &&
@@ -40,8 +58,13 @@ export const sameCredit = (entry: PoolSource, source: SourceRef): boolean =>
   (entry.credit.url ?? null) === (source.credit.url ?? null);
 
 /**
- * Pushes the source onto the record as planning read it (same fingerprint, same superseded
- * state, and on a revival the same hidden) unless that credit is there by then.
+ * @function joinStored
+ * @param before {ExistingPool} the record as planning read it
+ * @param entry {PoolSource} the source to push
+ * @param at {Date} the add's time
+ * @returns {Promise<boolean>} true when the source was pushed onto the record as planning read
+ *          it (same fingerprint, same superseded state, and on a revival the same hidden); false
+ *          when the record changed or that credit is there by then
  */
 export const joinStored = async (
   before: ExistingPool,

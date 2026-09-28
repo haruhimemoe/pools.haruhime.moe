@@ -21,8 +21,10 @@ export const modValuesSchema = z.object({
   bpm: z.number().nonnegative(),
 });
 
+/** A difficulty's values under one combo. */
 export type ModValues = z.output<typeof modValuesSchema>;
 
+/** Values kept 30 days in mod_values. */
 export const storedModValuesSchema = modValuesSchema.extend({
   _id: z.string(),
   beatmapId: z.number().int().positive(),
@@ -30,11 +32,13 @@ export const storedModValuesSchema = modValuesSchema.extend({
   fetchedAt: z.date(),
 });
 
+/** Values as stored. */
 export type StoredModValues = z.output<typeof storedModValuesSchema>;
 
 /** Why a mod_values row holds no values: the mirror lacked the id, or the call failed. */
 export const MOD_VALUES_RESTS = ["missing", "failed"] as const;
 
+/** A rest row: ids the mirror lacked, or a failed call's, asked again later. */
 export const storedModRestSchema = z.object({
   _id: z.string(),
   beatmapId: z.number().int().positive(),
@@ -43,4 +47,5 @@ export const storedModRestSchema = z.object({
   fetchedAt: z.date(),
 });
 
+/** A rest row. */
 export type StoredModRest = z.output<typeof storedModRestSchema>;

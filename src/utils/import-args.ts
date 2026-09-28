@@ -11,9 +11,11 @@
 
 import { IMPORT_SOURCES, type ImportSource } from "@/constants/pools";
 
+/** The import command's usage line. */
 export const IMPORT_USAGE =
   "Usage: bun run import otdb [--dry-run] [--file <path>] [--no-sync] [--resync rejected]";
 
+/** What the import command was asked to do. */
 export type ImportArgs = {
   source: ImportSource;
   dryRun: boolean;

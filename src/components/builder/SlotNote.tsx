@@ -25,6 +25,11 @@ type SlotNoteProps = {
   onSave: (note: string) => void;
 };
 
+/**
+ * @function SlotNote
+ * @param props {SlotNoteProps} the map, its slot label, its note and the save call
+ * @returns {JSX.Element} the note under a slot, with Add note or Edit
+ */
 export function SlotNote({ beatmapId, label, note, onSave }: SlotNoteProps) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(note ?? "");

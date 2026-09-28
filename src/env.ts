@@ -38,9 +38,13 @@ const serverEnv = createServerEnv({
 /** Every variable in ServerEnv, for .env.example's test. */
 export const SERVER_ENV_KEYS = serverEnv.keys;
 
+/** The comma-separated osu! ids with admin rights. */
 export const ADMIN_OSU_IDS_KEY = "ADMIN_OSU_IDS";
+/** packs' origin (packs.haruhime.moe by default). */
 export const PACKS_URL_KEY = "PACKS_URL";
+/** pools' bearer token for packs' service endpoint. */
 export const POOLS_SERVICE_TOKEN_KEY = "POOLS_SERVICE_TOKEN";
+/** "true" allows a database user that reaches other databases. */
 export const POOLS_ALLOW_SHARED_DB_USER_KEY = "POOLS_ALLOW_SHARED_DB_USER";
 /** The variables read on every call, for .env.example's test. */
 export const OPTIONAL_ENV_KEYS = [
@@ -50,6 +54,7 @@ export const OPTIONAL_ENV_KEYS = [
   POOLS_ALLOW_SHARED_DB_USER_KEY,
 ] as const;
 
+/** packs' origin when PACKS_URL isn't set. */
 export const DEFAULT_PACKS_URL = "https://packs.haruhime.moe";
 
 /** Validates the server variables, trimmed (tests pass their own source). */

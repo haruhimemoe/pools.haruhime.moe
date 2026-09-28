@@ -32,6 +32,7 @@ import { SERVER_USER_AGENT } from "@/constants/site";
 import { isMirrorCooling, noteMirrorRetryAfter } from "@/lib/map-search";
 import type { Range } from "@/utils/search-filters";
 
+/** One mod search: the lens, status, text, sort and page. */
 export type NekohaQuery = {
   lens: BrowseLens;
   status: LensStatus;
@@ -84,6 +85,7 @@ const answerSchema = z.object({
   maps: z.array(z.unknown()),
 });
 
+/** The mirror's mod search answer: a page of rows, or a failure. */
 export type NekohaSearch =
   | { ok: true; rows: NekohaRow[]; received: number; total: number }
   | { ok: false; reason: string };

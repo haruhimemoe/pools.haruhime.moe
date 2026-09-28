@@ -26,6 +26,7 @@ const targetOf = (element: Element): DropTarget | null =>
 const sameTarget = (a: DropTarget | null, b: DropTarget | null) =>
   a?.bucket === b?.bucket && a?.index === b?.index;
 
+/** What useSlotDrag gives the rows: handle and drop target props, and the drag in progress. */
 export type SlotDrag = ReturnType<typeof useSlotDrag>;
 
 /**

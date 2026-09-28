@@ -9,7 +9,7 @@
  *       didn't change keep what the admin typed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -66,6 +66,12 @@ function useStoredField<T>(stored: T): [T, (value: T) => void] {
   return [value, setValue];
 }
 
+/**
+ * @function PoolEditForm
+ * @param props {{ poolId: string; initial: Fields }} the pool and its fields as stored
+ * @returns {JSX.Element} the admin's edit form for a past pool, saved to PATCH
+ *          /api/admin/pools/<id>
+ */
 export function PoolEditForm({ poolId, initial }: { poolId: string; initial: Fields }) {
   const router = useRouter();
   const [tournament, setTournament] = useStoredField(initial.tournament);

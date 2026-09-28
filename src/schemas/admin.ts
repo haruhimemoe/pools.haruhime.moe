@@ -40,6 +40,7 @@ const yearSchema = z
   .min(FIRST_YEAR, YEAR_RANGE)
   .max(LAST_YEAR, YEAR_RANGE);
 
+/** PATCH /api/admin/pools/<id>: the edited fields, hidden and badged. */
 export const poolEditBodySchema = z.strictObject({
   tournament: cleanText(MAX_TOURNAMENT_LENGTH, "tournament").refine(
     (value) => value !== "",
@@ -54,16 +55,20 @@ export const poolEditBodySchema = z.strictObject({
   badged: z.boolean().nullable(),
 });
 
+/** An admin's pool edit. */
 export type PoolEditBody = z.output<typeof poolEditBodySchema>;
 
+/** POST /api/admin/badged: a tournament, which years, and badged. */
 export const badgedBodySchema = z.strictObject({
   tournamentKey: z.string().min(1).max(200),
   year: z.union([yearSchema, z.null(), z.literal("all")]),
   badged: z.boolean().nullable(),
 });
 
+/** An admin's badged change. */
 export type BadgedBody = z.output<typeof badgedBodySchema>;
 
+/** POST /api/admin/sync: whether to retry rejected pools too. */
 export const syncBodySchema = z.strictObject({ includeRejected: z.boolean() });
 
 /** A refresh of the public pages takes nothing: an empty object. */
@@ -80,6 +85,7 @@ export const MAX_MAPS_TEXT = 8000;
 
 const HTTPS_LINK = "Use an https link, or leave it empty.";
 
+/** POST /api/admin/pools: the source, credit, details, badged, notes and maps. */
 export const addPoolBodySchema = z.strictObject({
   kind: z.enum(CREDITED_SOURCE_KINDS, "Pick who sent the pool."),
   creditName: sourceCreditSchema.shape.name,
@@ -104,8 +110,10 @@ export const addPoolBodySchema = z.strictObject({
     .refine((value) => value.trim() !== "", "Paste the maps."),
 });
 
+/** An admin's added pool. */
 export type AddPoolBody = z.output<typeof addPoolBodySchema>;
 
+/** A field an add-pool refusal can name. */
 export type AddPoolField = keyof AddPoolBody;
 
 /**

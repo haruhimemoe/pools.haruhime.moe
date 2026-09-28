@@ -6,7 +6,7 @@
  *       answers), search and sort keys, and usage (count, last year, played as, shown).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { beatmapIdSchema, RULESETS } from "@haruhimemoe/pool";
@@ -22,6 +22,7 @@ export const META_SOURCES = ["otdb", "mirror", "none"] as const;
 /** Rows the mirror fill asks about: everything it hasn't answered yet. */
 export const UNFILLED_META_SOURCES = ["otdb", "none"] as const;
 
+/** A map's usage: distinct current pools, the latest year, played as, and whether it has a page. */
 export const mapUsageSchema = z.object({
   /** Distinct current pools (not hidden, not superseded) that have the map. */
   count: z.number().int().nonnegative(),
@@ -32,8 +33,10 @@ export const mapUsageSchema = z.object({
   shown: z.boolean(),
 });
 
+/** A map's usage. */
 export type StoredMapUsage = z.infer<typeof mapUsageSchema>;
 
+/** A map row: its details, where they came from, and its usage. */
 export const storedMapSchema = z.object({
   _id: beatmapIdSchema,
   setId: z.number().int().positive().nullable(),
@@ -58,6 +61,7 @@ export const storedMapSchema = z.object({
   updatedAt: z.date(),
 });
 
+/** A map row. */
 export type StoredMap = z.infer<typeof storedMapSchema>;
 
 /**

@@ -16,6 +16,11 @@ import { isUndoKey, typesText } from "@/utils/undo-keys";
 
 type UndoButtonProps = { steps: number; onUndo: () => void };
 
+/**
+ * @function UndoButton
+ * @param props {UndoButtonProps} how many steps can be undone and the undo call
+ * @returns {JSX.Element} Undo, with Ctrl/Cmd+Z outside text fields
+ */
 export function UndoButton({ steps, onUndo }: UndoButtonProps) {
   const latest = useRef(onUndo);
   latest.current = onUndo;

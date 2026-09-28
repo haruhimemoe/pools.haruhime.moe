@@ -48,6 +48,7 @@ export type ExistingPool = {
 /** A record as it should be after the import. */
 export type PlannedPool = ExistingPool;
 
+/** What an import will do: records to create, update, supersede and revive, and what it skipped. */
 export type ImportPlan = {
   creates: { pool: PlannedPool; inheritedFrom: string | null }[];
   updates: { pool: PlannedPool; before: ExistingPool }[];

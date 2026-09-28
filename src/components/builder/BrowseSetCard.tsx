@@ -42,6 +42,11 @@ const played = ({ id, playedIn }: BrowseDiff) => {
   );
 };
 
+/**
+ * @function BrowseSetCard
+ * @param props {BrowseSetCardProps} the set, the lens and the add props
+ * @returns {JSX.Element} one set with its tags and each difficulty's values, played count and Add
+ */
 export function BrowseSetCard(props: BrowseSetCardProps) {
   const { set, lens, buckets, defaultBucket, poolIds, onAdd } = props;
   return (

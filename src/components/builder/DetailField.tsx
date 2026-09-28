@@ -6,7 +6,7 @@
  *       stored value, so a reload or another editor's change shows up.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -30,6 +30,11 @@ type DetailFieldProps = {
   onSave: (value: unknown) => void;
 };
 
+/**
+ * @function DetailField
+ * @param props {DetailFieldProps} the field, its value and the save call
+ * @returns {JSX.Element} one detail's input, saved on blur or Enter
+ */
 export function DetailField({
   stored,
   multiline = false,

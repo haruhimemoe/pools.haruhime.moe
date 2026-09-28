@@ -17,6 +17,7 @@ import type { SearchResponse } from "@/schemas/search-response";
 import type { SearchState } from "@/utils/search-filters";
 import { serializeSearchState } from "@/utils/search-params";
 
+/** The search page's results: the answer on screen, its status, and retry. */
 export type SearchResults = {
   status: "loading" | "ready" | "error";
   data: SearchResponse | null;

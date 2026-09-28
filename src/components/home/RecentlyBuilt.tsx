@@ -20,6 +20,11 @@ const lineOf = (pool: ListedBuiltPool): string =>
     .filter(Boolean)
     .join(" · ");
 
+/**
+ * @function RecentlyBuilt
+ * @param props {{ pools: readonly ListedBuiltPool[] }} public built pools with maps, newest first
+ * @returns {JSX.Element} Recently built, or nothing when there are none
+ */
 export function RecentlyBuilt({ pools }: { pools: readonly ListedBuiltPool[] }) {
   return (
     <Card title="Recently built">

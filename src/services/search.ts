@@ -25,11 +25,22 @@ import { type BuiltQuery, mapQuery } from "@/utils/search-query";
 
 type MapsAnswer = Omit<Extract<SearchResponse, { tab: "maps"; scope: "played" }>, "tab" | "scope">;
 
+/**
+ * @function pageCountOf
+ * @param total {number} how many results match
+ * @returns {number} how many pages that is, at most MAX_SEARCH_PAGE
+ */
 export const pageCountOf = (total: number): number =>
   Math.min(MAX_SEARCH_PAGE, Math.ceil(total / SEARCH_PAGE_SIZE));
 
-/** One page, the total and the "hidden, data missing" count; counts use the count command. */
-
+/**
+ * @function run
+ * @param collection {Collection<T>} pools, maps or built pools
+ * @param query {BuiltQuery} the find, its sort, hint and count filter
+ * @param projection {Document} the fields to read
+ * @returns one page, the total and the "hidden, data missing" count (counts use the count
+ *          command, never an aggregation)
+ */
 export const run = async <T extends Document>(
   collection: Collection<T>,
   query: BuiltQuery,
@@ -54,12 +65,6 @@ export const run = async <T extends Document>(
   ]);
   return { rows, total, hiddenMissing };
 };
-
-/** Past pools from `skip`, at most `limit` of them, with the totals. */
-
-/** Public, unhidden built pools from `skip`, at most `limit`, with their owners' names. */
-
-/** "Both": built pools first, then past pools, each in the chosen order. */
 
 /**
  * @function searchMaps

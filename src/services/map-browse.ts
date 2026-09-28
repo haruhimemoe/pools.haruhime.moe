@@ -42,6 +42,7 @@ import {
 } from "@/utils/browse-values";
 import { parseMods } from "@/utils/mod-values";
 
+/** The mirror calls, the played lookup and the clock (tests). */
 export type BrowseDeps = {
   fetch?: typeof fetch;
   timeoutMs?: number;
@@ -49,6 +50,7 @@ export type BrowseDeps = {
   playedCounts?: PlayedCounts;
 };
 
+/** A browse page and whether it may be cached, or a failure. */
 export type BrowseResult = { ok: true; answer: BrowseResponse; cacheable: boolean } | { ok: false };
 
 type MirrorDeps = Pick<BrowseDeps, "fetch" | "timeoutMs" | "now">;

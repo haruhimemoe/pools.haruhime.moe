@@ -60,6 +60,7 @@ export const mpLines = (pool: ExportPool): string =>
     )
     .join("\n\n");
 
+/** One CSV row. */
 export type ExportRow = (string | number | null)[];
 
 const HEADER = [

@@ -34,6 +34,7 @@ export const PACKS_NOT_TAKING = "packs isn't taking updates from pools right now
 /** Why a pool stopped syncing: packs' moderators deleted its pack. */
 export const PACK_GONE = "packs removed this pool's pack.";
 
+/** A built pool with no pack yet. */
 export const EMPTY_BUILT_PACK: BuiltPack = {
   state: "none",
   slug: null,

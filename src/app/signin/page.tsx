@@ -20,8 +20,15 @@ import { RestoreSignedIn } from "@/lib/account";
 import { getCurrentUser } from "@/lib/auth-session";
 import { signInErrorText } from "@/utils/signin-errors";
 
+/** /signin's title; it's never indexed. */
 export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
+/**
+ * @function SignInPage
+ * @param props {PageProps<"/signin">} `next` and a sign-in `error` code
+ * @returns {Promise<JSX.Element>} the osu! sign-in button with any error explained, or, signed in,
+ *          a hand-off to `next`
+ */
 export default async function SignInPage({ searchParams }: PageProps<"/signin">) {
   const params = await searchParams;
   const next = safeNextPath(typeof params.next === "string" ? params.next : null, {

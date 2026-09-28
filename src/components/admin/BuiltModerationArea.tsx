@@ -16,8 +16,14 @@ import { createContext, type ReactNode, useCallback, useRef, useState } from "re
 /** Says `text` in the table's live region; `focus` moves focus there (the row may be gone). */
 export type SayModeration = (text: string, focus?: boolean) => void;
 
+/** Hands the moderation buttons the table's live region (a no-op outside the area). */
 export const ModerationNotice = createContext<SayModeration>(() => {});
 
+/**
+ * @function BuiltModerationArea
+ * @param props {{ children: ReactNode }} the moderation table
+ * @returns {JSX.Element} the table with a live region that keeps what happened and can take focus
+ */
 export function BuiltModerationArea({ children }: { children: ReactNode }) {
   const [text, setText] = useState("");
   const region = useRef<HTMLOutputElement>(null);

@@ -7,7 +7,7 @@
  *       answer. Never blocks anything, and always says it's a guide, not a ruling.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -22,6 +22,11 @@ import { summarizeCheck } from "@/utils/compliance-view";
 
 type Rules = { contentUsage: string; officialSupport: string; project: string };
 
+/**
+ * @function CheckScreen
+ * @param props {{ rules: Rules }} the content rules' version and links
+ * @returns {JSX.Element} /check: paste maps, run the check, see the summary and each map
+ */
 export function CheckScreen({ rules }: { rules: Rules }) {
   const [text, setText] = useState("");
   const [input, setInput] = useState<CheckInput | null>(null);

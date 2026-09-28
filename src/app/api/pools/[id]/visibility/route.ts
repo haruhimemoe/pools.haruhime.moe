@@ -8,7 +8,7 @@
  *       Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { RATE_LIMITS } from "@/constants/api";
@@ -30,6 +30,13 @@ type Context = { params: Promise<{ id: string }> };
 /** Going private may wait on one DELETE to packs; going shared, on a PUT after the answer. */
 export const maxDuration = 60;
 
+/**
+ * @function PUT
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} the pool with its new visibility and what happened to its pack, or a
+ *          refusal
+ */
 export async function PUT(request: Request, { params }: Context) {
   const { id } = await params;
   const caller = await guardWrite(request);

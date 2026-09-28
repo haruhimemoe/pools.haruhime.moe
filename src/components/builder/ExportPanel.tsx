@@ -43,6 +43,11 @@ const download = (name: string, text: string) => {
   window.setTimeout(() => URL.revokeObjectURL(url), REVOKE_AFTER_MS);
 };
 
+/**
+ * @function ExportPanel
+ * @param props {ExportPanelProps} the pool, its maps and values
+ * @returns {JSX.Element} copy IDs, copy !mp lines and download a CSV, all made in the browser
+ */
 export function ExportPanel({ pool, maps, values }: ExportPanelProps) {
   if (pool.slots.length === 0) return <p className="text-c3 text-sm">Add maps to export them.</p>;
   return (

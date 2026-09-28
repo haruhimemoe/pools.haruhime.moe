@@ -7,7 +7,7 @@
  *       marked "no mod data"; a render the mirror failed shows the math until the next hour).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { Metadata } from "next";
@@ -19,14 +19,24 @@ import { pastSlotValues } from "@/services/slot-values";
 import { openInPacksHref } from "@/utils/pack-input";
 import { poolHeadline } from "@/utils/pool-text";
 
+/** ISR: rebuilt at most once an hour, and on an admin's Refresh public pages. */
 export const revalidate = 3600;
 
+/**
+ * @function generateStaticParams
+ * @returns {{ id: string }[]} none at build: pool pages build on first visit
+ */
 export function generateStaticParams() {
   return [];
 }
 
 const loadPool = cache(getPublicPool);
 
+/**
+ * @function generateMetadata
+ * @param props {PageProps<"/pools/[id]">} the pool's id
+ * @returns {Promise<Metadata>} the pool's title, description and canonical URL
+ */
 export async function generateMetadata({ params }: PageProps<"/pools/[id]">): Promise<Metadata> {
   const { id } = await params;
   const pool = await loadPool(id);
@@ -38,6 +48,12 @@ export async function generateMetadata({ params }: PageProps<"/pools/[id]">): Pr
   };
 }
 
+/**
+ * @function PoolPage
+ * @param props {PageProps<"/pools/[id]">} the pool's id
+ * @returns {Promise<JSX.Element>} a past pool's page (cookie-free), or a 404 for a hidden or
+ *          missing one
+ */
 export default async function PoolPage({ params }: PageProps<"/pools/[id]">) {
   const { id } = await params;
   const pool = await loadPool(id);

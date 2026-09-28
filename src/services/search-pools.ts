@@ -28,6 +28,7 @@ type PoolRows = { rows: PoolResult[]; total: number; hiddenMissing: number };
 
 const NO_ROWS: PoolRows = { rows: [], total: 0, hiddenMissing: 0 };
 
+/** Past pools from `skip`, at most `limit` of them, with the totals. */
 const pastPools = async (
   filters: PoolFilters,
   mapId: number | null,
@@ -72,6 +73,7 @@ type BuiltRow = {
   slots?: unknown[];
 };
 
+/** Public, unhidden built pools from `skip`, at most `limit`, with their owners' names. */
 const builtPools = async (
   filters: PoolFilters,
   mapId: number | null,
@@ -117,6 +119,7 @@ const builtPools = async (
   };
 };
 
+/** "Both": built pools first, then past pools, each in the chosen order. */
 const bothPools = async (
   filters: PoolFilters,
   mapId: number | null,

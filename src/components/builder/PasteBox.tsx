@@ -7,7 +7,7 @@
  *       fixed. A paste that applies clears the box.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -26,6 +26,11 @@ type PasteBoxProps = {
   lines: readonly SlotLineError[] | undefined;
 };
 
+/**
+ * @function PasteBox
+ * @param props {PasteBoxProps} the change call and a paste's bad lines
+ * @returns {JSX.Element} the paste box for IDs, links and slot lines
+ */
 export function PasteBox({ change, lines }: PasteBoxProps) {
   const [text, setText] = useState("");
   const [mode, setMode] = useState<Mode>("merge");

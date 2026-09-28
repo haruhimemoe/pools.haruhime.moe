@@ -4,11 +4,16 @@
  *       report behind a disclosure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { StoredImportReport } from "@/models/ImportReport";
 
+/**
+ * @function ImportReportList
+ * @param props {{ reports: readonly StoredImportReport[] }} the latest import reports
+ * @returns {JSX.Element} each report's time, counts and whether it finished
+ */
 export function ImportReportList({ reports }: { reports: readonly StoredImportReport[] }) {
   if (reports.length === 0) return <p className="text-c3 text-sm">No imports yet.</p>;
   return (

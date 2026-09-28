@@ -20,9 +20,12 @@ export const MAX_TARGET_COUNT = 16;
 /** A target's star range: the search's star scale (0 to 10, two decimals). */
 export const TARGET_STARS = STAR_RANGE;
 
+/** /new's templates, by id. */
 export const TEMPLATE_IDS = ["blank", "qualifiers", "groups", "knockout", "finals"] as const;
+/** One of TEMPLATE_IDS. */
 export type TemplateId = (typeof TEMPLATE_IDS)[number];
 
+/** A template: its name, what it's for, and a map count per bucket (never maps). */
 export type PoolTemplate = {
   id: TemplateId;
   name: string;
@@ -30,6 +33,7 @@ export type PoolTemplate = {
   counts: Readonly<Partial<Record<"NM" | "HD" | "HR" | "DT" | "FM" | "TB", number>>>;
 };
 
+/** The templates /new offers. */
 export const POOL_TEMPLATES: readonly PoolTemplate[] = Object.freeze([
   { id: "blank", name: "Blank", counts: {} },
   { id: "qualifiers", name: "Qualifiers", counts: { NM: 5, HD: 2, HR: 2, DT: 3, FM: 2 } },
@@ -38,6 +42,7 @@ export const POOL_TEMPLATES: readonly PoolTemplate[] = Object.freeze([
   { id: "finals", name: "Finals", counts: { NM: 7, HD: 4, HR: 4, DT: 5, FM: 4, TB: 1 } },
 ]);
 
+/** What a target's refusals say. */
 export const TARGET_MESSAGES = {
   count: `A slot's target is 0 to ${MAX_TARGET_COUNT} maps.`,
   bothEnds: "Give both ends of the star range, or neither.",

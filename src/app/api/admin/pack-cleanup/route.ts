@@ -17,6 +17,11 @@ import { retryQueuedPackRemovals } from "@/services/admin";
 /** 50 DELETEs, one at a time. */
 export const maxDuration = 60;
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} what one run over the pack removal queue did
+ */
 export async function POST(request: Request) {
   if (!(await getAdminFromHeaders(request.headers))) return jsonError(404, "Not found.");
   const crossSite = refuseCrossSite(request);

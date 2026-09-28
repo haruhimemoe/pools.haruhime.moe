@@ -33,6 +33,11 @@ type BuiltPoolViewProps = {
   rules: CheckRules;
 };
 
+/**
+ * @function BuiltPoolView
+ * @param props {BuiltPoolViewProps} the pool, its maps, values and the content rules
+ * @returns {JSX.Element} a built pool's page: header, maps, notes, summary, check and export
+ */
 export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps) {
   const count = `${pool.slots.length} ${pool.slots.length === 1 ? "map" : "maps"}`;
   const people = [

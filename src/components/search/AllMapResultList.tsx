@@ -27,6 +27,11 @@ const playedText = (map: AllMapDifficulty) => {
   );
 };
 
+/**
+ * @function AllMapResultList
+ * @param props {{ results: readonly AllMapSet[] }} one page of sets
+ * @returns {JSX.Element} each set with its tags and difficulties
+ */
 export function AllMapResultList({ results }: { results: readonly AllMapSet[] }) {
   return (
     <ul className="flex flex-col gap-3">

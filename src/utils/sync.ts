@@ -8,11 +8,12 @@
  *       summary. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { type PackSync, SYNC_STATES, type SyncState } from "@/schemas/pool";
 
+/** packs' answer to a pool's PUT, sorted into what pools does next. */
 export type SyncAnswer =
   | { kind: "ok"; slug: string; state: "created" | "updated" | "unchanged"; listed: boolean }
   | { kind: "rejected"; status: number; message: string }
@@ -20,6 +21,7 @@ export type SyncAnswer =
   | { kind: "error"; message: string; retryAfterMs: number | null }
   | { kind: "config"; message: string };
 
+/** What a sync run did: due, sent, each state's count, what's left, and a configuration problem. */
 export type SyncSummary = {
   due: number;
   sent: number;
@@ -29,6 +31,7 @@ export type SyncSummary = {
   configError: string | null;
 };
 
+/** What the stats backfill did, and why it stopped. */
 export type BackfillResult = {
   calls: number;
   updated: number;

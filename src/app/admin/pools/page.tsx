@@ -15,6 +15,7 @@ import { requireAdmin } from "@/lib/auth-session";
 import { ADMIN_SHOWS, type AdminShow, listPoolsForAdmin } from "@/services/admin-pools";
 import { parsePageParam } from "@/utils/search-ranges";
 
+/** The admin pool list's title; it's never indexed. */
 export const metadata: Metadata = { title: "Every pool", robots: { index: false } };
 
 const first = (value: string | string[] | undefined): string =>
@@ -27,6 +28,11 @@ const SHOW_LABELS: Readonly<Record<AdminShow, string>> = {
   failed: "Failed or rejected syncs",
 };
 
+/**
+ * @function AdminPoolsPage
+ * @param props {PageProps<"/admin/pools">} which pools to show and the page
+ * @returns {Promise<JSX.Element>} every pool, 50 a page, with its state
+ */
 export default async function AdminPoolsPage({ searchParams }: PageProps<"/admin/pools">) {
   await requireAdmin("/admin/pools");
   const params = await searchParams;

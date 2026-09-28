@@ -64,6 +64,11 @@ const RANGES: readonly {
   { key: "bpm", row: "BPM", label: "BPM", bounds: BPM_RANGE },
 ];
 
+/**
+ * @function AllMapFilterPanel
+ * @param props {Props} the filters, the change handler and the result count
+ * @returns {JSX.Element} the all-maps filters: text, status, stars, length and BPM
+ */
 export function AllMapFilterPanel({ filters, onChange, resultCount }: Props) {
   const setRange = (key: RangeKey, value: Range | null) => onChange({ ...filters, [key]: value });
   return (

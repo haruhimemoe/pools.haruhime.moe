@@ -30,6 +30,12 @@ const CONFIRM_MISMATCH = "Type your osu! username exactly as it's shown to confi
 /** Each owned pool with a pack waits on one DELETE to packs (after one fails, none waits). */
 export const maxDuration = 60;
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 204 once the account is gone, 200 with a notice when pack removals
+ *          were queued, or a refusal
+ */
 export async function DELETE(request: Request) {
   const user = await getUserFromHeaders(request.headers);
   if (!user) return noStore(jsonError(401, "Sign in first."));

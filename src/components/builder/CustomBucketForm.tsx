@@ -31,6 +31,11 @@ const MOD_OPTIONS = MOD_ACRONYMS.map((mod) => ({ value: mod, label: mod }));
 
 type CustomBucketFormProps = { pool: ClientPool; change: (ops: PoolOp[]) => boolean };
 
+/**
+ * @function CustomBucketForm
+ * @param props {CustomBucketFormProps} the pool and the change call
+ * @returns {JSX.Element} the form that adds a custom slot with forced mods or freemod
+ */
 export function CustomBucketForm({ pool, change }: CustomBucketFormProps) {
   const [code, setCode] = useState("");
   const [kind, setKind] = useState<Kind>("forced");

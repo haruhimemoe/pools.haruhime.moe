@@ -10,7 +10,7 @@
  *       on screen). Waits while `enabled` is false (the URL not read yet).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -21,6 +21,7 @@ import { FETCH_DELAY_MS } from "@/constants/search";
 import type { BrowseResponse } from "@/utils/browse-params";
 import { type BrowseState, browseRequestUrl, editorSearchFor } from "@/utils/browse-state";
 
+/** The browser's search: the answer on screen, its status, whether it's fresh, and retry. */
 export type MapBrowse = {
   status: "loading" | "ready" | "error";
   data: BrowseResponse | null;

@@ -26,6 +26,12 @@ type TargetSummaryProps = {
 const H3 = "font-bold text-c1";
 const maps = (n: number) => `${n} ${n === 1 ? "map" : "maps"}`;
 
+/**
+ * @function TargetSummary
+ * @param props {TargetSummaryProps} the buckets, their targets, maps and values
+ * @returns {JSX.Element} each target's count and star range against the pool, with what's out of
+ *          range
+ */
 export function TargetSummary({ groups, targets, maps: details, values }: TargetSummaryProps) {
   const shortId = useId();
   const rangeId = useId();

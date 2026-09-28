@@ -20,6 +20,12 @@ import { refuseOverLimit } from "@/lib/rate-limit";
 import { browseMaps } from "@/services/map-browse";
 import { parseBrowseParams } from "@/utils/browse-params";
 
+/**
+ * @function GET
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} one page of the map browser under its lens, or 503
+ *          browse_unavailable
+ */
 export async function GET(request: Request) {
   const limited = await refuseOverLimit(
     RATE_LIMITS.search,

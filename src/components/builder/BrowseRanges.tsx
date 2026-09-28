@@ -53,6 +53,11 @@ type BrowseRangesProps = {
   onChange: (key: RangeKey, value: Range | null) => void;
 };
 
+/**
+ * @function BrowseRanges
+ * @param props {BrowseRangesProps} the state, the lens and a change handler
+ * @returns {JSX.Element} the star, BPM, length, AR and OD range sliders
+ */
 export function BrowseRanges({ state, lens, onChange }: BrowseRangesProps) {
   return RANGES.map(({ key, name, bounds, format, parse }) => (
     <FilterRow key={key} label={`${name} (${lens})`}>

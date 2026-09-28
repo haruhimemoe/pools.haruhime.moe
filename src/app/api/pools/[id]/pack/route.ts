@@ -23,6 +23,12 @@ type Context = { params: Promise<{ id: string }> };
  */
 export const maxDuration = 60;
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @param context {Context} the route's params (the pool id)
+ * @returns {Promise<Response>} the pool once its pack sync was scheduled, or a refusal
+ */
 export async function POST(request: Request, { params }: Context) {
   const { id } = await params;
   const caller = await guardWrite(request);

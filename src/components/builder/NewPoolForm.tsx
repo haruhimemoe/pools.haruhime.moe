@@ -39,6 +39,12 @@ const readYear = (text: string) =>
 
 type NewPoolFormProps = { startFrom?: StartFrom; fetcher?: Fetcher };
 
+/**
+ * @function NewPoolForm
+ * @param props {NewPoolFormProps} the pool to start from and a fetcher (tests)
+ * @returns {JSX.Element} the new pool's details and template, sent to POST /api/pools, then the
+ *          editor
+ */
 export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<Record<Field, string>>({

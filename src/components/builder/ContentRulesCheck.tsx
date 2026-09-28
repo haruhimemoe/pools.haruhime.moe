@@ -6,7 +6,7 @@
  *       that the check is a guide, not a ruling. Nothing here stops a map from being used.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -25,6 +25,11 @@ export type CheckRules = { contentUsage: string; officialSupport: string; projec
 
 type ContentRulesCheckProps = { slots: readonly PoolSlot[]; rules: CheckRules };
 
+/**
+ * @function ContentRulesCheck
+ * @param props {ContentRulesCheckProps} the pool's slots and the rules
+ * @returns {JSX.Element} the compliance check of the pool's maps, run in the browser on request
+ */
 export function ContentRulesCheck({ slots, rules }: ContentRulesCheckProps) {
   const [asked, setAsked] = useState<readonly PoolSlot[] | null>(null);
   const ids = useMemo(() => (asked ? checkIdsOf(asked) : []), [asked]);

@@ -64,6 +64,7 @@ const beatmapSchema = z
     cs: cs ?? null,
   }));
 
+/** A difficulty as the mirror's search sends it. */
 export type MirrorBeatmap = z.output<typeof beatmapSchema>;
 
 /** A beatmapset: what the page shows, and what the compliance rules read (when it's there). */
@@ -84,6 +85,7 @@ const setSchema = z.object({
   beatmaps: z.array(z.unknown()),
 });
 
+/** A set as the mirror's search sends it, with its osu! difficulties. */
 export type MirrorSet = Omit<z.output<typeof setSchema>, "beatmaps"> & {
   beatmaps: MirrorBeatmap[];
 };
@@ -121,6 +123,7 @@ export const mirrorSearchUrl = (filters: AllMapFilters, page: number): string =>
   return `${MIRROR_SEARCH_URL}?${params}`;
 };
 
+/** The mirror's answer: a page of sets, a cool-down, or a failure. */
 export type MirrorSearch =
   | {
       ok: true;

@@ -9,13 +9,19 @@
  * @modified Mon Sep 28, 2026
  */
 
+/** Past pool records. */
 export const POOLS_COLLECTION = "pools";
+/** One row per beatmap, with its usage. */
 export const MAPS_COLLECTION = "maps";
+/** Import reports. */
 export const IMPORTS_COLLECTION = "imports";
+/** Cached beatmapset facts for the check. */
 export const SET_FACTS_COLLECTION = "setFacts";
+/** Rate-limit and osu! budget counters. */
 export const RATE_LIMITS_COLLECTION = "rate_limits";
 /** Pools people build here, and every built pool id ever handed out (so none is reused). */
 export const BUILT_POOLS_COLLECTION = "built_pools";
+/** Every built pool id ever claimed, so none is reused. */
 export const BUILT_POOL_IDS_COLLECTION = "built_pool_ids";
 /** Pack removals packs couldn't do yet, retried later (src/services/pack-cleanup.ts). */
 export const PACK_CLEANUP_COLLECTION = "pack_cleanup";

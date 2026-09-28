@@ -92,6 +92,7 @@ export const getBuiltMaps = async (ids: readonly number[]): Promise<BuiltMap[]> 
   return rows.map((row) => builtMapOf(row as MapRow));
 };
 
+/** The mirror lookup and the clock (tests). */
 export type FillDeps = { lookup?: MapLookup; now?: () => Date };
 
 /**

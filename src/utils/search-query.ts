@@ -33,6 +33,7 @@ import {
 import { escapeRegExp, searchTerms } from "@/utils/fold";
 import type { MapFilters, PoolFilters, Range } from "@/utils/search-filters";
 
+/** A find's filter, sort, hint and count filter. */
 export type BuiltQuery = {
   filter: Document;
   /** Rows hidden only because a set range lacks their value; null when no such range is set. */
@@ -46,12 +47,14 @@ export type BuiltQuery = {
 
 type SortSpec = { sort: Record<string, 1 | -1>; hint: string };
 
+/** Each pool order's sort and the index it hints. */
 export const POOL_SORT_SPECS: Readonly<Record<PoolSort, SortSpec>> = Object.freeze({
   year: { sort: { year: -1, _id: 1 }, hint: POOL_INDEXES.year },
   name: { sort: { sortName: 1, _id: 1 }, hint: POOL_INDEXES.name },
   maps: { sort: { "stats.count": -1, _id: 1 }, hint: POOL_INDEXES.maps },
 });
 
+/** Each map order's sort and the index it hints. */
 export const MAP_SORT_SPECS: Readonly<Record<MapSort, SortSpec>> = Object.freeze({
   used: { sort: { "usage.count": -1, _id: 1 }, hint: MAP_INDEXES.used },
   last: { sort: { "usage.lastYear": -1, _id: 1 }, hint: MAP_INDEXES.last },
@@ -132,6 +135,7 @@ export const poolQuery = (filters: PoolFilters, page: number, mapId: number | nu
   return build(base, ranges, POOL_SORT_SPECS[filters.sort], page);
 };
 
+/** Each pool order for built pools, on their own indexes. */
 export const BUILT_POOL_SORT_SPECS: Readonly<Record<PoolSort, SortSpec>> = Object.freeze({
   year: { sort: { year: -1, _id: 1 }, hint: BUILT_POOL_INDEXES.searchYear },
   name: { sort: { sortName: 1, _id: 1 }, hint: BUILT_POOL_INDEXES.searchName },

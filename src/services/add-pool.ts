@@ -37,6 +37,7 @@ import { editsFrom } from "@/utils/pool-record";
 import { type RandomBytes, uniqueSourceId } from "@/utils/source-ids";
 import { normalizePool, type SourceRef } from "@/utils/source-pools";
 
+/** The clock, ids, the mirror fill and the pack sync (tests). */
 export type AddPoolDeps = {
   packsService?: () => PacksService | null;
   fetch?: Fetch;
@@ -48,6 +49,7 @@ export type AddPoolDeps = {
   loadExisting?: () => Promise<ExistingPool[]>;
 };
 
+/** What an add did: created or merged, revived, already credited, the pool and its pack. */
 export type AddPoolAnswer = {
   /** A new record, or the source joined a stored one. */
   outcome: "created" | "merged";
@@ -61,20 +63,15 @@ export type AddPoolAnswer = {
   sync: SyncOutcome;
 };
 
+/** An add's answer, or the refusals per field. */
 export type AddPoolResult =
   | { ok: true; answer: AddPoolAnswer }
   | { ok: false; fields: Record<string, string> };
 
-/** Every id taken for a kind: current and former sources, and inside pool ids. */
-
 /** Where the source landed, or null when the record changed under us (plan again). */
-
 type Landing = { outcome: "created" | "merged"; id: string; revived: boolean; credited: boolean };
 
-/** The same kind, credit name and credit link. */
-
 /** Which field a normalize refusal belongs to. */
-
 const fieldOfReason = (reason: string): string =>
   /^The notes/u.test(reason) ? "notes" : /pool name/u.test(reason) ? "tournament" : "maps";
 
@@ -83,7 +80,6 @@ type Attempt =
   | { ok: true; landing: Landing | null; mapIds: number[] };
 
 /** Plans the add over the stored records and writes it once: null landing means plan again. */
-
 const landSource = async (
   body: AddPoolBody,
   read: Extract<AddPoolMaps, { ok: true }>,

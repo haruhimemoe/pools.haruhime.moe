@@ -61,6 +61,7 @@ const detailsOp = z
   })
   .refine((op) => Object.keys(op).length > 1, "Send a detail to change.");
 
+/** One editor op: maps, buckets, details, targets or notes. */
 export const opSchema = z.union([
   detailsOp,
   z.strictObject({
@@ -98,8 +99,10 @@ export const opSchema = z.union([
   z.strictObject({ type: z.literal("setNote"), beatmapId: beatmapIdSchema, note: slotNoteSchema }),
 ]);
 
+/** One editor op. */
 export type PoolOp = z.infer<typeof opSchema>;
 
+/** POST /api/pools/<id>/ops: the version it builds on and 1 to 20 ops. */
 export const opsBodySchema = z.strictObject({
   baseVersion: z.number().int().positive(),
   ops: z
@@ -108,6 +111,7 @@ export const opsBodySchema = z.strictObject({
     .max(MAX_OPS_PER_CALL, `Send at most ${MAX_OPS_PER_CALL} changes at once.`),
 });
 
+/** POST /api/pools: the details, a template, and the pool to start from. */
 export const createPoolBodySchema = z
   .strictObject({
     name: builtDetailsFields.name.optional(),
@@ -125,10 +129,13 @@ export const createPoolBodySchema = z
     "Give the pool a name.",
   );
 
+/** A new pool's request. */
 export type CreatePoolBody = z.infer<typeof createPoolBodySchema>;
 
+/** PUT /api/pools/<id>/visibility. */
 export const visibilityBodySchema = z.strictObject({ visibility: z.enum(VISIBILITIES) });
 
+/** POST /api/pools/<id>/editors: an osu! username. */
 export const editorBodySchema = z.strictObject({
   username: z
     .string()
@@ -141,6 +148,7 @@ export const editorBodySchema = z.strictObject({
 /** Longer than any pool name, so a wrong one is refused by comparison, not by length. */
 const MAX_CONFIRM_LENGTH = 200;
 
+/** POST /api/pools/<id>/owner: the new owner's osu! id and the pool's name, typed. */
 export const ownerBodySchema = z.strictObject({
   osuId: z.number().int().positive(),
   confirmName: z.string().max(MAX_CONFIRM_LENGTH),

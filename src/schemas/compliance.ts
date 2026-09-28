@@ -6,12 +6,13 @@
  *       our pools, and the whole answer.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { ComplianceReason, ComplianceStatus } from "@haruhimemoe/compliance";
 import { z } from "zod";
 
+/** A cached beatmapset's facts for the check, with its difficulty ids. */
 export const setFactsDocSchema = z.object({
   _id: z.number().int().positive(),
   status: z.string(),
@@ -28,6 +29,7 @@ export const setFactsDocSchema = z.object({
   fetchedAt: z.date(),
 });
 
+/** A cached beatmapset's facts. */
 export type SetFactsDoc = z.infer<typeof setFactsDocSchema>;
 
 /** One beatmapset's verdict, for every asked map in it. */

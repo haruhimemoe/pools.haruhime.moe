@@ -25,6 +25,7 @@ import { groupHeading, type SlotGroup } from "@/utils/built-editor";
 import { starsUnderMods } from "@/utils/built-summary";
 import { groupSlotCode, type SlotValueMap, slotValueKey } from "@/utils/slot-values";
 
+/** What a slot row can do: move, remove, note and drag. */
 export type SlotActions = {
   onMove: (slot: PoolSlot, direction: "up" | "down") => void;
   onMoveTo: (slot: PoolSlot, bucket: string) => void;
@@ -49,6 +50,11 @@ type BucketSectionProps = SlotActions & {
   onRemoveBucket: (code: string) => void;
 };
 
+/**
+ * @function BucketSection
+ * @param props {BucketSectionProps} the bucket, its slots and the slot actions
+ * @returns {JSX.Element} one bucket's heading, target, Find maps and rows, as a drop target
+ */
 export function BucketSection(props: BucketSectionProps) {
   const { group, maps, values, targets, plan, notes, drag, ...on } = props;
   const headingId = useId();

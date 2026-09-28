@@ -3,8 +3,8 @@
  * @desc The owner's "Hand this pool to an editor". Editors who have signed in can be picked;
  *       the rest are listed, off, with "hasn't signed in yet". The confirmation is in the page
  *       (no confirm() dialog; ui's RadioGroup and TypeToConfirm): the button stays off until an
- *       editor is picked and the pool's name is typed exactly, then POST /api/pools/<id>/owner runs in turn with the editor's
- *       changes. The answer is the pool as the old owner now sees it, so the owner's settings
+ *       editor is picked and the pool's name is typed exactly, then POST /api/pools/<id>/owner
+ *       runs in turn with the editor's changes. The answer is the pool as the old owner now sees it, so the owner's settings
  *       go and onDone says who owns it. A refusal is said in the page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -19,6 +19,7 @@ import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientPool } from "@/schemas/built-pool-view";
 import type { PoolEditor } from "@/schemas/pool-editor";
 
+/** Said when no editor has signed in to take the pool over. */
 export const NO_HANDOVER =
   "Only an editor who has signed in to pools can take the pool over. Add one above first.";
 

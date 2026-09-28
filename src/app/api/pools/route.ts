@@ -5,7 +5,7 @@
  *       with its id and the pool, private and empty (or holding the copied maps). Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { RATE_LIMITS } from "@/constants/api";
@@ -19,6 +19,11 @@ import {
 import { createPoolBodySchema } from "@/schemas/built-pool-ops";
 import { createBuiltPool } from "@/services/built-pool-create";
 
+/**
+ * @function POST
+ * @param request {Request} the incoming request
+ * @returns {Promise<Response>} 201 with the new pool, or a refusal
+ */
 export async function POST(request: Request) {
   const caller = await guardWrite(request);
   if (!caller.ok) return caller.response;

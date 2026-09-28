@@ -28,6 +28,13 @@ type DeletePoolFormProps = {
   fetcher?: Fetcher;
 };
 
+/**
+ * @function DeletePoolForm
+ * @param props {DeletePoolFormProps} the pool's id and name, the editor, what to do after, and a
+ *        fetcher (tests)
+ * @returns {JSX.Element} the typed-name confirmation (ui's TypeToConfirm), or what happened to the
+ *          pack
+ */
 export function DeletePoolForm({
   poolId,
   name,

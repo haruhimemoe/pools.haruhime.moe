@@ -3,7 +3,7 @@
  * @desc Legal document route. Static params come from the registry; unknown slugs 404.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { PageHeader, Prose } from "@haruhimemoe/ui";
@@ -19,12 +19,22 @@ const LOADERS: Record<LegalSlug, () => Promise<{ default: MDXContent }>> = {
   terms: () => import("@content/legal/terms.mdx"),
 };
 
+/** Only the legal pages in LEGAL_DOCS exist; any other path is a 404. */
 export const dynamicParams = false;
 
+/**
+ * @function generateStaticParams
+ * @returns {{ doc: string }[]} every legal page, built at deploy
+ */
 export function generateStaticParams() {
   return LEGAL_SLUGS.map((doc) => ({ doc }));
 }
 
+/**
+ * @function generateMetadata
+ * @param props {PageProps<"/legal/[doc]">} the page's slug
+ * @returns {Promise<Metadata>} its title and canonical URL
+ */
 export async function generateMetadata({ params }: PageProps<"/legal/[doc]">): Promise<Metadata> {
   const { doc } = await params;
   if (!isLegalSlug(doc)) return {};
@@ -32,6 +42,11 @@ export async function generateMetadata({ params }: PageProps<"/legal/[doc]">): P
   return { title, description, alternates: { canonical: `/legal/${doc}` } };
 }
 
+/**
+ * @function LegalPage
+ * @param props {PageProps<"/legal/[doc]">} the page's slug
+ * @returns {Promise<JSX.Element>} the MDX legal page with its last-updated date
+ */
 export default async function LegalPage({ params }: PageProps<"/legal/[doc]">) {
   const { doc } = await params;
   if (!isLegalSlug(doc)) notFound();

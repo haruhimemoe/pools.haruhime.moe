@@ -48,6 +48,7 @@ export const templateTargets = (id: TemplateId): Record<string, BucketTarget> =>
   );
 };
 
+/** A bucket short of its target: how many it has, wants and misses. */
 export type TargetGap = { code: string; have: number; want: number; missing: number };
 
 /**
@@ -89,6 +90,7 @@ export const rangeSide = (
   return stars > sr.max ? "above" : null;
 };
 
+/** A map outside its bucket's star range. */
 export type OutOfRange = {
   beatmapId: number;
   slot: string;
@@ -153,7 +155,9 @@ export const targetText = ({ count, sr }: BucketTarget): string => {
   return parts.filter((part) => part !== null).join(", ");
 };
 
+/** A target's fields as typed. */
 export type TargetInput = { count: string; min: string; max: string };
+/** A target read from its fields, or the field that's wrong. */
 export type TargetRead =
   | ({ ok: true } & BucketTarget)
   | { ok: false; field: "count" | "range"; message: string };

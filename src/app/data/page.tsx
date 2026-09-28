@@ -18,6 +18,7 @@ import Link from "next/link";
 import { PACKS_SITE_URL, SOURCE_CREDITS } from "@/constants/pools";
 import { SITE } from "@/constants/site";
 
+/** /data's title, description and canonical URL. */
 export const metadata: Metadata = {
   title: "Data",
   description:
@@ -26,6 +27,10 @@ export const metadata: Metadata = {
 
 const otdb = SOURCE_CREDITS.otdb;
 
+/**
+ * @function DataPage
+ * @returns {JSX.Element} where pools, maps and values come from, and the check's rules
+ */
 export default function DataPage() {
   return (
     <article>

@@ -17,6 +17,12 @@ import { removeBuiltPoolEditor } from "@/services/built-pool-editors";
 
 type Context = { params: Promise<{ id: string; osuId: string }> };
 
+/**
+ * @function DELETE
+ * @param request {Request} the incoming request
+ * @param context {Context} the pool id and the editor's osu! id
+ * @returns {Promise<Response>} the pool without that editor, or a refusal
+ */
 export async function DELETE(request: Request, { params }: Context) {
   const { id, osuId } = await params;
   const caller = await guardWrite(request);

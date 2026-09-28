@@ -7,7 +7,7 @@
  *       loads the data and builds the packs link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
@@ -31,6 +31,12 @@ type PoolViewProps = {
   preview?: boolean;
 };
 
+/**
+ * @function PoolView
+ * @param props {PoolViewProps} the pool, its maps, values, the packs link and whether it's the
+ *        admin preview
+ * @returns {JSX.Element} a past pool's page: header, maps, notes, sources, export and history
+ */
 export function PoolView({ pool, maps, values, openInPacks, preview = false }: PoolViewProps) {
   const notes = shownNotes(pool.notes, pool.edited);
   const count = `${pool.slots.length} ${pool.slots.length === 1 ? "map" : "maps"}`;

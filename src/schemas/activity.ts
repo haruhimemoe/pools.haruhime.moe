@@ -12,6 +12,7 @@ import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { ACTIVITY_KINDS, type ActivityKind } from "@/constants/activity";
 
+/** An activity entry as stored: pool, time, who, kind, summary and whom it names. */
 export const storedActivitySchema = z.object({
   _id: z.instanceof(ObjectId),
   poolId: z.string(),
@@ -24,6 +25,7 @@ export const storedActivitySchema = z.object({
   subject: z.object({ osuId: z.number().int().positive(), username: z.string() }).optional(),
 });
 
+/** A stored activity entry. */
 export type StoredActivity = z.infer<typeof storedActivitySchema>;
 
 /** What the editor's Recent changes gets. */

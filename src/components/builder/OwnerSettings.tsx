@@ -26,6 +26,12 @@ type OwnerSettingsProps = {
   onDeleted: () => void;
 };
 
+/**
+ * @function OwnerSettings
+ * @param props {OwnerSettingsProps} the pool, the editor, a fetcher (tests) and what to do after a
+ *        handover or delete
+ * @returns {JSX.Element} the owner's visibility, editors, handover and delete
+ */
 export function OwnerSettings({ pool, editor, fetcher, ...on }: OwnerSettingsProps) {
   return (
     <Card title="Owner settings">

@@ -36,6 +36,7 @@ import { readOtdbExport } from "@/utils/otdb";
 import { normalizePools } from "@/utils/source-pools";
 import { emptySyncStates } from "@/utils/sync";
 
+/** What the import runner calls, replaced in tests. */
 export type ImportDeps = {
   fetch?: Fetch;
   readFile?: (path: string) => Promise<string>;

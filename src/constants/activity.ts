@@ -9,6 +9,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+/** What an activity entry records: the first op of an ops call, or a setting. */
 export const ACTIVITY_KINDS = [
   "details",
   "add",
@@ -21,6 +22,7 @@ export const ACTIVITY_KINDS = [
   "editors",
   "owner",
 ] as const;
+/** One of ACTIVITY_KINDS. */
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
 
 /** Entries one pool keeps; older ones are trimmed when a new one is written. */

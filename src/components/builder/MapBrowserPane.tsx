@@ -38,6 +38,10 @@ import {
   readBrowseState,
 } from "@/utils/browse-state";
 
+/**
+ * The map browser's interface: the pool's buckets and maps, the bucket Find maps opened it for, and
+ * the add call.
+ */
 export type MapBrowserProps = {
   buckets: readonly BucketEntry[];
   /** Every beatmap id in the pool now. */
@@ -54,6 +58,12 @@ export type MapBrowserProps = {
   fetcher?: typeof fetch;
 };
 
+/**
+ * @function MapBrowserPane
+ * @param props {MapBrowserProps} the pool's buckets, its map ids, Find maps' bucket and the add
+ *        call
+ * @returns {JSX.Element} the map browser: filters, ranges, results and paging
+ */
 export function MapBrowserPane(props: MapBrowserProps) {
   const { buckets, poolIds, openedFor, openCount, onAdd, fetcher, targets } = props;
   const headingId = useId();

@@ -71,10 +71,14 @@ const oneLine = (label: string, min: number, max: number) =>
     .refine(wellFormed, `The ${label} has a broken character.`)
     .refine((text) => !hasBlockedLanguage(text), FILTER_ISSUE);
 
+/** A built pool's name: one line, 1 to MAX_NAME_LENGTH, through the content filter. */
 export const builtNameSchema = oneLine("name", 1, MAX_NAME_LENGTH);
+/** Its tournament: one line, up to MAX_TOURNAMENT_LENGTH. */
 export const builtTournamentSchema = oneLine("tournament", 0, MAX_TOURNAMENT_LENGTH);
+/** Its round: one line, up to MAX_ROUND_LENGTH. */
 export const builtRoundSchema = oneLine("round", 0, MAX_ROUND_LENGTH);
 
+/** Its notes: up to MAX_NOTES_LENGTH, through the content filter. */
 export const builtNotesSchema = z
   .string()
   .trim()
@@ -83,6 +87,7 @@ export const builtNotesSchema = z
   .refine(wellFormed, "The notes have a broken character.")
   .refine((text) => !hasBlockedLanguage(text), FILTER_ISSUE);
 
+/** Its year: four digits, or null. */
 export const builtYearSchema = z
   .number()
   .int("A year is a whole number.")
@@ -90,6 +95,7 @@ export const builtYearSchema = z
   .refine((year) => year <= new Date().getUTCFullYear() + 1, "That year hasn't come yet.")
   .nullable();
 
+/** An editor: osu! id, username, and their user id once they've signed in. */
 export const builtEditorSchema = z.object({
   /** The editor's user id once they've signed in; null until then. */
   userId: z.string().min(1).nullable(),
@@ -98,6 +104,7 @@ export const builtEditorSchema = z.object({
   addedAt: z.date(),
 });
 
+/** A built pool's editor. */
 export type BuiltEditor = z.infer<typeof builtEditorSchema>;
 
 /**
@@ -118,6 +125,7 @@ export const builtPackSchema = z.object({
   retry: z.boolean().default(true),
 });
 
+/** A built pool's pack on packs. */
 export type BuiltPack = z.infer<typeof builtPackSchema>;
 
 /** The details a person edits, all at once (setDetails sends any of them). */
@@ -155,6 +163,7 @@ const builtPoolRest = {
   updatedAt: z.date(),
 };
 
+/** A built pool as written: content, owner, editors, visibility, pack, version and dates. */
 export const storedBuiltPoolSchema = poolFields
   .extend({ ...builtPoolRest, ...builtDetailsFields })
   .superRefine((pool, ctx) => {
@@ -166,6 +175,7 @@ export const storedBuiltPoolSchema = poolFields
     }
   });
 
+/** A built pool as stored. */
 export type StoredBuiltPool = z.infer<typeof storedBuiltPoolSchema>;
 
 /**
