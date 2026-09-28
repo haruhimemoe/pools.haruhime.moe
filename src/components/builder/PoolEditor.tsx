@@ -96,7 +96,7 @@ export function PoolEditor({
         gone={editor.gone}
         onDismiss={editor.dismiss}
       />
-      {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION}</Notice> : null}
+      {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION[pool.visibility]}</Notice> : null}
       {handedOver ? <Notice live>{handedOver}</Notice> : null}
       <div
         data-panes

@@ -2,16 +2,19 @@
  * @file src/app/admin/page.tsx
  * @desc /admin: the newest import reports, how many pools sit in each sync state, the retry
  *       buttons, how many pack removals wait for packs and "Retry pack cleanup", the newest 50
- *       built pools with hide, unhide and delete, the public pages refresh (for after an import), and links to add a pool and to
- *       every pool. Admins only (sign-in otherwise); never indexed.
+ *       unlisted and public built pools with hide, unhide and delete (what happened said in one
+ *       live region that outlives a deleted row), the public pages refresh (for after an
+ *       import), and links to add a pool and to every pool. Admins only (sign-in otherwise);
+ *       never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { AdminBuiltPoolTable } from "@/components/admin/AdminBuiltPoolTable";
+import { BuiltModerationArea } from "@/components/admin/BuiltModerationArea";
 import { ImportReportList } from "@/components/admin/ImportReportList";
 import { RefreshPagesButton } from "@/components/admin/RefreshPagesButton";
 import { RetryPackCleanupButton } from "@/components/admin/RetryPackCleanupButton";
@@ -69,11 +72,14 @@ export default async function AdminPage() {
       </Card>
       <Card title="Built pools">
         <p className="mb-3 text-c2 text-sm">
-          The {ADMIN_BUILT_LIMIT} newest. Hiding one takes it off search, the sitemap and its public
-          page (its owner and editors still see it) and unlists its pack on packs. Deleting removes
-          it and its pack for good.
+          The {ADMIN_BUILT_LIMIT} newest unlisted and public ones (a private pool stays between its
+          owner and editors). Hiding one takes it off search, the sitemap and its public page (its
+          owner and editors still see it) and unlists its pack on packs. Deleting removes it and its
+          pack for good.
         </p>
-        <AdminBuiltPoolTable pools={built} />
+        <BuiltModerationArea>
+          <AdminBuiltPoolTable pools={built} />
+        </BuiltModerationArea>
       </Card>
       <Card title="Public pages">
         <p className="mb-3 text-c2 text-sm">

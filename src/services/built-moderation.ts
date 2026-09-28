@@ -1,13 +1,14 @@
 /**
  * @file src/services/built-moderation.ts
- * @desc Admins' view of pools built here: the newest ones (with owner, visibility, hidden, map
- *       count and pack state) and hiding or unhiding one. A hide is a new version (the editor's
+ * @desc Admins' view of pools built here: the newest unlisted and public ones (with owner,
+ *       visibility, hidden, map count and pack state; never a private one) and hiding or
+ *       unhiding one. A hide is a new version (the editor's
  *       poll shows its owner the notice) and marks a public pool's pack pending, so the route
  *       sends it to packs as unlisted at once (packs keeps its own moderators' hides). Deleting
  *       goes through deleteBuiltPool, the owner's path, pack removal included.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -34,14 +35,18 @@ export type AdminBuiltPool = {
 /**
  * @function listRecentBuiltPools
  * @param limit {number} how many (default 50)
- * @returns {Promise<AdminBuiltPool[]>} the newest built pools, every visibility, rows of the
- *          wrong shape left out
+ * @returns {Promise<AdminBuiltPool[]>} the newest unlisted and public built pools, rows of the
+ *          wrong shape left out (a private pool is seen only by its owner and editors, admins
+ *          included: privacy.mdx says so, and admins can't open one)
  */
 export const listRecentBuiltPools = async (
   limit: number = ADMIN_BUILT_LIMIT,
 ): Promise<AdminBuiltPool[]> => {
   const rows = await (await builtPoolsCollection())
-    .find({}, { sort: { createdAt: -1 }, hint: BUILT_POOL_INDEXES.recent, limit })
+    .find(
+      { visibility: { $ne: "private" } },
+      { sort: { createdAt: -1 }, hint: BUILT_POOL_INDEXES.recent, limit },
+    )
     .maxTimeMS(QUERY_TIME_MS)
     .toArray();
   const pools = rows.map(readBuiltPool).flatMap((pool) => (pool ? [pool] : []));

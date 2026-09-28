@@ -1,11 +1,12 @@
 /**
  * @file src/components/admin/AdminBuiltPoolTable.tsx
- * @desc The newest pools built here, for admins: name (linking its page unless it's private,
- *       which admins can't open), id, owner, who can see it, hidden, map count, pack state and
- *       when it was made, each with Hide or Unhide and Delete.
+ * @desc The newest unlisted and public pools built here, for admins: name (linking its page;
+ *       a private one, which admins can't open, is never listed but would show no link), id,
+ *       owner, who can see it, hidden, map count, pack state and when it was made, each with
+ *       Hide or Unhide and Delete.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import Link from "next/link";
@@ -16,7 +17,9 @@ import type { AdminBuiltPool } from "@/services/built-moderation";
 const HEADINGS = ["Pool", "Owner", "Seen by", "Maps", "Pack", "Made", "Moderation"] as const;
 
 export function AdminBuiltPoolTable({ pools }: { pools: readonly AdminBuiltPool[] }) {
-  if (pools.length === 0) return <p className="text-c3 text-sm">Nobody has built a pool yet.</p>;
+  if (pools.length === 0) {
+    return <p className="text-c3 text-sm">No unlisted or public pool has been built yet.</p>;
+  }
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">

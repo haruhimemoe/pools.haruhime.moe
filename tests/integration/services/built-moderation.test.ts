@@ -1,11 +1,11 @@
 /**
  * @file tests/integration/services/built-moderation.test.ts
- * @desc Admins' built pool list (newest first, every visibility, owner named, limited) and
+ * @desc Admins' built pool list (newest first, unlisted and public only, owner named, limited) and
  *       hiding: a new version each time it changes, nothing when it's already so, a public
  *       pool's pack marked pending, an unlisted one's left alone, null for no pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -21,18 +21,22 @@ const SLOTS = [{ mod: "NM", index: 1, beatmapId: 5 }];
 const SYNCED = { ...EMPTY_BUILT_PACK, state: "synced" as const, slug: "Abc123" };
 
 describe("listRecentBuiltPools", () => {
-  it("lists the newest built pools of every visibility with their owner", async () => {
+  it("lists the newest unlisted and public built pools with their owner", async () => {
     const cast = await createCast();
-    await insertPool(cast, { _id: "b-a0000001", createdAt: made(1), slots: SLOTS });
-    await insertPool(cast, { _id: "b-a0000002", createdAt: made(2), visibility: "public" });
-    await insertPool(cast, { _id: "b-a0000003", createdAt: made(3), hidden: true });
+    const shared = (id: string, minutes: number, more = {}) =>
+      insertPool(cast, { _id: id, createdAt: made(minutes), visibility: "unlisted", ...more });
+    await shared("b-a0000001", 1, { slots: SLOTS });
+    await shared("b-a0000002", 2, { visibility: "public" });
+    await shared("b-a0000003", 3, { hidden: true });
+    // Only its owner and editors see a private pool, admins included (privacy.mdx).
+    await shared("b-a0000004", 4, { visibility: "private" });
     const listed = await listRecentBuiltPools();
     expect(listed.map((pool) => pool.id)).toEqual(["b-a0000003", "b-a0000002", "b-a0000001"]);
     expect(listed[2]).toEqual({
       id: "b-a0000001",
       name: "Spring Cup Finals",
       owner: "owner",
-      visibility: "private",
+      visibility: "unlisted",
       hidden: false,
       maps: 1,
       pack: "none",

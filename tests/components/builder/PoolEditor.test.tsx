@@ -4,7 +4,7 @@
  *       moved map), move to another bucket and remove, each change sent at once with the last
  *       saved version, the optimistic copy rolled back on an error, the 409 notice with the
  *       reloaded pool, a pool that's gone (said once, and no more polling), the notice when
- *       moderators hid it, values under each slot's mods (and the summary's star range from
+ *       moderators hid it (no search or pack for a private one), values under each slot's mods (and the summary's star range from
  *       them), and "Find maps" bringing focus to the map browser pane. No network: a
  *       fake pool API applies the ops with the builder's own rules.
  * @author David @dvhsh (https://dvh.sh)
@@ -159,11 +159,17 @@ describe("PoolEditor: saving", () => {
 
 describe("PoolEditor: moderation", () => {
   it("says when moderators hid the pool, and nothing when they didn't", () => {
-    setup(clientPool({ hidden: true }));
-    expect(screen.getByText(HIDDEN_BY_MODERATION)).toBeInTheDocument();
+    setup(clientPool({ hidden: true, visibility: "public" }));
+    expect(screen.getByText(HIDDEN_BY_MODERATION.public)).toBeInTheDocument();
     cleanup();
     setup();
-    expect(screen.queryByText(HIDDEN_BY_MODERATION)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Hidden by moderation/)).not.toBeInTheDocument();
+  });
+
+  it("says nothing of search or a pack for a private pool moderators hid", () => {
+    setup(clientPool({ hidden: true }));
+    expect(screen.getByText(HIDDEN_BY_MODERATION.private)).toBeInTheDocument();
+    expect(HIDDEN_BY_MODERATION.private).not.toMatch(/search|pack/);
   });
 });
 

@@ -61,7 +61,7 @@ export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps)
           </ButtonLink>,
         ]}
       />
-      {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION}</Notice> : null}
+      {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION[pool.visibility]}</Notice> : null}
       {pool.notes ? (
         <Card title="Notes">
           <p className="whitespace-pre-line">{pool.notes}</p>
