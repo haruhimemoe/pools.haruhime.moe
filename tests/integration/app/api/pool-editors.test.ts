@@ -5,7 +5,8 @@
  *       their user id is filled in and they can open and edit the private pool; someone who
  *       already has an account gets their user id at once. Refused: a name osu! doesn't know,
  *       osu! down (503), the owner, a repeat, an 11th editor. The owner removes an editor, an
- *       editor removes themselves but nobody else; 30 editor changes an hour per user.
+ *       editor removes themselves but nobody else; 30 editor changes an hour per user, counted
+ *       (like the lookups' share of the osu! budget) by osu! id, so a new account can't reset it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -17,6 +18,8 @@ import { DELETE } from "@/app/api/pools/[id]/editors/[osuId]/route";
 import { POST } from "@/app/api/pools/[id]/editors/route";
 import { POST as postOps } from "@/app/api/pools/[id]/ops/route";
 import { GET } from "@/app/api/pools/[id]/route";
+import { RATE_LIMITS_COLLECTION } from "@/constants/db";
+import { getDb } from "@/lib/db";
 import { findBuiltPool } from "@/services/built-pools";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
@@ -128,6 +131,17 @@ describe("editor limits", () => {
       expect((await remove(cast.owner.cookie, 50)).status).toBe(204);
     }
     expect((await add(cast.owner.cookie, "newbie")).status).toBe(429);
+  });
+
+  it("counts the limit and the lookups' osu! budget by the owner's osu! id", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { _id: ID, editors: [] });
+    expect((await add(cast.owner.cookie, "newbie")).status).toBe(200);
+    const ids = (
+      await getDb().collection<{ _id: string }>(RATE_LIMITS_COLLECTION).find().toArray()
+    ).map((counter) => counter._id);
+    expect(ids.filter((id) => id.includes(":osu:10:"))).toHaveLength(2);
+    expect(ids.some((id) => id.includes(cast.owner.id))).toBe(false);
   });
 });
 

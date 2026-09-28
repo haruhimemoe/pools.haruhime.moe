@@ -1,12 +1,14 @@
 /**
  * @file src/services/built-pools.ts
- * @desc Database work for pools built here: reading one (a stored row that doesn't parse is left
- *       out, never shown half-broken), what a caller sees of it (the owner's current osu! name
+ * @desc Database work for pools built here: reading one (by shape only, builtPoolReadSchema, so
+ *       a pool a newer content filter or limit would refuse still reads and can be fixed or
+ *       deleted; a row of the wrong shape is left out, never shown half-broken), what a caller sees of it (the owner's current osu! name
  *       and every bucket), creating one (at most 50 per owner, a fresh "b-" id claimed in
  *       built_pool_ids so no id is ever reused, maybe copied from a past pool or a built one the
  *       caller can see), changing who sees it, and deleting it. A pool with a pack on packs
- *       loses the pack first (going private, being deleted); if packs can't confirm that, nothing
- *       changes here. Lists a user's pools for their account page. Answers are a value or a
+ *       loses the pack (going private, being deleted); when packs can't be asked, the change
+ *       goes ahead and the removal is queued (src/services/pack-cleanup.ts), and the answer
+ *       says so. Lists a user's pools for their account page. Answers are a value or a
  *       refusal with a status, code and message.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -21,17 +23,17 @@ import {
   MAX_POOLS_PER_OWNER,
   type Visibility,
 } from "@/constants/built-pools";
-import { getPacksService, type PacksService } from "@/env";
 import type { SessionUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { deletePack } from "@/lib/packs-client";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import {
   type BuiltEditor,
   type BuiltPack,
+  builtPoolReadSchema,
   type StoredBuiltPool,
   storedBuiltPoolSchema,
 } from "@/schemas/built-pool";
+import { type PackRemoval, removePackOrQueue } from "@/services/pack-cleanup";
 import { type Access, accessOf, type Caller } from "@/utils/built-access";
 
 export type Refusal = {
@@ -89,19 +91,29 @@ export type BuiltPoolView = {
 };
 
 /**
+ * @function readBuiltPool
+ * @param row {unknown} a built_pools row
+ * @returns {StoredBuiltPool | null} the pool by shape (builtPoolReadSchema), or null for a row
+ *          of the wrong shape (logged)
+ */
+export const readBuiltPool = (row: unknown): StoredBuiltPool | null => {
+  if (!row) return null;
+  const parsed = builtPoolReadSchema.safeParse(row);
+  if (parsed.success) return parsed.data;
+  const id = typeof row === "object" && "_id" in row ? String(row._id) : "a row";
+  console.error(`[built] ${id} doesn't parse`, parsed.error.issues[0]?.message);
+  return null;
+};
+
+/**
  * @function findBuiltPool
  * @param id {string} an untrusted built pool id
- * @returns {Promise<StoredBuiltPool | null>} the pool, or null (no such id, or a row that
- *          doesn't parse, which is logged)
+ * @returns {Promise<StoredBuiltPool | null>} the pool, or null (no such id, or a row of the
+ *          wrong shape, which is logged)
  */
 export const findBuiltPool = async (id: string): Promise<StoredBuiltPool | null> => {
   if (!BUILT_POOL_ID_PATTERN.test(id)) return null;
-  const row = await (await builtPoolsCollection()).findOne({ _id: id });
-  if (!row) return null;
-  const parsed = storedBuiltPoolSchema.safeParse(row);
-  if (parsed.success) return parsed.data;
-  console.error(`[built] ${id} doesn't parse`, parsed.error.issues[0]?.message);
-  return null;
+  return readBuiltPool(await (await builtPoolsCollection()).findOne({ _id: id }));
 };
 
 /**
@@ -196,42 +208,22 @@ export const loadFor = async (
 };
 
 /**
- * @function removePackOf
- * @param pool {Pick<StoredBuiltPool, "_id" | "pack">} a pool
- * @returns {Promise<Answer<null>>} ok once packs has no pack for it (or it never had one); 502
- *          when packs couldn't confirm that
- */
-export const removePackOf = async (
-  pool: Pick<StoredBuiltPool, "_id" | "pack">,
-): Promise<Answer<null>> => {
-  if (pool.pack.state === "none") return { ok: true, value: null };
-  const failed = (why: string) =>
-    refuse(502, "pack_not_removed", `Couldn't remove this pool's pack on packs: ${why}`);
-  let service: PacksService | null;
-  try {
-    service = getPacksService();
-  } catch (error) {
-    return failed(error instanceof Error ? error.message : "packs isn't set up.");
-  }
-  if (!service) return failed("packs isn't set up here.");
-  const answer = await deletePack(service, pool._id);
-  return answer.kind === "ok" ? { ok: true, value: null } : failed(answer.message);
-};
-
-/**
  * @function deleteBuiltPool
  * @param id {string} an untrusted built pool id
  * @param caller {Caller} the owner or an admin
- * @returns {Promise<Answer<null>>} ok once the pool (and its pack) are gone; its id stays
- *          claimed, so it's never handed out again
+ * @returns {Promise<Answer<{ packRemoval: PackRemoval }>>} ok once the pool is gone, with what
+ *          happened to its pack (none, removed, or queued because packs couldn't be asked); its
+ *          id stays claimed, so it's never handed out again
  */
-export const deleteBuiltPool = async (id: string, caller: Caller): Promise<Answer<null>> => {
+export const deleteBuiltPool = async (
+  id: string,
+  caller: Caller,
+): Promise<Answer<{ packRemoval: PackRemoval }>> => {
   const loaded = await loadFor(id, caller, (access) => access.canDelete);
   if (!loaded.ok) return loaded;
-  const removed = await removePackOf(loaded.value.pool);
-  if (!removed.ok) return removed;
+  const packRemoval = await removePackOrQueue(loaded.value.pool);
   await (await builtPoolsCollection()).deleteOne({ _id: id });
-  return { ok: true, value: null };
+  return { ok: true, value: { packRemoval } };
 };
 
 /**
@@ -239,31 +231,31 @@ export const deleteBuiltPool = async (id: string, caller: Caller): Promise<Answe
  * @param id {string} an untrusted built pool id
  * @param caller {Caller} the owner
  * @param visibility {Visibility} who may see it now
- * @returns {Promise<Answer<BuiltPoolView>>} the pool after the change (a new version unless
- *          nothing changed); going private removes its pack first
+ * @returns {Promise<Answer<{ pool: BuiltPoolView; packRemoval: PackRemoval }>>} the pool
+ *          after the change (a new version unless nothing changed) and what happened to its
+ *          pack: going private removes it, or queues its removal when packs can't be asked
  */
 export const setBuiltPoolVisibility = async (
   id: string,
   caller: Caller,
   visibility: Visibility,
-): Promise<Answer<BuiltPoolView>> => {
+): Promise<Answer<{ pool: BuiltPoolView; packRemoval: PackRemoval }>> => {
   const loaded = await loadFor(id, caller, (access) => access.canManage);
   if (!loaded.ok) return loaded;
   const { pool } = loaded.value;
-  if (pool.visibility === visibility) return { ok: true, value: await viewOf(pool, caller) };
-  if (visibility === "private") {
-    const removed = await removePackOf(pool);
-    if (!removed.ok) return removed;
+  if (pool.visibility === visibility) {
+    return { ok: true, value: { pool: await viewOf(pool, caller), packRemoval: "none" } };
   }
+  const packRemoval = visibility === "private" ? await removePackOrQueue(pool) : "none";
   const pack = visibility === "private" ? EMPTY_PACK : pool.pack;
   const updated = await (await builtPoolsCollection()).findOneAndUpdate(
     { _id: id },
     { $set: { visibility, pack, updatedAt: new Date() }, $inc: { version: 1 } },
     { returnDocument: "after" },
   );
-  const parsed = storedBuiltPoolSchema.safeParse(updated);
-  if (!parsed.success) return refuse(404, "not_found", NOT_FOUND);
-  return { ok: true, value: await viewOf(parsed.data, caller) };
+  const parsed = readBuiltPool(updated);
+  if (!parsed) return refuse(404, "not_found", NOT_FOUND);
+  return { ok: true, value: { pool: await viewOf(parsed, caller), packRemoval } };
 };
 
 export type PoolListItem = Pick<StoredBuiltPool, "name" | "visibility" | "updatedAt"> & {
@@ -285,7 +277,7 @@ const listItem = (pool: StoredBuiltPool): PoolListItem => ({
  * @function listBuiltPoolsFor
  * @param user {Pick<SessionUser, "id" | "osuId">} the signed-in user
  * @returns {Promise<YourPools>} the pools they own and the ones they edit, newest change first
- *          (rows that don't parse are left out)
+ *          (rows of the wrong shape are left out)
  */
 export const listBuiltPoolsFor = async (
   user: Pick<SessionUser, "id" | "osuId">,
@@ -293,8 +285,8 @@ export const listBuiltPoolsFor = async (
   const pools = await builtPoolsCollection();
   const read = async (filter: Record<string, unknown>) =>
     (await pools.find(filter).sort({ updatedAt: -1 }).limit(MAX_POOLS_PER_OWNER).toArray())
-      .map((row) => storedBuiltPoolSchema.safeParse(row))
-      .flatMap((parsed) => (parsed.success ? [listItem(parsed.data)] : []));
+      .map(readBuiltPool)
+      .flatMap((pool) => (pool ? [listItem(pool)] : []));
   const [owned, editing] = await Promise.all([
     read({ ownerId: user.id }),
     read({ "editors.osuId": user.osuId }),

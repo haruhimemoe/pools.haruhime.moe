@@ -14,17 +14,17 @@ The check keeps what the osu! API says about each beatmapset it looked up (statu
 
 Anyone with an osu! account can sign in, to make pools. For you we store the osu! user ID, username, avatar URL and country osu! sends, a record linking the account to osu! (never osu! tokens), session records that keep you signed in, with the IP address and browser User-Agent each session started from, and the pools you make.
 
-When you're signed in, we also count, per account, how many pool changes, new pools and editor changes you make, in counters that are deleted automatically within about two hours.
+When you're signed in, we also count, per account, how many pool changes, new pools, editor changes and account deletions you make, in counters that are deleted automatically within about two hours. These counters use your osu! user ID, so deleting your account and signing in again doesn't reset them.
 
-Signing in sets a session cookie, a short-lived one while sign-in runs, and `pools-signed-in`, which pages can read. It only says "this browser may be signed in", so pages ask who you are only when it's there. Sessions last 7 days, and expired ones are deleted automatically.
+Signing in sets a session cookie, a short-lived one while sign-in runs, and `pools-signed-in`, which pages can read. It only says "this browser may be signed in", so pages ask who you are only when it's there. A session lasts until 7 days after you last use the site, and expired ones are deleted automatically.
 
 ## Pools you make
 
-A pool keeps its name, details, notes and maps, who owns it, the editors the owner adds, and when it changed. To add an editor, the owner types their osu! username and we look it up on the osu! API; we keep their osu! ID and username, even before they ever sign in. Public and unlisted pools can be seen by anyone with the link, and public ones are listed in search. Private pools are seen only by you and the editors you add. Admins can hide or delete any pool that breaks the [terms](/legal/terms).
+A pool keeps its name, details, notes and maps, who owns it, the editors the owner adds, and when it changed. To add an editor, the owner types their osu! username and we look it up on the osu! API; we keep their osu! ID and username, even before they ever sign in. Public and unlisted pools can be seen by anyone with the link, and public ones are listed in search. A shared pool's page shows the osu! usernames and IDs of its owner and editors. Private pools are seen only by you and the editors you add. Admins can hide or delete any pool that breaks the [terms](/legal/terms).
 
 ## Deleting
 
-"Delete my account" on your account page deletes your account, every session, the link to osu!, every pool you own (and its pack on packs.haruhime.moe) at once, and takes you off the pools you edit. Deleting a pool removes it for good.
+"Delete my account" on your account page deletes your account, every session, the link to osu!, every pool you own (and its pack on packs.haruhime.moe) at once, and takes you off the pools you edit. Deleting a pool removes it for good. If packs.haruhime.moe doesn't answer, your account and pools are still deleted, and we keep only each pool's ID and why the removal failed until its pack is gone there, trying again from time to time.
 
 ## What we never do
 

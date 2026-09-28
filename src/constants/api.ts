@@ -1,7 +1,8 @@
 /**
  * @file src/constants/api.ts
  * @desc Rate limits: per IP on the public JSON routes (the CDN answers repeats without counting
- *       them), and per user on the pool builder's writes. Counters live in rate_limits
+ *       them), and per user (by osu! id) on the pool builder's writes and account deletion.
+ *       Counters live in rate_limits
  *       (src/lib/rate-limit.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -21,4 +22,6 @@ export const RATE_LIMITS = {
   poolCreate: { scope: "pool-create", limit: 10, windowSeconds: 3600 },
   /** Adding and removing editors, per user. */
   poolEditors: { scope: "pool-editors", limit: 30, windowSeconds: 3600 },
+  /** DELETE /api/account, per osu! account (it outlives the account it counts). */
+  accountDelete: { scope: "account-delete", limit: 3, windowSeconds: 3600 },
 } as const satisfies Record<string, RateLimitRule>;

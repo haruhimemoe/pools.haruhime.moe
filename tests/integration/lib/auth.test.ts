@@ -4,7 +4,8 @@
  *       (PKCE, our callback, no osu! tokens kept) and gets a user row and a session; admin rights
  *       come only from ADMIN_OSU_IDS, read per request, so a removed id stays signed in as a user
  *       but stops being an admin at once, and a malformed list makes nobody an admin.
- *       getUserFromHeaders reads the caller. A callback with a bad state lands on
+ *       getUserFromHeaders reads the caller. Someone whose account deletion stopped after their
+ *       osu! link went (the user row left) signs in again, relinked to the same user. A callback with a bad state lands on
  *       /signin?error=state_mismatch rather than better-auth's bare error page. The readable
  *       signed-in marker follows the session: set on sign-in and by a get-session that finds one,
  *       cleared by one that doesn't and on sign-out.
@@ -15,7 +16,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, POST } from "@/app/api/auth/[...all]/route";
-import { getAdminFromHeaders, getUserFromHeaders } from "@/lib/auth";
+import { getAdminFromHeaders, getAuth, getUserFromHeaders } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
 import { ADMIN_OSU_ID, createTestAdmin, createTestUser } from "../../helpers/auth";
@@ -144,6 +145,23 @@ describe("osu! sign-in", () => {
     const again = await signInWithOsu(PROFILE(ADMIN_OSU_ID));
     expect(again.headers.get("location")).toBe("/admin");
     expect(await getDb().collection("session").countDocuments()).toBe(2);
+  });
+
+  it("signs back in after an account deletion that stopped halfway, relinking the same user", async () => {
+    await signInWithOsu(PROFILE(7));
+    const users = getDb().collection("user");
+    const before = await users.findOne({ osuId: 7 });
+    const { internalAdapter } = await getAuth().$context;
+    await internalAdapter.deleteUserSessions(String(before?._id));
+    await internalAdapter.deleteAccounts(String(before?._id));
+    const again = await signInWithOsu(PROFILE(7));
+    expect(again.headers.get("location")).toBe("/admin");
+    const headers = new Headers({ cookie: cookiesFrom(again) });
+    expect(await getUserFromHeaders(headers)).toMatchObject({ id: String(before?._id), osuId: 7 });
+    expect(await users.countDocuments({ osuId: 7 })).toBe(1);
+    const account = await getDb().collection("account").findOne({ accountId: "7" });
+    expect(String(account?.userId)).toBe(String(before?._id));
+    expect(account?.accessToken ?? null).toBeNull();
   });
 
   it("fails closed on a malformed ADMIN_OSU_IDS", async () => {

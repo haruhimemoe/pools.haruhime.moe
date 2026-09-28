@@ -1,7 +1,8 @@
 /**
  * @file tests/integration/app/api/pool-permissions.test.ts
  * @desc Every pool route for the owner, an editor, an admin, someone else and a visitor, over a
- *       private, a public and a hidden public pool. Can't see it: 404. Signed out on a write:
+ *       private, an unlisted and a public pool, and a hidden unlisted and hidden public one. Can't
+ *       see it: 404. Signed out on a write:
  *       401. Sees it but may not: 403. The owner does everything; editors read and edit, and
  *       remove themselves; admins see what isn't private and delete any pool, but never edit.
  * @author David @dvhsh (https://dvh.sh)
@@ -78,9 +79,24 @@ const MATRIX: [Visibility, boolean, string, number[]][] = [
   ["public", false, "delete", [204, 403, 204, 403, 401]],
   ["public", false, "addEditor", [200, 403, 403, 403, 401]],
   ["public", false, "removeEditor", [204, 204, 403, 403, 401]],
+  ["unlisted", false, "get", [200, 200, 200, 200, 200]],
+  ["unlisted", false, "ops", [200, 200, 403, 403, 401]],
+  ["unlisted", false, "visibility", [200, 403, 403, 403, 401]],
+  ["unlisted", false, "delete", [204, 403, 204, 403, 401]],
+  ["unlisted", false, "addEditor", [200, 403, 403, 403, 401]],
+  ["unlisted", false, "removeEditor", [204, 204, 403, 403, 401]],
   ["public", true, "get", [200, 200, 200, 404, 404]],
   ["public", true, "ops", [200, 200, 403, 404, 401]],
+  ["public", true, "visibility", [200, 403, 403, 404, 401]],
   ["public", true, "delete", [204, 403, 204, 404, 401]],
+  ["public", true, "addEditor", [200, 403, 403, 404, 401]],
+  ["public", true, "removeEditor", [204, 204, 403, 404, 401]],
+  ["unlisted", true, "get", [200, 200, 200, 404, 404]],
+  ["unlisted", true, "ops", [200, 200, 403, 404, 401]],
+  ["unlisted", true, "visibility", [200, 403, 403, 404, 401]],
+  ["unlisted", true, "delete", [204, 403, 204, 404, 401]],
+  ["unlisted", true, "addEditor", [200, 403, 403, 404, 401]],
+  ["unlisted", true, "removeEditor", [204, 204, 403, 404, 401]],
 ];
 
 const WHO: Who[] = ["owner", "editor", "admin", "other", "visitor"];

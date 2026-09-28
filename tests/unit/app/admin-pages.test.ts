@@ -1,13 +1,14 @@
 /**
  * @file tests/unit/app/admin-pages.test.ts
  * @desc Admin pages ask for an admin (sign-in returns to the page asked for); /admin shows the
- *       sync-state counts, the public pages refresh and the import reports; /admin/pools lists
+ *       sync-state counts, the pack removals waiting with "Retry pack cleanup", the public pages
+ *       refresh and the import reports; /admin/pools lists
  *       every pool, reading a bad show or page as the defaults; the pool preview shows hidden
  *       pools (the public page 404s them) and 404s an unknown id; and nothing under /admin is
  *       indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { renderToStaticMarkup } from "react-dom/server";
@@ -21,6 +22,7 @@ const {
   listPoolsForAdmin,
   countSyncStates,
   listImportReports,
+  countPackCleanup,
 } = vi.hoisted(() => ({
   requireAdmin: vi.fn(async () => ({
     id: "u1",
@@ -33,7 +35,9 @@ const {
   listPoolsForAdmin: vi.fn(),
   countSyncStates: vi.fn(),
   listImportReports: vi.fn(async () => []),
+  countPackCleanup: vi.fn(async () => 3),
 }));
+vi.mock("@/services/pack-cleanup", () => ({ countPackCleanup }));
 vi.mock("@/lib/auth-session", () => ({ requireAdmin }));
 vi.mock("@/services/pools", () => ({ getPoolById, getMapSummaries }));
 vi.mock("@/services/admin", () => ({
@@ -68,6 +72,8 @@ describe("admin pages", () => {
     );
     expect(html).toContain("No imports yet.");
     expect(html).toContain("Refresh public pages");
+    expect(html).toContain("3 pack removals wait for packs.");
+    expect(html).toContain("Retry pack cleanup");
     expect(page.metadata.robots).toEqual({ index: false });
   });
 

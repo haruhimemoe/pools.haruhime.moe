@@ -36,6 +36,7 @@ describe("legal pages", () => {
     "User-Agent",
     "to look up a pool editor by username",
     "to remove a pack when its pool goes private or is deleted",
+    "trying again later when packs doesn't answer",
   ])("the disclaimer says %j", (clause) => {
     expect(read("disclaimer")).toContain(clause);
   });
@@ -58,6 +59,10 @@ describe("legal pages", () => {
     "per account",
     "look it up on the osu! API",
     "every pool you own",
+    "7 days after you last use the site",
+    "osu! usernames and IDs of its owner and editors",
+    "use your osu! user ID, so deleting your account and signing in again doesn't reset them",
+    "your account and pools are still deleted",
   ])("the privacy page says %j", (clause) => {
     expect(read("privacy")).toContain(clause);
   });

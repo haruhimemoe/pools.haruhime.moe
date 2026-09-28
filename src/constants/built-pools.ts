@@ -3,7 +3,8 @@
  * @desc Pools people build here: the id shape ("b-" and a generated source id, never reused),
  *       who can see one, the pack states, and the limits (maps and custom buckets come from
  *       @haruhimemoe/pool; editors, pools per owner, ops per call, the JSON body cap, text and
- *       paste lengths), and how the builder names each visibility.
+ *       paste lengths), how the builder names each visibility, and what it says when a pack
+ *       removal is queued.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -30,6 +31,18 @@ export const VISIBILITY_TEXT: Readonly<Record<Visibility, { label: string; hint:
 
 /** Said when a pool is unlisted or public, until the packs sync lands. */
 export const PACK_LATER = "Downloads on packs come later: for now this pool has no pack.";
+
+/** Said when a pack removal couldn't reach packs and waits in pack_cleanup. */
+export const PACK_REMOVAL_QUEUED =
+  "packs.haruhime.moe didn't answer, so the pack will be removed there as soon as it does.";
+
+/**
+ * @function packRemovalsQueuedText
+ * @param count {number} pack removals queued by one account deletion (1 or more)
+ * @returns {string} what the account page says about them
+ */
+export const packRemovalsQueuedText = (count: number): string =>
+  `packs.haruhime.moe didn't answer, so ${count === 1 ? "1 pack" : `${count} packs`} will be removed there as soon as it does.`;
 
 /** Where the pool's pack on packs stands (synced from step 7 on; "none" until then). */
 export const BUILT_PACK_STATES = ["none", "synced", "pending", "failed"] as const;

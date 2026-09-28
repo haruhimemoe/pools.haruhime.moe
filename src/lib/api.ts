@@ -2,7 +2,8 @@
  * @file src/lib/api.ts
  * @desc Shared pieces for our JSON route handlers: { error: { code, message } } responses,
  *       no-store, body parsing (application/json only, so a cross-site form can't send it
- *       without a CORS preflight, and at most 16 KB unless the route gives its own cap), the
+ *       without a CORS preflight, and at most 16 KB unless the route gives its own cap; a schema
+ *       refusal's code is the one its refinement names in `params.code`, like content_filter), the
  *       same-origin guard every cookie-authenticated write runs, and the /check ids parser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -100,9 +101,15 @@ export const parseJsonBody = async <T extends z.ZodType>(
   }
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    const named = issue?.code === "custom" ? issue.params?.code : undefined;
     return {
       ok: false,
-      response: jsonError(400, parsed.error.issues[0]?.message ?? "That request isn't valid."),
+      response: jsonError(
+        400,
+        issue?.message ?? "That request isn't valid.",
+        typeof named === "string" ? named : undefined,
+      ),
     };
   }
   return { ok: true, data: parsed.data };

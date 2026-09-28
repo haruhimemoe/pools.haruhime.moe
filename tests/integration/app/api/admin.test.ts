@@ -3,24 +3,30 @@
  * @desc The admin routes: everyone but an admin gets the same 404 (a removed admin too); an admin
  *       request from another site or a sibling *.haruhime.moe host is refused; bodies must be
  *       JSON and valid; an edit saves and answers the sync outcome; badged and retries work; a
- *       refresh marks the home page, sitemap, llms.txt and every pool and map page stale.
+ *       refresh marks the home page, sitemap, llms.txt and every pool and map page stale; "Retry
+ *       pack cleanup" tries every queued pack removal, or says why it can't.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { revalidatePath } from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as postBadged } from "@/app/api/admin/badged/route";
+import { POST as postPackCleanup } from "@/app/api/admin/pack-cleanup/route";
 import { PATCH } from "@/app/api/admin/pools/[id]/route";
 import { POST as postRevalidate } from "@/app/api/admin/revalidate/route";
 import { POST as postSync } from "@/app/api/admin/sync/route";
 import { poolsCollection } from "@/models/Pool";
+import { packCleanupCollection } from "@/services/pack-cleanup";
 import { ADMIN_OSU_ID, createTestAdmin } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
+import { setupMsw } from "../../../helpers/msw";
+import { type DeleteCall, packsDeleteHandler, TEST_SERVICE } from "../../../helpers/packs-server";
 import { makePool } from "../../../helpers/records";
 
 setupTestDb();
+const server = setupMsw();
 beforeEach(() => {
   vi.stubEnv("ADMIN_OSU_IDS", String(ADMIN_OSU_ID));
   vi.stubEnv("POOLS_SERVICE_TOKEN", "");
@@ -216,5 +222,50 @@ describe("POST /api/admin/revalidate", () => {
         ["/maps/[id]", "page"],
       ]),
     );
+  });
+});
+
+describe("POST /api/admin/pack-cleanup", () => {
+  const retry = (cookie: string | null, body: unknown = {}) =>
+    postPackCleanup(request("/api/admin/pack-cleanup", "POST", cookie, body));
+
+  const queue = async (ref: string) =>
+    (await packCleanupCollection()).insertOne({
+      _id: ref,
+      ref,
+      reason: "packs answered 503.",
+      attempts: 2,
+      nextAt: new Date(Date.now() + 3_600_000),
+      queuedAt: new Date(),
+    });
+
+  it("tries every queued removal, due or not, for an admin only", async () => {
+    await queue("b-a0000001");
+    expect((await retry(null)).status).toBe(404);
+    const admin = await createTestAdmin();
+    expect((await retry(admin.cookie, { extra: 1 })).status).toBe(400);
+    vi.stubEnv("POOLS_SERVICE_TOKEN", TEST_SERVICE.token);
+    vi.stubEnv("PACKS_URL", TEST_SERVICE.url);
+    const calls: DeleteCall[] = [];
+    server.use(packsDeleteHandler(undefined, calls));
+    const response = await retry(admin.cookie);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.json()).toEqual({
+      due: 1,
+      removed: 1,
+      failed: 0,
+      kept: 0,
+      remaining: 0,
+      configError: null,
+    });
+    expect(calls.map((call) => call.id)).toEqual(["b-a0000001"]);
+  });
+
+  it("says why nothing was tried when packs isn't set up", async () => {
+    await queue("b-a0000001");
+    const admin = await createTestAdmin();
+    const body = (await (await retry(admin.cookie)).json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ due: 1, remaining: 1, configError: expect.any(String) });
   });
 });

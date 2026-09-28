@@ -7,7 +7,9 @@
  *       the pool the server sent and says someone else changed it. Other requests (visibility,
  *       editors) take turns with the ops through `exclusive`, so no call is ever made with a
  *       version another one just moved on. While open it asks for the version every 15 s and
- *       on window focus, and takes a newer pool (a conflict when changes are still queued).
+ *       on window focus, and takes a newer pool (a conflict when changes are still queued). A
+ *       404 (or 401) from a read or a save means the pool was deleted or access went: it says
+ *       so once and stops asking.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -28,7 +30,10 @@ export const POLL_MS = 15_000;
 export const CONFLICT =
   "Someone else changed this pool. It's reloaded; your last change wasn't saved.";
 
-export const GONE = "This pool isn't here any more, or you can't edit it now.";
+export const GONE = "This pool was deleted or you no longer have access.";
+
+export const HIDDEN_NOTICE =
+  "Moderators hid this pool. Only you, its editors and admins can see it, and it stays out of search.";
 
 export type EditorFailure = { message: string; lines?: SlotLineError[] };
 
@@ -112,7 +117,11 @@ export const usePoolEditor = (
     const answer = await callPools<PoolBody>(fetcher, path, { method: "POST", body });
     if (answer.ok) rebase(clientPoolOf(answer.body.pool));
     else if (answer.status === 409 && answer.pool) rollBack(answer.pool, "conflict");
-    else {
+    else if (answer.status === 404 || answer.status === 401) {
+      queue.current = [];
+      rebase(saved.current);
+      setGone(true);
+    } else {
       const message = answer.status === 0 ? UNREACHABLE : answer.message;
       const lines = answer.lines ? { lines: answer.lines } : {};
       rollBack(saved.current, { message: `${message} Your last change wasn't saved.`, ...lines });
@@ -152,6 +161,8 @@ export const usePoolEditor = (
   );
 
   useEffect(() => {
+    // A pool that's gone stays gone: no more asking.
+    if (gone) return;
     const check = () => {
       if (document.visibilityState !== "hidden") void exclusive(() => reload());
     };
@@ -161,7 +172,7 @@ export const usePoolEditor = (
       window.clearInterval(timer);
       window.removeEventListener("focus", check);
     };
-  }, [exclusive, reload, pollMs]);
+  }, [exclusive, reload, pollMs, gone]);
 
   const adopt = useCallback((next: ClientPool) => rebase(clientPoolOf(next)), [rebase]);
   const dismiss = useCallback(() => {

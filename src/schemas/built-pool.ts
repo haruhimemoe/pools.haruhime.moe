@@ -8,12 +8,23 @@
  *       user id) and up to 10 editors (osu! id and name, the user id once they've signed in);
  *       the version; the pack state; moderation. Nullable fields are stored as null, never
  *       undefined (the driver would write null anyway); `buckets` is left out for the default.
+ *       No text takes a lone surrogate (the driver would store U+FFFD, so the saved text would
+ *       differ from the checked one). The filter's refusal carries `params.code` content_filter,
+ *       which the routes send as the error code. Writes check the whole stored schema; reads use
+ *       builtPoolReadSchema, the same fields by shape only, so a pool a newer filter would refuse
+ *       still reads (and can be seen, renamed and deleted).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
  */
 
-import { checkPoolBuckets, MAX_NAME_LENGTH, poolFields } from "@haruhimemoe/pool";
+import {
+  bucketEntrySchema,
+  checkPoolBuckets,
+  MAX_NAME_LENGTH,
+  poolFields,
+  poolSlotSchema,
+} from "@haruhimemoe/pool";
 import { z } from "zod";
 import {
   BUILT_PACK_STATES,
@@ -31,7 +42,12 @@ import { packSlugSchema } from "@/schemas/pool";
 import { hasBlockedLanguage } from "@/utils/content-filter";
 
 const FILTERED = "That fails the content filter.";
+/** A zod refinement's params for the filter: parseJsonBody sends the code. */
+export const FILTER_ISSUE = { message: FILTERED, params: { code: "content_filter" } };
 const ONE_LINE = /^[^\p{Cc}]*$/u;
+/** With the u flag, \p{Cs} only matches a surrogate that isn't half of a pair. */
+const LONE_SURROGATE = /\p{Cs}/u;
+const wellFormed = (text: string): boolean => !LONE_SURROGATE.test(text);
 /** Notes may hold tabs and line breaks, and no other control character. */
 const showable = (text: string): boolean => !/\p{Cc}/u.test(text.replace(/[\t\n\r]/g, ""));
 
@@ -42,7 +58,8 @@ const oneLine = (label: string, min: number, max: number) =>
     .min(min, `Give the pool a ${label}.`)
     .max(max, `Keep the ${label} to ${max} characters.`)
     .regex(ONE_LINE, `The ${label} can't have line breaks.`)
-    .refine((text) => !hasBlockedLanguage(text), FILTERED);
+    .refine(wellFormed, `The ${label} has a broken character.`)
+    .refine((text) => !hasBlockedLanguage(text), FILTER_ISSUE);
 
 export const builtNameSchema = oneLine("name", 1, MAX_NAME_LENGTH);
 export const builtTournamentSchema = oneLine("tournament", 0, MAX_TOURNAMENT_LENGTH);
@@ -53,7 +70,8 @@ export const builtNotesSchema = z
   .trim()
   .max(MAX_NOTES_LENGTH, `Keep the notes to ${MAX_NOTES_LENGTH} characters.`)
   .refine(showable, "The notes have a character that can't be shown.")
-  .refine((text) => !hasBlockedLanguage(text), FILTERED);
+  .refine(wellFormed, "The notes have a broken character.")
+  .refine((text) => !hasBlockedLanguage(text), FILTER_ISSUE);
 
 export const builtYearSchema = z
   .number()
@@ -98,20 +116,22 @@ export const builtDetailsFields = {
 export const hasDuplicateMaps = (slots: readonly { beatmapId: number }[]): boolean =>
   new Set(slots.map((slot) => slot.beatmapId)).size !== slots.length;
 
+/** What every stored pool has besides its details, slots and buckets. */
+const builtPoolRest = {
+  _id: z.string().regex(BUILT_POOL_ID_PATTERN),
+  visibility: z.enum(VISIBILITIES),
+  ownerId: z.string().min(1),
+  editors: z.array(builtEditorSchema).max(MAX_EDITORS),
+  version: z.number().int().positive(),
+  pack: builtPackSchema,
+  hidden: z.boolean(),
+  startedFrom: z.string().min(1).nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+};
+
 export const storedBuiltPoolSchema = poolFields
-  .extend({
-    _id: z.string().regex(BUILT_POOL_ID_PATTERN),
-    ...builtDetailsFields,
-    visibility: z.enum(VISIBILITIES),
-    ownerId: z.string().min(1),
-    editors: z.array(builtEditorSchema).max(MAX_EDITORS),
-    version: z.number().int().positive(),
-    pack: builtPackSchema,
-    hidden: z.boolean(),
-    startedFrom: z.string().min(1).nullable(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-  })
+  .extend({ ...builtPoolRest, ...builtDetailsFields })
   .superRefine((pool, ctx) => {
     checkPoolBuckets(pool, ctx);
     if (hasDuplicateMaps(pool.slots)) {
@@ -120,3 +140,20 @@ export const storedBuiltPoolSchema = poolFields
   });
 
 export type StoredBuiltPool = z.infer<typeof storedBuiltPoolSchema>;
+
+/**
+ * A stored pool as read: the same fields by shape only (no length, content filter, bucket or
+ * duplicate rules), so a pool that a newer filter or limit would refuse still reads, and its
+ * owner can see it, fix it or delete it. Writes still go through storedBuiltPoolSchema.
+ */
+export const builtPoolReadSchema = z.object({
+  ...builtPoolRest,
+  editors: z.array(builtEditorSchema),
+  name: z.string(),
+  tournament: z.string(),
+  round: z.string(),
+  year: z.number().int().nullable(),
+  notes: z.string(),
+  slots: z.array(poolSlotSchema),
+  buckets: z.array(bucketEntrySchema).optional(),
+});

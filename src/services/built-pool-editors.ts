@@ -1,7 +1,7 @@
 /**
  * @file src/services/built-pool-editors.ts
  * @desc A built pool's co-editors. The owner adds one by osu! username: osu! is asked (pools'
- *       own app, inside the osu! budget, the owner's share counted as "user:<id>"), so someone
+ *       own app, inside the osu! budget, the owner's share counted as "osu:<osuId>"), so someone
  *       who never signed in can be added; access follows their osu! id, and their user id is
  *       filled in when they first sign in (linkEditorAccount, from the auth hook). At most 10,
  *       never the owner, never twice. The owner removes any editor; an editor can remove
@@ -17,13 +17,15 @@ import type { SessionUser } from "@/lib/auth";
 import { connectedDb } from "@/lib/db";
 import { budgetGate } from "@/lib/osu-budget";
 import { lookupOsuUser, type OsuUserLookup } from "@/lib/osu-users";
+import { userSubject } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import { type BuiltEditor, storedBuiltPoolSchema } from "@/schemas/built-pool";
+import type { BuiltEditor } from "@/schemas/built-pool";
 import {
   type Answer,
   type BuiltPoolView,
   loadFor,
   NOT_FOUND,
+  readBuiltPool,
   refuse,
   viewOf,
 } from "@/services/built-pools";
@@ -74,7 +76,7 @@ export const addBuiltPoolEditor = async (
   const full = () =>
     refuse(400, "too_many_editors", `A pool can have at most ${MAX_EDITORS} editors.`);
   if (pool.editors.length >= MAX_EDITORS) return full();
-  const beforeCall = budgetGate(await connectedDb(), `user:${caller.id}`);
+  const beforeCall = budgetGate(await connectedDb(), userSubject(caller));
   const found = await lookup(username, { beforeCall });
   if (found.kind !== "found") return lookupRefusal(found, username);
   if (found.osuId === caller.osuId) {
@@ -98,8 +100,9 @@ export const addBuiltPoolEditor = async (
     { returnDocument: "after" },
   );
   // Someone else added them (or filled the list) since the read.
-  if (!updated) return taken();
-  return { ok: true, value: await viewOf(storedBuiltPoolSchema.parse(updated), caller) };
+  const after = readBuiltPool(updated);
+  if (!after) return taken();
+  return { ok: true, value: await viewOf(after, caller) };
 };
 
 /**

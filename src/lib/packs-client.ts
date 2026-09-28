@@ -2,8 +2,10 @@
  * @file src/lib/packs-client.ts
  * @desc pools' calls to packs' service endpoint, all with POOLS_SERVICE_TOKEN as a Bearer
  *       token and our User-Agent: PUT /api/service/pools/{id} with a pack input, DELETE
- *       /api/service/pools/{ref} for a built pool's pack (204 removed and 404 none are both done;
- *       so is 410, a pack packs' moderators already removed), and POST
+ *       /api/service/pools/{ref} for a built pool's pack (204 removed and packs' own 404, code
+ *       not_found, are both done, so is 410, a pack packs' moderators already removed; a 404
+ *       without that code comes from something else, a wrong PACKS_URL or a proxy, and is an
+ *       error), and POST
  *       /api/service/pools/stats for one stats backfill batch. Each answer is sorted into what
  *       pools does next: 401, or 503 with code not_configured, is a configuration problem;
  *       410 is gone; 429, any other 5xx, a timeout or a network error is a retryable error
@@ -207,8 +209,8 @@ export type DeleteAnswer =
   | { kind: "error"; message: string }
   | { kind: "config"; message: string };
 
-/** Statuses that mean the pack is gone: removed now, never there, or removed by a moderator. */
-const DELETED_STATUSES: ReadonlySet<number> = new Set([204, 404, 410]);
+/** Statuses that mean the pack is gone: removed now, or removed by a moderator. */
+const DELETED_STATUSES: ReadonlySet<number> = new Set([204, 410]);
 
 /**
  * @function deletePack
@@ -237,6 +239,8 @@ export const deletePack = async (
   }
   if (DELETED_STATUSES.has(response.status)) return { kind: "ok" };
   const info = errorInfo(await readBody(response));
+  // Only packs' own 404 says there's no pack; any other 404 never reached packs' route.
+  if (response.status === 404 && info.code === "not_found") return { kind: "ok" };
   const failure = failureOf(response, info);
   if (failure?.kind === "config") return failure;
   return { kind: "error", message: answeredWith(response.status, info.message) };

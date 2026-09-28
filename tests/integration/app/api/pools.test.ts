@@ -4,7 +4,7 @@
  *       private, empty pool with a fresh "b-" id (claimed for good, so it's never handed out
  *       again, and a clash just draws another); text goes through the content filter; starting
  *       from a past pool (not a hidden one) or a built pool the caller can see copies its maps;
- *       at most 50 pools an owner and 10 new pools an hour.
+ *       at most 50 pools an owner (parallel creates can't go past it) and 10 new pools an hour.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -126,6 +126,25 @@ describe("limits", () => {
     const response = await create(owner.cookie, { name: "One more" });
     expect(response.status).toBe(400);
     expect(await response.json()).toMatchObject({ error: { code: "too_many_pools" } });
+  });
+
+  it("never goes past 50 pools, even with creates racing each other", async () => {
+    const { owner } = await createCast();
+    const many = Array.from({ length: 45 }, (_, i) =>
+      makeBuiltPool({ _id: `b-z${String(i).padStart(7, "0")}`, ownerId: owner.id }),
+    );
+    await (await builtPoolsCollection()).insertMany(many);
+    const responses = await Promise.all(
+      Array.from({ length: 9 }, (_, i) => create(owner.cookie, { name: `Race ${i}` })),
+    );
+    const statuses = responses.map((response) => response.status);
+    expect(statuses.every((status) => status === 201 || status === 400)).toBe(true);
+    const owned = await (await builtPoolsCollection()).countDocuments({ ownerId: owner.id });
+    expect(owned).toBeLessThanOrEqual(50);
+    expect(owned).toBe(45 + statuses.filter((status) => status === 201).length);
+    // The burst is over: the next one fits while there's room.
+    const next = await create(owner.cookie, { name: "After the race" });
+    expect(next.status).toBe(owned < 50 ? 201 : 400);
   });
 
   it("allows 10 new pools an hour per user", async () => {

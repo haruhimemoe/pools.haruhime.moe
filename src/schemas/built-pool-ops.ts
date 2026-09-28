@@ -25,14 +25,14 @@ import {
   MAX_USERNAME_LENGTH,
   VISIBILITIES,
 } from "@/constants/built-pools";
-import { builtDetailsFields } from "@/schemas/built-pool";
+import { builtDetailsFields, FILTER_ISSUE } from "@/schemas/built-pool";
 import { poolIdSchema } from "@/schemas/pool";
 import { hasBlockedLanguage } from "@/utils/content-filter";
 
 const codeSchema = z
   .string()
   .regex(BUCKET_CODE_PATTERN, "Slot codes are 1 to 12 letters and digits.")
-  .refine((code) => !hasBlockedLanguage(code), "That fails the content filter.");
+  .refine((code) => !hasBlockedLanguage(code), FILTER_ISSUE);
 
 /** A bucket code, or null for maps with no slot. */
 const bucketSchema = codeSchema.nullable();

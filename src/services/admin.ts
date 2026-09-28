@@ -5,12 +5,12 @@
  *       usage when hidden or year changed, and PUTs its pack at once when the pack input changed
  *       and packs hasn't deleted it (a failed PUT stays as error and the answer says so). badged
  *       for every pool of a tournament (one year, unknown years, or all). Retries for failed
- *       syncs, 50 pools at most per click. The admin pool list. Every change revalidates the
+ *       syncs, 50 pools at most per click, and for queued pack removals. The admin pool list. Every change revalidates the
  *       public pages it touches. syncPoolNow sends one pool's pack at once (the edit and an
  *       added pool use it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
@@ -22,9 +22,11 @@ import { revalidateAllPoolAndMapPages, revalidatePoolPages } from "@/lib/revalid
 import { poolsCollection } from "@/models/Pool";
 import type { BadgedBody, PoolEditBody } from "@/schemas/admin";
 import { parseStoredPool, type StoredPool, SYNC_STATES, type SyncState } from "@/schemas/pool";
+import { CLEANUP_PER_RETRY, countPackCleanup, retryPackCleanup } from "@/services/pack-cleanup";
 import { syncPools } from "@/services/sync";
 import { recomputeUsage } from "@/services/usage";
 import { escapeRegExp, searchTerms } from "@/utils/fold";
+import type { PackCleanupSummary } from "@/utils/pack-cleanup";
 import { packInputHash, packInputOf } from "@/utils/pack-input";
 import { derivedFields, editsFrom, effectiveFields, isVisible } from "@/utils/pool-record";
 import type { SyncSummary } from "@/utils/sync";
@@ -180,6 +182,37 @@ export const retrySyncs = async (
   });
   revalidateAllPoolAndMapPages();
   return summary;
+};
+
+/**
+ * @function retryQueuedPackRemovals
+ * @param deps {AdminDeps} packs service, fetch and clock (tests)
+ * @returns {Promise<PackCleanupSummary>} every queued pack removal tried (50 at most), due or
+ *          not; nothing tried, and why, when packs isn't set up here
+ */
+export const retryQueuedPackRemovals = async ({
+  packsService = getPacksService,
+  fetch,
+  now = () => new Date(),
+}: AdminDeps = {}): Promise<PackCleanupSummary> => {
+  const service = serviceOrReason(packsService);
+  if (typeof service === "string") {
+    const waiting = await countPackCleanup();
+    return {
+      due: waiting,
+      removed: 0,
+      failed: 0,
+      kept: 0,
+      remaining: waiting,
+      configError: service,
+    };
+  }
+  return retryPackCleanup(service, {
+    all: true,
+    limit: CLEANUP_PER_RETRY,
+    now,
+    ...(fetch ? { fetch } : {}),
+  });
 };
 
 export const ADMIN_SHOWS = ["all", "hidden", "superseded", "failed"] as const;

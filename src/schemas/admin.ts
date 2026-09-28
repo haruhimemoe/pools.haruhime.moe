@@ -4,12 +4,12 @@
  *       empty one is none), year (2007 to 2099, or unknown), notes (up to 2000), hidden and badged,
  *       all text trimmed and through the content filter, nothing else. A badged change for every
  *       pool of a tournament key: one year, unknown years (null) or all. A sync retry. A refresh
- *       of the public pages (an empty object). An added pool: who sent it (host or community),
+ *       of the public pages and a pack cleanup retry (empty objects). An added pool: who sent it (host or community),
  *       the credit's name and optional https link (empty means none), tournament, round, year,
  *       badged, notes and the maps as text; fieldErrors names each problem by its field.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { z } from "zod";
@@ -68,6 +68,9 @@ export const syncBodySchema = z.strictObject({ includeRejected: z.boolean() });
 
 /** A refresh of the public pages takes nothing: an empty object. */
 export const revalidateBodySchema = z.strictObject({});
+
+/** "Retry pack cleanup" takes nothing either. */
+export const packCleanupBodySchema = z.strictObject({});
 
 /** The most text the maps field takes: 64 maps with long links and their slots fit easily. */
 export const MAX_MAPS_TEXT = 8000;

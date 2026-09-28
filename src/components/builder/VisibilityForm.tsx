@@ -2,7 +2,8 @@
  * @file src/components/builder/VisibilityForm.tsx
  * @desc The owner's "Who can see this pool": private, unlisted or public, saved with PUT
  *       /api/pools/<id>/visibility in turn with the editor's other changes. Picking unlisted or
- *       public says packs downloads come later; private needs no note. The result is announced.
+ *       public says packs downloads come later; private needs no note. The result is announced,
+ *       with packs' notice when going private couldn't remove the pack there yet.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -37,15 +38,16 @@ export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityForm
     event.preventDefault();
     setPending(true);
     const answer = await editor.exclusive(() =>
-      callPools<{ pool: ClientPool }>(fetcher, `/api/pools/${pool.id}/visibility`, {
-        method: "PUT",
-        body: { visibility: picked },
-      }),
+      callPools<{ pool: ClientPool; notice?: string }>(
+        fetcher,
+        `/api/pools/${pool.id}/visibility`,
+        { method: "PUT", body: { visibility: picked } },
+      ),
     );
     if (answer.ok) editor.adopt(answer.body.pool);
-    setMessage(
-      answer.ok ? `Saved: ${VISIBILITY_TEXT[picked].label.toLowerCase()}.` : answer.message,
-    );
+    const saved = `Saved: ${VISIBILITY_TEXT[picked].label.toLowerCase()}.`;
+    const notice = answer.ok && answer.body.notice ? ` ${answer.body.notice}` : "";
+    setMessage(answer.ok ? `${saved}${notice}` : answer.message);
     setPending(false);
   };
   return (

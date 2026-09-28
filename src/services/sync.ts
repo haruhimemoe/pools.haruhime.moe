@@ -4,12 +4,14 @@
  *       requests in flight, each answer stored on its pool as it comes. A configuration answer
  *       (401, 503 not_configured) stops the phase: requests in flight finish, no new ones start,
  *       and the pools it hit keep their state. A 429 or 5xx with Retry-After holds every later
- *       request until then (at most a minute). Also the stats backfill loop: packs' stats
+ *       request until then (at most a minute). A run that packs didn't refuse also retries up
+ *       to 10 due pack removals from pack_cleanup (src/services/pack-cleanup.ts). Also the stats
+ *       backfill loop: packs' stats
  *       endpoint about once a minute until nothing is left, 5 calls in a row update nothing
  *       (errors count), or packs refuses the token.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
@@ -17,6 +19,7 @@ import { BATCH_QUERY_MS } from "@/constants/db";
 import type { PacksService } from "@/env";
 import { type Fetch, postStatsBackfill, putPoolPack } from "@/lib/packs-client";
 import { poolsCollection } from "@/models/Pool";
+import { retryDuePackCleanup } from "@/services/pack-cleanup";
 import { packInputHash, packInputOf } from "@/utils/pack-input";
 import {
   type BackfillResult,
@@ -107,6 +110,8 @@ export const syncPools = async ({
     summary.states[next.state] += 1;
   });
   if (summary.configError !== null) summary.remaining = due.length - summary.sent;
+  // Every run also retries a few pack removals packs couldn't do earlier.
+  else await retryDuePackCleanup(service, { ...(fetch ? { fetch } : {}), now });
   return summary;
 };
 

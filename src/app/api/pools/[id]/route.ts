@@ -2,14 +2,16 @@
  * @file src/app/api/pools/[id]/route.ts
  * @desc GET: a built pool for anyone allowed to see it (private: owner and editors; hidden:
  *       owner, editors and admins), 404 for everyone else. DELETE: the owner or an admin deletes
- *       it (its pack on packs first), signed in and from this site, within the per-user write
- *       limit; 204. Never cached: the answer depends on who asks.
+ *       it, signed in and from this site, within the per-user write limit; 204, or 200 with
+ *       `{ packRemoval: "queued", notice }` when packs couldn't remove its pack yet (the pool is
+ *       gone anyway; the removal is retried later). Never cached: the answer depends on who asks.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
  */
 
 import { RATE_LIMITS } from "@/constants/api";
+import { PACK_REMOVAL_QUEUED } from "@/constants/built-pools";
 import { getUserFromHeaders } from "@/lib/auth";
 import { guardWrite, limitUser, noContent, poolResponse, refusalResponse } from "@/lib/pool-routes";
 import { deleteBuiltPool, getBuiltPoolFor } from "@/services/built-pools";
@@ -34,5 +36,8 @@ export async function DELETE(request: Request, { params }: Context) {
   if (limited) return limited;
   const answer = await deleteBuiltPool(id, caller.value);
   if (!answer.ok) return refusalResponse(answer);
+  if (answer.value.packRemoval === "queued") {
+    return poolResponse({ packRemoval: "queued", notice: PACK_REMOVAL_QUEUED });
+  }
   return noContent();
 }

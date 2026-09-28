@@ -1,10 +1,10 @@
 /**
  * @file tests/integration/services/built-pools.test.ts
- * @desc The built pool services underneath the routes: a stored row that doesn't parse is left
- *       out (and logged); a user's pools, owned and edited, newest first; a pool's pack goes
- *       from packs only when it has one, and a packs that isn't set up or says no stops the
- *       change (502); going private removes the pack and resets its state, going nowhere new
- *       changes nothing; a first sign-in with a bad user shape links nothing.
+ * @desc The built pool services underneath the routes: a stored row of the wrong shape is left
+ *       out (and logged), one a newer content filter refuses still reads; a user's pools, owned
+ *       and edited, newest first; deleting a pool or making it private removes its pack, and
+ *       when packs isn't set up or says no the change still happens and the removal is queued;
+ *       going nowhere new changes nothing; a first sign-in with a bad user shape links nothing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -14,12 +14,15 @@ import { HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { linkNewEditor } from "@/lib/auth";
 import { builtPoolsCollection } from "@/models/BuiltPool";
+import { applyBuiltPoolOps } from "@/services/built-pool-ops";
 import {
+  deleteBuiltPool,
   findBuiltPool,
+  getBuiltPoolFor,
   listBuiltPoolsFor,
-  removePackOf,
   setBuiltPoolVisibility,
 } from "@/services/built-pools";
+import { packCleanupCollection } from "@/services/pack-cleanup";
 import { makeBuiltPool } from "../../helpers/built-pools";
 import { setupTestDb } from "../../helpers/db";
 import { setupMsw } from "../../helpers/msw";
@@ -49,6 +52,32 @@ describe("findBuiltPool and listBuiltPoolsFor", () => {
     expect(await findBuiltPool("otdb-1")).toBeNull();
   });
 
+  it("reads a pool a newer content filter would refuse: listed, seen, fixed and deleted", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { _id: "b-a0000001", name: "retard cup" });
+    const owner = { ...cast.owner, avatarUrl: null, isAdmin: false };
+    expect(await findBuiltPool("b-a0000001")).toMatchObject({ name: "retard cup" });
+    expect((await listBuiltPoolsFor(owner)).owned.map((pool) => pool.id)).toEqual(["b-a0000001"]);
+    expect(await getBuiltPoolFor("b-a0000001", owner)).toMatchObject({ ok: true });
+    const add = { type: "addMap", beatmapId: 5, bucket: "NM" } as const;
+    expect(await applyBuiltPoolOps("b-a0000001", owner, 1, [add])).toMatchObject({
+      ok: false,
+      status: 400,
+      code: "content_filter",
+    });
+    const renamed = await applyBuiltPoolOps("b-a0000001", owner, 1, [
+      { type: "setDetails", name: "Spring Cup" },
+      add,
+    ]);
+    expect(renamed).toMatchObject({ ok: true, value: { name: "Spring Cup", version: 2 } });
+    await (await builtPoolsCollection()).updateOne(
+      { _id: "b-a0000001" },
+      { $set: { name: "retard cup" } },
+    );
+    expect(await deleteBuiltPool("b-a0000001", owner)).toMatchObject({ ok: true });
+    expect(await findBuiltPool("b-a0000001")).toBeNull();
+  });
+
   it("lists the pools a user owns and edits, newest change first", async () => {
     const cast = await createCast();
     await insertPool(cast, { _id: "b-a0000001", updatedAt: new Date("2026-09-01") });
@@ -63,19 +92,35 @@ describe("findBuiltPool and listBuiltPoolsFor", () => {
   });
 });
 
-describe("removePackOf", () => {
-  it("does nothing for a pool without a pack", async () => {
-    expect(await removePackOf(makeBuiltPool())).toEqual({ ok: true, value: null });
-  });
-
-  it("refuses when packs isn't set up here, or answers no", async () => {
-    const pool = makeBuiltPool({ pack: SYNCED });
-    expect(await removePackOf(pool)).toMatchObject({ ok: false, status: 502 });
-    vi.stubEnv("POOLS_SERVICE_TOKEN", "short");
-    expect(await removePackOf(pool)).toMatchObject({ ok: false, code: "pack_not_removed" });
+describe("deleteBuiltPool", () => {
+  it("deletes the pool even when packs can't remove its pack, queueing the removal", async () => {
     withPacks();
     server.use(packsDeleteHandler(() => HttpResponse.json({}, { status: 500 })));
-    expect(await removePackOf(pool)).toMatchObject({ ok: false, status: 502 });
+    const cast = await createCast();
+    await insertPool(cast, { _id: "b-a0000001", visibility: "public", pack: SYNCED });
+    const answer = await deleteBuiltPool("b-a0000001", { ...cast.owner, isAdmin: false });
+    expect(answer).toEqual({ ok: true, value: { packRemoval: "queued" } });
+    expect(await findBuiltPool("b-a0000001")).toBeNull();
+    expect(await (await packCleanupCollection()).findOne({ _id: "b-a0000001" })).toMatchObject({
+      attempts: 1,
+    });
+  });
+
+  it("says the pack went, or that there was none", async () => {
+    withPacks();
+    server.use(packsDeleteHandler());
+    const cast = await createCast();
+    await insertPool(cast, { _id: "b-a0000001", pack: SYNCED });
+    await insertPool(cast, { _id: "b-a0000002" });
+    const owner = { ...cast.owner, isAdmin: false };
+    expect(await deleteBuiltPool("b-a0000001", owner)).toEqual({
+      ok: true,
+      value: { packRemoval: "removed" },
+    });
+    expect(await deleteBuiltPool("b-a0000002", owner)).toEqual({
+      ok: true,
+      value: { packRemoval: "none" },
+    });
   });
 });
 
@@ -93,12 +138,15 @@ describe("setBuiltPoolVisibility", () => {
     );
     expect(answer).toMatchObject({
       ok: true,
-      value: { visibility: "private", version: 2, pack: { state: "none", slug: null } },
+      value: {
+        pool: { visibility: "private", version: 2, pack: { state: "none", slug: null } },
+        packRemoval: "removed",
+      },
     });
     expect(calls.map((call) => call.id)).toEqual(["b-a0000001"]);
   });
 
-  it("keeps the pool as it is when packs can't remove the pack", async () => {
+  it("goes private even when packs isn't there to remove the pack, queueing the removal", async () => {
     const cast = await createCast();
     await insertPool(cast, { _id: "b-a0000001", visibility: "public", pack: SYNCED });
     const answer = await setBuiltPoolVisibility(
@@ -106,8 +154,17 @@ describe("setBuiltPoolVisibility", () => {
       { ...cast.owner, isAdmin: false },
       "private",
     );
-    expect(answer).toMatchObject({ ok: false, status: 502 });
-    expect(await findBuiltPool("b-a0000001")).toMatchObject({ visibility: "public", version: 1 });
+    expect(answer).toMatchObject({
+      ok: true,
+      value: { pool: { visibility: "private", version: 2 }, packRemoval: "queued" },
+    });
+    expect(await findBuiltPool("b-a0000001")).toMatchObject({
+      visibility: "private",
+      pack: { state: "none" },
+    });
+    expect(await (await packCleanupCollection()).findOne({ _id: "b-a0000001" })).toMatchObject({
+      reason: "packs isn't set up here.",
+    });
   });
 
   it("changes nothing when the visibility is the same", async () => {
@@ -118,7 +175,10 @@ describe("setBuiltPoolVisibility", () => {
       { ...cast.owner, isAdmin: false },
       "private",
     );
-    expect(answer).toMatchObject({ ok: true, value: { version: 1 } });
+    expect(answer).toMatchObject({
+      ok: true,
+      value: { pool: { version: 1 }, packRemoval: "none" },
+    });
   });
 });
 

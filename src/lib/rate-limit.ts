@@ -4,7 +4,7 @@
  *       scope/subject/window, bumped with a single findOneAndUpdate upsert $inc, removed by the
  *       TTL index on expiresAt a minute after its window ends. The osu! budget (the check) shares
  *       the collection and the document shape. A hit can cost more than one (a call carrying
- *       several ops counts each). Subjects are IP subjects or, for signed-in writes, "user:<id>".
+ *       several ops counts each). Subjects are IP subjects or, for signed-in writes, "osu:<osuId>".
  *       Counting fails open: if the write fails, the request is allowed and the error logged.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -145,6 +145,14 @@ export const tooManyRequests = (result: RateLimitResult): Response =>
     jsonError(429, `Too many requests. Try again in ${retryText(result.resetSeconds)}.`),
     rateLimitHeaders(result),
   );
+
+/**
+ * @function userSubject
+ * @param user {{ osuId: number }} a signed-in user
+ * @returns {string} "osu:<osuId>", their subject for per-user limits and the osu! budget: it
+ *          outlives their user id, which a deleted and re-made account doesn't keep
+ */
+export const userSubject = (user: { osuId: number }): string => `osu:${user.osuId}`;
 
 /**
  * @function refuseOverLimit

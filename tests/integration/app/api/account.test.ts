@@ -4,9 +4,11 @@
  *       must be JSON, strict, and name the caller's own osu! username (the typed confirmation);
  *       then the user, every session and every linked account are gone, other people's rows
  *       stay, the old cookie reads as signed out, and the answer clears the signed-in marker.
- *       The cascade: every pool they own goes (its pack on packs deleted first), and they're
- *       taken off every pool they edit; when packs can't remove a pack, the account stays and
- *       the answer is 502.
+ *       The cascade: every pool they own goes (its pack on packs deleted), and they're taken off
+ *       every pool they edit; when packs can't remove a pack, the account and pools go anyway,
+ *       the removals are queued (packs asked once, the rest queued without asking) and the
+ *       answer says how many. At most 3 deletions an hour per osu! account, and the per-account limits
+ *       are kept by osu! id, so deleting the account doesn't reset them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -14,19 +16,30 @@
 
 import { ObjectId } from "mongodb";
 import { HttpResponse } from "msw";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DELETE } from "@/app/api/account/route";
+import { POST as createPool } from "@/app/api/pools/route";
 import { getUserFromHeaders } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
+import { packCleanupCollection } from "@/services/pack-cleanup";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import { setupMsw } from "../../../helpers/msw";
 import { type DeleteCall, packsDeleteHandler, TEST_SERVICE } from "../../../helpers/packs-server";
-import { createCast, insertPool } from "../../../helpers/pool-requests";
+import { createCast, insertPool, poolRequest } from "../../../helpers/pool-requests";
 
 setupTestDb();
 const server = setupMsw();
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+/** Early in an hour, so a fixed window can't roll over mid-test. */
+const earlyInTheHour = () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(`${new Date().toISOString().slice(0, 13)}:00:01.000Z`));
+};
 
 const request = (cookie: string | null, body: unknown, headers: Record<string, string> = {}) =>
   new Request("http://localhost:3000/api/account", {
@@ -78,6 +91,34 @@ describe("DELETE /api/account", () => {
   });
 });
 
+describe("DELETE /api/account limits", () => {
+  it("allows 3 deletions an hour per osu! account", async () => {
+    earlyInTheHour();
+    for (let i = 0; i < 3; i++) {
+      const user = await createTestUser(2, "peppy");
+      expect((await DELETE(request(user.cookie, { username: "peppy" }))).status).toBe(204);
+    }
+    const user = await createTestUser(2, "peppy");
+    const over = await DELETE(request(user.cookie, { username: "peppy" }));
+    expect(over.status).toBe(429);
+    expect(over.headers.get("cache-control")).toBe("no-store");
+    expect(await rowsOf(user.id)).toEqual({ users: 1, sessions: 1, accounts: 1 });
+    const other = await createTestUser(3, "other");
+    expect((await DELETE(request(other.cookie, { username: "other" }))).status).toBe(204);
+  });
+
+  it("keeps the per-account limits when the account is deleted and made again", async () => {
+    earlyInTheHour();
+    const first = await createTestUser(2, "peppy");
+    const make = (cookie: string, name: string) =>
+      createPool(poolRequest("POST", "/api/pools", cookie, { name }));
+    for (let i = 0; i < 10; i++) expect((await make(first.cookie, `Cup ${i}`)).status).toBe(201);
+    expect((await DELETE(request(first.cookie, { username: "peppy" }))).status).toBe(204);
+    const again = await createTestUser(2, "peppy");
+    expect((await make(again.cookie, "Cup 11")).status).toBe(429);
+  });
+});
+
 describe("DELETE /api/account and pools", () => {
   const synced = { state: "synced" as const, slug: "Abc123", syncedAt: new Date(), error: null };
 
@@ -105,13 +146,23 @@ describe("DELETE /api/account and pools", () => {
     expect(await rowsOf(cast.owner.id)).toEqual({ users: 0, sessions: 0, accounts: 0 });
   });
 
-  it("keeps the account, and says so, when packs can't remove a pack", async () => {
+  it("deletes everything anyway when packs is down, queues the removals and says so", async () => {
     const cast = await setup();
-    server.use(packsDeleteHandler(() => HttpResponse.json({}, { status: 503 })));
+    await insertPool(cast, { _id: "b-a0000004", visibility: "unlisted", pack: synced });
+    const calls: DeleteCall[] = [];
+    server.use(packsDeleteHandler(() => HttpResponse.json({}, { status: 503 }), calls));
     const response = await DELETE(request(cast.owner.cookie, { username: "owner" }));
-    expect(response.status).toBe(502);
-    expect(await response.json()).toMatchObject({ error: { code: "pack_not_removed" } });
-    expect(await rowsOf(cast.owner.id)).toEqual({ users: 1, sessions: 1, accounts: 1 });
-    expect(await (await builtPoolsCollection()).countDocuments({ _id: "b-a0000001" })).toBe(1);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      packRemovalsQueued: 2,
+      notice:
+        "packs.haruhime.moe didn't answer, so 2 packs will be removed there as soon as it does.",
+    });
+    expect(response.headers.getSetCookie().join("\n")).toMatch(/pools-signed-in=;.*Max-Age=0/);
+    expect(calls).toHaveLength(1);
+    expect(await rowsOf(cast.owner.id)).toEqual({ users: 0, sessions: 0, accounts: 0 });
+    expect(await (await builtPoolsCollection()).countDocuments({ ownerId: cast.owner.id })).toBe(0);
+    const queued = await (await packCleanupCollection()).find().sort({ _id: 1 }).toArray();
+    expect(queued.map((entry) => entry.ref)).toEqual(["b-a0000001", "b-a0000004"]);
   });
 });

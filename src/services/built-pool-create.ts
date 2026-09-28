@@ -1,6 +1,8 @@
 /**
  * @file src/services/built-pool-create.ts
- * @desc Making a pool: private, version 1, no pack. At most 50 per owner. Its id is "b-" and a
+ * @desc Making a pool: private, version 1, no pack. At most 50 per owner: counted before, and
+ *       again after the insert, which takes its own pool back out when the owner is over (so
+ *       creates racing each other can fall short of 50 but never pass it). Its id is "b-" and a
  *       generated source id, claimed by inserting it into built_pool_ids (a clash tries another),
  *       so an id is never handed out twice, even after its pool is deleted. Starting from a pool
  *       copies its maps, buckets and details: a past pool that isn't hidden, or a built pool the
@@ -97,13 +99,14 @@ export const createBuiltPool = async (
   now: Date = new Date(),
 ): Promise<Answer<BuiltPoolView>> => {
   const pools = await builtPoolsCollection();
-  if ((await pools.countDocuments({ ownerId: caller.id })) >= MAX_POOLS_PER_OWNER) {
-    return refuse(
+  const owned = () => pools.countDocuments({ ownerId: caller.id });
+  const full = () =>
+    refuse(
       400,
       "too_many_pools",
       `You can own at most ${MAX_POOLS_PER_OWNER} pools. Delete one to make another.`,
     );
-  }
+  if ((await owned()) >= MAX_POOLS_PER_OWNER) return full();
   const start = body.startedFrom ? await startingPoint(body.startedFrom, caller) : null;
   if (body.startedFrom && !start) {
     return refuse(404, "not_found", "That pool isn't there to start from.");
@@ -135,5 +138,10 @@ export const createBuiltPool = async (
   }
   pool = { ...pool, _id: await claimBuiltPoolId(now) };
   await pools.insertOne(pool);
+  // Another create may have landed since the count: whoever sees the owner over takes theirs back.
+  if ((await owned()) > MAX_POOLS_PER_OWNER) {
+    await pools.deleteOne({ _id: pool._id });
+    return full();
+  }
   return { ok: true, value: await viewOf(pool, caller) };
 };

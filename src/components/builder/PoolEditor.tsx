@@ -4,7 +4,7 @@
  *       pool (details, maps by bucket, paste, custom slots) and the side (summary with the
  *       content rules check, the map browser, editors, and the owner's settings: who can see it
  *       and delete). Every change is saved at once through usePoolEditor; the saving bar stays in
- *       view. Editors see everything but the owner's settings.
+ *       view. A pool moderators hid says so. Editors see everything but the owner's settings.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -12,7 +12,7 @@
 
 "use client";
 
-import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
+import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { type CheckRules, ContentRulesCheck } from "@/components/builder/ContentRulesCheck";
@@ -27,7 +27,7 @@ import { PoolSummary } from "@/components/builder/PoolSummary";
 import { SaveState } from "@/components/builder/SaveState";
 import { VisibilityForm } from "@/components/builder/VisibilityForm";
 import { VISIBILITY_TEXT } from "@/constants/built-pools";
-import { usePoolEditor } from "@/hooks/usePoolEditor";
+import { HIDDEN_NOTICE, usePoolEditor } from "@/hooks/usePoolEditor";
 import { useSlotMaps } from "@/hooks/useSlotMaps";
 import type { Fetcher } from "@/lib/pool-client";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
@@ -82,6 +82,7 @@ export function PoolEditor({
         gone={editor.gone}
         onDismiss={editor.dismiss}
       />
+      {pool.hidden ? <Notice tone="warning">{HIDDEN_NOTICE}</Notice> : null}
       <div
         data-panes
         className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]"

@@ -2,7 +2,9 @@
  * @file tests/integration/app/api/pool-ops.test.ts
  * @desc POST /api/pools/<id>/ops end to end: every op type through the route, each call a new
  *       version; a stale base version is a 409 carrying the pool as it is now (and two editors
- *       racing on one version: one wins, one gets the 409); a map already in the pool is 400
+ *       racing on one version: one wins, one gets the 409; an editor removed mid-call gets a 404,
+ *       not the pool; a write only sets content, so a change to editors, pack or hidden made
+ *       without a new version survives it); a map already in the pool is 400
  *       duplicate; the limits (20 ops a call, 64 maps, 8 custom buckets, the 32 KB body, 120 ops
  *       a minute per user); a failing op changes nothing; text goes through the content filter.
  * @author David @dvhsh (https://dvh.sh)
@@ -10,8 +12,10 @@
  * @modified Sun Sep 27, 2026
  */
 
+import { Collection } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/pools/[id]/ops/route";
+import { builtPoolsCollection } from "@/models/BuiltPool";
 import { findBuiltPool } from "@/services/built-pools";
 import { setupTestDb } from "../../../helpers/db";
 import {
@@ -25,12 +29,30 @@ import {
 setupTestDb();
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
+
+/** Runs `meanwhile` just before the ops call's write, as a concurrent request would. */
+const beforeTheWrite = (meanwhile: () => Promise<unknown>) => {
+  const write = Collection.prototype.findOneAndUpdate;
+  vi.spyOn(Collection.prototype, "findOneAndUpdate").mockImplementationOnce(async function (
+    this: Collection,
+    ...args: Parameters<Collection["findOneAndUpdate"]>
+  ) {
+    await meanwhile();
+    return (write as (...a: unknown[]) => unknown).apply(this, args);
+  } as never);
+};
 
 const ID = "b-a0000001";
 
 const send = (cast: Cast, body: unknown, who: keyof Cast = "owner") =>
   POST(poolRequest("POST", `/api/pools/${ID}/ops`, cast[who].cookie, body), params({ id: ID }));
+
+const op = (beatmapId: number, baseVersion = 1) => ({
+  baseVersion,
+  ops: [{ type: "addMap", beatmapId, bucket: "NM" }],
+});
 
 const errorOf = async (response: Response) =>
   ((await response.json()) as { error: { code: string; op?: number } }).error;
@@ -90,10 +112,6 @@ describe("versions", () => {
   it("lets one of two editors racing on a version win; the other gets the 409", async () => {
     const cast = await createCast();
     await insertPool(cast, { _id: ID });
-    const op = (beatmapId: number) => ({
-      baseVersion: 1,
-      ops: [{ type: "addMap", beatmapId, bucket: "NM" }],
-    });
     const statuses = (await Promise.all([send(cast, op(1)), send(cast, op(2), "editor")])).map(
       (response) => response.status,
     );
@@ -101,6 +119,38 @@ describe("versions", () => {
     const stored = await findBuiltPool(ID);
     expect(stored?.version).toBe(2);
     expect(stored?.slots).toHaveLength(1);
+  });
+});
+
+describe("concurrent changes", () => {
+  it("answers 404, not the pool, to an editor removed while their call ran", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { _id: ID });
+    beforeTheWrite(async () =>
+      (await builtPoolsCollection()).updateOne(
+        { _id: ID },
+        { $set: { editors: [] }, $inc: { version: 1 } },
+      ),
+    );
+    const response = await send(cast, op(5), "editor");
+    expect(response.status).toBe(404);
+    expect(await response.json()).not.toHaveProperty("pool");
+  });
+
+  it("sets only content, keeping editors, pack and hidden changed without a new version", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { _id: ID });
+    beforeTheWrite(async () =>
+      (await builtPoolsCollection()).updateOne(
+        { _id: ID },
+        { $set: { hidden: true, "editors.0.userId": "linked-later" } },
+      ),
+    );
+    expect((await send(cast, op(5))).status).toBe(200);
+    const stored = await findBuiltPool(ID);
+    expect(stored).toMatchObject({ hidden: true, version: 2, slots: [{ beatmapId: 5 }] });
+    expect(stored?.editors[0]?.userId).toBe("linked-later");
+    expect(stored).not.toHaveProperty("buckets");
   });
 });
 
@@ -148,6 +198,14 @@ describe("refusals", () => {
       ops: [{ type: "setDetails", notes: "sieg heil" }],
     });
     expect(filtered.status).toBe(400);
+    expect(await errorOf(filtered)).toMatchObject({ code: "content_filter" });
+    const code = await send(cast, { baseVersion: 1, ops: [{ type: "addBucket", code: "1488" }] });
+    expect(await errorOf(code)).toMatchObject({ code: "content_filter" });
+    const pasted = await send(cast, {
+      baseVersion: 1,
+      ops: [{ type: "replaceMaps", text: "KIKE1 5\nNM1 2" }],
+    });
+    expect(await errorOf(pasted)).toMatchObject({ code: "content_filter", op: 0 });
     const big = await send(cast, {
       baseVersion: 1,
       ops: [{ type: "replaceMaps", text: "1" }],

@@ -2,7 +2,9 @@
  * @file tests/components/account/DeleteAccountForm.test.tsx
  * @desc "Delete my account" asks for the osu! username typed in the page (no confirm() dialog):
  *       the button stays off until it matches, then one DELETE goes out with it; on success the
- *       header shows signed out and the page goes home; a refusal or no answer is said out loud.
+ *       header shows signed out and the page goes home; when packs didn't answer, the account is
+ *       deleted anyway and the page says the packs' removal waits, with a link home instead; a
+ *       refusal or no answer is said out loud.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -48,6 +50,21 @@ describe("DeleteAccountForm", () => {
     expect(JSON.parse(String(init?.body))).toEqual({ username: "peppy" });
     expect(markSignedOut).toHaveBeenCalledOnce();
     expect(push).toHaveBeenCalledWith("/");
+  });
+
+  it("says the packs' removal waits when packs didn't answer, signed out, with a link home", async () => {
+    const notice =
+      "packs.haruhime.moe didn't answer, so 2 packs will be removed there as soon as it does.";
+    vi.stubGlobal("fetch", async () => Response.json({ packRemovalsQueued: 2, notice }));
+    const { user, field, button } = setup();
+    await user.type(field, "peppy");
+    await user.click(button);
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      `Your account is deleted. ${notice}`,
+    );
+    expect(markSignedOut).toHaveBeenCalledOnce();
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.getByRole("link", { name: "Go to the home page" })).toHaveAttribute("href", "/");
   });
 
   it("says why when the server refuses, or can't be reached", async () => {

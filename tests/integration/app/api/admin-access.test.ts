@@ -10,6 +10,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as postBadged } from "@/app/api/admin/badged/route";
+import { POST as postPackCleanup } from "@/app/api/admin/pack-cleanup/route";
 import { PATCH as patchPool } from "@/app/api/admin/pools/[id]/route";
 import { POST as postPool } from "@/app/api/admin/pools/route";
 import { POST as postRevalidate } from "@/app/api/admin/revalidate/route";
@@ -26,6 +27,7 @@ const context = { params: Promise.resolve({ id: "otdb-1" }) };
 
 const ROUTES: [string, (request: Request) => Promise<Response>][] = [
   ["POST /api/admin/badged", postBadged],
+  ["POST /api/admin/pack-cleanup", postPackCleanup],
   ["POST /api/admin/pools", postPool],
   ["PATCH /api/admin/pools/otdb-1", (request) => patchPool(request, context)],
   ["POST /api/admin/revalidate", postRevalidate],

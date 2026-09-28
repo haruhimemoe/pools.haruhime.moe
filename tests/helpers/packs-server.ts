@@ -80,7 +80,7 @@ export type DeleteCall = { id: string; authorization: string | null; userAgent: 
 
 /**
  * @function packsDeleteHandler
- * @param answer {(id: string) => Response} what packs says (204 removed, 404 none)
+ * @param answer {(id: string) => Response} what packs says (204 removed by default)
  * @param calls {DeleteCall[]} filled with every request
  * @returns the msw handler
  */

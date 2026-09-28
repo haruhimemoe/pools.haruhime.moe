@@ -2,7 +2,8 @@
  * @file tests/unit/lib/api.test.ts
  * @desc JSON errors ({ error: { code, message } }), body parsing (JSON only, 16 KB or a cap the
  *       route gives, like the 32 KB of the pool routes, schema
- *       errors as 400 with the first message), no-store, and the same-origin guard (a foreign
+ *       errors as 400 with the first message, and the code a refinement names in its params, like
+ *       the content filter's), no-store, and the same-origin guard (a foreign
  *       Origin or a cross-site or same-site Sec-Fetch-Site is refused; our own origin, previews
  *       and server calls pass), and the /check ids parser (1 to 64 valid beatmap ids, or null).
  * @author David @dvhsh (https://dvh.sh)
@@ -60,6 +61,25 @@ describe("parseJsonBody", () => {
     const result = await parseJsonBody(request, schema);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.response.status).toBe(status);
+  });
+
+  it("sends the code a refinement names in its params", async () => {
+    const named = z.strictObject({
+      name: z.string().refine((text) => text !== "bad", {
+        message: "That fails the content filter.",
+        params: { code: "content_filter" },
+      }),
+    });
+    const result = await parseJsonBody(post('{"name":"bad"}'), named);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(await result.response.json()).toEqual({
+        error: { code: "content_filter", message: "That fails the content filter." },
+      });
+    }
+    const plain = await parseJsonBody(post('{"hidden":"yes"}'), schema);
+    if (!plain.ok)
+      expect(await plain.response.json()).toMatchObject({ error: { code: "bad_request" } });
   });
 
   it("takes a route's own cap", async () => {

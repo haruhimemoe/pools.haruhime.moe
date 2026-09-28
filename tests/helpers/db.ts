@@ -19,6 +19,7 @@ const COLLECTIONS = [
   "built_pools",
   "built_pool_ids",
   "mod_values",
+  "pack_cleanup",
   "user",
   "session",
   "account",

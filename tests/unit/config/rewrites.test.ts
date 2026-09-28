@@ -3,7 +3,9 @@
  * @desc /pools/<b- id> is served by the built pool page (it reads the session), before the
  *       cookie-free ISR page for past pools could take it; nothing else is rewritten, so
  *       /pools/<b- id>/edit and past pools keep their own routes (checked with Next's own path
- *       matcher).
+ *       matcher). The internal path /pools/built/<id> isn't reachable directly: a request for it
+ *       is redirected (308) to /pools/<id>. Redirects match the incoming path before any rewrite,
+ *       and the rewrite's source never matches the internal path, so there's no loop.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -12,6 +14,24 @@
 import { getPathMatch } from "next/dist/shared/lib/router/utils/path-match";
 import { describe, expect, it } from "vitest";
 import nextConfig from "../../../next.config";
+
+describe("redirects", () => {
+  it("sends the internal /pools/built/<id> to /pools/<id> for good (308)", async () => {
+    expect(await nextConfig.redirects?.()).toEqual([
+      { source: "/pools/built/:id", destination: "/pools/:id", permanent: true },
+    ]);
+  });
+
+  it("matches only the internal path, never a pool's own page or the editor", () => {
+    const match = getPathMatch("/pools/built/:id");
+    expect(match("/pools/built/b-a0000001")).toEqual({ id: "b-a0000001" });
+    for (const path of ["/pools/b-a0000001", "/pools/otdb-657", "/pools/b-a0000001/edit"]) {
+      expect(match(path)).toBe(false);
+    }
+    // What the redirect sends people to is a built pool's page, which the rewrite then serves.
+    expect(getPathMatch("/pools/:id(b-[^/]+)")("/pools/b-a0000001")).toEqual({ id: "b-a0000001" });
+  });
+});
 
 describe("rewrites", () => {
   it("sends built pools' pages to /pools/built/[id], ahead of the file routes", async () => {

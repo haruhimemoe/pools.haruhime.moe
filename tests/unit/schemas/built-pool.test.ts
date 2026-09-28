@@ -4,6 +4,9 @@
  *       8 custom buckets), no map twice, a "b-" id, text fields trimmed, within their limits and
  *       through the content filter (one-line fields refuse line breaks, notes keep them), a year
  *       from 2007 to next year or none, editors (at most 10), the pack state, and nothing half-set.
+ *       No text field takes a lone surrogate (the driver would store U+FFFD in its place), and the
+ *       filter's refusal carries the code content_filter. Reads use a shape-only schema, so a
+ *       stored pool a newer filter would refuse still reads.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -13,6 +16,8 @@ import { describe, expect, it } from "vitest";
 import {
   builtNameSchema,
   builtNotesSchema,
+  builtPoolReadSchema,
+  builtRoundSchema,
   builtTournamentSchema,
   builtYearSchema,
   storedBuiltPoolSchema,
@@ -98,6 +103,22 @@ describe("text fields", () => {
     expect(builtNotesSchema.safeParse("sieg heil").success).toBe(false);
   });
 
+  it("refuses a lone surrogate in every text field", () => {
+    for (const schema of [builtNameSchema, builtTournamentSchema, builtRoundSchema]) {
+      expect(schema.safeParse("Cup \uD800").error?.issues[0]?.message).toMatch(/broken character/);
+    }
+    expect(builtNotesSchema.safeParse("a\uDC00b").success).toBe(false);
+    expect(builtNameSchema.parse("Cup \u{1F600}")).toBe("Cup \u{1F600}");
+  });
+
+  it("marks the content filter's refusal with the code content_filter", () => {
+    const issue = builtNotesSchema.safeParse("sieg heil").error?.issues[0];
+    expect(issue).toMatchObject({
+      message: "That fails the content filter.",
+      params: { code: "content_filter" },
+    });
+  });
+
   it("takes a year from 2007 to next year, or none", () => {
     const next = new Date().getUTCFullYear() + 1;
     expect(builtYearSchema.parse(null)).toBeNull();
@@ -106,5 +127,25 @@ describe("text fields", () => {
     for (const bad of [2006, next + 1, 2020.5]) {
       expect(builtYearSchema.safeParse(bad).success).toBe(false);
     }
+  });
+});
+
+describe("builtPoolReadSchema", () => {
+  const read = (overrides: Record<string, unknown>) =>
+    builtPoolReadSchema.safeParse({ ...makeBuiltPool(), ...overrides });
+
+  it("reads a stored pool whose text a newer content filter refuses", () => {
+    expect(read({ name: "retard cup", notes: "sieg heil" }).success).toBe(true);
+    expect(parse({ name: "retard cup" }).success).toBe(false);
+  });
+
+  it.each([
+    ["an id without b-", { _id: "host-abcdefgh" }],
+    ["an unknown visibility", { visibility: "secret" }],
+    ["no slots", { slots: undefined }],
+    ["a name that isn't text", { name: 5 }],
+    ["a null bucket list", { buckets: null }],
+  ])("still refuses %s", (_case, overrides) => {
+    expect(read(overrides).success).toBe(false);
   });
 });

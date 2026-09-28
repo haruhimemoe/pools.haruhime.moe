@@ -2,7 +2,8 @@
  * @file src/components/account/DeleteAccountForm.tsx
  * @desc "Delete my account" on /account. The confirmation is built into the page (no confirm()
  *       dialog): the button stays off until the osu! username is typed exactly, then one DELETE
- *       /api/account carries it. On success the header shows signed out and the page goes home;
+ *       /api/account carries it. On success the header shows signed out and the page goes home
+ *       (when packs didn't answer, it stays to say the packs' removal waits, with a link home);
  *       a refusal or no answer is said in the page, and nothing was deleted.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -11,7 +12,7 @@
 
 "use client";
 
-import { Button, TextInput } from "@haruhimemoe/ui";
+import { Button, ButtonLink, TextInput } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useState } from "react";
 import { markSignedOut } from "@/hooks/useAccount";
@@ -33,6 +34,7 @@ export function DeleteAccountForm({ username }: { username: string }) {
   const [typed, setTyped] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [queued, setQueued] = useState<string | null>(null);
   const matches = typed.trim() === username;
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -50,12 +52,30 @@ export function DeleteAccountForm({ username }: { username: string }) {
         router.push("/");
         return;
       }
+      if (response.ok) {
+        markSignedOut();
+        const body = (await response.json().catch(() => ({}))) as { notice?: string };
+        setQueued(body.notice ?? "");
+        return;
+      }
       setError(await messageOf(response));
     } catch {
       setError(UNREACHABLE);
     }
     setPending(false);
   };
+  if (queued !== null) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p role="status" className="text-c2 text-sm">
+          {`Your account is deleted. ${queued}`.trim()}
+        </p>
+        <ButtonLink href="/" variant="secondary" className="self-start">
+          Go to the home page
+        </ButtonLink>
+      </div>
+    );
+  }
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
       <p className="text-c2 text-sm">

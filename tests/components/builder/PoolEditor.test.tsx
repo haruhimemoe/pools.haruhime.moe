@@ -3,16 +3,17 @@
  * @desc The pool editor's maps and saving: moving with the keyboard alone (focus stays on the
  *       moved map), move to another bucket and remove, each change sent at once with the last
  *       saved version, the optimistic copy rolled back on an error, the 409 notice with the
- *       reloaded pool, and "Find maps" bringing focus to the map browser pane. No network: a
+ *       reloaded pool, a pool that's gone (said once, and no more polling), the notice when
+ *       moderators hid it, and "Find maps" bringing focus to the map browser pane. No network: a
  *       fake pool API applies the ops with the builder's own rules.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
  */
 
-import { screen, waitFor } from "@testing-library/react";
+import { cleanup, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CONFLICT } from "@/hooks/usePoolEditor";
+import { CONFLICT, GONE, HIDDEN_NOTICE } from "@/hooks/usePoolEditor";
 import type { ClientPool } from "@/schemas/built-pool-view";
 import { clientPool, nm } from "../../helpers/pool-editor";
 import { renderEditor } from "../../helpers/render-editor";
@@ -130,10 +131,36 @@ describe("PoolEditor: saving", () => {
     expect(api.calls.every((call) => call.method === "GET")).toBe(true);
   });
 
-  it("says when the pool has gone", async () => {
-    const { api } = setup();
+  it("says when the pool has gone, and stops asking for it", async () => {
+    const { api } = setup(clientPool(), 20);
     api.next(() => Response.json({ error: { code: "not_found", message: "x" } }, { status: 404 }));
     window.dispatchEvent(new Event("focus"));
-    expect(await screen.findByRole("alert")).toHaveTextContent("This pool isn't here any more");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "This pool was deleted or you no longer have access.",
+    );
+    const asked = api.calls.length;
+    window.dispatchEvent(new Event("focus"));
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    expect(api.calls).toHaveLength(asked);
+  });
+
+  it("stops asking once a save finds the pool gone", async () => {
+    const { api, user } = setup(clientPool(), 20);
+    api.next(() => Response.json({ error: { code: "not_found", message: "x" } }, { status: 404 }));
+    await user.click(button("Remove NM3"));
+    expect(await screen.findByText(GONE)).toBeInTheDocument();
+    const asked = api.calls.length;
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    expect(api.calls).toHaveLength(asked);
+  });
+});
+
+describe("PoolEditor: moderation", () => {
+  it("says when moderators hid the pool, and nothing when they didn't", () => {
+    setup(clientPool({ hidden: true }));
+    expect(screen.getByText(HIDDEN_NOTICE)).toBeInTheDocument();
+    cleanup();
+    setup();
+    expect(screen.queryByText(HIDDEN_NOTICE)).not.toBeInTheDocument();
   });
 });

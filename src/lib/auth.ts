@@ -4,7 +4,11 @@
  *       client, osu! generic OAuth (identify + public, PKCE, pools' own osu! app). Anyone with an
  *       osu! account can sign in (to make pools); admin rights come only from ADMIN_OSU_IDS,
  *       read on every request by getUserFromHeaders and getAdminFromHeaders, so a removed id
- *       stops being an admin at once. A first sign-in links the new user to the pools that
+ *       stops being an admin at once. osu! is a trusted provider for linking: a user row whose
+ *       osu! link is gone (an account deletion that stopped partway) is relinked on the next
+ *       osu! sign-in instead of locking them out; safe because the only way to a user row is
+ *       osu! itself (its email is made from the osu! id, and there's no email sign-up). A first
+ *       sign-in links the new user to the pools that
  *       already list their osu! id as an editor. osu! tokens are never kept. A readable signed-in marker
  *       cookie follows the session (set with it, cleared on sign-out or a get-session that finds
  *       none), so pages ask for the session only when it's there. Errors with no page to return
@@ -81,6 +85,11 @@ const createAuth = () => {
     database: mongodbAdapter(getDb(), { client: getMongoClient(), transaction: false }),
     // Identity only ever comes from osu!.
     disabledPaths: ["/update-user"],
+    account: {
+      // `<osuId>@osu.local` belongs to whoever osu! says has that id, so a user row left
+      // without its osu! link (a deletion that stopped halfway) is theirs to sign back into.
+      accountLinking: { trustedProviders: [OSU_PROVIDER_ID], requireLocalEmailVerified: false },
+    },
     // A failure with no page to return to (a callback whose state can't be read) lands on
     // /signin?error=<code>, which explains it, instead of better-auth's bare error page.
     onAPIError: { errorURL: new URL("/signin", env.BETTER_AUTH_URL).toString() },
