@@ -18,6 +18,7 @@ const COLLECTIONS = [
   "rate_limits",
   "built_pools",
   "built_pool_ids",
+  "mod_values",
   "user",
   "session",
   "account",

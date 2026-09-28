@@ -9,11 +9,12 @@
  *       HTML, a dropped connection, a timeout) is a failure, never an empty page. Totals come
  *       from total_count (the mirror's own pages), osu!'s total (capped at 10000) or not at all
  *       (osu.direct). A 429 or 503 with Retry-After makes this process skip the mirror that
- *       long (at most a minute) and fail at once meanwhile. Lives here, not in
+ *       long (at most a minute) and fail at once meanwhile; the map browser's mirror calls
+ *       share that cool-down (isMirrorCooling, noteMirrorRetryAfter). Lives here, not in
  *       @haruhimemoe/hinai, until a second app needs it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
@@ -36,7 +37,7 @@ import type { AllMapFilters, Range } from "@/utils/search-params";
 
 const count = z.number().int().nonnegative();
 
-/** An osu!standard difficulty, as the search lists it. */
+/** An osu!standard difficulty, as the search lists it (AR, OD and CS when it sends them). */
 const beatmapSchema = z
   .object({
     id: z.number().int().positive(),
@@ -45,13 +46,20 @@ const beatmapSchema = z
     difficulty_rating: z.number().nonnegative(),
     total_length: z.number().nonnegative(),
     bpm: z.number().nonnegative(),
+    ar: z.number().nullish(),
+    accuracy: z.number().nullish(),
+    cs: z.number().nullish(),
   })
-  .transform(({ id, version, difficulty_rating, total_length, bpm }) => ({
+  .transform(({ id, version, difficulty_rating, total_length, bpm, ar, accuracy, cs }) => ({
     id,
     version,
     stars: difficulty_rating,
     length: total_length,
     bpm,
+    /** Without mods; null when the mirror left it out (its own compact pages). */
+    ar: ar ?? null,
+    od: accuracy ?? null,
+    cs: cs ?? null,
   }));
 
 export type MirrorBeatmap = z.output<typeof beatmapSchema>;
@@ -134,8 +142,21 @@ export const resetMirrorCooldown = (): void => {
   coolUntil = 0;
 };
 
-/** A 429 or 503 with Retry-After: skip the mirror that long, at most MIRROR_COOLDOWN_MAX_MS. */
-const noteRetryAfter = (response: Response, now: number): void => {
+/**
+ * @function isMirrorCooling
+ * @param now {number} ms since the epoch
+ * @returns {boolean} whether a Retry-After the mirror sent still runs
+ */
+export const isMirrorCooling = (now: number): boolean => now < coolUntil;
+
+/**
+ * @function noteMirrorRetryAfter
+ * @param response {Response} a mirror answer
+ * @param now {number} ms since the epoch
+ * @returns {void} on a 429 or 503 with Retry-After, skips the mirror that long (at most
+ *          MIRROR_COOLDOWN_MAX_MS); anything else changes nothing
+ */
+export const noteMirrorRetryAfter = (response: Response, now: number): void => {
   if (response.status !== 429 && response.status !== 503) return;
   const wait = parseRetryAfter(response.headers.get("Retry-After"), now);
   if (wait === null || wait <= 0) return;
@@ -171,7 +192,8 @@ export const searchMirror = async (
     now = Date.now,
   }: { fetch?: typeof fetch; timeoutMs?: number; now?: () => number } = {},
 ): Promise<MirrorSearch> => {
-  if (now() < coolUntil) return { ok: false, reason: "The mirror asked us to wait (Retry-After)." };
+  if (isMirrorCooling(now()))
+    return { ok: false, reason: "The mirror asked us to wait (Retry-After)." };
   let body: unknown;
   try {
     const response = await doFetch(mirrorSearchUrl(filters, page), {
@@ -179,7 +201,7 @@ export const searchMirror = async (
       signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) {
-      noteRetryAfter(response, now());
+      noteMirrorRetryAfter(response, now());
       return { ok: false, reason: `The mirror answered ${response.status}.` };
     }
     body = await response.json();

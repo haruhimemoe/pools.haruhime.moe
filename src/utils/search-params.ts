@@ -9,10 +9,11 @@
  *       given; without it, a link carrying a played-only filter (ar, od, cs, played, used,
  *       last, or a sort) reads as played, so links from before the scope still work. A played
  *       search always writes scope=played; an all-maps search never writes a scope. Also the
- *       answer shapes the route sends. Pure, and safe in the browser.
+ *       answer shapes the route sends. The range, length and query helpers are shared with the
+ *       map browser's params (src/utils/browse-params.ts). Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { PLAYED_AS_CODES, type PlayedAsCode } from "@/constants/pools";
@@ -183,8 +184,13 @@ const RANGE_TEXT = new RegExp(`^(${NUMBER})?-(${NUMBER})?$`);
 const OPEN_TEXT = new RegExp(`^(${NUMBER})\\+?$`);
 const toNumber = (text: string): number => Number(text.replace(",", "."));
 
-/** "5.5-6.5", "6-", "-6.5", "6+" (6 and up). */
-const parseRange = (raw: string | null, bounds: FilterBounds): Range | null => {
+/**
+ * @function parseRange
+ * @param raw {string | null} a range as written: "5.5-6.5", "6-", "-6.5", "6+" (6 and up)
+ * @param bounds {FilterBounds} its slider
+ * @returns {Range | null} the range snapped to the slider (normalizeRange), or null
+ */
+export const parseRange = (raw: string | null, bounds: FilterBounds): Range | null => {
   if (raw === null) return null;
   const text = raw.trim();
   const open = OPEN_TEXT.exec(text);
@@ -200,8 +206,12 @@ const parseRange = (raw: string | null, bounds: FilterBounds): Range | null => {
   );
 };
 
-/** Lengths may be "1:30-3:00" as well as seconds. */
-const parseLengthRange = (raw: string | null): Range | null => {
+/**
+ * @function parseLengthRange
+ * @param raw {string | null} a length range in seconds, or clock times ("1:30-3:00")
+ * @returns {Range | null} the range in seconds on LENGTH_RANGE, or null
+ */
+export const parseLengthRange = (raw: string | null): Range | null => {
   if (raw === null) return null;
   const [low, high, ...rest] = raw.split("-");
   if (rest.length > 0 || low === undefined || high === undefined)
@@ -290,13 +300,22 @@ export const parseSearchState = (search: string | URLSearchParams): SearchState 
   };
 };
 
-const rangeText = ([low, high]: Range): string => `${low}-${high ?? ""}`;
+/**
+ * @function rangeText
+ * @param range {Range} a range
+ * @returns {string} "5.5-6.5", or "6-" with no upper limit
+ */
+export const rangeText = ([low, high]: Range): string => `${low}-${high ?? ""}`;
 
 /** A surrogate pair, or a surrogate on its own. */
 const SURROGATES = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDFFF]/g;
 
-/** Each lone surrogate as U+FFFD (encodeURIComponent throws on one). */
-const wellFormed = (text: string): string =>
+/**
+ * @function wellFormed
+ * @param text {string} typed text
+ * @returns {string} the text with each lone surrogate as U+FFFD (encodeURIComponent throws on one)
+ */
+export const wellFormed = (text: string): string =>
   text.replace(SURROGATES, (match) => (match.length === 2 ? match : "�"));
 
 /**

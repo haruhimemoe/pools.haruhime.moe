@@ -3,14 +3,15 @@
  * @desc The mirror's search, never the real one (msw): the request (osu!standard, the status
  *       always, star, BPM and length ranges, explicit=show only when asked, pools' page 1 as
  *       the mirror's page 0, 50 a page, pools' User-Agent); answers parsed with unknown fields
- *       ignored, a set that doesn't parse dropped and non-standard difficulties left out; every
- *       way the mirror fails (an error body with no sets, 400 invalid_explicit, 503, 429 with
- *       Retry-After, Cloudflare HTML, a dropped connection, a timeout) as a failure, never as
- *       0 maps; a 429 or 503's Retry-After (at most a minute) skips the mirror meanwhile; and page counts from total_count, from osu!'s capped total, or with no total,
- *       one more after any page with sets and none after an empty one.
+ *       ignored, a set that doesn't parse dropped and non-standard difficulties left out, AR, OD
+ *       and CS kept when sent; every way the mirror fails (an error body with no sets, 400
+ *       invalid_explicit, 503, 429 with Retry-After, Cloudflare HTML, a dropped connection, a
+ *       timeout) as a failure, never as 0 maps; a 429 or 503's Retry-After (at most a minute)
+ *       skips the mirror meanwhile; and page counts from total_count, from osu!'s capped total,
+ *       or with no total, one more after any page with sets and none after an empty one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { delay, HttpResponse, http } from "msw";
@@ -103,9 +104,21 @@ describe("searchMirror", () => {
     expect(result.sets.map((set) => set.id)).toEqual([1, 8, 9]);
     expect(result.sets[2]?.beatmaps).toEqual([]);
     expect(result.sets[1]?.beatmaps).toEqual([
-      { id: 80, version: "Hard", stars: 4.5, length: 90, bpm: 150 },
+      { id: 80, version: "Hard", stars: 4.5, length: 90, bpm: 150, ar: null, od: null, cs: null },
     ]);
     expect(result).toMatchObject({ received: 4, total: 3 });
+  });
+
+  it("keeps a difficulty's AR, OD (osu!'s accuracy) and CS when the mirror sends them", async () => {
+    const set = compactSet(8, 80);
+    const [map] = set.beatmaps as Record<string, unknown>[];
+    server.use(
+      mirrorSearchHandler(() =>
+        searchAnswer([{ ...set, beatmaps: [{ ...map, ar: 9.3, accuracy: 8.5, cs: 4.2 }] }]),
+      ),
+    );
+    const result = await searchMirror(EMPTY_ALL_MAP_FILTERS, 1);
+    expect(result.ok && result.sets[0]?.beatmaps[0]).toMatchObject({ ar: 9.3, od: 8.5, cs: 4.2 });
   });
 
   it.each([
