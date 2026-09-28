@@ -5,7 +5,8 @@
  *       the wrong shape is left out, never shown half-broken), the stored form with its search
  *       fields, owners' current osu! names, what a caller sees of a pool (every bucket, and for
  *       the owner which editors have signed in, its targets and slot notes, with notes today's
- *       filter refuses left out for anyone who can't edit), and loading one for a caller who
+ *       filter refuses left out for anyone who can't edit, and its candidates for the owner and
+ *       editors alone), and loading one for a caller who
  *       must be allowed something.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -29,6 +30,7 @@ import { type Access, accessOf, type Caller } from "@/utils/built-access";
 import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
 import { clientPackOf } from "@/utils/built-pack";
 import { type BuiltSearchFields, builtSearchFields } from "@/utils/built-record";
+import { countedVotes, membersOf } from "@/utils/candidate-view";
 
 /**
  * @function readBuiltPool
@@ -60,12 +62,12 @@ export const findBuiltPool = async (id: string): Promise<StoredBuiltPool | null>
  * @function toStored
  * @param pool {StoredBuiltPool} a pool about to be written
  * @returns {StoredBuiltPool & BuiltSearchFields} the same pool, checked, with `buckets` left out
- *          for the default list and `targets` and `slotNotes` when there are none (the driver
+ *          for the default list and `targets`, `slotNotes` and `candidates` when there are none (the driver
  *          would store an undefined value as null), and its search fields
  * @throws {z.ZodError} when it doesn't satisfy the stored schema (a bug)
  */
 export const toStored = (pool: StoredBuiltPool): StoredBuiltPool & BuiltSearchFields => {
-  const { buckets, targets, slotNotes, ...rest } = storedBuiltPoolSchema.parse(pool);
+  const { buckets, targets, slotNotes, candidates, ...rest } = storedBuiltPoolSchema.parse(pool);
   const some = (record: object | undefined) =>
     record !== undefined && Object.keys(record).length > 0;
   const stored = {
@@ -73,6 +75,7 @@ export const toStored = (pool: StoredBuiltPool): StoredBuiltPool & BuiltSearchFi
     ...(buckets === undefined ? {} : { buckets }),
     ...(some(targets) ? { targets } : {}),
     ...(some(slotNotes) ? { slotNotes } : {}),
+    ...(some(candidates) ? { candidates } : {}),
   };
   return { ...stored, ...builtSearchFields(stored) };
 };
@@ -120,10 +123,18 @@ export const ownerNamesOf = async (ownerIds: readonly string[]): Promise<Map<str
  * @function viewOf
  * @param pool {StoredBuiltPool} a stored pool the caller may see
  * @param caller {Caller} who's asking
- * @returns {Promise<BuiltPoolView>} what the API sends
+ * @returns {Promise<BuiltPoolView>} what the API sends (candidates and `me` only for the owner
+ *          and editors)
  */
 export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<BuiltPoolView> => {
   const { isOwner, isEditor, canEdit, canManage, canDelete } = accessOf(pool, caller);
+  const owner = await ownerOf(pool.ownerId);
+  const members = membersOf({ owner, editors: pool.editors });
+  // Candidates are the owner's and editors' alone, with only current members' votes.
+  const candidates =
+    canEdit && caller
+      ? { candidates: countedVotes(pool.candidates ?? {}, members), me: caller.osuId }
+      : {};
   return {
     id: pool._id,
     name: pool.name,
@@ -133,7 +144,7 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     notes: pool.notes,
     visibility: pool.visibility,
     hidden: pool.hidden,
-    owner: await ownerOf(pool.ownerId),
+    owner,
     editors: pool.editors.map(({ userId, osuId, username, addedAt }) => ({
       osuId,
       username,
@@ -145,6 +156,7 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     targets: pool.targets ?? {},
     // Everyone else sees only notes a write would take today; editors see theirs to fix them.
     slotNotes: canEdit ? (pool.slotNotes ?? {}) : passingNotes(pool.slotNotes ?? {}),
+    ...candidates,
     version: pool.version,
     // packs' reasons are for the people who fix the pool.
     pack: clientPackOf(pool, { withError: canEdit }),

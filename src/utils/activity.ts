@@ -1,7 +1,9 @@
 /**
  * @file src/utils/activity.ts
  * @desc What the activity log says about a change to a built pool: an ops call is one entry,
- *       with its first op's kind and each op's summary joined (worked out on the pool as it was
+ *       with its first op's kind and each op's summary joined (candidate ops through
+ *       src/utils/candidate-activity.ts; votes are left out, and a call of votes alone logs
+ *       nothing), worked out on the pool as it was
  *       at that op, so slot labels are the ones people saw), cut to 300 characters; and the
  *       entries for a visibility, editor or owner change (which name their subject, so a deleted
  *       account's name can be taken out of them). Pure.
@@ -17,6 +19,8 @@ import type { PoolOp } from "@/schemas/built-pool-ops";
 import { targetText } from "@/utils/bucket-targets";
 import type { BuiltContent } from "@/utils/built-content";
 import { applyOps } from "@/utils/built-ops";
+import { describeCandidateOp } from "@/utils/candidate-activity";
+import { isCandidateOp } from "@/utils/candidate-ops";
 import { formatShortDate } from "@/utils/date";
 
 /** Someone an entry names besides its author: an editor added or removed, a new owner. */
@@ -33,7 +37,8 @@ const labelOf = (pool: BuiltContent, beatmapId: number): string => {
   return slot ? slotLabel(slot) : `beatmap ${beatmapId}`;
 };
 
-const describe = (before: BuiltContent, after: BuiltContent, op: PoolOp): ActivityNote => {
+const describe = (before: BuiltContent, after: BuiltContent, op: PoolOp): ActivityNote | null => {
+  if (isCandidateOp(op)) return describeCandidateOp(before, op);
   switch (op.type) {
     case "setDetails":
       return { kind: "details", summary: `Changed the ${listed(Object.keys(op).slice(1))}` };
@@ -90,17 +95,20 @@ const cut = (text: string): string =>
  * @function opsActivity
  * @param pool {BuiltContent} the pool before the call
  * @param ops {readonly PoolOp[]} the call's ops (they applied)
- * @returns {ActivityNote} one entry: the first op's kind, every op's summary
+ * @returns {ActivityNote | null} one entry: the first logged op's kind, every logged op's
+ *          summary; null when every op is a vote (votes aren't logged)
  */
-export const opsActivity = (pool: BuiltContent, ops: readonly PoolOp[]): ActivityNote => {
+export const opsActivity = (pool: BuiltContent, ops: readonly PoolOp[]): ActivityNote | null => {
   let current = pool;
   const notes: ActivityNote[] = [];
   for (const op of ops) {
     const next = applyOps(current, [op]);
     const after = next.ok ? next.pool : current;
-    notes.push(describe(current, after, op));
+    const note = describe(current, after, op);
+    if (note) notes.push(note);
     current = after;
   }
+  if (notes.length === 0) return null;
   const summary = notes
     .map((note, i) =>
       i === 0 ? note.summary : note.summary.charAt(0).toLowerCase() + note.summary.slice(1),

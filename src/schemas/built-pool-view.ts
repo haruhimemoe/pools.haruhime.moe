@@ -2,7 +2,8 @@
  * @file src/schemas/built-pool-view.ts
  * @desc What the browser holds of a built pool: the pool as the pages and editor show it (no
  *       dates, the pack as a state with its link or reason, editors as osu! id and name, and for
- *       the owner whether each has signed in, each bucket's target, each slot's note) and each of its maps' details from the maps
+ *       the owner whether each has signed in, each bucket's target, each slot's note, and for the
+ *       editor alone each slot's candidates and the caller's osu! id) and each of its maps' details from the maps
  *       collection (label parts, no-mod stars, length, BPM, AR, OD, CS, and how many past pools
  *       used it), and the pool a new one starts from. Plain JSON, so a server page and an API
  *       answer give the same shape.
@@ -13,6 +14,7 @@
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import type { BuiltPackState, Visibility } from "@/constants/built-pools";
+import type { SlotCandidates } from "@/schemas/built-candidates";
 import type { BucketTargets, SlotNotes } from "@/schemas/built-plan";
 
 /** An osu! user on a pool: the owner or an editor. */
@@ -59,6 +61,10 @@ export type ClientPool = {
   targets: BucketTargets;
   /** Each slot's note by beatmap id ({} when there are none). */
   slotNotes: SlotNotes;
+  /** Each slot's candidates: the owner and editors only, and only in the editor. */
+  candidates?: SlotCandidates;
+  /** The caller's osu! id, sent with the candidates (their own votes). */
+  me?: number;
   version: number;
   pack: ClientPack;
   access: ClientAccess;
@@ -118,6 +124,8 @@ export const clientPoolOf = (view: ClientPool): ClientPool => ({
   slots: view.slots,
   targets: view.targets,
   slotNotes: view.slotNotes,
+  ...(view.candidates ? { candidates: view.candidates } : {}),
+  ...(view.me === undefined ? {} : { me: view.me }),
   version: view.version,
   pack: view.pack,
   access: view.access,

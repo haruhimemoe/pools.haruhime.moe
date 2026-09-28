@@ -21,6 +21,7 @@ import { schedulePackSync } from "@/lib/pack-sync-after";
 import { loadBuiltPoolFor } from "@/services/built-pool-maps";
 import { builtSlotValues } from "@/services/slot-values";
 import { packWaiting } from "@/utils/built-pack";
+import { candidateSlots } from "@/utils/candidate-view";
 
 /** The editor's title; it's never indexed. */
 export const metadata: Metadata = { title: "Edit a pool", robots: { index: false } };
@@ -35,11 +36,12 @@ export default async function EditPoolPage({ params }: PageProps<"/pools/[id]/ed
   const { id } = await params;
   if (!BUILT_POOL_ID_PATTERN.test(id)) notFound();
   const user = await requireUser(`/pools/${id}/edit`);
-  const loaded = await loadBuiltPoolFor(id, user);
+  const loaded = await loadBuiltPoolFor(id, user, { candidates: true });
   if (!loaded?.pool.access.canEdit) notFound();
   if (packWaiting(loaded.pool.pack)) schedulePackSync(id);
   // An incomplete read (the mirror failed, met the deadline or is cooling down) is asked again.
-  const { values, complete } = await builtSlotValues(loaded.pool, loaded.maps);
+  const slots = [...loaded.pool.slots, ...candidateSlots(loaded.pool.candidates)];
+  const { values, complete } = await builtSlotValues({ ...loaded.pool, slots }, loaded.maps);
   return (
     <PoolEditor
       initial={loaded.pool}

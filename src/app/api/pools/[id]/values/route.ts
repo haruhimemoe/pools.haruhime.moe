@@ -1,6 +1,6 @@
 /**
  * @file src/app/api/pools/[id]/values/route.ts
- * @desc GET: each slot's values under its mods (stars, AR, OD, CS, BPM, length), keyed by map
+ * @desc GET: each slot's values under its mods (its candidates' too) (stars, AR, OD, CS, BPM, length), keyed by map
  *       and combo ("<id>:<combo>"), for the pool's editor as its slots change
  *       (src/services/slot-values.ts: the mod_values cache, else the hinai mirror, else the
  *       math). The owner or an editor only (signed out 401, can't see it 404, sees it but can't
@@ -19,6 +19,7 @@ import { limitUser, poolResponse, refusalResponse } from "@/lib/pool-routes";
 import { getBuiltMaps } from "@/services/built-pool-maps";
 import { loadFor } from "@/services/built-pool-read";
 import { builtSlotValues } from "@/services/slot-values";
+import { candidateSlots } from "@/utils/candidate-view";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -40,8 +41,10 @@ export async function GET(request: Request, { params }: Context) {
   const limited = await limitUser(RATE_LIMITS.poolOps, user);
   if (limited) return limited;
   const { pool } = loaded.value;
-  const found = await getBuiltMaps(pool.slots.map((slot) => slot.beatmapId));
+  // Candidates are valued under their slot's mods too.
+  const slots = [...pool.slots, ...candidateSlots(pool.candidates)];
+  const found = await getBuiltMaps(slots.map((slot) => slot.beatmapId));
   const maps = Object.fromEntries(found.map((map) => [map.id, map]));
   const buckets = bucketsOf(pool);
-  return poolResponse(await builtSlotValues({ buckets, slots: pool.slots }, maps));
+  return poolResponse(await builtSlotValues({ buckets, slots }, maps));
 }

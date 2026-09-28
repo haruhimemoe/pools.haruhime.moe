@@ -25,6 +25,7 @@ import { getBuiltPoolFor } from "@/services/built-pool-read";
 import { seedBlankMaps } from "@/services/import";
 import { fillMaps, type MapLookup } from "@/services/map-fill";
 import type { Caller } from "@/utils/built-access";
+import { candidateSlots } from "@/utils/candidate-view";
 
 type MapRow = Pick<
   StoredMap,
@@ -116,17 +117,22 @@ export const fillBuiltMaps = async (
  * @function loadBuiltPoolFor
  * @param id {string} an untrusted built pool id
  * @param caller {Caller} who's asking
+ * @param options {{ candidates?: boolean }} keep the candidates (the editor only; the pool's
+ *        page never shows them, whoever is looking)
  * @returns {Promise<{ pool: ClientPool; maps: BuiltMaps } | null>} the pool as the browser holds
- *          it and its maps' details (the maps collection only), or null when it isn't there or
- *          isn't theirs to see
+ *          it and its maps' details (picks and any candidates kept; the maps collection only), or
+ *          null when it isn't there or isn't theirs to see
  */
 export const loadBuiltPoolFor = async (
   id: string,
   caller: Caller,
+  { candidates = false }: { candidates?: boolean } = {},
 ): Promise<{ pool: ClientPool; maps: BuiltMaps } | null> => {
   const answer = await getBuiltPoolFor(id, caller);
   if (!answer.ok) return null;
-  const pool = clientPoolOf(answer.value);
-  const maps = await getBuiltMaps(pool.slots.map((slot) => slot.beatmapId));
+  const { candidates: kept, me, ...view } = answer.value;
+  const pool = clientPoolOf(candidates ? answer.value : view);
+  const slots = [...pool.slots, ...candidateSlots(pool.candidates)];
+  const maps = await getBuiltMaps(slots.map((slot) => slot.beatmapId));
   return { pool, maps: Object.fromEntries(maps.map((map) => [map.id, map])) };
 };

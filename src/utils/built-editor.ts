@@ -36,7 +36,8 @@ export type LocalResult = { ok: true; pool: ClientPool } | OpFailure;
  *          it can't apply, as the server would say
  */
 export const applyLocal = (pool: ClientPool, ops: readonly PoolOp[]): LocalResult => {
-  const result = applyOps(pool, ops);
+  // The server records its own clock and the session's osu! id; the copy is replaced on save.
+  const result = applyOps(pool, ops, { osuId: pool.me ?? 0, now: new Date().toISOString() });
   if (!result.ok) return result;
   const buckets = bucketsOf(result.pool).map((entry) => ({ ...entry }));
   return { ok: true, pool: { ...pool, ...result.pool, buckets } };

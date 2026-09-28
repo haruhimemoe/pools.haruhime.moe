@@ -3,7 +3,8 @@
  * @desc Undo in the editor, the pure side. inverseOf works out the ops that put a pool back as it
  *       was before a change (each op's inverse from the pool just before and just after it, in
  *       reverse order: a removed map comes back at its slot with its note, a removed bucket with
- *       its color, mods and target, a paste as the old slot lines). It then checks them: the
+ *       its color, mods and target, a paste as the old slot lines, candidates as
+ *       src/utils/candidate-undo.ts says). It then checks them: the
  *       inverse is kept only when applying it gives back exactly the same content and it fits
  *       one ops call; otherwise the change has no undo. The history keeps the last 20 steps and
  *       drops steps whose change was never saved. Pure, and safe in the browser.
@@ -17,6 +18,8 @@ import { MAX_OPS_PER_CALL } from "@/constants/built-pools";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { BuiltContent } from "@/utils/built-content";
 import { applyOps } from "@/utils/built-ops";
+import { type Actor, isCandidateOp, NO_ACTOR } from "@/utils/candidate-ops";
+import { candidateInverse, candidatesForUndo } from "@/utils/candidate-undo";
 
 /** Steps the editor can undo. */
 export const MAX_UNDO_STEPS = 20;
@@ -42,8 +45,20 @@ const canonical = (pool: BuiltContent): string => {
   );
   const [targets, slotNotes] = [pool.targets ?? {}, pool.slotNotes ?? {}];
   const buckets = bucketsOf(pool);
+  const candidates = candidatesForUndo(pool.candidates);
   return JSON.stringify(
-    stable({ name, tournament, round, year, notes, buckets, slots, targets, slotNotes }),
+    stable({
+      name,
+      tournament,
+      round,
+      year,
+      notes,
+      buckets,
+      slots,
+      targets,
+      slotNotes,
+      candidates,
+    }),
   );
 };
 
@@ -51,7 +66,8 @@ const canonical = (pool: BuiltContent): string => {
  * @function sameContent
  * @param a {BuiltContent} a pool
  * @param b {BuiltContent} another
- * @returns {boolean} true when their details, buckets, slots, targets and notes are the same
+ * @returns {boolean} true when their details, buckets, slots, targets, notes and candidates (by
+ *          map, set and note) are the same
  */
 export const sameContent = (a: BuiltContent, b: BuiltContent): boolean =>
   canonical(a) === canonical(b);
@@ -93,7 +109,13 @@ const bucketBack = (before: BuiltContent, code: string): PoolOp[] => {
 };
 
 /** One op's inverse, from the pool just before and just after it; null when there's none. */
-const inverseStep = (before: BuiltContent, after: BuiltContent, op: PoolOp): PoolOp[] | null => {
+const inverseStep = (
+  before: BuiltContent,
+  after: BuiltContent,
+  op: PoolOp,
+  actor: Actor,
+): PoolOp[] | null => {
+  if (isCandidateOp(op)) return candidateInverse(before, op, actor);
   switch (op.type) {
     case "setDetails": {
       const keys = Object.keys(op).filter((key) => key !== "type") as (keyof Op<"setDetails">)[];
@@ -155,24 +177,29 @@ const inverseStep = (before: BuiltContent, after: BuiltContent, op: PoolOp): Poo
  * @function inverseOf
  * @param pool {BuiltContent} the pool before a change
  * @param ops {readonly PoolOp[]} the change
+ * @param actor {Actor} who made it (a vote's inverse is their old vote)
  * @returns {PoolOp[] | null} the ops that put it back exactly (checked, and within one call), or
  *          null when the change can't be undone
  */
-export const inverseOf = (pool: BuiltContent, ops: readonly PoolOp[]): PoolOp[] | null => {
-  const start = applyOps(pool, []);
+export const inverseOf = (
+  pool: BuiltContent,
+  ops: readonly PoolOp[],
+  actor: Actor = NO_ACTOR,
+): PoolOp[] | null => {
+  const start = applyOps(pool, [], actor);
   if (!start.ok) return null;
   let current: BuiltContent = start.pool;
   const steps: PoolOp[][] = [];
   for (const op of ops) {
-    const next = applyOps(current, [op]);
-    const inverse = next.ok ? inverseStep(current, next.pool, op) : null;
+    const next = applyOps(current, [op], actor);
+    const inverse = next.ok ? inverseStep(current, next.pool, op, actor) : null;
     if (!next.ok || !inverse) return null;
     steps.unshift(inverse);
     current = next.pool;
   }
   const inverse = steps.flat();
   if (inverse.length === 0 || inverse.length > MAX_OPS_PER_CALL) return null;
-  const back = applyOps(current, inverse);
+  const back = applyOps(current, inverse, actor);
   return back.ok && sameContent(back.pool, start.pool) ? inverse : null;
 };
 

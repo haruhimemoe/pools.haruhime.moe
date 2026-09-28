@@ -9,7 +9,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-/** What an activity entry records: the first op of an ops call, or a setting. */
+/** What an activity entry records: the first op of an ops call, or a setting (a vote is never logged). */
 export const ACTIVITY_KINDS = [
   "details",
   "add",
@@ -21,6 +21,12 @@ export const ACTIVITY_KINDS = [
   "visibility",
   "editors",
   "owner",
+  "candidate-add",
+  "candidate-remove",
+  "candidate-promote",
+  "candidate-demote",
+  "candidate-move",
+  "candidate-note",
 ] as const;
 /** One of ACTIVITY_KINDS. */
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];

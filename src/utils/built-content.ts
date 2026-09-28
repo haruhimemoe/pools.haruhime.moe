@@ -1,7 +1,7 @@
 /**
  * @file src/utils/built-content.ts
  * @desc What an ops call changes on a built pool (BuiltContent: the details, buckets, slots,
- *       targets and slot notes) and how an op is refused (OpError, its codes and messages).
+ *       targets, slot notes and candidates) and how an op is refused (OpError, its codes and messages).
  *       Shared by src/utils/built-ops.ts and src/utils/built-plan-ops.ts, so neither imports the
  *       other for them. Pure.
  * @author David @dvhsh (https://dvh.sh)
@@ -17,10 +17,19 @@ import {
 } from "@haruhimemoe/pool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 
-/** What ops change: the details, the buckets, the slots and the targets. */
+/** What ops change: the details, the buckets, the slots, the targets, notes and candidates. */
 export type BuiltContent = Pick<
   StoredBuiltPool,
-  "name" | "tournament" | "round" | "year" | "notes" | "buckets" | "slots" | "targets" | "slotNotes"
+  | "name"
+  | "tournament"
+  | "round"
+  | "year"
+  | "notes"
+  | "buckets"
+  | "slots"
+  | "targets"
+  | "slotNotes"
+  | "candidates"
 >;
 
 /** Why an op can't apply, as the API's error code. */
@@ -35,7 +44,13 @@ export type OpErrorCode =
   | "not_custom"
   | "bucket_not_empty"
   | "bad_paste"
-  | "content_filter";
+  | "content_filter"
+  | "candidate_full"
+  | "candidate_pool_full"
+  | "candidate_duplicate"
+  | "candidate_is_pick"
+  | "unknown_candidate"
+  | "no_pick";
 
 /** One op's refusal, before it knows which op it was. */
 export class OpError extends Error {

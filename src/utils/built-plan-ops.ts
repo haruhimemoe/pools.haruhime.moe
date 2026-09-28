@@ -3,7 +3,7 @@
  * @desc The ops on what a built pool plans besides its maps: setTarget (a bucket's count and
  *       optional star range; a count of 0 with no range clears it), setNote (a map's note; ""
  *       clears it), and the tidy-up after every op, which drops targets on buckets the pool no
- *       longer has and notes on maps it no longer has. Pure; src/utils/built-ops.ts
+ *       longer has, notes on maps it no longer has, and candidates as tidyCandidates says. Pure; src/utils/built-ops.ts
  *       runs them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
@@ -11,15 +11,21 @@
  */
 
 import { bucketsOf, findBucket } from "@haruhimemoe/pool";
+import type { SlotCandidates } from "@/schemas/built-candidates";
 import type { BucketTarget, BucketTargets, SlotNotes } from "@/schemas/built-plan";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { BuiltContent } from "@/utils/built-content";
+import { tidyCandidates } from "@/utils/candidate-ops";
 
 type SetTarget = Extract<PoolOp, { type: "setTarget" }>;
 type SetNote = Extract<PoolOp, { type: "setNote" }>;
 
-/** Content with its plan always there (empty when there's none). */
-export type PlannedContent = BuiltContent & { targets: BucketTargets; slotNotes: SlotNotes };
+/** Content with its plan and candidates always there (empty when there are none). */
+export type PlannedContent = BuiltContent & {
+  targets: BucketTargets;
+  slotNotes: SlotNotes;
+  candidates: SlotCandidates;
+};
 
 /**
  * @function withNote
@@ -48,8 +54,8 @@ export const withTarget = (targets: BucketTargets, op: SetTarget): BucketTargets
 /**
  * @function tidyPlan
  * @param pool {BuiltContent} content after an op
- * @returns {PlannedContent} the same content with only targets on buckets it has and notes on
- *          maps it has
+ * @returns {PlannedContent} the same content with only targets on buckets it has, notes on
+ *          maps it has, and candidates as tidyCandidates leaves them
  */
 export const tidyPlan = (pool: BuiltContent): PlannedContent => {
   const list = bucketsOf(pool);
@@ -60,5 +66,5 @@ export const tidyPlan = (pool: BuiltContent): PlannedContent => {
   const slotNotes = Object.fromEntries(
     Object.entries(pool.slotNotes ?? {}).filter(([id]) => ids.has(id)),
   );
-  return { ...pool, targets, slotNotes };
+  return { ...pool, targets, slotNotes, candidates: tidyCandidates(pool) };
 };

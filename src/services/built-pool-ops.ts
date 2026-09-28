@@ -5,7 +5,7 @@
  *       apply in memory, all or nothing (src/utils/built-ops.ts; a refusal is a 400 naming the
  *       op), the whole new pool is checked against the stored schema (so a pool a newer content
  *       filter refuses has to be renamed in the same call), and its content (details, buckets,
- *       slots, targets, slot notes, version) is written with one $set that only matches the version it was
+ *       slots, targets, slot notes, candidates, version) is written with one $set that only matches the version it was
  *       read at, so two editors can't both win: the loser gets the 409. Fields ops don't own (editors,
  *       pack, hidden) are never written here, so a change to them without a new version isn't
  *       undone. An unlisted or public pool's pack is marked pending (the route syncs it after
@@ -52,11 +52,12 @@ const contentOf = ({
   buckets,
   targets,
   slotNotes,
+  candidates,
   ...pool
 }: StoredBuiltPool & BuiltSearchFields) => {
-  // toStored leaves out the default buckets, no targets and no notes: the stored ones go too.
+  // toStored leaves out the default buckets and empty plans: the stored ones go too.
   const gone: Record<string, ""> = {};
-  for (const [key, value] of Object.entries({ buckets, targets, slotNotes })) {
+  for (const [key, value] of Object.entries({ buckets, targets, slotNotes, candidates })) {
     if (value === undefined) gone[key] = "";
   }
   return {
@@ -75,6 +76,7 @@ const contentOf = ({
       ...(buckets === undefined ? {} : { buckets }),
       ...(targets === undefined ? {} : { targets }),
       ...(slotNotes === undefined ? {} : { slotNotes }),
+      ...(candidates === undefined ? {} : { candidates }),
     },
     ...(Object.keys(gone).length > 0 ? { $unset: gone } : {}),
   };
@@ -101,7 +103,7 @@ export const applyBuiltPoolOps = async (
   if (!loaded.ok) return loaded;
   const { pool } = loaded.value;
   if (pool.version !== baseVersion) return conflict(id, caller);
-  const result = applyOps(pool, ops);
+  const result = applyOps(pool, ops, { osuId: caller.osuId, now: now.toISOString() });
   if (!result.ok) {
     const { code, message, op, lines } = result;
     return refuse(400, code, message, { details: { op, ...(lines ? { lines } : {}) } });
@@ -125,6 +127,8 @@ export const applyBuiltPoolOps = async (
   );
   const after = readBuiltPool(written);
   if (!after) return conflict(id, caller);
-  await recordActivity(id, caller, opsActivity(pool, ops), now);
+  const note = opsActivity(pool, ops);
+  // Votes alone aren't logged (too chatty).
+  if (note) await recordActivity(id, caller, note, now);
   return { ok: true, value: await viewOf((await markPackPending(id)) ?? after, caller) };
 };

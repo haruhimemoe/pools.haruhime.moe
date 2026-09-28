@@ -1,6 +1,6 @@
 /**
  * @file src/app/api/pools/[id]/maps/route.ts
- * @desc GET: the details of a built pool's maps, for its editor. The owner or an editor only
+ * @desc GET: the details of a built pool's maps (picks and candidates), for its editor. The owner or an editor only
  *       (signed out 401, can't see it 404, sees it but can't edit 403), within the per-user ops
  *       limit, since maps pools never saw are filled from the mirror first
  *       (src/services/built-pool-maps.ts). `{ maps, error }`: a mirror failure still answers
@@ -16,6 +16,7 @@ import { getUserFromHeaders } from "@/lib/auth";
 import { limitUser, poolResponse, refusalResponse } from "@/lib/pool-routes";
 import { fillBuiltMaps } from "@/services/built-pool-maps";
 import { loadFor } from "@/services/built-pool-read";
+import { candidateSlots } from "@/utils/candidate-view";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -37,6 +38,7 @@ export async function GET(request: Request, { params }: Context) {
   if (!loaded.ok) return refusalResponse(loaded);
   const limited = await limitUser(RATE_LIMITS.poolOps, user);
   if (limited) return limited;
-  const ids = loaded.value.pool.slots.map((slot) => slot.beatmapId);
+  const { pool } = loaded.value;
+  const ids = [...pool.slots, ...candidateSlots(pool.candidates)].map((slot) => slot.beatmapId);
   return poolResponse(await fillBuiltMaps(ids));
 }

@@ -15,6 +15,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { ClientPool } from "@/schemas/built-pool-view";
+import { NO_ACTOR } from "@/utils/candidate-ops";
 import { confirmSteps, dropUnsaved, inverseOf, pushStep, type UndoStep } from "@/utils/undo";
 
 type Tag = { step: number | null; undo: boolean };
@@ -39,7 +40,7 @@ export const useUndoSteps = () => {
     (before: ClientPool, ops: readonly PoolOp[], undo: boolean) => {
       let step: number | null = null;
       if (!undo) {
-        const inverse = inverseOf(before, ops);
+        const inverse = inverseOf(before, ops, { ...NO_ACTOR, osuId: before.me ?? 0 });
         step = inverse ? nextStep.current++ : null;
         const entry = inverse && step ? { id: step, ops: inverse, saved: false } : null;
         set(entry ? pushStep(history.current, entry) : []);

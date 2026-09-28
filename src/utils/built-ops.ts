@@ -3,10 +3,12 @@
  * @desc Applies one ops call to a built pool's content, in order and all or nothing: the result is
  *       the whole new content, or the first op that can't apply with a code and a message
  *       (never a half-changed pool). Maps and buckets are edited through @haruhimemoe/pool
- *       (sortSlots, removeSlot, addBucket, setBucketMods, parsePoolText, planMerge, mergeSlots),
+ *       (addBucket, setBucketMods, parsePoolText, planMerge, mergeSlots),
  *       so the result keeps its rules; this adds what the builder needs on top: a slot number to
  *       add or move to, no map twice ("duplicate"), a clear refusal for every limit, and the
- *       plan's ops (src/utils/built-plan-ops.ts: targets and slot notes). Pure.
+ *       plan's ops (src/utils/built-plan-ops.ts: targets and slot notes) and the candidate ops
+ *       (src/utils/candidate-ops.ts). Maps are added, removed and moved by slot row
+ *       (src/utils/slot-rows.ts), so a slot's candidates stay with it. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -22,25 +24,22 @@ import {
   findBucket,
   isCustomBucket,
   MAX_CUSTOM_BUCKETS,
-  MAX_SLOT_INDEX,
   MAX_SLOTS,
   mergeSlots,
   nextFreeColor,
-  nextSlotIndex,
   type Pool,
-  type PoolSlot,
   parsePoolText,
   planMerge,
   removeBucket,
-  removeSlot,
   setBucketMods,
-  sortSlots,
 } from "@haruhimemoe/pool";
 import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { hasDuplicateMaps } from "@/schemas/built-pool";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import { type BuiltContent, OP_MESSAGES, OpError, type OpFailure } from "@/utils/built-content";
 import { type PlannedContent, tidyPlan, withNote, withTarget } from "@/utils/built-plan-ops";
+import { type Actor, applyCandidateOp, isCandidateOp, NO_ACTOR } from "@/utils/candidate-ops";
+import { insertPick, moveRow, removePick, rowsOf } from "@/utils/slot-rows";
 
 /** An ops call's result: the whole new content, or the first op that couldn't apply. */
 export type OpResult = { ok: true; pool: PlannedContent } | OpFailure;
@@ -60,7 +59,7 @@ const requireBucket = (pool: BuiltContent, code: string | null): void => {
   if (code !== null && !findBucket(bucketsOf(pool), code)) throw unknownBucket(code);
 };
 
-/** Puts a map in `bucket` at slot `index` (or the end), moving that bucket's later maps up. */
+/** Puts a map in `bucket` at slot `index` (or the end), moving that bucket's later rows up. */
 const insertSlot = (
   pool: BuiltContent,
   bucket: string | null,
@@ -68,14 +67,7 @@ const insertSlot = (
   index: number | undefined,
 ): BuiltContent => {
   requireBucket(pool, bucket);
-  const next = nextSlotIndex(pool.slots, bucket);
-  if (next > MAX_SLOT_INDEX) throw new OpError("slot_full", OP_MESSAGES.slotFull);
-  const at = Math.min(index ?? next, next);
-  const shifted = pool.slots.map((slot) =>
-    slot.mod === bucket && slot.index >= at ? { ...slot, index: slot.index + 1 } : slot,
-  );
-  const slots: PoolSlot[] = [...shifted, { mod: bucket, index: at, beatmapId }];
-  return { ...pool, slots: sortSlots(slots, bucketsOf(pool)) };
+  return insertPick(pool, bucket, beatmapId, index);
 };
 
 const addMap = (pool: BuiltContent, op: Op<"addMap">): BuiltContent => {
@@ -94,14 +86,15 @@ const findSlot = (pool: BuiltContent, ref: { bucket: string | null; index: numbe
 
 const removeMap = (pool: BuiltContent, { slot }: Op<"removeMap">): BuiltContent => {
   findSlot(pool, slot);
-  return edit(pool, (p) => removeSlot(p, slot.bucket, slot.index));
+  return removePick(pool, slot);
 };
 
+/** Within a bucket the whole row moves; to another bucket the pick goes alone. */
 const moveMap = (pool: BuiltContent, op: Op<"moveMap">): BuiltContent => {
   const { beatmapId } = findSlot(pool, op.slot);
   requireBucket(pool, op.bucket);
-  const without = edit(pool, (p) => removeSlot(p, op.slot.bucket, op.slot.index));
-  return insertSlot(without, op.bucket, beatmapId, op.index);
+  if (op.bucket === op.slot.bucket) return moveRow(pool, op.slot, op.index);
+  return insertSlot(removePick(pool, op.slot), op.bucket, beatmapId, op.index);
 };
 
 const customBucket = (pool: BuiltContent, code: string): BucketEntry => {
@@ -129,7 +122,7 @@ const addCustomBucket = (pool: BuiltContent, op: Op<"addBucket">): BuiltContent 
 
 const removeCustomBucket = (pool: BuiltContent, { code }: Op<"removeBucket">): BuiltContent => {
   customBucket(pool, code);
-  if (pool.slots.some((slot) => slot.mod === code)) {
+  if (pool.slots.some((slot) => slot.mod === code) || rowsOf(pool, code).size > 0) {
     throw new OpError("bucket_not_empty", OP_MESSAGES.notEmpty);
   }
   return edit(pool, (p) => removeBucket(p, code));
@@ -160,7 +153,8 @@ const replaceMaps = (pool: BuiltContent, op: Op<"replaceMaps">): BuiltContent =>
   return merged;
 };
 
-const applyOp = (pool: BuiltContent, op: PoolOp): BuiltContent => {
+const applyOp = (pool: BuiltContent, op: PoolOp, actor: Actor): BuiltContent => {
+  if (isCandidateOp(op)) return applyCandidateOp(pool, op, actor);
   switch (op.type) {
     case "setDetails": {
       const { type: _, ...details } = op;
@@ -195,16 +189,22 @@ const applyOp = (pool: BuiltContent, op: PoolOp): BuiltContent => {
  * @function applyOps
  * @param pool {BuiltContent} the pool's current content
  * @param ops {readonly PoolOp[]} the call's ops (already parsed), in order
- * @returns {OpResult} the whole new content (its targets always there, only on buckets it has),
+ * @param actor {Actor} who makes them and when (candidates record both; NO_ACTOR for checks)
+ * @returns {OpResult} the whole new content (its targets, notes and candidates always there,
+ *          only on buckets and maps it has),
  *          or the first op that couldn't apply (its index, code, message, and the unreadable
  *          lines of a paste)
  * @throws when something other than an op's own refusal goes wrong (a bug)
  */
-export const applyOps = (pool: BuiltContent, ops: readonly PoolOp[]): OpResult => {
+export const applyOps = (
+  pool: BuiltContent,
+  ops: readonly PoolOp[],
+  actor: Actor = NO_ACTOR,
+): OpResult => {
   let current = tidyPlan(pool);
   for (const [index, op] of ops.entries()) {
     try {
-      current = tidyPlan(applyOp(current, op));
+      current = tidyPlan(applyOp(current, op, actor));
     } catch (error) {
       if (!(error instanceof OpError)) throw error;
       const { code, message, lines } = error;

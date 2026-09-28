@@ -10,6 +10,7 @@
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import type { Visibility } from "@/constants/built-pools";
+import type { SlotCandidates } from "@/schemas/built-candidates";
 import type { BucketTargets, SlotNotes } from "@/schemas/built-plan";
 import type { BuiltEditor } from "@/schemas/built-pool";
 import type { ClientPack } from "@/schemas/built-pool-view";
@@ -67,6 +68,10 @@ export type BuiltPoolView = {
   targets: BucketTargets;
   /** Each slot's note by beatmap id ({} when there are none). */
   slotNotes: SlotNotes;
+  /** Each slot's candidates: sent only to the owner and editors, never to a page or visitor. */
+  candidates?: SlotCandidates;
+  /** The caller's osu! id, sent with the candidates. */
+  me?: number;
   version: number;
   pack: ClientPack;
   startedFrom: string | null;

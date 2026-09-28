@@ -7,7 +7,8 @@
  *       through the content filter, only notes keeping line breaks); who sees it; the owner (a
  *       user id) and up to 10 editors (osu! id and name, the user id once they've signed in);
  *       the version; the pack state (with when a sync last started); moderation; each bucket's
- *       target (only on buckets the pool has) and each slot's note (only on its maps). Nullable fields are stored as null, never
+ *       target (only on buckets the pool has), each slot's note (only on its maps) and each
+ *       slot's candidates (src/schemas/built-candidates.ts, editors only). Nullable fields are stored as null, never
  *       undefined (the driver would write null anyway); `buckets` is left out for the default,
  *       and `targets` and `slotNotes` when there are none.
  *       No text takes a lone surrogate (the driver would store U+FFFD, so the saved text would
@@ -41,6 +42,11 @@ import {
   MAX_ROUND_LENGTH,
   MAX_TOURNAMENT_LENGTH,
 } from "@/constants/pools";
+import {
+  checkCandidates,
+  slotCandidatesSchema,
+  slotCandidatesShape,
+} from "@/schemas/built-candidates";
 import {
   bucketTargetsSchema,
   bucketTargetsShape,
@@ -159,6 +165,8 @@ const builtPoolRest = {
   targets: bucketTargetsSchema.optional(),
   /** Each slot's note by beatmap id; left out when there are none. */
   slotNotes: slotNotesSchema.optional(),
+  /** Each slot's candidates by slot key (src/schemas/built-candidates.ts); left out when none. */
+  candidates: slotCandidatesSchema.optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 };
@@ -170,6 +178,7 @@ export const storedBuiltPoolSchema = poolFields
     checkPoolBuckets(pool, ctx);
     checkTargets(pool, ctx);
     checkSlotNotes(pool, ctx);
+    checkCandidates(pool, ctx);
     if (hasDuplicateMaps(pool.slots)) {
       ctx.addIssue({ code: "custom", message: "A map is in the pool twice.", path: ["slots"] });
     }
@@ -195,4 +204,5 @@ export const builtPoolReadSchema = z.object({
   buckets: z.array(bucketEntrySchema).optional(),
   targets: bucketTargetsShape.optional(),
   slotNotes: slotNotesShape.optional(),
+  candidates: slotCandidatesShape.optional(),
 });

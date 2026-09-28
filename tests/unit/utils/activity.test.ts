@@ -74,8 +74,8 @@ describe("opsActivity", () => {
         (_, i) => ({ type: "addMap", beatmapId: 100 + i, bucket: "NM" }) as PoolOp,
       ),
     );
-    expect(many.summary.length).toBeLessThanOrEqual(300);
-    expect(many.summary.endsWith("…")).toBe(true);
+    expect(many?.summary.length).toBeLessThanOrEqual(300);
+    expect(many?.summary.endsWith("…")).toBe(true);
   });
 });
 

@@ -5,7 +5,9 @@
  *       .../visibility, POST .../editors (an osu! username), POST .../owner (an editor's osu!
  *       id and the pool's name typed to confirm). Each op's fields come from @haruhimemoe/pool's
  *       schemas (beatmap ids, bucket codes, palette colors, forced mod sets), and a bucket's
- *       target and a slot's note (src/schemas/built-plan.ts); a create may name a template; every piece of text
+ *       target and a slot's note (src/schemas/built-plan.ts), and the candidate ops (add, remove,
+ *       promote, demote the pick, note, vote, move to another slot of the same bucket); a create
+ *       may name a template; every piece of text
  *       a person types and we keep, bucket codes included, goes through the content filter (the
  *       name typed to confirm is only compared, never kept). What an op does to a pool lives in
  *       src/utils/built-ops.ts.
@@ -29,6 +31,7 @@ import {
   MAX_USERNAME_LENGTH,
   VISIBILITIES,
 } from "@/constants/built-pools";
+import { MAX_CANDIDATES } from "@/constants/candidates";
 import { TEMPLATE_IDS } from "@/constants/targets";
 import { slotNoteSchema, targetCountSchema, targetRangeSchema } from "@/schemas/built-plan";
 import { builtDetailsFields, FILTER_ISSUE } from "@/schemas/built-pool";
@@ -43,6 +46,50 @@ const codeSchema = z
 const bucketSchema = codeSchema.nullable();
 const indexSchema = z.number().int().min(1).max(MAX_SLOT_INDEX);
 const slotRefSchema = z.strictObject({ bucket: bucketSchema, index: indexSchema });
+/** A slot that can hold candidates: always in a bucket. */
+const placeSchema = z.strictObject({ bucket: codeSchema, index: indexSchema });
+/** Where in a slot's candidate list (0 first); the end when left out. */
+const atSchema = z
+  .number()
+  .int()
+  .min(0)
+  .max(MAX_CANDIDATES - 1)
+  .optional();
+/** A map's set (null when its details haven't loaded). */
+const setIdSchema = z.number().int().positive().nullable();
+const candidateRef = { slot: placeSchema, beatmapId: beatmapIdSchema };
+
+/** The candidate ops (src/utils/candidate-ops.ts applies them). */
+const candidateOpSchemas = [
+  z.strictObject({
+    type: z.literal("addCandidate"),
+    ...candidateRef,
+    beatmapsetId: setIdSchema,
+    note: slotNoteSchema.optional(),
+    at: atSchema,
+  }),
+  z.strictObject({ type: z.literal("removeCandidate"), ...candidateRef }),
+  z.strictObject({
+    type: z.literal("promoteCandidate"),
+    ...candidateRef,
+    /** The old pick's set, for its cover once it's a candidate. */
+    pickSetId: setIdSchema.optional(),
+  }),
+  z.strictObject({
+    type: z.literal("demotePick"),
+    slot: placeSchema,
+    beatmapsetId: setIdSchema.optional(),
+    at: atSchema,
+  }),
+  z.strictObject({ type: z.literal("setCandidateNote"), ...candidateRef, note: slotNoteSchema }),
+  z.strictObject({ type: z.literal("voteCandidate"), ...candidateRef, on: z.boolean() }),
+  z.strictObject({
+    type: z.literal("moveCandidate"),
+    ...candidateRef,
+    to: indexSchema,
+    at: atSchema,
+  }),
+] as const;
 
 /** What a custom bucket's maps are played with: none, forced mods, or freemod. */
 export const slotModsSchema = z.union([
@@ -61,7 +108,7 @@ const detailsOp = z
   })
   .refine((op) => Object.keys(op).length > 1, "Send a detail to change.");
 
-/** One editor op: maps, buckets, details, targets or notes. */
+/** One editor op: maps, buckets, details, targets, notes or candidates. */
 export const opSchema = z.union([
   detailsOp,
   z.strictObject({
@@ -97,6 +144,7 @@ export const opSchema = z.union([
     sr: targetRangeSchema.optional(),
   }),
   z.strictObject({ type: z.literal("setNote"), beatmapId: beatmapIdSchema, note: slotNoteSchema }),
+  ...candidateOpSchemas,
 ]);
 
 /** One editor op. */
