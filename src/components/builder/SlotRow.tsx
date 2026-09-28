@@ -72,7 +72,7 @@ export function SlotRow(props: SlotRowProps) {
             aria-hidden="true"
             title="Drag to move"
             {...drag.handle(slot)}
-            className="flex w-5 shrink-0 cursor-grab touch-none select-none items-center justify-center text-c3 hover:text-c1 active:cursor-grabbing"
+            className="flex h-6 w-5 shrink-0 cursor-grab touch-none select-none items-center justify-center self-start text-c3 hover:text-c1 active:cursor-grabbing"
           >
             ⋮⋮
           </span>
