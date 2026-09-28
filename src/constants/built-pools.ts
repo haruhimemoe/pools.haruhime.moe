@@ -4,7 +4,8 @@
  *       who can see one, the pack states, and the limits (maps and custom buckets come from
  *       @haruhimemoe/pool; editors, pools per owner, ops per call, the JSON body cap, text and
  *       paste lengths), how the builder names each visibility, what it says about the pool's pack
- *       on packs, and what it says when a pack removal is queued.
+ *       on packs, what it says when a pack removal is queued, and how the editor backs off
+ *       asking for slot values.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -80,3 +81,8 @@ export const MAX_PASTE_LENGTH = 16_000;
 
 /** osu! usernames are at most 15 characters; older ones can be a little longer. */
 export const MAX_USERNAME_LENGTH = 32;
+
+/** The editor's first wait before asking for slot values again after a failed answer; it doubles. */
+export const VALUES_RETRY_MS = 2_000;
+/** The longest the editor waits between asks for slot values. */
+export const VALUES_RETRY_MAX_MS = 60_000;
