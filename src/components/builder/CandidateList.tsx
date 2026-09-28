@@ -72,7 +72,7 @@ export function CandidateList(props: CandidateListProps) {
       data-drop-index={place.index}
       data-drop-zone="candidates"
       {...drag?.target()}
-      className={cx("ml-8 rounded-lg px-2 py-1", over && "outline-dashed outline-2 outline-h1")}
+      className={cx("@lg:ml-8 rounded-lg px-2 py-1", over && "outline-dashed outline-2 outline-h1")}
     >
       <ol className="flex flex-col">
         {list.map((entry) => (

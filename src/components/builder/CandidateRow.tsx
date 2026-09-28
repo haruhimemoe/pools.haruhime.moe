@@ -89,7 +89,7 @@ export function CandidateRow(props: CandidateRowProps) {
           />
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2 pl-8">
+      <div className="flex flex-wrap items-center gap-2 @lg:pl-8">
         <Button
           variant={voted ? "primary" : "secondary"}
           aria-pressed={voted}

@@ -2,7 +2,7 @@
  * @file src/components/builder/SlotRow.tsx
  * @desc One slot in the editor: its label, its cover and preview clip, its map, and buttons to move it up or down, move it to
  *       another bucket (a picker and a Move button, so arrow keys in the picker never move
- *       anything), make it a candidate ("To candidates") and remove it, with the slot's
+ *       anything), demote it to a candidate ("Demote") and remove it, with the slot's
  *       candidate list under it, a badge when its stars sit outside the bucket's target, and its note. A handle drags it
  *       (mouse or touch) onto another row or bucket; it's hidden from screen readers, since the
  *       buttons do the same by keyboard.
@@ -124,7 +124,7 @@ export function SlotRow(props: SlotRowProps) {
           </Button>
           {targets.length > 0 ? (
             <>
-              <div className="w-40">
+              <div className="w-36">
                 <select
                   data-control="target"
                   aria-label={`Move ${label} to`}
@@ -154,10 +154,10 @@ export function SlotRow(props: SlotRowProps) {
             <Button
               variant="ghost"
               data-control="demote"
-              aria-label={`Make ${label}'s pick a candidate`}
+              aria-label={`Demote ${label}'s pick to a candidate`}
               onClick={on.onDemote}
             >
-              To candidates
+              Demote
             </Button>
           ) : null}
           <Button

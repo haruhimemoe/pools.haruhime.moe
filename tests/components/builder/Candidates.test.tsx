@@ -2,7 +2,7 @@
  * @file tests/components/builder/Candidates.test.tsx
  * @desc Candidates in the editor: each slot's collapsible list (stars under the slot's mods, who
  *       added it, its note, "N of M editors"), Promote (carrying the old pick's set), the
- *       viewer's own vote as a toggle, Remove, "To candidates" on a pick (the slot stays, with
+ *       viewer's own vote as a toggle, Remove, Demote on a pick (the slot stays, with
  *       no pick), and drag and drop between a pick and the candidates and between slots of a
  *       bucket. The pool's page never shows them.
  * @author David @dvhsh (https://dvh.sh)
@@ -92,7 +92,7 @@ describe("a slot's candidates", () => {
 
   it("makes a pick a candidate and keeps its slot", async () => {
     const { api, user, order, saved } = renderEditor(withCandidates());
-    await user.click(screen.getByRole("button", { name: "Make NM2's pick a candidate" }));
+    await user.click(screen.getByRole("button", { name: "Demote NM2's pick to a candidate" }));
     expect(order()).toEqual([10, 30]);
     expect(screen.getAllByText(/No pick yet/)).toHaveLength(2);
     await saved();
