@@ -4,10 +4,11 @@
  *       out (and logged), one a newer content filter refuses still reads; a user's pools, owned
  *       and edited, newest first; deleting a pool or making it private removes its pack, and
  *       when packs isn't set up or says no the change still happens and the removal is queued;
- *       going nowhere new changes nothing; a first sign-in with a bad user shape links nothing.
+ *       going nowhere new changes nothing; packs' 410 outlasts a trip to private and back; a first
+ *       sign-in with a bad user shape links nothing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { HttpResponse } from "msw";
@@ -23,7 +24,7 @@ import {
   setBuiltPoolVisibility,
 } from "@/services/built-pools";
 import { packCleanupCollection } from "@/services/pack-cleanup";
-import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
+import { EMPTY_BUILT_PACK, PACK_GONE } from "@/utils/built-pack";
 import { makeBuiltPool } from "../../helpers/built-pools";
 import { setupTestDb } from "../../helpers/db";
 import { setupMsw } from "../../helpers/msw";
@@ -154,6 +155,22 @@ describe("setBuiltPoolVisibility", () => {
     });
     expect(calls.map((call) => call.id)).toEqual(["b-a0000001"]);
     expect((await findBuiltPool("b-a0000001"))?.pack).toEqual(EMPTY_BUILT_PACK);
+  });
+
+  it("keeps packs' 410 when the pool goes private and back: it's never synced again", async () => {
+    withPacks();
+    server.use(packsDeleteHandler(() => new HttpResponse(null, { status: 410 })));
+    const cast = await createCast();
+    const slots = [{ mod: "NM", index: 1, beatmapId: 5 }];
+    const pack = { ...SYNCED, state: "failed" as const, error: PACK_GONE, gone: true };
+    await insertPool(cast, { _id: "b-a0000001", visibility: "public", slots, pack });
+    const owner = { ...cast.owner, isAdmin: false };
+    const gone = { state: "none", href: null, gone: true };
+    const away = await setBuiltPoolVisibility("b-a0000001", owner, "private");
+    expect(away).toMatchObject({ ok: true, value: { pool: { pack: gone } } });
+    const back = await setBuiltPoolVisibility("b-a0000001", owner, "unlisted");
+    expect(back).toMatchObject({ ok: true, value: { pool: { pack: gone } } });
+    expect((await findBuiltPool("b-a0000001"))?.pack).toEqual({ ...EMPTY_BUILT_PACK, gone: true });
   });
 
   it("marks the pack pending when a pool with maps goes unlisted or public", async () => {

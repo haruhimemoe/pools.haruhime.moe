@@ -7,12 +7,13 @@
  *       delete (queued when packs doesn't answer).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE, PATCH } from "@/app/api/admin/built-pools/[id]/route";
+import { builtPoolsCollection } from "@/models/BuiltPool";
 import { findBuiltPool } from "@/services/built-pools";
 import { packCleanupCollection } from "@/services/pack-cleanup";
 import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
@@ -43,7 +44,8 @@ const SYNCED = {
   state: "synced" as const,
   slug: "Abc123",
   listed: true,
-  lastAttemptAt: new Date(),
+  // Inside the 30 s window a hide skips, and past the PUT timeout it doesn't.
+  lastAttemptAt: new Date(Date.now() - 20_000),
 };
 
 beforeEach(async () => {
@@ -88,6 +90,12 @@ describe("PATCH /api/admin/built-pools/<id>", () => {
     expect(hide.status).toBe(200);
     expect(await hide.json()).toMatchObject({ pool: { id: ID, hidden: true, version: 2 } });
     await runAfterTasks();
+    // Past the PUT timeout: the forced sync on unhide doesn't wait for the one on hide.
+    const past = new Date(Date.now() - 20_000);
+    await (await builtPoolsCollection()).updateOne(
+      { _id: ID },
+      { $set: { "pack.lastAttemptAt": past } },
+    );
     const unhide = await PATCH(request("PATCH", cast.admin.cookie, { hidden: false }), at);
     expect(await unhide.json()).toMatchObject({ pool: { hidden: false, version: 3 } });
     await runAfterTasks();

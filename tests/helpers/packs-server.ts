@@ -6,7 +6,7 @@
  *       answering from a list.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { HttpResponse, http } from "msw";
@@ -85,7 +85,8 @@ export type DeleteCall = { id: string; authorization: string | null; userAgent: 
  * @returns the msw handler
  */
 export const packsDeleteHandler = (
-  answer: (id: string) => Response = () => new HttpResponse(null, { status: 204 }),
+  answer: (id: string) => Response | Promise<Response> = () =>
+    new HttpResponse(null, { status: 204 }),
   calls: DeleteCall[] = [],
 ) =>
   http.delete(`${PACKS_URL_FOR_TESTS}/api/service/pools/:id`, ({ params, request }) => {

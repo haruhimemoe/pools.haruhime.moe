@@ -13,7 +13,7 @@
  *       refusal with a status, code and message.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -249,12 +249,13 @@ export const loadFor = async (
 
 /**
  * Pools a change sends to packs: unlisted or public, not removed by packs' moderators, and with
- * maps or a pack to take down.
+ * maps or a pack to take down (any state but none: a first PUT that failed on our side may
+ * still have made one, so it has no slug yet).
  */
 export const WANTS_PACK_SYNC: Filter<StoredBuiltPool> = {
   visibility: { $ne: "private" },
   "pack.gone": { $ne: true },
-  $or: [{ "slots.0": { $exists: true } }, { "pack.slug": { $ne: null } }],
+  $or: [{ "slots.0": { $exists: true } }, { "pack.state": { $ne: "none" } }],
 };
 
 /**
@@ -313,7 +314,8 @@ export const setBuiltPoolVisibility = async (
     return { ok: true, value: { pool: await viewOf(pool, caller), packRemoval: "none" } };
   }
   const packRemoval = visibility === "private" ? await removePackOrQueue(pool) : "none";
-  const pack = visibility === "private" ? EMPTY_BUILT_PACK : pool.pack;
+  // packs' 410 stays: a pool packs' moderators removed never syncs again, private or not.
+  const pack = visibility === "private" ? { ...EMPTY_BUILT_PACK, gone: pool.pack.gone } : pool.pack;
   const updated = await (await builtPoolsCollection()).findOneAndUpdate(
     { _id: id },
     { $set: { visibility, pack, updatedAt: new Date() }, $inc: { version: 1 } },

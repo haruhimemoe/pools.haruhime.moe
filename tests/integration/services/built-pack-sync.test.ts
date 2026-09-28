@@ -5,10 +5,11 @@
  *       back synced whether packs created, updated or left it; a 410 marks it failed and gone
  *       for good; a network failure marks it failed and it's tried again later; one sync per
  *       30 s per pool; a pool that went private or was deleted while its PUT was out loses the
- *       pack it just got; an empty pool is never sent; every run retries due pack removals.
+ *       pack it just got; an empty pool is never sent, and loses a pack it had or may have had
+ *       (a first PUT that failed on our side); every run retries due pack removals.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { HttpResponse } from "msw";
@@ -130,9 +131,9 @@ describe("syncBuiltPack", () => {
     expect((await findBuiltPool(ID))?.pack.state).toBe("pending");
     expect(await syncBuiltPack(ID, { now: at(31_000) })).toBe(true);
     expect(calls).toHaveLength(2);
-    // "Update pack now" doesn't wait.
+    // "Update pack now" doesn't wait out the 30 s, only a sync that may still be out (15 s).
     await markPackPending(ID);
-    expect(await syncBuiltPack(ID, { now: at(32_000), force: true })).toBe(true);
+    expect(await syncBuiltPack(ID, { now: at(46_000), force: true })).toBe(true);
     expect(calls).toHaveLength(3);
   });
 });
@@ -154,6 +155,17 @@ describe("syncBuiltPack: what never goes to packs", () => {
     const deletes: DeleteCall[] = [];
     server.use(packsDeleteHandler(undefined, deletes));
     await pool({ slots: [], pack: { ...PENDING, slug: "Abc123" } });
+    await syncBuiltPack(ID, { now: at(0) });
+    expect(deletes.map((call) => call.id)).toEqual([ID]);
+    expect((await findBuiltPool(ID))?.pack).toMatchObject({ state: "none", slug: null });
+  });
+
+  it("removes a pack packs may have made though the first PUT failed (no slug)", async () => {
+    const deletes: DeleteCall[] = [];
+    server.use(packsDeleteHandler(undefined, deletes));
+    const failed = { ...PENDING, state: "failed" as const, error: "Timed out." };
+    await pool({ slots: [], pack: failed });
+    expect(await markPackPending(ID)).not.toBeNull();
     await syncBuiltPack(ID, { now: at(0) });
     expect(deletes.map((call) => call.id)).toEqual([ID]);
     expect((await findBuiltPool(ID))?.pack).toMatchObject({ state: "none", slug: null });

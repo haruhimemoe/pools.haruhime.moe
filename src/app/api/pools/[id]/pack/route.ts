@@ -7,7 +7,7 @@
  *       isn't set up here. Due pack removals are retried after the answer. Never cached.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { RATE_LIMITS } from "@/constants/api";
@@ -17,7 +17,10 @@ import { updatePackNow } from "@/services/built-pack-sync";
 
 type Context = { params: Promise<{ id: string }> };
 
-/** One PUT to packs (15 s at most), then the cleanup after the answer. */
+/**
+ * A wait for a sync still out (15 s at most), one PUT to packs (15 s at most), then the
+ * cleanup after the answer.
+ */
 export const maxDuration = 60;
 
 export async function POST(request: Request, { params }: Context) {

@@ -3,23 +3,27 @@
  * @desc Keeping a built pool's pack on packs in step with the pool. A change to an unlisted or
  *       public pool marks its pack pending (markPackPending, src/services/built-pools.ts); a sync
  *       first claims the pool with one guarded write that stamps `pack.lastAttemptAt`, so a pool
- *       syncs at most once every 30 s across every instance ("Update pack now" skips the wait,
- *       never the other rules). Then: an empty pool sends nothing (a pack it had is removed);
- *       anything else is PUT to packs with the owner's and editors' names. The answer is stored
- *       only if the pool didn't change meanwhile (a change marked it pending again, and the next
- *       sync sends it); a 410 is stored anyway and ends syncing for that pool. A pool that went
- *       private or was deleted while its PUT was out loses the pack it just got. Every run also
- *       retries due pack removals (retryDuePackCleanup). packs not set up here leaves pools
- *       pending. Never throws for packs; the database can.
+ *       syncs at most once every 30 s across every instance. "Update pack now" and an admin's
+ *       hide skip the 30 s but never overlap a claim younger than the PUT timeout: they wait it
+ *       out once, and leave the pool pending when another claim came meanwhile. Then: an empty
+ *       pool sends nothing (a pack it had, or may have had, is removed); anything else is PUT to
+ *       packs with the owner's and editors' names. Every write after the PUT holds to its claim:
+ *       the answer is stored only if the pool didn't change and no newer sync claimed it; a pool
+ *       that changed keeps the pack's slug and stays pending; one a newer sync claimed takes
+ *       nothing from the answer and is pending again, so the current state is sent again; a 410
+ *       is stored anyway and ends syncing for that pool. A pool that went private or was
+ *       deleted while its PUT was out loses the pack it just got. Every run also retries due
+ *       pack removals (retryDuePackCleanup). packs not set up here leaves pools pending. Never
+ *       throws for packs; the database can.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
 import { getPacksService, type PacksService } from "@/env";
 import type { SessionUser } from "@/lib/auth";
-import { type Fetch, putPoolPack } from "@/lib/packs-client";
+import { type Fetch, PACKS_TIMEOUT_MS, putPoolPack } from "@/lib/packs-client";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 import {
@@ -27,6 +31,7 @@ import {
   type BuiltPoolView,
   findBuiltPool,
   loadFor,
+  markPackPending,
   NOT_FOUND,
   ownerOf,
   readBuiltPool,
@@ -49,6 +54,8 @@ export type PackSyncOptions = {
   retryCleanup?: boolean;
   fetch?: Fetch;
   now?: () => Date;
+  /** How a forced sync waits for a sync still out (tests). */
+  wait?: (ms: number) => Promise<void>;
 };
 
 /**
@@ -68,15 +75,16 @@ export const packsService = (): PacksService | null => {
   }
 };
 
-/** Takes the pool for one sync, or null when it's not due (or not there). */
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Takes the pool for one sync, or null when it's not due (or not there). A forced claim skips
+ * the 30 s but not a claim younger than the PUT timeout: that sync may still be out at packs.
+ */
 const claim = async (id: string, at: Date, force: boolean): Promise<StoredBuiltPool | null> => {
-  const since = new Date(at.getTime() - PACK_SYNC_INTERVAL_MS);
-  const due = force
-    ? {}
-    : {
-        "pack.state": { $in: ["pending", "failed"] },
-        $or: [{ "pack.lastAttemptAt": null }, { "pack.lastAttemptAt": { $lte: since } }],
-      };
+  const since = new Date(at.getTime() - (force ? PACKS_TIMEOUT_MS : PACK_SYNC_INTERVAL_MS));
+  const free = [{ "pack.lastAttemptAt": null }, { "pack.lastAttemptAt": { $lte: since } }];
+  const due = force ? { $or: free } : { "pack.state": { $in: ["pending", "failed"] }, $or: free };
   const row = await (await builtPoolsCollection()).findOneAndUpdate(
     { _id: id, visibility: { $ne: "private" }, "pack.gone": { $ne: true }, ...due },
     { $set: { "pack.lastAttemptAt": at } },
@@ -85,39 +93,101 @@ const claim = async (id: string, at: Date, force: boolean): Promise<StoredBuiltP
   return readBuiltPool(row);
 };
 
-/** Stores the pack unless the pool changed since the claim; true when it was stored. */
-const storeIfUnchanged = async (pool: StoredBuiltPool, pack: StoredBuiltPool["pack"]) =>
-  (
-    await (
-      await builtPoolsCollection()
-    ).updateOne({ _id: pool._id, version: pool.version }, { $set: { pack } })
-  ).matchedCount === 1;
+/**
+ * A forced claim: one that meets a sync still out waits until that claim is older than the PUT
+ * timeout and tries once more; still busy (another claim came meanwhile), the pool is left
+ * pending. Null when the pool isn't there, private or gone, or was left pending.
+ */
+const claimForced = async (
+  id: string,
+  now: () => Date,
+  wait: (ms: number) => Promise<void>,
+): Promise<{ pool: StoredBuiltPool; at: Date } | null> => {
+  for (let tries = 0; tries < 2; tries++) {
+    const at = now();
+    const pool = await claim(id, at, true);
+    if (pool) return { pool, at };
+    const current = await findBuiltPool(id);
+    const last = current?.pack.lastAttemptAt;
+    if (!current || !last || current.visibility === "private" || current.pack.gone) return null;
+    if (tries === 0) await wait(Math.max(0, last.getTime() + PACKS_TIMEOUT_MS - at.getTime()));
+  }
+  await markPackPending(id);
+  return null;
+};
+
+/** A regular claim at `at`: due (pending, or failed), and 30 s since the last one. */
+const claimAt = async (id: string, at: Date) => {
+  const pool = await claim(id, at, false);
+  return pool ? { pool, at } : null;
+};
+
+/** The pool as the claim at `at` left it: the same version, and no newer claim since. */
+const asClaimed = (pool: StoredBuiltPool, at: Date) => ({
+  _id: pool._id,
+  version: pool.version,
+  "pack.lastAttemptAt": at,
+});
+
+/** Stores the pack unless the pool changed or a newer sync claimed it; true when stored. */
+const storeIfUnchanged = async (pool: StoredBuiltPool, at: Date, pack: StoredBuiltPool["pack"]) =>
+  (await (await builtPoolsCollection()).updateOne(asClaimed(pool, at), { $set: { pack } }))
+    .matchedCount === 1;
 
 const namesOf = async (pool: StoredBuiltPool): Promise<string[]> => {
   const owner = await ownerOf(pool.ownerId);
   return [...(owner ? [owner.username] : []), ...pool.editors.map((editor) => editor.username)];
 };
 
-/** An empty pool has no pack: one it had is removed (or queued), and it's none again. */
+/**
+ * An empty pool has no pack: one it had, or may have had (a first PUT that failed on our side
+ * could still have made it), is removed (or queued), and it's none again.
+ */
 const syncEmpty = async (pool: StoredBuiltPool, at: Date): Promise<void> => {
-  if (pool.pack.slug !== null) await removePackOrQueue(pool, at);
-  await storeIfUnchanged(pool, { ...EMPTY_BUILT_PACK, lastAttemptAt: pool.pack.lastAttemptAt });
+  if (pool.pack.state !== "none") await removePackOrQueue(pool, at);
+  await storeIfUnchanged(pool, at, { ...EMPTY_BUILT_PACK, lastAttemptAt: at });
 };
 
 /**
- * The pool changed while packs made its pack: one that went private or was deleted loses the
- * pack again; otherwise the pack's slug is kept and the pool stays pending for the next sync.
+ * packs made the pack, but the answer couldn't be stored. A pool that went private or was
+ * deleted loses the pack again. One that changed keeps the pack's slug and stays pending for the
+ * next sync. One a newer sync claimed meanwhile takes nothing from this answer (packs may have
+ * applied it after the newer one) and is pending again, so the current state is sent again.
  */
-const afterChange = async (id: string, pack: StoredBuiltPool["pack"], at: Date) => {
-  const current = await findBuiltPool(id);
+const afterChange = async (pool: StoredBuiltPool, at: Date, pack: StoredBuiltPool["pack"]) => {
+  const current = await findBuiltPool(pool._id);
   if (!current || current.visibility === "private") {
-    await removePackOrQueue({ _id: id, pack }, at);
+    await removePackOrQueue({ _id: pool._id, pack }, at);
     return;
   }
-  await (await builtPoolsCollection()).updateOne(
-    { _id: id, visibility: { $ne: "private" } },
+  const pools = await builtPoolsCollection();
+  const shared = { _id: pool._id, visibility: { $ne: "private" as const } };
+  const { slug, listed, syncedAt } = pack;
+  const kept = await pools.updateOne(
+    { ...shared, "pack.lastAttemptAt": at },
     {
-      $set: { "pack.slug": pack.slug, "pack.listed": pack.listed, "pack.syncedAt": pack.syncedAt },
+      $set: {
+        "pack.slug": slug,
+        "pack.listed": listed,
+        "pack.syncedAt": syncedAt,
+        "pack.state": "pending",
+      },
+    },
+  );
+  if (kept.matchedCount === 1) return;
+  await pools.updateOne(
+    { ...shared, "pack.gone": { $ne: true } },
+    { $set: { "pack.state": "pending" } },
+  );
+};
+
+/** packs removed the pack (410): whatever claim is newest, the pool never syncs again. */
+const storeGone = async (id: string, pack: StoredBuiltPool["pack"]) => {
+  const { state, error, listed, gone } = pack;
+  await (await builtPoolsCollection()).updateOne(
+    { _id: id },
+    {
+      $set: { "pack.state": state, "pack.error": error, "pack.listed": listed, "pack.gone": gone },
     },
   );
 };
@@ -125,18 +195,26 @@ const afterChange = async (id: string, pack: StoredBuiltPool["pack"], at: Date) 
 /**
  * @function syncBuiltPack
  * @param id {string} a built pool id
- * @param options {PackSyncOptions} skip the 30 s wait, and fetch and the clock (tests)
- * @returns {Promise<boolean>} true when a sync ran (the pool was due and packs is set up here)
+ * @param options {PackSyncOptions} skip the 30 s wait, and fetch, the clock and the wait for a
+ *        sync still out (tests)
+ * @returns {Promise<boolean>} true when a sync ran (the pool was due and packs is set up here);
+ *          false for a forced sync that found another still out and left the pool pending
  */
 export const syncBuiltPack = async (
   id: string,
-  { force = false, retryCleanup = true, fetch, now = () => new Date() }: PackSyncOptions = {},
+  {
+    force = false,
+    retryCleanup = true,
+    fetch,
+    now = () => new Date(),
+    wait = sleep,
+  }: PackSyncOptions = {},
 ): Promise<boolean> => {
   const service = packsService();
   if (!service) return false;
-  const at = now();
-  const pool = await claim(id, at, force);
-  if (!pool) return false;
+  const claimed = force ? await claimForced(id, now, wait) : await claimAt(id, now());
+  if (!claimed) return false;
+  const { pool, at } = claimed;
   if (pool.slots.length === 0) {
     await syncEmpty(pool, at);
   } else {
@@ -145,9 +223,9 @@ export const syncBuiltPack = async (
     if (answer.kind === "config") console.error(`[packs] ${id}'s pack: ${answer.message}`);
     const pack = nextBuiltPack(pool.pack, answer, now());
     if (answer.kind === "gone") {
-      await (await builtPoolsCollection()).updateOne({ _id: id }, { $set: { pack } });
-    } else if (!(await storeIfUnchanged(pool, pack)) && answer.kind === "ok") {
-      await afterChange(id, pack, at);
+      await storeGone(id, pack);
+    } else if (!(await storeIfUnchanged(pool, at, pack)) && answer.kind === "ok") {
+      await afterChange(pool, at, pack);
     }
   }
   if (retryCleanup) await retryDuePackCleanup(service, { ...(fetch ? { fetch } : {}), now });
@@ -160,7 +238,8 @@ export const syncBuiltPack = async (
  * @param caller {SessionUser} the owner or an editor
  * @param options {PackSyncOptions} fetch and the clock (tests)
  * @returns {Promise<Answer<BuiltPoolView>>} the pool after a sync that didn't wait out the 30 s
- *          (its pack synced, or failed with the reason); 400 for a private or empty pool or one
+ *          (its pack synced, or failed with the reason; pending when another sync was still out
+ *          after waiting up to the PUT timeout for it); 400 for a private or empty pool or one
  *          packs removed; 503 when packs isn't set up here
  */
 export const updatePackNow = async (

@@ -10,7 +10,7 @@
  *       pool packs lists, else the pack key; the reason once failed). Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { encodePackKey } from "@haruhimemoe/pool";
@@ -177,7 +177,9 @@ export const clientPackOf = (
   { withError = true }: { withError?: boolean } = {},
 ): ClientPack => {
   const { pack } = pool;
-  if (pool.visibility === "private") return { state: "none", href: null, error: null, gone: false };
+  if (pool.visibility === "private") {
+    return { state: "none", href: null, error: null, gone: pack.gone };
+  }
   let href: string | null = null;
   if (pack.state === "synced" && pack.slug !== null) {
     const pageOpen = pack.listed && packVisibilityOf(pool) === "public";

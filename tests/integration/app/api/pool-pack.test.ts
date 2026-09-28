@@ -3,12 +3,13 @@
  * @desc A built pool's pack through the routes, packs stood in by msw: a change to a public pool
  *       marks its pack pending and syncs it after the answer; a private pool's change schedules
  *       a sync that sends nothing; going private then deletes the pack; the editor's poll syncs
- *       a change that waited; adding or removing an editor sends the new names. "Update pack now" syncs at once for the owner and editors, and is
+ *       a change that waited; adding or removing an editor sends the new names. "Update pack
+ *       now" syncs at once for the owner and editors (once no sync is still out), and is
  *       refused for private, empty and removed pools, for others (403, or 404 when they can't
  *       see it) and when signed out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { revalidatePath } from "next/cache";
@@ -167,11 +168,15 @@ describe("a change to who edits a shared pool", () => {
 describe("POST /api/pools/<id>/pack (Update pack now)", () => {
   const updateNow = (cookie: string | null) =>
     postPack(poolRequest("POST", `/api/pools/${ID}/pack`, cookie), at);
-  const recent = { ...EMPTY_BUILT_PACK, state: "pending" as const, lastAttemptAt: new Date() };
+  // Tried 20 s ago: inside the 30 s window, and past the PUT timeout.
+  const tried = () => new Date(Date.now() - 20_000);
+  const recent = { ...EMPTY_BUILT_PACK, state: "pending" as const, lastAttemptAt: tried() };
 
   it("syncs at once for the owner and editors, inside the 30 s window", async () => {
     await insertPool(cast, { _id: ID, visibility: "public", slots: SLOTS, pack: recent });
+    const pools = await builtPoolsCollection();
     for (const user of [cast.owner, cast.editor]) {
+      await pools.updateOne({ _id: ID }, { $set: { "pack.lastAttemptAt": tried() } });
       const response = await updateNow(user.cookie);
       expect(response.status).toBe(200);
       expect(await response.json()).toMatchObject({

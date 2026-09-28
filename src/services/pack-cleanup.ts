@@ -7,11 +7,14 @@
  *       retried on every packs sync run (the due rows) and from /admin's "Retry pack cleanup"
  *       (every row): a row packs removes is dropped, one still failing waits longer
  *       (src/utils/pack-cleanup.ts), a row whose pool isn't private any more (and has maps) is
- *       dropped without a call (the pool wants its pack again, and sync takes over), and a configuration answer
- *       or two failures in a row stop the run (each try can take 15 s). Built pool ids are never reused, so a ref only ever names one pool.
+ *       dropped without a call (the pool wants its pack again, and sync takes over), one whose
+ *       pool wanted its pack again by the time packs removed it is marked pending (a sync may
+ *       have made it meanwhile), and a configuration answer or two failures in a row stop the
+ *       run (each try can take 15 s). Built pool ids are never reused, so a ref only ever names
+ *       one pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -107,6 +110,23 @@ const wantsPack = async (ref: string): Promise<boolean> => {
 };
 
 /**
+ * A sync may have made the pack again between wantsPack and the DELETE (the pool went unlisted
+ * meanwhile): a pool that wants its pack after the DELETE is marked pending, so the next sync
+ * sends it again.
+ */
+const pendingIfWanted = async (ref: string): Promise<void> => {
+  await (await builtPoolsCollection()).updateOne(
+    {
+      _id: ref,
+      visibility: { $ne: "private" },
+      "pack.gone": { $ne: true },
+      "slots.0": { $exists: true },
+    },
+    { $set: { "pack.state": "pending" } },
+  );
+};
+
+/**
  * @function retryPackCleanup
  * @param service {PacksService} packs' address and token
  * @param options {{ all?: boolean; limit?: number; fetch?: Fetch; now?: () => Date }} every
@@ -150,6 +170,7 @@ export const retryPackCleanup = async (
       break;
     }
     if (answer.kind === "ok") {
+      await pendingIfWanted(row.ref);
       await entries.deleteOne({ _id: row._id });
       summary.removed += 1;
       failuresInARow = 0;

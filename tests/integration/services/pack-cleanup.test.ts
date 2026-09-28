@@ -4,16 +4,19 @@
  *       yes removes it; packs down, refusing or not set up queues the removal in pack_cleanup
  *       (ref, reason, attempts, nextAt) instead. Retrying tries the due ones (or all of them),
  *       drops the ones packs removed, pushes back the ones still failing, drops without a call
- *       the ones whose pool wants its pack again (shared, with maps), and stops at a configuration answer or after
- *       two failures in a row (so a packs outage can't hold a request for long). Every
+ *       the ones whose pool wants its pack again (shared, with maps), marks pending a pool that
+ *       wanted it again by the time packs removed it, and stops at a configuration answer or
+ *       after two failures in a row (so a packs outage can't hold a request for long). Every
  *       sync run retries the due ones too.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { builtPoolsCollection } from "@/models/BuiltPool";
+import { findBuiltPool } from "@/services/built-pools";
 import {
   packCleanupCollection,
   removePackOrQueue,
@@ -138,6 +141,25 @@ describe("retryPackCleanup", () => {
     const summary = await retryPackCleanup(TEST_SERVICE, { all: true, now: () => NOW });
     expect(summary).toMatchObject({ due: 3, removed: 2, kept: 1, remaining: 0 });
     expect(calls.map((call) => call.id)).toEqual(["b-a0000002", "b-a0000003"]);
+  });
+
+  it("marks the pack pending again when a sync made it during the DELETE", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { _id: "b-a0000001", visibility: "private" });
+    await queue("b-a0000001", NOW);
+    server.use(
+      packsDeleteHandler(async () => {
+        // The owner made it unlisted with maps, and its sync made the pack, meanwhile.
+        const slots = [{ mod: "NM", index: 1, beatmapId: 5 }];
+        await (await builtPoolsCollection()).updateOne(
+          { _id: "b-a0000001" },
+          { $set: { visibility: "unlisted", slots, pack: { ...SYNCED, listed: false } } },
+        );
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    expect(await retryPackCleanup(TEST_SERVICE, { now: () => NOW })).toMatchObject({ removed: 1 });
+    expect((await findBuiltPool("b-a0000001"))?.pack.state).toBe("pending");
   });
 
   it("stops after two failures in a row: packs looks down", async () => {
