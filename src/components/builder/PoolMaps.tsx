@@ -77,9 +77,11 @@ export function PoolMaps({ pool, maps, values, change, onFind }: PoolMapsProps) 
   const onMoveTo = (slot: PoolSlot, bucket: string) =>
     run(moveToOp(slot, bucket), inRow(slot.beatmapId, ["target", "remove"]));
 
-  const drag = useSlotDrag((slot, target) =>
-    run(dropOp(slot, target), inRow(slot.beatmapId, ["up", "down", "remove"])),
-  );
+  const drag = useSlotDrag((picked, target) => {
+    // The pool may have moved on during the drag (a save, a poll): go by the map, not its old place.
+    const slot = pool.slots.find((s) => s.beatmapId === picked.beatmapId);
+    if (slot) run(dropOp(slot, target), inRow(slot.beatmapId, ["up", "down", "remove"]));
+  });
 
   const onRemove = (slot: PoolSlot) => {
     const group = groups.find((g) => g.code === slot.mod)?.slots ?? [];
