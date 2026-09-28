@@ -57,6 +57,9 @@ describe("owner settings", () => {
     expect(push).not.toHaveBeenCalled();
     await user.click(remove);
     await waitFor(() => expect(push).toHaveBeenCalledWith("/account#pools"));
+    // Until the page goes, the form doesn't come back: another press would only meet a 404.
+    expect(screen.getByText("The pool is deleted.")).toHaveAttribute("role", "status");
+    expect(screen.queryByRole("button", { name: "Delete this pool" })).not.toBeInTheDocument();
     expect(api.calls.map((call) => `${call.method} ${call.path}`)).toEqual([
       "DELETE /api/pools/b-a0000001",
       "DELETE /api/pools/b-a0000001",

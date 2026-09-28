@@ -2,8 +2,9 @@
  * @file src/components/builder/DeletePoolForm.tsx
  * @desc The owner's "Delete this pool". The confirmation is in the page (no confirm() dialog):
  *       the button stays off until the pool's name is typed exactly, then DELETE
- *       /api/pools/<id> runs in turn with the editor's changes. A refusal or no answer is said
- *       in the page, and nothing was deleted. When packs didn't answer, the pool is deleted
+ *       /api/pools/<id> runs in turn with the editor's changes. On success it says the pool is
+ *       deleted (the form doesn't come back) and goes to your pools. A refusal or no answer is
+ *       said in the page, and nothing was deleted. When packs didn't answer, the pool is deleted
  *       anyway: the page says its pack's removal waits and links back to your pools, instead of
  *       going there at once.
  * @author David @dvhsh (https://dvh.sh)
@@ -43,25 +44,28 @@ export function DeletePoolForm({
   fetcher = fetch,
 }: DeletePoolFormProps) {
   const [error, setError] = useState<string | null>(null);
-  const [queued, setQueued] = useState<string | null>(null);
+  // Once it's gone: what to say (packs' removal waiting, or nothing more). The form doesn't come
+  // back, so a press while the page goes can't send the delete again.
+  const [done, setDone] = useState<string | null>(null);
   const remove = async () => {
     setError(null);
     const answer = await editor.exclusive(() =>
       callPools<DeleteAnswer>(fetcher, `/api/pools/${poolId}`, { method: "DELETE" }),
     );
     if (answer.ok && answer.body?.packRemoval === "queued") {
-      setQueued(answer.body.notice ?? "");
+      setDone(answer.body.notice ?? "");
     } else if (answer.ok) {
+      setDone("");
       onDeleted();
     } else {
       setError(`${answer.message} The pool is still there.`);
     }
   };
-  if (queued !== null) {
+  if (done !== null) {
     return (
       <div className="flex flex-col gap-3">
         <p role="status" className="text-c2 text-sm">
-          {`The pool is deleted. ${queued}`.trim()}
+          {`The pool is deleted. ${done}`.trim()}
         </p>
         <ButtonLink href="/account#pools" variant="secondary" className="self-start">
           Back to your pools

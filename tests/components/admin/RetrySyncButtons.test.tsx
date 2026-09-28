@@ -1,10 +1,10 @@
 /**
  * @file tests/components/admin/RetrySyncButtons.test.tsx
  * @desc The retry buttons send failed pools (and rejected ones with the second button) and say
- *       what was sent and what's left, or why nothing was.
+ *       what was sent and what's left, or why nothing was; while one runs the other is off.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -34,6 +34,28 @@ describe("RetrySyncButtons", () => {
       JSON.parse(String(init.body)),
     );
     expect(bodies).toEqual([{ includeRejected: false }, { includeRejected: true }]);
+  });
+
+  it("runs one retry at a time: the other button stays off until the first answers", async () => {
+    let answer: (response: Response) => void = () => undefined;
+    const fetchMock = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          answer = resolve;
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<RetrySyncButtons />);
+    await user.click(screen.getByRole("button", { name: "Retry failed syncs" }));
+    const other = screen.getByRole("button", { name: "Retry failed and rejected" });
+    expect(other).toBeDisabled();
+    await user.click(other);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    answer(Response.json({ due: 0, sent: 0, states: STATES, remaining: 0, configError: null }));
+    expect(await screen.findByText("Nothing to retry.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry failed and rejected" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Retry failed syncs" })).toBeEnabled();
   });
 
   it("says why nothing was sent", async () => {

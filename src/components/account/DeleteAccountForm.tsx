@@ -2,8 +2,9 @@
  * @file src/components/account/DeleteAccountForm.tsx
  * @desc "Delete my account" on /account. The confirmation is built into the page (no confirm()
  *       dialog): the button stays off until the osu! username is typed exactly, then one DELETE
- *       /api/account carries it. On success the header shows signed out and the page goes home
- *       (when packs didn't answer, it stays to say the packs' removal waits, with a link home);
+ *       /api/account carries it. On success the header shows signed out and the page says the
+ *       account is deleted (the form doesn't come back) and goes home (when packs didn't answer,
+ *       it stays to say the packs' removal waits, with a link home);
  *       a refusal or no answer is said in the page, and nothing was deleted.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -37,7 +38,9 @@ export function DeleteAccountForm({ username }: { username: string }) {
   const router = useRouter();
   const id = useId();
   const [error, setError] = useState<string | null>(null);
-  const [queued, setQueued] = useState<string | null>(null);
+  // Once it's gone: what to say (packs' removal waiting, or nothing more). The form doesn't come
+  // back, so a press while the page goes can't send the delete again.
+  const [done, setDone] = useState<string | null>(null);
   const remove = async () => {
     setError(null);
     try {
@@ -48,11 +51,12 @@ export function DeleteAccountForm({ username }: { username: string }) {
       });
       if (response.status === 204) {
         markSignedOut();
+        setDone("");
         router.push("/");
       } else if (response.ok) {
         markSignedOut();
         const body = (await response.json().catch(() => ({}))) as { notice?: string };
-        setQueued(body.notice ?? "");
+        setDone(body.notice ?? "");
       } else {
         setError(await messageOf(response));
       }
@@ -60,11 +64,11 @@ export function DeleteAccountForm({ username }: { username: string }) {
       setError(UNREACHABLE);
     }
   };
-  if (queued !== null) {
+  if (done !== null) {
     return (
       <div className="flex flex-col gap-3">
         <p role="status" className="text-c2 text-sm">
-          {`Your account is deleted. ${queued}`.trim()}
+          {`Your account is deleted. ${done}`.trim()}
         </p>
         <ButtonLink href="/" variant="secondary" className="self-start">
           Go to the home page

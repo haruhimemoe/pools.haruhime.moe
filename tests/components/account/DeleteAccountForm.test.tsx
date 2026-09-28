@@ -2,9 +2,9 @@
  * @file tests/components/account/DeleteAccountForm.test.tsx
  * @desc "Delete my account" asks for the osu! username typed in the page (no confirm() dialog):
  *       the button stays off until it matches, then one DELETE goes out with it; on success the
- *       header shows signed out and the page goes home; when packs didn't answer, the account is
- *       deleted anyway and the page says the packs' removal waits, with a link home instead; a
- *       refusal or no answer is said out loud.
+ *       header shows signed out, the page says so (no form to press again) and goes home; when
+ *       packs didn't answer, the account is deleted anyway and the page says the packs' removal
+ *       waits, with a link home instead; a refusal or no answer is said out loud.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -50,6 +50,9 @@ describe("DeleteAccountForm", () => {
     expect(JSON.parse(String(init?.body))).toEqual({ username: "peppy" });
     expect(markSignedOut).toHaveBeenCalledOnce();
     expect(push).toHaveBeenCalledWith("/");
+    // Until the page goes, the form doesn't come back: another press would only meet a 401.
+    expect(await screen.findByRole("status")).toHaveTextContent("Your account is deleted.");
+    expect(screen.queryByRole("button", { name: "Delete my account" })).not.toBeInTheDocument();
   });
 
   it("says the packs' removal waits when packs didn't answer, signed out, with a link home", async () => {
