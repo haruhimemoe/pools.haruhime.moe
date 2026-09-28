@@ -6,9 +6,9 @@
       "name": "pools.haruhime.moe",
       "dependencies": {
         "@haruhimemoe/compliance": "0.1.1",
-        "@haruhimemoe/hinai": "0.3.0",
+        "@haruhimemoe/hinai": "0.3.1",
         "@haruhimemoe/next-kit": "0.2.0",
-        "@haruhimemoe/osu": "0.3.0",
+        "@haruhimemoe/osu": "0.4.0",
         "@haruhimemoe/pool": "0.2.0",
         "@haruhimemoe/ui": "0.5.0",
         "@mdx-js/loader": "3.1.1",
@@ -128,11 +128,11 @@
 
     "@haruhimemoe/compliance": ["@haruhimemoe/compliance@0.1.1", "", {}, "sha512-a6beDNLA7M3mX5nb5yz1XHNexBt9cc3o56c4kL3Th+NgK9QQGVcykLpDkasqz8VyUbrsvIsUkd55ndIMwSeTrg=="],
 
-    "@haruhimemoe/hinai": ["@haruhimemoe/hinai@0.3.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.3.0" }, "peerDependencies": { "msw": "^2.0.0", "zod": "^4.0.16" }, "optionalPeers": ["msw"] }, "sha512-uKkbYECnlc92JZPeIfoQ9oldm6ShQJV8ysP9/8f1xfaLgw8nersEVbNn/R9XA4l6gLeD9JSAL4e47/Dzl0HcRw=="],
+    "@haruhimemoe/hinai": ["@haruhimemoe/hinai@0.3.1", "", { "dependencies": { "@haruhimemoe/osu": "^0.4.0" }, "peerDependencies": { "msw": "^2.0.0", "zod": "^4.0.16" }, "optionalPeers": ["msw"] }, "sha512-R8ifW87g/BtOHHMDpgCK3N3KYEkxZUou51f35eSEXPzg/zNGEfpoe2Xe/XSbBgVnY2lHZgXa/jcG5Ag6r5iAPA=="],
 
     "@haruhimemoe/next-kit": ["@haruhimemoe/next-kit@0.2.0", "", { "peerDependencies": { "@haruhimemoe/osu": "^0.2.0 || ^0.3.0", "@haruhimemoe/ui": "^0.5.0", "better-auth": "^1.7.5", "mongodb": "^7.6.0", "mongodb-memory-server": "^11.3.0", "mongoose": "^9.10.2", "msw": "^2.15.0", "next": "^16.3.6", "react": "^19.3.0", "vitest": "^5.0.1", "zod": "^4.6.5" }, "optionalPeers": ["@haruhimemoe/osu", "@haruhimemoe/ui", "better-auth", "mongodb", "mongodb-memory-server", "mongoose", "msw", "next", "react", "vitest"] }, "sha512-YE1NXq80O2AAn0wdmUDflF21pmKaHt9YBhAmpYc4Kw2nIyHKtbji2hi2qQ6WiiRnQGiFMrCnCQDUHGCxBcKaPw=="],
 
-    "@haruhimemoe/osu": ["@haruhimemoe/osu@0.3.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-crTv5aR/tAhu8XUckhr18+msQOOWzrP3fGRDpQjs2ebUt8YI4j8o5FyOKKcYXfhy1HO7dV6/EeNQUAn7uOmiZg=="],
+    "@haruhimemoe/osu": ["@haruhimemoe/osu@0.4.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-dYKV6fIGuesefCbfcX1Dq4+f+UiCP2W1KuUWiaI4qRU+/j1Ppue7L14I2v77kANOwdgMOdV2FMHhtNHVO7H42Q=="],
 
     "@haruhimemoe/pool": ["@haruhimemoe/pool@0.2.0", "", { "peerDependencies": { "zod": "^4.0.16" } }, "sha512-08MqwWGnHduAw5M1Bxo22A43PsFHmuBDToksOy9Jk8V9JZW/EGg4QVX9a7UqZNx1xdc+OOPczFcUONGvS6jgpg=="],
 

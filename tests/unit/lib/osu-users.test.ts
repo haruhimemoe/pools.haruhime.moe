@@ -1,19 +1,20 @@
 /**
  * @file tests/unit/lib/osu-users.test.ts
- * @desc Looking an osu! user up by username (osu! stubbed with msw): a client-credentials token
- *       (cached, fetched again once after a 401), GET /api/v2/users/@<name> with our User-Agent,
- *       found or missing (404), and unavailable when the budget says no, osu! fails or answers
- *       something unreadable.
+ * @desc Looking an osu! user up by username through @haruhimemoe/osu's client (osu! stubbed with
+ *       msw): GET /api/v2/users/@<name> with our User-Agent, found or missing (404), and
+ *       unavailable when the budget says no, osu! fails or answers something unreadable. The
+ *       token and its 401 retry are the package's, tested there.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
  */
 
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
+import { createOsuClient } from "@haruhimemoe/osu";
 import { HttpResponse, http } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 import { SERVER_USER_AGENT } from "@/constants/site";
-import { forgetOsuUserToken, lookupOsuUser } from "@/lib/osu-users";
+import { lookupOsuUser } from "@/lib/osu-users";
 
 const server = setupMsw();
 const CREDENTIALS = () => ({ clientId: "1", clientSecret: "secret" });
@@ -25,14 +26,16 @@ const tokenHandler = http.post("https://osu.ppy.sh/oauth/token", () => {
   return HttpResponse.json({ access_token: `t${tokens}`, token_type: "Bearer", expires_in: 86400 });
 });
 
+let client = createOsuClient({ credentials: CREDENTIALS, userAgent: SERVER_USER_AGENT });
+
 beforeEach(() => {
   tokens = 0;
-  forgetOsuUserToken();
+  client = createOsuClient({ credentials: CREDENTIALS, userAgent: SERVER_USER_AGENT });
   server.use(tokenHandler);
 });
 
 const lookup = (username: string, beforeCall?: () => Promise<boolean>) =>
-  lookupOsuUser(username, { credentials: CREDENTIALS, ...(beforeCall ? { beforeCall } : {}) });
+  lookupOsuUser(username, { client, ...(beforeCall ? { beforeCall } : {}) });
 
 describe("lookupOsuUser", () => {
   it("finds a user by name, with our User-Agent and one cached token", async () => {
@@ -60,18 +63,6 @@ describe("lookupOsuUser", () => {
   it("reads a 404 as nobody by that name", async () => {
     server.use(http.get(USERS, () => HttpResponse.json({ error: null }, { status: 404 })));
     expect(await lookup("nobody")).toEqual({ kind: "missing" });
-  });
-
-  it("gets a fresh token once after a 401", async () => {
-    server.use(
-      http.get(USERS, ({ request }) =>
-        request.headers.get("authorization") === "Bearer t1"
-          ? HttpResponse.json({}, { status: 401 })
-          : HttpResponse.json({ id: 3, username: "x" }),
-      ),
-    );
-    expect(await lookup("x")).toEqual({ kind: "found", osuId: 3, username: "x" });
-    expect(tokens).toBe(2);
   });
 
   it.each([
