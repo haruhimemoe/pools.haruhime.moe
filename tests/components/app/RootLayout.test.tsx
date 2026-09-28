@@ -8,7 +8,7 @@
  *       title template and robots don't change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { within } from "@testing-library/react";
@@ -70,7 +70,7 @@ describe("RootLayout header and footer", () => {
       "href",
       "https://discord.gg/bKy9kjMV4y",
     );
-    expect(footer).toHaveTextContent("Star ratings are without mods.");
+    expect(footer).toHaveTextContent("Star ratings with mods come from the hinai mirror");
     expect(footer).not.toHaveTextContent("otdb");
   });
 });

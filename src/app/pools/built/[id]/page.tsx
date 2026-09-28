@@ -4,7 +4,8 @@
  *       here, because /pools/[id] is cookie-free ISR for past pools and this page reads the
  *       session (a private pool shows only to its owner and editors). Anyone who can't see the
  *       pool (private, hidden, or not there) gets the site 404. Private, unlisted and hidden
- *       pools aren't indexed; the canonical address is /pools/<id>.
+ *       pools aren't indexed; the canonical address is /pools/<id>. Each slot shows its values
+ *       under its mods (src/services/slot-values.ts, from the mod_values cache or the mirror).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -18,6 +19,7 @@ import { BuiltPoolView } from "@/components/builder/BuiltPoolView";
 import { BUILT_POOL_ID_PATTERN } from "@/constants/built-pools";
 import { getCurrentUser } from "@/lib/auth-session";
 import { loadBuiltPoolFor } from "@/services/built-pool-maps";
+import { builtSlotValues } from "@/services/slot-values";
 import { builtHeadline } from "@/utils/pool-text";
 
 const load = cache(async (id: string) =>
@@ -45,10 +47,12 @@ export default async function BuiltPoolPage({ params }: PageProps<"/pools/built/
   const { id } = await params;
   const loaded = await load(id);
   if (!loaded) notFound();
+  const { values } = await builtSlotValues(loaded.pool, loaded.maps);
   return (
     <BuiltPoolView
       pool={loaded.pool}
       maps={loaded.maps}
+      values={values}
       rules={{
         contentUsage: RULE_LINKS.contentUsage,
         officialSupport: RULE_LINKS.officialSupport,

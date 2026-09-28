@@ -2,8 +2,8 @@
  * @file src/components/builder/BuiltPoolView.tsx
  * @desc A built pool's page: its name, tournament · round · year, map count and who can see it,
  *       Edit for its owner and editors, a moderation notice when it's hidden, the notes, "Built
- *       by" (owner and editors, linking osu! profiles), the maps, and the summary with the
- *       content rules check. Presentational; the page loads the pool for the visitor.
+ *       by" (owner and editors, linking osu! profiles), the maps with their values under each
+ *       slot's mods, and the summary with the content rules check. Presentational; the page loads the pool for the visitor.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -17,10 +17,17 @@ import { PoolSummary } from "@/components/builder/PoolSummary";
 import { VISIBILITY_TEXT } from "@/constants/built-pools";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
 import { builtHeadline } from "@/utils/pool-text";
+import type { SlotValueMap } from "@/utils/slot-values";
 
-type BuiltPoolViewProps = { pool: ClientPool; maps: BuiltMaps; rules: CheckRules };
+type BuiltPoolViewProps = {
+  pool: ClientPool;
+  maps: BuiltMaps;
+  /** Values under each slot's mods. */
+  values: SlotValueMap;
+  rules: CheckRules;
+};
 
-export function BuiltPoolView({ pool, maps, rules }: BuiltPoolViewProps) {
+export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps) {
   const count = `${pool.slots.length} ${pool.slots.length === 1 ? "map" : "maps"}`;
   const people = [
     ...(pool.owner ? [{ ...pool.owner, role: "owner" }] : []),
@@ -63,10 +70,10 @@ export function BuiltPoolView({ pool, maps, rules }: BuiltPoolViewProps) {
         </ul>
       </Card>
       <Card title="Maps">
-        <BuiltSlotList pool={pool} maps={maps} />
+        <BuiltSlotList pool={pool} maps={maps} values={values} />
       </Card>
       <Card title="Summary">
-        <PoolSummary pool={pool} maps={maps} />
+        <PoolSummary pool={pool} maps={maps} values={values} />
         <h3 className="mt-4 mb-2 font-bold text-c1">Check against the content rules</h3>
         <ContentRulesCheck slots={pool.slots} rules={rules} />
       </Card>

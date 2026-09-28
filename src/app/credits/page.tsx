@@ -7,7 +7,7 @@
  *       packages it's built with, and the affiliation notice. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -45,7 +45,8 @@ export default function CreditsPage() {
         <p>
           Map details and star ratings come from the{" "}
           <a href="https://mirror.hinamizawa.ai">hinai mirror</a>, which serves osu! API data. A map
-          the mirror doesn't have keeps what its source gave. Every star rating is without mods.
+          the mirror doesn't have keeps what its source gave. Star ratings with mods come from the
+          mirror too, and can differ slightly from osu!'s.
         </p>
         <h2>Content rules</h2>
         <p>

@@ -2,7 +2,8 @@
  * @file src/components/builder/BucketSection.tsx
  * @desc One bucket in the editor: its code and what it plays with, "Find maps" (opens the map
  *       browser for it), "Remove slot" for an empty custom bucket, and its maps in order. Maps
- *       with no slot get a group of their own, with no Find maps. Presentational.
+ *       with no slot get a group of their own, with no Find maps. Each map shows its values
+ *       under the bucket's mods once known. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -16,6 +17,7 @@ import { useId } from "react";
 import { type MoveTarget, SlotRow } from "@/components/builder/SlotRow";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { groupHeading, type SlotGroup } from "@/utils/built-editor";
+import { groupSlotCode, type SlotValueMap, slotValueKey } from "@/utils/slot-values";
 
 export type SlotActions = {
   onMove: (slot: PoolSlot, direction: "up" | "down") => void;
@@ -26,13 +28,15 @@ export type SlotActions = {
 type BucketSectionProps = SlotActions & {
   group: SlotGroup;
   maps: BuiltMaps;
+  /** Values under each slot's mods, as far as they're known. */
+  values: SlotValueMap;
   /** Every bucket a map can move to. */
   targets: readonly MoveTarget[];
   onFind: (code: string) => void;
   onRemoveBucket: (code: string) => void;
 };
 
-export function BucketSection({ group, maps, targets, ...on }: BucketSectionProps) {
+export function BucketSection({ group, maps, values, targets, ...on }: BucketSectionProps) {
   const headingId = useId();
   const { title, detail } = groupHeading(group.entry);
   const { code, entry, slots } = group;
@@ -75,6 +79,7 @@ export function BucketSection({ group, maps, targets, ...on }: BucketSectionProp
               key={slot.beatmapId}
               slot={slot}
               map={maps[slot.beatmapId]}
+              values={values[slotValueKey(slot.beatmapId, groupSlotCode(slot, entry))]}
               first={i === 0}
               last={i === slots.length - 1}
               targets={others}

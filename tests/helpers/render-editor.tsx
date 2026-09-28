@@ -13,17 +13,23 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PoolEditor } from "@/components/builder/PoolEditor";
 import type { ClientPool } from "@/schemas/built-pool-view";
+import type { SlotValueMap } from "@/utils/slot-values";
 import { clientPool, fakePoolApi, mapsFor, RULES } from "./pool-editor";
 
 /**
  * @function renderEditor
  * @param pool {ClientPool} the pool to edit (default: three NM maps, owned by osu! id 10)
- * @param options {{ me?: number; pollMs?: number }} the signed-in osu! id and the poll interval
+ * @param options {{ me?: number; pollMs?: number; values?: SlotValueMap }} the signed-in osu! id,
+ *        the poll interval and the values the page read
  * @returns the fake API, user-event, bucket order, a wait for saving to end, and render's result
  */
 export const renderEditor = (
   pool: ClientPool = clientPool(),
-  { me = pool.owner?.osuId ?? 10, pollMs }: { me?: number; pollMs?: number } = {},
+  {
+    me = pool.owner?.osuId ?? 10,
+    pollMs,
+    values = {},
+  }: { me?: number; pollMs?: number; values?: SlotValueMap } = {},
 ) => {
   const api = fakePoolApi(pool);
   const user = userEvent.setup();
@@ -31,6 +37,7 @@ export const renderEditor = (
     <PoolEditor
       initial={pool}
       maps={mapsFor(pool.slots.map((slot) => slot.beatmapId))}
+      values={values}
       me={me}
       rules={RULES}
       fetcher={api.fetcher}

@@ -5,11 +5,11 @@
  *       (credited to Sheppsu), hosts and community members, merge by map list and name their
  *       sources; map details are JSON from the hinai mirror (osu! API data; a map it doesn't have
  *       keeps its source's), never files, and
- *       stars are without mods; the check is guidance, and the all-maps search can't see
+ *       values with mods come from the mirror and can differ slightly; the check is guidance, and the all-maps search can't see
  *       takedowns on ranked and loved maps; corrections go to Discord or email.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -55,7 +55,7 @@ describe("/data", () => {
     );
   });
 
-  it("says where map details come from, that no files are hosted and stars are without mods", () => {
+  it("says where map details and values with mods come from, and that no files are hosted", () => {
     render(<DataPage />);
     const maps = section("Maps");
     expect(maps).toHaveTextContent("which serves osu! API data");
@@ -65,7 +65,9 @@ describe("/data", () => {
       "https://mirror.hinamizawa.ai",
     );
     expect(maps).toHaveTextContent(".osz");
-    expect(maps).toHaveTextContent("without mods");
+    expect(maps).toHaveTextContent("under the slot's mods");
+    expect(maps).toHaveTextContent("can differ slightly from osu!'s");
+    expect(maps).toHaveTextContent("no mod data");
   });
 
   it("says the check follows the published rules and the Tournament Committee decides", () => {

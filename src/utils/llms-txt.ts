@@ -1,7 +1,7 @@
 /**
  * @file src/utils/llms-txt.ts
  * @desc /llms.txt (llmstxt.org): title, a one-paragraph summary, the notes a reader needs first
- *       (pools come from otdb, tournament hosts and community members; no-mod stars, no file
+ *       (pools come from otdb, tournament hosts and community members; star ratings with mods from the mirror, no file
  *       hosting, every osu! map searchable, sending a pool, beta, the check is guidance, no API),
  *       then the pages (Make a pool among them), every current pool, the most
  *       used maps and the legal pages.
@@ -45,7 +45,7 @@ export const LLMS_MAP_LIMIT = 500;
 const at = (path: string): string => `${SITE.url}${path}`;
 
 export const LLMS_NOTES: readonly string[] = [
-  "pools lists past osu! tournament mappools, the maps in them, and where each map was played before. Pools come from several places: some past pools from otdb's public export (by Sheppsu), others sent by tournament hosts and community members. Each pool page names its sources. Map details and star ratings come from the hinai mirror, which serves osu! API data; a map the mirror doesn't have keeps what its source gave. Every star rating is without mods.",
+  "pools lists past osu! tournament mappools, the maps in them, and where each map was played before. Pools come from several places: some past pools from otdb's public export (by Sheppsu), others sent by tournament hosts and community members. Each pool page names its sources. Map details and star ratings come from the hinai mirror, which serves osu! API data; a map the mirror doesn't have keeps what its source gave. Pool slots show star rating, AR, OD, BPM and length under the slot's mods; star ratings with mods come from the hinai mirror and can differ slightly from osu!'s.",
   "Each pool opens on packs.haruhime.moe as a pack, to download its maps. pools never hosts beatmap files.",
   "Search can cover every osu! map, not only maps played in pools. Sets that can't be used in officially supported tournaments are left out, and graveyard and pending maps carry a warning.",
   `Tournament hosts and community members send pools in the Discord server (${SITE.discordUrl}) or to ${SITE.contactEmail}. An admin checks each one by hand. The site is in beta.`,

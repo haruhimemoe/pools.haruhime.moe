@@ -6,80 +6,34 @@
  *       combo (src/lib/mod-values.ts: one call per combo, cached 30 days) and BPM and length
  *       from the mod math. A map the mirror lacks keeps its no-mod rating with AR, OD, CS, BPM
  *       and length computed ("math": the page says "no mod data"). A failed mirror call still
- *       answers, marked incomplete so the page isn't cached as final.
+ *       answers, marked incomplete. The math and the shared types are in
+ *       src/utils/slot-values.ts; pastSlotValues follows a past pool's source slots, and
+ *       builtSlotValues keys a built pool's values by map and combo.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
-import type { ModAcronym } from "@haruhimemoe/pool";
+import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import { getModValues, type ModValuesDeps } from "@/lib/mod-values";
 import type { ModValues } from "@/schemas/mod-values";
+import { modsCode, valueModsOf } from "@/utils/mod-values";
 import {
-  arUnderMods,
-  bpmUnderMods,
-  csUnderMods,
-  lengthUnderMods,
-  modsCode,
-  odUnderMods,
-  valueModsOf,
-} from "@/utils/mod-values";
+  builtSlotCode,
+  noModOf,
+  pastSlotCodes,
+  type SlotMapValues,
+  type SlotValueAnswer,
+  type SlotValueMap,
+  slotAnswer,
+  slotValueKey,
+} from "@/utils/slot-values";
 
-/** A map's values; null where pools doesn't know one. */
-export type SlotMapValues = {
-  stars: number | null;
-  ar: number | null;
-  od: number | null;
-  cs: number | null;
-  bpm: number | null;
-  length: number | null;
-};
+export type { SlotMapValues, SlotValueAnswer };
 
 /** A slot: its map, its mods (src/utils/slot-mods.ts slotModsCode) and the map's no-mod values. */
 export type SlotValueRequest = { beatmapId: number; mods: string; noMod: SlotMapValues };
-
-export type SlotValueAnswer = SlotMapValues & {
-  /** The combo the values are under ("NM" for none). */
-  mods: string;
-  /** none: no-mod values; mirror: from pp/batch; math: no mod data, computed. */
-  source: "none" | "mirror" | "math";
-};
-
-const round2 = (value: number): number => Math.round(value * 100) / 100;
-
-/** A value under the mods, or null when the no-mod one is unknown. */
-const under = (
-  value: number | null,
-  mods: readonly ModAcronym[],
-  math: (value: number, mods: readonly ModAcronym[]) => number,
-): number | null => (value === null ? null : round2(math(value, mods)));
-
-const answerFor = (
-  { noMod }: SlotValueRequest,
-  mods: readonly ModAcronym[],
-  mirror: ModValues | undefined,
-): SlotValueAnswer => {
-  const code = modsCode(mods);
-  if (mods.length === 0) return { ...noMod, mods: code, source: "none" };
-  const bpm = under(noMod.bpm, mods, bpmUnderMods);
-  const length = noMod.length === null ? null : Math.round(lengthUnderMods(noMod.length, mods));
-  if (mirror) {
-    const { stars, ar, od, cs } = mirror;
-    const values = { stars: round2(stars), ar: round2(ar), od: round2(od), cs: round2(cs) };
-    return { ...values, bpm, length, mods: code, source: "mirror" };
-  }
-  return {
-    stars: noMod.stars,
-    ar: under(noMod.ar, mods, arUnderMods),
-    od: under(noMod.od, mods, odUnderMods),
-    cs: under(noMod.cs, mods, csUnderMods),
-    bpm,
-    length,
-    mods: code,
-    source: "math",
-  };
-};
 
 /**
  * @function slotValues
@@ -109,7 +63,58 @@ export const slotValues = async (
   }
   const values = slots.map((slot, i) => {
     const mods = modsOf[i] ?? [];
-    return answerFor(slot, mods, found.get(modsCode(mods))?.get(slot.beatmapId));
+    return slotAnswer(slot.noMod, mods, found.get(modsCode(mods))?.get(slot.beatmapId));
   });
   return { values, complete };
+};
+
+/**
+ * @function pastSlotValues
+ * @param pool {Parameters<typeof pastSlotCodes>[0]} a past pool
+ * @param maps {ReadonlyMap<number, Partial<SlotMapValues>>} its maps' stored details
+ * @param deps {ModValuesDeps} fetch, timeout and clock (tests)
+ * @returns {Promise<{ values: SlotValueAnswer[]; complete: boolean }>} one per source slot, in
+ *          order
+ */
+export const pastSlotValues = (
+  pool: Parameters<typeof pastSlotCodes>[0],
+  maps: ReadonlyMap<number, Partial<SlotMapValues>>,
+  deps: ModValuesDeps = {},
+) => {
+  const codes = pastSlotCodes(pool);
+  return slotValues(
+    pool.sourceSlots.map(({ beatmapId }, i) => ({
+      beatmapId,
+      mods: codes[i] ?? "NM",
+      noMod: noModOf(maps.get(beatmapId)),
+    })),
+    deps,
+  );
+};
+
+/**
+ * @function builtSlotValues
+ * @param pool {{ buckets: readonly BucketEntry[]; slots: readonly PoolSlot[] }} a built pool
+ * @param maps {Readonly<Record<number, Partial<SlotMapValues> | null>>} its maps' details
+ * @param deps {ModValuesDeps} fetch, timeout and clock (tests)
+ * @returns {Promise<{ values: SlotValueMap; complete: boolean }>} each slot's values by map and
+ *          combo (slotValueKey)
+ */
+export const builtSlotValues = async (
+  pool: { buckets: readonly BucketEntry[]; slots: readonly PoolSlot[] },
+  maps: Readonly<Record<number, Partial<SlotMapValues> | null>>,
+  deps: ModValuesDeps = {},
+): Promise<{ values: SlotValueMap; complete: boolean }> => {
+  const requests = pool.slots.map((slot) => ({
+    beatmapId: slot.beatmapId,
+    mods: builtSlotCode(slot, pool.buckets),
+    noMod: noModOf(maps[slot.beatmapId]),
+  }));
+  const { values, complete } = await slotValues(requests, deps);
+  const byKey: Record<string, SlotValueAnswer> = {};
+  values.forEach((value, i) => {
+    const request = requests[i];
+    if (request) byKey[slotValueKey(request.beatmapId, value.mods)] = value;
+  });
+  return { values: byKey, complete };
 };

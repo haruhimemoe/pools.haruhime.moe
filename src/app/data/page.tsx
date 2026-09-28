@@ -3,12 +3,12 @@
  * @desc /data: where pools' data comes from and how it's kept, in four sections the footer
  *       links by anchor: #pools (otdb's export, tournament hosts, community members; merged by
  *       map list, each pool page names its sources), #maps (JSON from the hinai mirror, which
- *       serves osu! API data; a map it doesn't have keeps its source's; no files, no-mod stars), #rules (the check, guidance only; the all-maps search
+ *       serves osu! API data; a map it doesn't have keeps its source's; no files, star ratings with mods from the mirror), #rules (the check, guidance only; the all-maps search
  *       can't see takedown notices on ranked and loved maps) and #corrections
  *       (Discord or email). Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -64,7 +64,14 @@ export default function DataPage() {
             takes you to <a href={PACKS_SITE_URL}>packs.haruhime.moe</a>, which downloads each map
             from the mirror straight to your browser.
           </p>
-          <p>Every star rating is without mods, even in HR, DT or EZ slots.</p>
+          <p>
+            A pool's slots show star rating, AR, OD, BPM and length under the slot's mods (HR, DT,
+            EZ, HT, FL and forced custom mods; NM, HD, FM and TB slots show no-mod values). Star
+            ratings, AR, OD and CS with mods come from the hinai mirror's precomputed values and can
+            differ slightly from osu!'s; BPM and length are worked out from the mod. A map the
+            mirror has no mod data for shows its no-mod rating, marked "no mod data". The map
+            browser works the same way, and searches Qualified and Pending maps without mods.
+          </p>
           <p>
             Where a map was played before comes from the pools on this site, so it only knows the
             pools we have.

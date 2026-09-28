@@ -2,7 +2,7 @@
  * @file src/schemas/built-pool-view.ts
  * @desc What the browser holds of a built pool: the pool as the pages and editor show it (no
  *       dates, no pack or moderation fields, editors as osu! id and name) and each of its maps'
- *       details from the maps collection (label parts, no-mod stars, length, BPM, and how many
+ *       details from the maps collection (label parts, no-mod stars, length, BPM, AR, OD, CS, and how many
  *       past pools used it). Plain JSON, so a server page and an API answer give the same shape.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -52,6 +52,10 @@ export type BuiltMap = {
   stars: number | null;
   length: number | null;
   bpm: number | null;
+  /** No-mod AR, OD and CS (the math under a slot's mods starts from them). */
+  ar: number | null;
+  od: number | null;
+  cs: number | null;
   /** Past pools (current, not hidden) that played it, and the latest year among them. */
   usage: { count: number; lastYear: number | null };
 };

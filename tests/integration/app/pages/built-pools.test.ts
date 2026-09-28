@@ -5,7 +5,8 @@
  *       editor (without), sends a visitor to sign in, and 404s everyone else, admins included;
  *       /pools/built/<id> (what /pools/<b- id> is rewritten to) shows a pool to whoever can see
  *       it, with Edit only for its owner and editors, 404s the rest, and keeps private, unlisted
- *       and hidden pools out of search engines.
+ *       and hidden pools out of search engines. Both show each slot's values under its mods (the
+ *       mirror stood in by msw), and the summary's star range uses them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -13,10 +14,15 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetMirrorCooldown } from "@/lib/map-search";
 import { builtPoolsCollection } from "@/models/BuiltPool";
+import { mapsCollection } from "@/models/Map";
 import { ADMIN_OSU_ID } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
+import { setupMsw } from "../../../helpers/msw";
 import { type Cast, createCast, insertPool } from "../../../helpers/pool-requests";
+import { ppBatchHandler, ppValues } from "../../../helpers/pp-batch";
+import { makeMap } from "../../../helpers/records";
 
 const { session } = vi.hoisted(() => ({ session: { cookie: null as string | null } }));
 vi.mock("next/headers", () => ({
@@ -29,7 +35,9 @@ vi.mock("next/navigation", async (importOriginal) => ({
 vi.mock("@/lib/auth-client", () => ({ authClient: {} }));
 
 setupTestDb();
+const server = setupMsw();
 beforeEach(() => {
+  resetMirrorCooldown();
   vi.stubEnv("ADMIN_OSU_IDS", String(ADMIN_OSU_ID));
   session.cookie = null;
 });
@@ -149,5 +157,25 @@ describe("/pools/<b- id>", () => {
     as(cast, "visitor");
     expect(await thrown(() => builtPage("b-zzzzzzzz"))).toBe("404");
     expect(await thrown(() => builtPage("otdb-1"))).toBe("404");
+  });
+});
+
+describe("values under each slot's mods", () => {
+  it("shows them on the pool's page and in its editor, and ranges the stars with them", async () => {
+    const cast = await createCast();
+    const slots = [
+      { mod: "NM", index: 1, beatmapId: 100 },
+      { mod: "DT", index: 1, beatmapId: 200 },
+    ];
+    await insertPool(cast, { _id: ID, visibility: "public", slots });
+    await (await mapsCollection()).insertMany([makeMap({ _id: 100 }), makeMap({ _id: 200 })]);
+    server.use(ppBatchHandler(() => ppValues({ stars: 7.25, ar: 10.33, od: 9.78 })));
+    as(cast, "other");
+    const { html } = await builtPage();
+    expect(html).toContain("5.50★ no mod · AR 9 · OD 8 · 2:00 · 180 BPM");
+    expect(html).toContain("7.25★ DT · AR 10.3 · OD 9.8 · 1:20 · 270 BPM");
+    expect(html).toMatch(/DT<\/dt><dd[^>]*>7\.25★/);
+    as(cast, "owner");
+    expect(await editPage()).toContain("7.25★ DT");
   });
 });

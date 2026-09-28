@@ -164,3 +164,43 @@ describe("PoolEditor: moderation", () => {
     expect(screen.queryByText(HIDDEN_NOTICE)).not.toBeInTheDocument();
   });
 });
+
+describe("PoolEditor: values under each slot's mods", () => {
+  const value = (stars: number, mods: string, source: "none" | "mirror" | "math") => ({
+    stars,
+    ar: 9,
+    od: 8,
+    cs: 4,
+    bpm: mods === "DT" ? 270 : 180,
+    length: mods === "DT" ? 80 : 120,
+    mods,
+    source,
+  });
+
+  it("shows what the page read, and asks for a slot's new mods once it's saved", async () => {
+    const values = { "10:NM": value(5, "NM", "none"), "20:NM": value(5.1, "NM", "none") };
+    const { api, user, saved } = renderEditor(clientPool({ slots: [nm(1, 10), nm(2, 20)] }), {
+      values,
+    });
+    api.values = () => ({ ...values, "20:DT": value(7.2, "DT", "mirror") });
+    const row = (id: number) => document.querySelector(`li[data-map="${id}"]`);
+    expect(row(10)).toHaveTextContent("5.00★ no mod · AR 9 · OD 8 · 2:00 · 180 BPM");
+    expect(api.valueCalls).toEqual([]);
+    await user.selectOptions(screen.getByRole("combobox", { name: "Move NM2 to" }), "DT");
+    await user.click(button("Move NM2 to DT"));
+    await saved();
+    await waitFor(() =>
+      expect(row(20)).toHaveTextContent("7.20★ DT · AR 9 · OD 8 · 1:20 · 270 BPM"),
+    );
+    expect(api.valueCalls).toEqual(["/api/pools/b-a0000001/values"]);
+    expect(screen.getByText("Star range per slot (with its mods)")).toBeInTheDocument();
+  });
+
+  it("says no mod data when the mirror had none", async () => {
+    const pool = clientPool({ slots: [{ mod: "HR", index: 1, beatmapId: 10 }] });
+    renderEditor(pool, { values: { "10:HR": value(5, "HR", "math") } });
+    expect(document.querySelector('li[data-map="10"]')).toHaveTextContent(
+      "5.00★ no mod · AR 9 · OD 8 · 2:00 · 180 BPM · no mod data",
+    );
+  });
+});

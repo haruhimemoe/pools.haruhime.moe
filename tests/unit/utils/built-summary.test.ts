@@ -23,6 +23,9 @@ const map = (id: number, over: Partial<BuiltMap> = {}): BuiltMap => ({
   stars: null,
   length: null,
   bpm: null,
+  ar: null,
+  od: null,
+  cs: null,
   usage: { count: 0, lastYear: null },
   ...over,
 });
@@ -42,6 +45,19 @@ const maps = {
 };
 
 describe("built pool summary", () => {
+  it("uses each slot's stars under its mods when they're known", () => {
+    const values = {
+      "1:NM": { stars: 5.2, mods: "NM", source: "none" },
+      "4:HR": { stars: 6.4, mods: "HR", source: "mirror" },
+      "2:HR": { stars: 9.9, mods: "HR", source: "mirror" },
+    } as never;
+    expect(starRanges(groupSlots({ buckets, slots }), maps, values)).toEqual([
+      { title: "NM", low: 4.81, high: 5.2, maps: 2, known: 2 },
+      { title: "HD", low: null, high: null, maps: 1, known: 0 },
+      { title: "HR", low: 6.4, high: 6.4, maps: 1, known: 1 },
+    ]);
+  });
+
   it("gives each bucket with maps its star range", () => {
     expect(starRanges(groupSlots({ buckets, slots }), maps)).toEqual([
       { title: "NM", low: 4.81, high: 5.2, maps: 2, known: 2 },

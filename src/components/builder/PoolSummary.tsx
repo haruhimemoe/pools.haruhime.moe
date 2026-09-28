@@ -1,8 +1,8 @@
 /**
  * @file src/components/builder/PoolSummary.tsx
  * @desc A built pool's summary, on its page and in the editor: how many maps, each bucket's star
- *       range (without mods for now), beatmapsets in more than one slot, and the maps past pools
- *       played (linking each map's history). Presentational; the content rules check sits
+ *       range (each map under its slot's mods when known), beatmapsets in more than one slot,
+ *       and the maps past pools played (linking each map's history). Presentational; the content rules check sits
  *       beside it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -16,11 +16,14 @@ import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { groupSlots } from "@/utils/built-editor";
 import { playedBefore, repeatedSets, type StarRange, starRanges } from "@/utils/built-summary";
 import { formatRange, formatStars } from "@/utils/format";
+import type { SlotValueMap } from "@/utils/slot-values";
 import { usageSummary } from "@/utils/usage";
 
 type PoolSummaryProps = {
   pool: { buckets: readonly BucketEntry[]; slots: readonly PoolSlot[] };
   maps: BuiltMaps;
+  /** Values under each slot's mods, as far as they're known. */
+  values?: SlotValueMap;
 };
 
 const rangeText = ({ low, high, maps, known }: StarRange): string => {
@@ -30,10 +33,10 @@ const rangeText = ({ low, high, maps, known }: StarRange): string => {
 
 const H3 = "font-bold text-c1";
 
-export function PoolSummary({ pool, maps }: PoolSummaryProps) {
+export function PoolSummary({ pool, maps, values = {} }: PoolSummaryProps) {
   const groups = groupSlots(pool);
   const ordered = groups.flatMap((group) => group.slots);
-  const ranges = starRanges(groups, maps);
+  const ranges = starRanges(groups, maps, values);
   const repeats = repeatedSets(ordered, maps);
   const played = playedBefore(ordered, maps);
   const count = pool.slots.length;
@@ -43,7 +46,7 @@ export function PoolSummary({ pool, maps }: PoolSummaryProps) {
         {count} {count === 1 ? "map" : "maps"} of {MAX_SLOTS}
       </p>
       <section className="flex flex-col gap-1">
-        <h3 className={H3}>Star range per slot (no mod)</h3>
+        <h3 className={H3}>Star range per slot (with its mods)</h3>
         {ranges.length === 0 ? (
           <p className="text-c3">No maps yet.</p>
         ) : (

@@ -1,9 +1,9 @@
 /**
  * @file src/components/builder/PoolEditor.tsx
  * @desc The pool editor at /pools/<id>/edit. Two panes on wide screens, stacked on phones: the
- *       pool (details, maps by bucket, paste, custom slots) and the side (summary with the
- *       content rules check, the map browser, editors, and the owner's settings: who can see it
- *       and delete). Every change is saved at once through usePoolEditor; the saving bar stays in
+ *       pool (details, maps by bucket with values under each slot's mods, paste, custom slots)
+ *       and the side (summary with the content rules check, the map browser, editors, and the
+ *       owner's settings: who can see it and delete). Every change is saved at once through usePoolEditor; the saving bar stays in
  *       view. A pool moderators hid says so. Editors see everything but the owner's settings.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -29,12 +29,16 @@ import { VisibilityForm } from "@/components/builder/VisibilityForm";
 import { VISIBILITY_TEXT } from "@/constants/built-pools";
 import { HIDDEN_NOTICE, usePoolEditor } from "@/hooks/usePoolEditor";
 import { useSlotMaps } from "@/hooks/useSlotMaps";
+import { useSlotValues } from "@/hooks/useSlotValues";
 import type { Fetcher } from "@/lib/pool-client";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
+import type { SlotValueMap } from "@/utils/slot-values";
 
 type PoolEditorProps = {
   initial: ClientPool;
   maps: BuiltMaps;
+  /** Values under each slot's mods, as the page read them. */
+  values: SlotValueMap;
   /** The signed-in user's osu! id. */
   me: number;
   rules: CheckRules;
@@ -47,6 +51,7 @@ const YOUR_POOLS = "/account#pools";
 export function PoolEditor({
   initial,
   maps: known,
+  values: knownValues,
   me,
   rules,
   fetcher = fetch,
@@ -56,6 +61,7 @@ export function PoolEditor({
   const editor = usePoolEditor(initial, { fetcher, ...(pollMs ? { pollMs } : {}) });
   const { pool, change } = editor;
   const maps = useSlotMaps(pool.id, pool.slots, known, fetcher);
+  const values = useSlotValues(pool, knownValues, !editor.saving, fetcher);
   const [openedFor, setOpenedFor] = useState<string | null>(null);
   const [openCount, setOpenCount] = useState(0);
   const onFind = (code: string) => {
@@ -92,7 +98,7 @@ export function PoolEditor({
             <DetailsForm pool={pool} change={change} />
           </Card>
           <Card title="Maps">
-            <PoolMaps pool={pool} maps={maps} change={change} onFind={onFind} />
+            <PoolMaps pool={pool} maps={maps} values={values} change={change} onFind={onFind} />
           </Card>
           <Card title="Paste a pool">
             <PasteBox change={change} lines={editor.failure?.lines} />
@@ -103,7 +109,7 @@ export function PoolEditor({
         </div>
         <div className="flex min-w-0 flex-col gap-6">
           <Card title="Summary">
-            <PoolSummary pool={pool} maps={maps} />
+            <PoolSummary pool={pool} maps={maps} values={values} />
             <h3 className="mt-4 mb-2 font-bold text-c1">Check against the content rules</h3>
             <ContentRulesCheck slots={pool.slots} rules={rules} />
           </Card>

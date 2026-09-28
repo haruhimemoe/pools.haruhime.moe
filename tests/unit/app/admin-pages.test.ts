@@ -38,6 +38,9 @@ const {
   countPackCleanup: vi.fn(async () => 3),
 }));
 vi.mock("@/services/pack-cleanup", () => ({ countPackCleanup }));
+vi.mock("@/services/slot-values", () => ({
+  pastSlotValues: vi.fn(async () => ({ values: [], complete: true })),
+}));
 vi.mock("@/lib/auth-session", () => ({ requireAdmin }));
 vi.mock("@/services/pools", () => ({ getPoolById, getMapSummaries }));
 vi.mock("@/services/admin", () => ({

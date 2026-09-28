@@ -1,7 +1,7 @@
 /**
  * @file tests/unit/content/legal-content.test.ts
  * @desc The legal pages keep the clauses that protect us and the promises the code keeps: not
- *       affiliated with ppy or the Tournament Committee, guidance not rulings, no-mod stars, the
+ *       affiliated with ppy or the Tournament Committee, guidance not rulings, where star ratings with mods come from, the
  *       otdb credit beside the pools hosts and community members send (whose links are theirs,
  *       not ours), and the User-Agent
  *       (disclaimer); no visitor cookies, per-IP counters, the 24-hour cache, what signing in
@@ -27,6 +27,8 @@ describe("legal pages", () => {
     "isn't affiliated with or endorsed by ppy Pty Ltd or the osu! Tournament Committee",
     "guidance, not rulings",
     "without mods",
+    "Star ratings with mods come from the hinai mirror",
+    "can differ slightly from osu!'s",
     "otdb",
     "Sheppsu",
     "tournament hosts",

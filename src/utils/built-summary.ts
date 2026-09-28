@@ -1,7 +1,7 @@
 /**
  * @file src/utils/built-summary.ts
- * @desc What a built pool's summary says, from its slots and map details: the no-mod star range
- *       of each bucket that has maps, beatmapsets in more than one slot (a pool can't hold the
+ * @desc What a built pool's summary says, from its slots and map details: the star range of each
+ *       bucket that has maps (each slot's stars under its mods when known, else no-mod), beatmapsets in more than one slot (a pool can't hold the
  *       same difficulty twice, but two difficulties of one set are worth a look), and the maps
  *       past pools played. Pure.
  * @author David @dvhsh (https://dvh.sh)
@@ -14,10 +14,11 @@ import type { BuiltMaps } from "@/schemas/built-pool-view";
 import type { SlotGroup } from "@/utils/built-editor";
 import { groupHeading } from "@/utils/built-editor";
 import { mapLabel } from "@/utils/map-record";
+import { groupSlotCode, type SlotValueMap, slotValueKey } from "@/utils/slot-values";
 
 export type StarRange = {
   title: string;
-  /** Lowest and highest no-mod stars, null when no map's stars are known yet. */
+  /** Lowest and highest stars (under each slot's mods when known), null when none are known. */
   low: number | null;
   high: number | null;
   /** Maps in the bucket, and how many of them have stars. */
@@ -29,14 +30,21 @@ export type StarRange = {
  * @function starRanges
  * @param groups {readonly SlotGroup[]} the pool's slots by bucket
  * @param maps {BuiltMaps} map details
+ * @param values {SlotValueMap} values under each slot's mods, as far as they're known
  * @returns {StarRange[]} one per bucket that has maps, in order
  */
-export const starRanges = (groups: readonly SlotGroup[], maps: BuiltMaps): StarRange[] =>
+export const starRanges = (
+  groups: readonly SlotGroup[],
+  maps: BuiltMaps,
+  values: SlotValueMap = {},
+): StarRange[] =>
   groups
     .filter((group) => group.slots.length > 0)
     .map((group) => {
       const stars = group.slots.flatMap((slot) => {
-        const value = maps[slot.beatmapId]?.stars;
+        const code = groupSlotCode(slot, group.entry);
+        const value =
+          values[slotValueKey(slot.beatmapId, code)]?.stars ?? maps[slot.beatmapId]?.stars;
         return value == null ? [] : [value];
       });
       return {

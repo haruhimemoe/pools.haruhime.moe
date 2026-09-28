@@ -2,26 +2,36 @@
  * @file tests/unit/app/pages.test.ts
  * @desc Public pages are cookie-free ISR: the home, pool and map pages regenerate hourly with no
  *       build-time params, no public page reads cookies or headers (/data and /submit included),
- *       a hidden or unknown pool 404s, and a map id that isn't a whole number 404s without a
- *       lookup.
+ *       a hidden or unknown pool 404s, a pool page reads each slot's values under its mods at
+ *       render (the mod_values cache, never cookies), and a map id that isn't a whole number 404s
+ *       without a lookup.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { readFileSync } from "node:fs";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { makePool } from "../../helpers/records";
 
-const { getPublicPool, getMapSummaries, loadHomeCounts, getPublicMap, getMapHistory } = vi.hoisted(
-  () => ({
-    getPublicPool: vi.fn(),
-    getMapSummaries: vi.fn(),
-    loadHomeCounts: vi.fn(),
-    getPublicMap: vi.fn(),
-    getMapHistory: vi.fn(),
-  }),
-);
+const {
+  getPublicPool,
+  getMapSummaries,
+  loadHomeCounts,
+  getPublicMap,
+  getMapHistory,
+  pastSlotValues,
+} = vi.hoisted(() => ({
+  getPublicPool: vi.fn(),
+  getMapSummaries: vi.fn(),
+  loadHomeCounts: vi.fn(),
+  getPublicMap: vi.fn(),
+  getMapHistory: vi.fn(),
+  pastSlotValues: vi.fn(),
+}));
 vi.mock("@/services/pools", () => ({ getPublicPool, getMapSummaries, loadHomeCounts }));
+vi.mock("@/services/slot-values", () => ({ pastSlotValues }));
 vi.mock("@/services/maps", () => ({ getPublicMap, getMapHistory }));
 
 const PUBLIC_PAGES = [
@@ -69,6 +79,25 @@ describe("public pages", () => {
     expect(
       await notFoundDigest(PoolPage({ params: Promise.resolve({ id: "otdb-1" }) } as never)),
     ).toMatch(/404/);
+  });
+
+  it("shows each slot's values under its mods, read at render", async () => {
+    const pool = makePool({ slots: [{ mod: "DT", index: 1, beatmapId: 5 }] });
+    getPublicPool.mockResolvedValue(pool);
+    const maps = new Map([[5, { _id: 5, stars: 5, length: 120, bpm: 180, ar: 9, od: 8, cs: 4 }]]);
+    getMapSummaries.mockResolvedValue(maps);
+    const dt = { stars: 7.2, ar: 10.33, od: 9.78, cs: 4, bpm: 270, length: 80 };
+    pastSlotValues.mockResolvedValue({
+      values: [{ ...dt, mods: "DT", source: "mirror" }],
+      complete: true,
+    });
+    const { default: PoolPage } = await import("@/app/pools/[id]/page");
+    const html = renderToStaticMarkup(
+      await PoolPage({ params: Promise.resolve({ id: "otdb-1" }) } as never),
+    );
+    expect(pastSlotValues).toHaveBeenCalledWith(pool, maps);
+    expect(html).toContain("7.20★");
+    expect(html).toContain(">DT<");
   });
 
   it("404s a map id that isn't a whole number, without a lookup", async () => {

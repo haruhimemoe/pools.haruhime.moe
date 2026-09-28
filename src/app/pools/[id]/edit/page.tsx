@@ -4,6 +4,7 @@
  *       signed in is sent to sign in and back (for any id, so nothing about the pool shows);
  *       every other signed-in user, admins included, gets the site 404, as does an id that
  *       isn't a built pool's. Reads the session, so it's rendered per request; never indexed.
+ *       Each slot's values under its mods are read with the pool.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -16,6 +17,7 @@ import { PoolEditor } from "@/components/builder/PoolEditor";
 import { BUILT_POOL_ID_PATTERN } from "@/constants/built-pools";
 import { requireUser } from "@/lib/auth-session";
 import { loadBuiltPoolFor } from "@/services/built-pool-maps";
+import { builtSlotValues } from "@/services/slot-values";
 
 export const metadata: Metadata = { title: "Edit a pool", robots: { index: false } };
 
@@ -25,10 +27,12 @@ export default async function EditPoolPage({ params }: PageProps<"/pools/[id]/ed
   const user = await requireUser(`/pools/${id}/edit`);
   const loaded = await loadBuiltPoolFor(id, user);
   if (!loaded?.pool.access.canEdit) notFound();
+  const { values } = await builtSlotValues(loaded.pool, loaded.maps);
   return (
     <PoolEditor
       initial={loaded.pool}
       maps={loaded.maps}
+      values={values}
       me={user.osuId}
       rules={{
         contentUsage: RULE_LINKS.contentUsage,

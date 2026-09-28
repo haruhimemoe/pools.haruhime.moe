@@ -1,11 +1,11 @@
 /**
  * @file src/app/admin/pools/[id]/page.tsx
  * @desc /admin/pools/[id]: an admin's view of one pool, hidden ones included: the page as the
- *       public sees it (with a hidden notice), its pack's sync state, the edit form, and badged for
- *       the whole tournament. 404 for an unknown id.
+ *       public sees it (with a hidden notice and each slot's values under its mods), its pack's
+ *       sync state, the edit form, and badged for the whole tournament. 404 for an unknown id.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { Card } from "@haruhimemoe/ui";
@@ -16,6 +16,7 @@ import { PoolEditForm } from "@/components/admin/PoolEditForm";
 import { PoolView } from "@/components/pools/PoolView";
 import { requireAdmin } from "@/lib/auth-session";
 import { getMapSummaries, getPoolById } from "@/services/pools";
+import { pastSlotValues } from "@/services/slot-values";
 import { openInPacksHref } from "@/utils/pack-input";
 import { shownNotes } from "@/utils/pool-record";
 
@@ -27,9 +28,16 @@ export default async function AdminPoolPage({ params }: PageProps<"/admin/pools/
   const pool = await getPoolById(id);
   if (!pool) notFound();
   const maps = await getMapSummaries(pool.slots.map((slot) => slot.beatmapId));
+  const { values } = await pastSlotValues(pool, maps);
   return (
     <div className="flex flex-col gap-6">
-      <PoolView pool={pool} maps={maps} openInPacks={openInPacksHref(pool)} preview />
+      <PoolView
+        pool={pool}
+        maps={maps}
+        values={values}
+        openInPacks={openInPacksHref(pool)}
+        preview
+      />
       <Card title="Pack sync">
         <p className="text-sm">
           {pool.pack.state ?? "Never sent"}

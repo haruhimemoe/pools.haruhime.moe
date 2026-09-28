@@ -5,7 +5,8 @@
  *       rules, bumps the version, answers GETs with the current pool, records every call, and
  *       takes one-shot answers for a test's next calls (a 400, a 409, a request that never
  *       resolves). The map browser's searches are answered from `browse` (settable, or a
- *       function of the URL) and recorded apart, in `browseCalls`.
+ *       function of the URL) and the slot values from `values` (a function of the server's
+ *       pool), each recorded apart (`browseCalls`, `valueCalls`).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -17,6 +18,7 @@ import type { Fetcher } from "@/lib/pool-client";
 import type { BuiltMap, ClientPool } from "@/schemas/built-pool-view";
 import type { BrowseResponse } from "@/utils/browse-params";
 import { applyLocal } from "@/utils/built-editor";
+import type { SlotValueMap } from "@/utils/slot-values";
 
 export const DEFAULT_BUCKETS = ["NM", "HD", "HR", "DT", "FM", "TB"].map((code) => ({
   code,
@@ -74,6 +76,9 @@ export const builtMap = (id: number, over: Partial<BuiltMap> = {}): BuiltMap => 
   stars: 5,
   length: 120,
   bpm: 180,
+  ar: 9,
+  od: 8,
+  cs: 4,
   usage: { count: 0, lastYear: null },
   ...over,
 });
@@ -111,10 +116,16 @@ export const fakePoolApi = (initial: ClientPool) => {
   let pool = initial;
   let details: BuiltMap[] = [];
   let browse: (url: URL) => Response = () => Response.json(browsePage());
+  let values: (current: ClientPool) => SlotValueMap = () => ({});
   const browseCalls: URL[] = [];
+  const valueCalls: string[] = [];
   const calls: Call[] = [];
   const overrides: Answer[] = [];
   const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (String(input).endsWith("/values")) {
+      valueCalls.push(String(input));
+      return Response.json({ values: values(pool), complete: true });
+    }
     if (String(input).startsWith("/api/maps/browse")) {
       const url = new URL(String(input), "http://localhost");
       browseCalls.push(url);
@@ -160,6 +171,11 @@ export const fakePoolApi = (initial: ClientPool) => {
       browse = typeof next === "function" ? next : () => Response.json(next);
     },
     browseCalls,
+    valueCalls,
+    /** What GET .../values answers with, from the server's pool. */
+    set values(next: (current: ClientPool) => SlotValueMap) {
+      values = next;
+    },
     next: (answer: Answer) => overrides.push(answer),
   };
 };

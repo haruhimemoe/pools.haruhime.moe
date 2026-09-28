@@ -15,6 +15,7 @@ import { DELETE as deleteEditor } from "@/app/api/pools/[id]/editors/[osuId]/rou
 import { POST as postEditor } from "@/app/api/pools/[id]/editors/route";
 import { POST as postOps } from "@/app/api/pools/[id]/ops/route";
 import { DELETE as deletePool, GET as getPool } from "@/app/api/pools/[id]/route";
+import { GET as getValues } from "@/app/api/pools/[id]/values/route";
 import { PUT as putVisibility } from "@/app/api/pools/[id]/visibility/route";
 import type { Visibility } from "@/constants/built-pools";
 import { ADMIN_OSU_ID } from "../../../helpers/auth";
@@ -56,6 +57,7 @@ const ROUTES: Record<string, Call> = {
   visibility: (cookie) =>
     putVisibility(poolRequest("PUT", `${base}/visibility`, cookie, { visibility: "unlisted" }), at),
   delete: (cookie) => deletePool(poolRequest("DELETE", base, cookie), at),
+  values: (cookie) => getValues(poolRequest("GET", `${base}/values`, cookie), at),
   addEditor: (cookie) =>
     postEditor(poolRequest("POST", `${base}/editors`, cookie, { username: "newbie" }), at),
   removeEditor: (cookie) =>
@@ -73,6 +75,11 @@ const MATRIX: [Visibility, boolean, string, number[]][] = [
   ["private", false, "delete", [204, 403, 204, 404, 401]],
   ["private", false, "addEditor", [200, 403, 404, 404, 401]],
   ["private", false, "removeEditor", [204, 204, 404, 404, 401]],
+  ["private", false, "values", [200, 200, 404, 404, 401]],
+  ["public", false, "values", [200, 200, 403, 403, 401]],
+  ["unlisted", false, "values", [200, 200, 403, 403, 401]],
+  ["public", true, "values", [200, 200, 403, 404, 401]],
+  ["unlisted", true, "values", [200, 200, 403, 404, 401]],
   ["public", false, "get", [200, 200, 200, 200, 200]],
   ["public", false, "ops", [200, 200, 403, 403, 401]],
   ["public", false, "visibility", [200, 403, 403, 403, 401]],

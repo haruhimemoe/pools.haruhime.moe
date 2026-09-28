@@ -3,7 +3,8 @@
  * @desc The editor's maps: every bucket in the pool's order, each slot with its move and remove
  *       buttons. Keyboard use never loses its place: after a move, focus stays on the moved map
  *       (the same button when it still applies, else the next one that does); after a remove, it
- *       goes to the next map in the bucket, or the one before, or the bucket's Find maps.
+ *       goes to the next map in the bucket, or the one before, or the bucket's Find maps. Focus
+ *       moves once the changed pool is on screen, not on a render in between.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -17,10 +18,13 @@ import { BucketSection } from "@/components/builder/BucketSection";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
 import { groupSlots, moveToOp, moveWithinOp, removeOp } from "@/utils/built-editor";
+import type { SlotValueMap } from "@/utils/slot-values";
 
 type PoolMapsProps = {
   pool: ClientPool;
   maps: BuiltMaps;
+  /** Values under each slot's mods, as far as they're known. */
+  values: SlotValueMap;
   change: (ops: PoolOp[]) => boolean;
   onFind: (code: string) => void;
 };
@@ -28,9 +32,10 @@ type PoolMapsProps = {
 const inRow = (id: number, controls: readonly string[]) =>
   controls.map((control) => `[data-map="${id}"] [data-control="${control}"]`);
 
-export function PoolMaps({ pool, maps, change, onFind }: PoolMapsProps) {
+export function PoolMaps({ pool, maps, values, change, onFind }: PoolMapsProps) {
   const box = useRef<HTMLDivElement>(null);
-  const focusNext = useRef<string[] | null>(null);
+  /** Where focus goes once the change is on screen, and the pool it was made from. */
+  const focusNext = useRef<{ then: string[]; from: ClientPool } | null>(null);
   const groups = groupSlots(pool);
   const targets = pool.buckets.map((entry) => ({
     code: entry.code,
@@ -38,10 +43,12 @@ export function PoolMaps({ pool, maps, change, onFind }: PoolMapsProps) {
   }));
 
   useEffect(() => {
-    const selectors = focusNext.current;
+    const pending = focusNext.current;
+    // Another render (map details or values arriving) can come before the change's own.
+    if (!pending || pending.from === pool) return;
     focusNext.current = null;
-    if (!selectors || !box.current) return;
-    for (const selector of selectors) {
+    if (!box.current) return;
+    for (const selector of pending.then) {
       const found = box.current.querySelector<HTMLElement>(selector);
       if (found && !found.hasAttribute("disabled")) {
         found.focus();
@@ -52,7 +59,7 @@ export function PoolMaps({ pool, maps, change, onFind }: PoolMapsProps) {
 
   const run = (ops: PoolOp | null, then: string[]) => {
     if (!ops) return;
-    focusNext.current = then;
+    focusNext.current = { then, from: pool };
     if (!change([ops])) focusNext.current = null;
   };
 
@@ -80,6 +87,7 @@ export function PoolMaps({ pool, maps, change, onFind }: PoolMapsProps) {
           key={group.code ?? ""}
           group={group}
           maps={maps}
+          values={values}
           targets={targets}
           onFind={onFind}
           onRemoveBucket={(code) => run({ type: "removeBucket", code }, ['[data-control="find"]'])}

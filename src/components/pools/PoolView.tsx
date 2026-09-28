@@ -2,11 +2,11 @@
  * @file src/components/pools/PoolView.tsx
  * @desc A pool page: name, tournament · round · year, map count and badged (when known), Open in
  *       packs, the notes shown (an admin's or the source's), "Replaced by" when superseded, the
- *       maps, and the sources. The admin preview adds a hidden notice. Presentational: the page
+ *       maps with their values under each slot's mods, and the sources. The admin preview adds a hidden notice. Presentational: the page
  *       loads the data and builds the packs link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
@@ -17,16 +17,19 @@ import type { StoredPool } from "@/schemas/pool";
 import type { MapSummary } from "@/services/pools";
 import { shownNotes } from "@/utils/pool-record";
 import { badgedText, poolHeadline } from "@/utils/pool-text";
+import type { SlotValueAnswer } from "@/utils/slot-values";
 
 type PoolViewProps = {
   pool: StoredPool;
   maps: ReadonlyMap<number, MapSummary>;
+  /** Each source slot's values under its mods (src/services/slot-values.ts), in order. */
+  values: readonly SlotValueAnswer[];
   openInPacks: string;
   /** The admin preview: hidden pools show, with a notice. */
   preview?: boolean;
 };
 
-export function PoolView({ pool, maps, openInPacks, preview = false }: PoolViewProps) {
+export function PoolView({ pool, maps, values, openInPacks, preview = false }: PoolViewProps) {
   const notes = shownNotes(pool.notes, pool.edited);
   const count = `${pool.slots.length} ${pool.slots.length === 1 ? "map" : "maps"}`;
   const badged = badgedText(pool.badged);
@@ -56,7 +59,7 @@ export function PoolView({ pool, maps, openInPacks, preview = false }: PoolViewP
         </Card>
       ) : null}
       <Card title="Maps">
-        <PoolSlotTable slots={pool.sourceSlots} maps={maps} />
+        <PoolSlotTable slots={pool.sourceSlots} maps={maps} values={values} />
       </Card>
       <Card title="Sources">
         <PoolSources sources={pool.sources} formerSources={pool.formerSources} />

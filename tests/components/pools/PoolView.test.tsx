@@ -1,13 +1,14 @@
 /**
  * @file tests/components/pools/PoolView.test.tsx
  * @desc A pool page: name, headline (year or "year unknown"), badged only when known, notes,
- *       the slots (source label, map link, no-mod stars, length, BPM, Copy ID), the sources with
+ *       the slots (source label, map link, stars, AR, OD, length and BPM under the slot's mods,
+ *       "no mod data" when the mirror had none, Copy ID), the sources with
  *       the otdb credit (earlier versions too), host and community credits (their link, when
  *       there is one, marked nofollow ugc noopener), "Replaced by" for a superseded pool, Open
  *       in packs, and the hidden notice only in the admin preview.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -38,15 +39,33 @@ const MAPS = new Map<number, MapSummary>([
       stars: 7.81,
       length: 258,
       bpm: 222.22,
+      ar: 9,
+      od: 8,
+      cs: 4,
     },
   ],
 ]);
 
-const view = (overrides = {}, preview = false) =>
+const VALUES = [
+  { stars: 7.81, ar: 9, od: 8, cs: 4, bpm: 222.22, length: 258, mods: "NM", source: "none" },
+  {
+    stars: null,
+    ar: null,
+    od: null,
+    cs: null,
+    bpm: null,
+    length: null,
+    mods: "DT",
+    source: "math",
+  },
+] as const;
+
+const view = (overrides = {}, preview = false, values: readonly unknown[] = VALUES) =>
   render(
     <PoolView
       pool={{ ...POOL, ...overrides }}
       maps={MAPS}
+      values={values as never}
       openInPacks="https://packs.haruhime.moe/k#pk1.x"
       preview={preview}
     />,
@@ -73,7 +92,18 @@ describe("PoolView", () => {
     expect(screen.getByText(/Not badged/)).toBeInTheDocument();
   });
 
-  it("lists each slot with its source label, map, no-mod stars, length, BPM and Copy ID", () => {
+  it("shows a slot's values under its mods, and says which mods they're under", () => {
+    const dt = { stars: 10.2, ar: 10.33, od: 9.78, cs: 4, bpm: 333, length: 172 };
+    view({}, false, [VALUES[0], { ...dt, mods: "DT", source: "mirror" }]);
+    const row = within(screen.getByRole("table")).getAllByRole("row")[2] as HTMLElement;
+    expect(row).toHaveTextContent("10.20★DT");
+    expect(row).toHaveTextContent("10.3");
+    expect(row).toHaveTextContent("9.8");
+    expect(row).toHaveTextContent("2:52");
+    expect(row).toHaveTextContent("333");
+  });
+
+  it("lists each slot with its source label, map, values, Copy ID, and no mod data", () => {
     view();
     const rows = within(screen.getByRole("table")).getAllByRole("row").slice(1);
     expect(within(rows[0] as HTMLElement).getByRole("rowheader")).toHaveTextContent("NM1");
@@ -89,8 +119,12 @@ describe("PoolView", () => {
       within(rows[1] as HTMLElement).getByRole("link", { name: "Beatmap 75" }),
     ).toBeInTheDocument();
     expect(rows[1]).toHaveTextContent("–");
+    expect(rows[1]).toHaveTextContent("no mod data");
     expect(screen.getAllByRole("button", { name: /Copy beatmap ID/ })).toHaveLength(2);
-    expect(screen.getByRole("columnheader", { name: "Stars (no mod)" })).toBeInTheDocument();
+    for (const name of ["Stars", "AR", "OD", "Length", "BPM"]) {
+      expect(screen.getByRole("columnheader", { name })).toBeInTheDocument();
+    }
+    expect(rows[0]).toHaveTextContent("7.81★no mod");
   });
 
   it("credits otdb and links each source, earlier versions included", () => {

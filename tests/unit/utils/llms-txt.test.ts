@@ -39,7 +39,7 @@ describe("buildLlmsTxt", () => {
     );
     expect(text.startsWith("# pools.haruhime.moe\n\n> ")).toBe(true);
     expect(text).toContain("otdb");
-    expect(text).toContain("without mods");
+    expect(text).toContain("star ratings with mods come from the hinai mirror");
     expect(text).toContain("guidance, not a ruling");
     expect(text).toContain("- [Search](https://pools.haruhime.moe/search)");
     expect(text).toContain("- [Make a pool](https://pools.haruhime.moe/new): ");

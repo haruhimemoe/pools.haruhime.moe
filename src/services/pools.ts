@@ -9,7 +9,7 @@
  *       through, so ISR keeps serving the last good version instead of storing an empty one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
@@ -48,7 +48,7 @@ export const getPublicPool = async (id: string): Promise<StoredPool | null> => {
 /** What a pool page shows for each map. */
 export type MapSummary = Pick<
   StoredMap,
-  "_id" | "setId" | "artist" | "title" | "version" | "stars" | "length" | "bpm"
+  "_id" | "setId" | "artist" | "title" | "version" | "stars" | "length" | "bpm" | "ar" | "od" | "cs"
 >;
 
 /**
@@ -62,7 +62,18 @@ export const getMapSummaries = async (ids: readonly number[]): Promise<Map<numbe
     .find(
       { _id: { $in: [...new Set(ids)] } },
       {
-        projection: { setId: 1, artist: 1, title: 1, version: 1, stars: 1, length: 1, bpm: 1 },
+        projection: {
+          setId: 1,
+          artist: 1,
+          title: 1,
+          version: 1,
+          stars: 1,
+          length: 1,
+          bpm: 1,
+          ar: 1,
+          od: 1,
+          cs: 1,
+        },
         maxTimeMS: QUERY_TIME_MS,
       },
     )

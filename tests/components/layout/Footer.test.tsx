@@ -2,7 +2,7 @@
  * @file tests/components/layout/Footer.test.tsx
  * @desc The footer: the pools, Data, About and Legal columns in that order with their links
  *       (Submit a pool, the /data anchors, Credits, the repo, the email, the legal pages), the
- *       Discord icon link beside GitHub's, and fine print with no-mod stars and the trademark
+ *       Discord icon link beside GitHub's, and fine print on star ratings with mods and the trademark
  *       notice but no otdb line (pools come from more than otdb; pool pages and /credits
  *       credit it).
  * @author David @dvhsh (https://dvh.sh)
@@ -80,11 +80,13 @@ describe("Footer", () => {
     expect(discord.compareDocumentPosition(github) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("says stars are without mods and carries the trademark notice, with no otdb line", () => {
+  it("says where star ratings with mods come from, with the trademark notice and no otdb line", () => {
     render(<Footer />);
     const footer = screen.getByRole("contentinfo");
     expect(
-      within(footer).getByText(`Star ratings are without mods. ${SITE.trademarkNotice}`),
+      within(footer).getByText(
+        `Star ratings with mods come from the hinai mirror and can differ slightly from osu!'s. ${SITE.trademarkNotice}`,
+      ),
     ).toBeInTheDocument();
     expect(footer).not.toHaveTextContent(/otdb|Sheppsu/);
   });

@@ -28,7 +28,18 @@ import type { Caller } from "@/utils/built-access";
 
 type MapRow = Pick<
   StoredMap,
-  "_id" | "setId" | "artist" | "title" | "version" | "setHost" | "stars" | "length" | "bpm"
+  | "_id"
+  | "setId"
+  | "artist"
+  | "title"
+  | "version"
+  | "setHost"
+  | "stars"
+  | "length"
+  | "bpm"
+  | "ar"
+  | "od"
+  | "cs"
 > & { usage: Pick<StoredMap["usage"], "count" | "lastYear"> };
 
 const builtMapOf = (row: MapRow): BuiltMap => ({
@@ -41,6 +52,9 @@ const builtMapOf = (row: MapRow): BuiltMap => ({
   stars: row.stars,
   length: row.length,
   bpm: row.bpm,
+  ar: row.ar,
+  od: row.od,
+  cs: row.cs,
   usage: { count: row.usage.count, lastYear: row.usage.lastYear },
 });
 
@@ -65,6 +79,9 @@ export const getBuiltMaps = async (ids: readonly number[]): Promise<BuiltMap[]> 
           stars: 1,
           length: 1,
           bpm: 1,
+          ar: 1,
+          od: 1,
+          cs: 1,
           "usage.count": 1,
           "usage.lastYear": 1,
         },

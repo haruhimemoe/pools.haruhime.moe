@@ -16,12 +16,15 @@ import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { SlotMapText } from "@/components/builder/SlotMapText";
 import type { BuiltMap } from "@/schemas/built-pool-view";
+import type { SlotValueAnswer } from "@/utils/slot-values";
 
 export type MoveTarget = { code: string; label: string };
 
 type SlotRowProps = {
   slot: PoolSlot;
   map: BuiltMap | null | undefined;
+  /** Its values under the slot's mods, once known. */
+  values?: SlotValueAnswer | undefined;
   first: boolean;
   last: boolean;
   /** The buckets it can move to (every other one). */
@@ -31,7 +34,7 @@ type SlotRowProps = {
   onRemove: () => void;
 };
 
-export function SlotRow({ slot, map, first, last, targets, ...on }: SlotRowProps) {
+export function SlotRow({ slot, map, values, first, last, targets, ...on }: SlotRowProps) {
   const [target, setTarget] = useState("");
   const label = slotLabel(slot);
   const chosen = targets.find((option) => option.code === target);
@@ -42,7 +45,7 @@ export function SlotRow({ slot, map, first, last, targets, ...on }: SlotRowProps
     >
       <div className="flex min-w-0 flex-1 gap-3">
         <span className="w-14 shrink-0 font-bold text-c1">{label}</span>
-        <SlotMapText beatmapId={slot.beatmapId} map={map} />
+        <SlotMapText beatmapId={slot.beatmapId} map={map} values={values} />
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button
