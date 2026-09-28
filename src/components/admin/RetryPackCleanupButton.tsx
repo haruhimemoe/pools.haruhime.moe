@@ -4,48 +4,43 @@
  *       50 a click) and says what was removed, kept and still failing, or why nothing was tried.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
-import { Button } from "@haruhimemoe/ui";
+import { AsyncButton } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { cleanupSummaryText, type PackCleanupSummary } from "@/utils/pack-cleanup";
 
+/**
+ * @function RetryPackCleanupButton
+ * @returns {JSX.Element} "Retry pack cleanup" (ui's AsyncButton): one run over the queue, what it
+ *          did said beside it, then the page refreshes
+ */
 export function RetryPackCleanupButton() {
   const router = useRouter();
-  const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState("");
-  const retry = async () => {
-    setPending(true);
-    try {
-      const response = await fetch("/api/admin/pack-cleanup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      setMessage(
-        response.ok
-          ? cleanupSummaryText((await response.json()) as PackCleanupSummary)
-          : `The retry failed (${response.status}).`,
-      );
-      router.refresh();
-    } catch {
-      setMessage("The retry didn't reach the server.");
-    } finally {
-      setPending(false);
-    }
+  const retry = async (): Promise<string> => {
+    const response = await fetch("/api/admin/pack-cleanup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    const said = response.ok
+      ? cleanupSummaryText((await response.json()) as PackCleanupSummary)
+      : `The retry failed (${response.status}).`;
+    router.refresh();
+    return said;
   };
   return (
-    <div className="flex flex-col gap-2">
-      <Button variant="secondary" className="self-start" onClick={retry} disabled={pending}>
-        Retry pack cleanup
-      </Button>
-      <output className="text-c2 text-sm" aria-live="polite">
-        {message}
-      </output>
-    </div>
+    <AsyncButton
+      variant="secondary"
+      action={retry}
+      pendingLabel="Retrying…"
+      failedMessage="The retry didn't reach the server."
+      wrapperClassName="flex-col items-start gap-2"
+    >
+      Retry pack cleanup
+    </AsyncButton>
   );
 }

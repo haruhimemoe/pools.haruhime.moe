@@ -14,7 +14,7 @@
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
-import { Button, cx, Notice } from "@haruhimemoe/ui";
+import { Button, cx, Notice, Pagination } from "@haruhimemoe/ui";
 import { BrowseSetCard } from "@/components/builder/BrowseSetCard";
 import { hiddenSetsText, MAX_SEARCH_PAGE, UNRANKED_WARNING } from "@/constants/search";
 import type { MapBrowse } from "@/hooks/useMapBrowse";
@@ -33,25 +33,6 @@ type BrowseResultsProps = {
 };
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-
-/** Marked unavailable rather than disabled, so a keyboard user's focus stays on it. */
-const PageButton = ({
-  off,
-  onClick,
-  children,
-}: {
-  off: boolean;
-  onClick: () => void;
-  children: string;
-}) => (
-  <Button
-    variant="ghost"
-    aria-disabled={off || undefined}
-    onClick={() => (off ? undefined : onClick())}
-  >
-    {children}
-  </Button>
-);
 
 /** What the page left out, one line each. */
 const leftOut = (data: BrowseResponse): string[] =>
@@ -104,19 +85,13 @@ export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) 
           ))}
         </ul>
       )}
-      <nav aria-label="Map pages" className="flex flex-wrap items-center gap-2 text-sm">
-        <PageButton off={data.page <= 1} onClick={() => onPage(data.page - 1)}>
-          Previous
-        </PageButton>
-        <span className="text-c3">
-          {data.pageCount === null
-            ? `Page ${data.page}`
-            : `Page ${data.page} of ${Math.max(lastPage, 1)}`}
-        </span>
-        <PageButton off={data.page >= lastPage} onClick={() => onPage(data.page + 1)}>
-          Next
-        </PageButton>
-      </nav>
+      <Pagination
+        aria-label="Map pages"
+        page={data.page}
+        pageCount={data.pageCount === null ? null : Math.max(lastPage, 1)}
+        hasNext={data.page < lastPage}
+        onPageChange={onPage}
+      />
       <p className="text-c3 text-xs">{MOD_VALUES_NOTE}</p>
     </div>
   );
