@@ -2,7 +2,8 @@
  * @file tests/components/builder/NewPoolForm.test.tsx
  * @desc "Make a pool": a missing name or a year that isn't one is said under its field (focus
  *       goes there) with nothing sent; a good form POSTs the name and the details given, then
- *       goes to the new pool's editor; a refusal is said in the page.
+ *       goes to the new pool's editor; a refusal is said in the page. Starting from a pool fills
+ *       in its details, says how many maps come with it, and sends startedFrom.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -18,10 +19,24 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh: vi.fn() }
 
 afterEach(() => vi.clearAllMocks());
 
-const setup = (answer: () => Response) => {
+const START = {
+  id: "otdb-9",
+  name: "OWC 2023 Finals",
+  tournament: "osu! World Cup",
+  round: "Finals",
+  year: 2023,
+  maps: 12,
+};
+
+const setup = (answer: () => Response, startFrom?: typeof START) => {
   const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => answer());
   const user = userEvent.setup();
-  render(<NewPoolForm fetcher={fetcher as unknown as typeof fetch} />);
+  render(
+    <NewPoolForm
+      fetcher={fetcher as unknown as typeof fetch}
+      {...(startFrom ? { startFrom } : {})}
+    />,
+  );
   const field = (name: string) => screen.getByRole("textbox", { name });
   const make = () => user.click(screen.getByRole("button", { name: "Make the pool" }));
   return { fetcher, user, field, make };
@@ -66,5 +81,26 @@ describe("NewPoolForm", () => {
     await make();
     expect(await screen.findByRole("alert")).toHaveTextContent(message);
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("starts from a pool: its details filled in, its maps copied", async () => {
+    const { fetcher, user, field, make } = setup(
+      () => Response.json({ id: "b-a0000002" }, { status: 201 }),
+      START,
+    );
+    expect(screen.getByText("It starts with the 12 maps of OWC 2023 Finals.")).toBeInTheDocument();
+    expect(field("Name")).toHaveValue("OWC 2023 Finals");
+    expect(field("Year")).toHaveValue("2023");
+    await user.clear(field("Name"));
+    await user.type(field("Name"), "My OWC");
+    await make();
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/pools/b-a0000002/edit"));
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toEqual({
+      name: "My OWC",
+      tournament: "osu! World Cup",
+      round: "Finals",
+      year: 2023,
+      startedFrom: "otdb-9",
+    });
   });
 });

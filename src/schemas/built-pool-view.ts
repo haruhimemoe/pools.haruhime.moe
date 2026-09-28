@@ -3,7 +3,7 @@
  * @desc What the browser holds of a built pool: the pool as the pages and editor show it (no
  *       dates, the pack as a state with its link or reason, editors as osu! id and name) and each of its maps'
  *       details from the maps collection (label parts, no-mod stars, length, BPM, AR, OD, CS, and how many
- *       past pools used it). Plain JSON, so a server page and an API answer give the same shape.
+ *       past pools used it), and the pool a new one starts from. Plain JSON, so a server page and an API answer give the same shape.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -49,6 +49,16 @@ export type ClientPool = {
   version: number;
   pack: ClientPack;
   access: ClientAccess;
+};
+
+/** The pool a new one starts from (/new?from=<id>): its details fill the form, its maps come along. */
+export type StartFrom = {
+  id: string;
+  name: string;
+  tournament: string;
+  round: string;
+  year: number | null;
+  maps: number;
 };
 
 /** A map's details as a slot shows them; every detail null until the mirror answers for it. */

@@ -84,6 +84,10 @@ describe("PoolView", () => {
       "https://packs.haruhime.moe/k#pk1.x",
     );
     expect(screen.queryByText(/badged/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Start from this pool" })).toHaveAttribute(
+      "href",
+      `/new?from=${POOL._id}`,
+    );
   });
 
   it("shows year unknown, and badged once it's known", () => {
@@ -214,5 +218,7 @@ describe("PoolView", () => {
     expect(
       screen.getByText("This pool is hidden. Only admins see this preview."),
     ).toBeInTheDocument();
+    // A hidden pool can't be started from.
+    expect(screen.queryByRole("link", { name: "Start from this pool" })).not.toBeInTheDocument();
   });
 });

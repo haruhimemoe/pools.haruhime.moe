@@ -4,8 +4,9 @@
  *       error code, and sends a signed-in visitor on to `next` through the browser; /account
  *       asks for sign-in, then shows the osu! name and avatar, how many pools they own and edit
  *       with each one listed under Your pools (#pools, each linking its page and editor, and
- *       Make a pool), and the delete form; /new asks a visitor to sign in and come back, and
- *       shows a signed-in user the form. None is indexed.
+ *       Make a pool), and the delete form; /new asks a visitor to sign in and come back (with
+ *       the pool to start from), shows a signed-in user the form, filled in from ?from=<id>
+ *       when that pool is there to copy. None is indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -14,13 +15,15 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getCurrentUser, requireUser, listBuiltPoolsFor } = vi.hoisted(() => ({
+const { getCurrentUser, requireUser, listBuiltPoolsFor, startPreview } = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   requireUser: vi.fn(),
   listBuiltPoolsFor: vi.fn(),
+  startPreview: vi.fn(),
 }));
 vi.mock("@/lib/auth-session", () => ({ getCurrentUser, requireUser }));
 vi.mock("@/services/built-pools", () => ({ listBuiltPoolsFor }));
+vi.mock("@/services/built-pool-create", () => ({ startPreview }));
 vi.mock("@/lib/auth-client", () => ({ authClient: {} }));
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
@@ -45,6 +48,7 @@ const signInHtml = async (params: Record<string, string>) => {
 
 beforeEach(() => {
   getCurrentUser.mockReset();
+  startPreview.mockReset();
   requireUser.mockReset();
 });
 
@@ -127,24 +131,51 @@ const findProps = (node: unknown, match: (props: Record<string, unknown>) => boo
 };
 
 describe("/new", () => {
-  it("asks a visitor to sign in and come back to /new", async () => {
-    getCurrentUser.mockResolvedValue(null);
+  const newPage = async (params: Record<string, string> = {}) => {
     const page = await import("@/app/new/page");
-    const element = await page.default();
+    return page.default({ searchParams: Promise.resolve(params) } as PageProps<"/new">);
+  };
+
+  it("asks a visitor to sign in and come back to /new, keeping the pool to start from", async () => {
+    getCurrentUser.mockResolvedValue(null);
+    const element = await newPage();
     const html = renderToStaticMarkup(element);
     expect(html).toContain("Sign in first");
     expect(html).toContain("Sign in with osu!");
     expect(html).not.toContain("Make the pool");
     expect(findProps(element, (props) => props.next === "/new")).toBeDefined();
-    expect(page.metadata.robots).toEqual({ index: false });
+    const from = await newPage({ from: "otdb-9" });
+    expect(findProps(from, (props) => props.next === "/new?from=otdb-9")).toBeDefined();
+    expect(startPreview).not.toHaveBeenCalled();
+    expect((await import("@/app/new/page")).metadata.robots).toEqual({ index: false });
   });
 
   it("shows a signed-in user the form", async () => {
     getCurrentUser.mockResolvedValue(USER);
-    const page = await import("@/app/new/page");
-    const html = renderToStaticMarkup(await page.default());
+    const html = renderToStaticMarkup(await newPage());
     expect(html).toContain("Make the pool");
     expect(html).toContain('id="new-name"');
     expect(html).not.toContain("Sign in with osu!");
+  });
+
+  it("fills the form from the pool to start from, or says it isn't there", async () => {
+    getCurrentUser.mockResolvedValue(USER);
+    startPreview.mockResolvedValueOnce({
+      id: "otdb-9",
+      name: "OWC 2023 Finals",
+      tournament: "osu! World Cup",
+      round: "Finals",
+      year: 2023,
+      maps: 12,
+    });
+    const html = renderToStaticMarkup(await newPage({ from: "otdb-9" }));
+    expect(startPreview).toHaveBeenCalledWith("otdb-9", USER);
+    expect(html).toContain("Start from a pool");
+    expect(html).toContain("It starts with the 12 maps of OWC 2023 Finals.");
+    expect(html).toContain('value="OWC 2023 Finals"');
+    startPreview.mockResolvedValueOnce(null);
+    const missing = renderToStaticMarkup(await newPage({ from: "otdb-404" }));
+    expect(missing).toContain("That pool isn&#x27;t there to start from.");
+    expect(missing).toContain('id="new-name"');
   });
 });

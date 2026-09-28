@@ -6,7 +6,8 @@
  *       generated source id, claimed by inserting it into built_pool_ids (a clash tries another),
  *       so an id is never handed out twice, even after its pool is deleted. Starting from a pool
  *       copies its maps, buckets and details: a past pool that isn't hidden, or a built pool the
- *       caller can see. Anything typed wins over what's copied.
+ *       caller can see. Anything typed wins over what's copied. /new?from=<id> previews the pool
+ *       to start from (startPreview).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -23,6 +24,8 @@ import type { SessionUser } from "@/lib/auth";
 import { builtPoolIdsCollection, builtPoolsCollection } from "@/models/BuiltPool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 import type { CreatePoolBody } from "@/schemas/built-pool-ops";
+import type { StartFrom } from "@/schemas/built-pool-view";
+import { poolIdSchema } from "@/schemas/pool";
 import {
   type Answer,
   type BuiltPoolView,
@@ -82,6 +85,21 @@ const startingPoint = async (id: string, caller: SessionUser): Promise<Start | n
     // A built pool holds each map once: keep the first slot a map is in.
     slots: past.slots.filter(({ beatmapId }) => !seen.has(beatmapId) && !!seen.add(beatmapId)),
   };
+};
+
+/**
+ * @function startPreview
+ * @param id {string} an untrusted pool id from /new?from=
+ * @param caller {SessionUser} who's starting a pool
+ * @returns {Promise<StartFrom | null>} what /new fills in (the name cut to 64 characters) and
+ *          how many maps come along; null when there's no such pool the caller may copy
+ */
+export const startPreview = async (id: string, caller: SessionUser): Promise<StartFrom | null> => {
+  if (!poolIdSchema.safeParse(id).success) return null;
+  const start = await startingPoint(id, caller);
+  if (!start) return null;
+  const { name, tournament, round, year, slots } = start;
+  return { id, name, tournament, round, year, maps: slots.length };
 };
 
 /**

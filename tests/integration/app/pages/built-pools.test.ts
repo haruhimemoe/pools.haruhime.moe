@@ -138,6 +138,7 @@ describe("/pools/<b- id>", () => {
     const unlisted = await builtPage();
     expect(unlisted.html).toContain("Spring Cup Finals");
     expect(unlisted.html).not.toContain(`/pools/${ID}/edit`);
+    expect(unlisted.html).toContain(`href="/new?from=${ID}"`);
     expect(unlisted.metadata.robots).toEqual({ index: false });
     await (await builtPoolsCollection()).updateOne({ _id: ID }, { $set: { visibility: "public" } });
     const listed = await builtPage();

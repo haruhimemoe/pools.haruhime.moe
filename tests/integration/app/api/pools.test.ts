@@ -14,7 +14,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/pools/route";
 import { builtPoolIdsCollection, builtPoolsCollection } from "@/models/BuiltPool";
 import { poolsCollection } from "@/models/Pool";
-import { claimBuiltPoolId } from "@/services/built-pool-create";
+import { claimBuiltPoolId, startPreview } from "@/services/built-pool-create";
 import { findBuiltPool } from "@/services/built-pools";
 import { makeBuiltPool } from "../../../helpers/built-pools";
 import { setupTestDb } from "../../../helpers/db";
@@ -113,6 +113,35 @@ describe("starting from a pool", () => {
       slots: [{ mod: "NM", index: 1, beatmapId: 5 }],
       owner: { username: "editor" },
     });
+  });
+});
+
+describe("startPreview (/new?from=<id>)", () => {
+  it("previews a past pool or a built one the caller sees, and nothing else", async () => {
+    const cast = await createCast();
+    const slots = [
+      { mod: "NM", index: 1, beatmapId: 1001 },
+      { mod: "TB", index: 1, beatmapId: 1001 },
+    ];
+    await (await poolsCollection()).insertMany([
+      makePool({ _id: "otdb-9", slots }),
+      makePool({ _id: "otdb-10", hidden: true }),
+    ]);
+    await insertPool(cast, { _id: "b-a0000001", slots: slots.slice(0, 1) });
+    const owner = { ...cast.owner, avatarUrl: null, isAdmin: false };
+    expect(await startPreview("otdb-9", owner)).toEqual({
+      id: "otdb-9",
+      name: "Spring Cup 2020 Finals",
+      tournament: "Spring Cup",
+      round: "Finals",
+      year: 2020,
+      maps: 1,
+    });
+    expect(await startPreview("b-a0000001", owner)).toMatchObject({ maps: 1 });
+    const other = { ...cast.other, avatarUrl: null, isAdmin: false };
+    expect(await startPreview("b-a0000001", other)).toBeNull();
+    expect(await startPreview("otdb-10", owner)).toBeNull();
+    expect(await startPreview("Not an id!", owner)).toBeNull();
   });
 });
 

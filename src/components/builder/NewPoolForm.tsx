@@ -3,7 +3,9 @@
  * @desc "Make a pool" on /new: a name, and optionally the tournament, round and year, checked
  *       with the server's own schemas. POST /api/pools makes it (private and empty) and the
  *       browser goes on to its editor. A refusal (50 pools already, too many new pools this
- *       hour) or no answer is said in the page.
+ *       hour) or no answer is said in the page. Started from a pool (/new?from=<id>), the form
+ *       comes filled in with its details, says how many maps come with it, and sends
+ *       startedFrom, so the new pool copies its maps and buckets.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -16,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import { builtDetailsFields } from "@/schemas/built-pool";
+import type { StartFrom } from "@/schemas/built-pool-view";
 
 type Field = "name" | "tournament" | "round" | "year";
 
@@ -29,13 +32,15 @@ const FIELDS: readonly { key: Field; label: string; hint?: string }[] = [
 const readYear = (text: string) =>
   /^\d+$/.test(text) ? builtDetailsFields.year.safeParse(Number(text)) : null;
 
-export function NewPoolForm({ fetcher = fetch }: { fetcher?: Fetcher }) {
+type NewPoolFormProps = { startFrom?: StartFrom; fetcher?: Fetcher };
+
+export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<Record<Field, string>>({
-    name: "",
-    tournament: "",
-    round: "",
-    year: "",
+    name: startFrom?.name ?? "",
+    tournament: startFrom?.tournament ?? "",
+    round: startFrom?.round ?? "",
+    year: startFrom?.year === null || !startFrom ? "" : String(startFrom.year),
   });
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [failure, setFailure] = useState<string | null>(null);
@@ -58,6 +63,7 @@ export function NewPoolForm({ fetcher = fetch }: { fetcher?: Fetcher }) {
       document.getElementById(`new-${first.key}`)?.focus();
       return;
     }
+    if (startFrom) body.startedFrom = startFrom.id;
     setPending(true);
     setFailure(null);
     const answer = await callPools<{ id: string }>(fetcher, "/api/pools", { method: "POST", body });
@@ -70,6 +76,12 @@ export function NewPoolForm({ fetcher = fetch }: { fetcher?: Fetcher }) {
   };
   return (
     <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
+      {startFrom ? (
+        <p className="text-c2 text-sm">
+          It starts with the {startFrom.maps === 1 ? "1 map" : `${startFrom.maps} maps`} of{" "}
+          {startFrom.name}.
+        </p>
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         {FIELDS.map(({ key, label, hint }) => (
           <TextInput

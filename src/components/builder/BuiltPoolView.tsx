@@ -1,9 +1,12 @@
 /**
  * @file src/components/builder/BuiltPoolView.tsx
  * @desc A built pool's page: its name, tournament · round · year, map count and who can see it,
- *       "Download on packs" once its pack is synced, Edit for its owner and editors, a moderation notice when it's hidden, the notes, "Built
- *       by" (owner and editors, linking osu! profiles), the maps with their values under each
- *       slot's mods, and the summary with the content rules check. Presentational; the page loads the pool for the visitor.
+ *       "Download on packs" once its pack is synced, Edit for its owner and editors, "Start
+ *       from this pool" (to /new?from=<id>, which asks a visitor to sign in), a moderation
+ *       notice for its owner and editors when it's hidden, the notes, "Built by" (owner and
+ *       editors, linking osu! profiles), the maps with their values under each slot's mods, and
+ *       the summary with the content rules check. Presentational; the page loads the pool for
+ *       the visitor.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -16,6 +19,7 @@ import { type CheckRules, ContentRulesCheck } from "@/components/builder/Content
 import { PoolSummary } from "@/components/builder/PoolSummary";
 import { VISIBILITY_TEXT } from "@/constants/built-pools";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
+import { startFromHref } from "@/utils/pool-links";
 import { builtHeadline } from "@/utils/pool-text";
 import type { SlotValueMap } from "@/utils/slot-values";
 
@@ -50,7 +54,13 @@ export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps)
         title={pool.name}
         lead={builtHeadline(pool) || undefined}
         meta={`${count} · ${VISIBILITY_TEXT[pool.visibility].label}`}
-        actions={download || edit ? <>{[download, edit]}</> : null}
+        actions={[
+          download,
+          edit,
+          <ButtonLink key="start" href={startFromHref(pool.id)} variant="secondary">
+            Start from this pool
+          </ButtonLink>,
+        ]}
       />
       {pool.hidden ? (
         <Notice tone="warning">
