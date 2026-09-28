@@ -100,7 +100,7 @@ export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) 
       ) : (
         <ul className="flex flex-col gap-3">
           {data.sets.map((set) => (
-            <BrowseSetCard key={set.setId} set={set} {...cards} />
+            <BrowseSetCard key={set.setId} set={set} lens={data.lens} {...cards} />
           ))}
         </ul>
       )}

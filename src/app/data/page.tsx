@@ -77,7 +77,8 @@ export default function DataPage() {
             ratings, AR, OD and CS with mods come from the hinai mirror's precomputed values and can
             differ slightly from osu!'s; BPM and length are worked out from the mod. A map the
             mirror has no mod data for shows its no-mod rating, marked "no mod data". The map
-            browser works the same way, and searches Qualified and Pending maps without mods.
+            browser shows the mirror's rating under the lens, marks AR, OD and CS it had to work out
+            "no mod data", and searches Qualified and Pending maps without mods.
           </p>
           <p>
             Where a map was played before comes from the pools on this site, so it only knows the

@@ -3,9 +3,10 @@
  * @desc Where the map browser's Add goes and which lens a bucket opens it with. A bucket's lens:
  *       NM, HD, HR and DT as themselves, FM, TB, free and no-mod custom slots as NM, a custom
  *       slot's forced mods as their combo (NM when the mirror doesn't offer it). Add's default:
- *       the bucket "Find maps" opened the browser for while the lens still matches it, else
- *       NM, HD, HR or DT for those lenses, else the custom slot forced to exactly the lens's
- *       mods, else none (the picker asks).
+ *       the bucket "Find maps" opened the browser for while the lens still matches it or is the
+ *       one Find maps set, else NM, HD, HR or DT for those lenses, else the custom slot forced to
+ *       exactly the lens's mods, else none (the picker asks). Find maps' state: the bucket's lens,
+ *       page 1, and Ranked instead of Qualified or Pending.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -14,7 +15,8 @@
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { describe, expect, it } from "vitest";
 import { BROWSE_LENSES } from "@/constants/browse";
-import { bucketLens, defaultBucketFor, lensForBucket } from "@/utils/browse-add";
+import { bucketLens, defaultBucketFor, findMapsState, lensForBucket } from "@/utils/browse-add";
+import { DEFAULT_BROWSE_STATE } from "@/utils/browse-state";
 
 const BUILT_IN = ["NM", "HD", "HR", "DT", "FM", "TB"].map((code) => ({ code })) as BucketEntry[];
 const forced = (code: string, set: string[]) =>
@@ -70,10 +72,37 @@ describe("defaultBucketFor", () => {
   });
 
   it("prefers the slot Find maps opened it for while the lens still matches that slot", () => {
-    expect(defaultBucketFor("NM", BUCKETS, "FM")).toBe("FM");
-    expect(defaultBucketFor("NM", BUCKETS, "TB")).toBe("TB");
-    expect(defaultBucketFor("NM", BUCKETS, "Free")).toBe("Free");
-    expect(defaultBucketFor("HR", BUCKETS, "FM")).toBe("HR");
-    expect(defaultBucketFor("NM", BUCKETS, "Gone")).toBe("NM");
+    const opened = (bucket: string) => ({ bucket, lens: "NM" });
+    expect(defaultBucketFor("NM", BUCKETS, opened("FM"))).toBe("FM");
+    expect(defaultBucketFor("NM", BUCKETS, opened("TB"))).toBe("TB");
+    expect(defaultBucketFor("NM", BUCKETS, opened("Free"))).toBe("Free");
+    expect(defaultBucketFor("HR", BUCKETS, opened("FM"))).toBe("HR");
+    expect(defaultBucketFor("NM", BUCKETS, opened("Gone"))).toBe("NM");
+  });
+
+  it("keeps a slot whose combo isn't a lens while the lens is the one Find maps opened", () => {
+    const withHdfl = [...BUCKETS, forced("HDFL", ["HD", "FL"])];
+    const opened = { bucket: "HDFL", lens: "NM" };
+    expect(defaultBucketFor("NM", withHdfl, opened)).toBe("HDFL");
+    expect(defaultBucketFor("HR", withHdfl, opened)).toBe("HR");
+  });
+});
+
+describe("findMapsState", () => {
+  const lenses = ["NM", "HD", "HR", "DT"];
+  it("opens with the bucket's lens on page 1, keeping the other filters", () => {
+    const state = { ...DEFAULT_BROWSE_STATE, q: "xi", page: 4, status: "loved" as const };
+    expect(findMapsState(state, { code: "DT" } as BucketEntry, lenses)).toEqual({
+      ...state,
+      lens: "DT",
+      page: 1,
+    });
+  });
+
+  it("goes back to Ranked from Qualified or Pending, which have no mod data", () => {
+    for (const status of ["qualified", "pending"] as const) {
+      const state = { ...DEFAULT_BROWSE_STATE, status };
+      expect(findMapsState(state, HDHR, lenses)).toMatchObject({ status: "ranked", lens: "NM" });
+    }
   });
 });

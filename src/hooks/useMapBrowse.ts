@@ -5,7 +5,9 @@
  *       go out with a search ("hide maps in this pool") but adding one doesn't search again, so
  *       the page doesn't jump under the person adding. While a new search loads, the last page
  *       stays. A failure (the route's 503, a 429, no answer) drops it (no stale sets) and carries
- *       the route's message, else "Map search isn't working right now."; retry() asks again. Waits while `enabled` is false (the URL not read yet).
+ *       the route's message, else "Map search isn't working right now."; retry() asks again.
+ *       `fresh` says the page answers the state as it is now (not an older search's page still
+ *       on screen). Waits while `enabled` is false (the URL not read yet).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -23,8 +25,12 @@ export type MapBrowse = {
   status: "loading" | "ready" | "error";
   data: BrowseResponse | null;
   error: string | null;
+  /** The page is the answer to the state as it is now. */
+  fresh: boolean;
   retry: () => void;
 };
+
+type Result = Omit<MapBrowse, "retry" | "fresh"> & { key: string | null };
 
 type Options = { fetcher?: typeof fetch; enabled?: boolean; delayMs?: number };
 
@@ -46,10 +52,11 @@ export const useMapBrowse = (
   poolIds: readonly number[],
   { fetcher = fetch, enabled = true, delayMs = FETCH_DELAY_MS }: Options = {},
 ): MapBrowse => {
-  const [result, setResult] = useState<Omit<MapBrowse, "retry">>({
+  const [result, setResult] = useState<Result>({
     status: "loading",
     data: null,
     error: null,
+    key: null,
   });
   const [attempt, setAttempt] = useState(0);
   const latest = useRef({ state, poolIds });
@@ -67,13 +74,13 @@ export const useMapBrowse = (
         const body: unknown = await response.json().catch(() => null);
         if (controller.signal.aborted) return;
         if (!response.ok || typeof body !== "object" || body === null || !("sets" in body)) {
-          setResult({ status: "error", data: null, error: errorOf(body) ?? BROWSE_FAILED });
+          setResult({ status: "error", data: null, error: errorOf(body) ?? BROWSE_FAILED, key });
           return;
         }
-        setResult({ status: "ready", data: body as BrowseResponse, error: null });
+        setResult({ status: "ready", data: body as BrowseResponse, error: null, key });
       } catch {
         if (controller.signal.aborted) return;
-        setResult({ status: "error", data: null, error: BROWSE_FAILED });
+        setResult({ status: "error", data: null, error: BROWSE_FAILED, key });
       }
     }, delayMs);
     return () => {
@@ -82,5 +89,6 @@ export const useMapBrowse = (
     };
   }, [key, attempt, enabled, fetcher, delayMs]);
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
-  return { ...result, retry };
+  const { key: answered, ...rest } = result;
+  return { ...rest, fresh: rest.status === "ready" && answered === key, retry };
 };

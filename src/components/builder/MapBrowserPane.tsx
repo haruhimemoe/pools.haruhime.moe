@@ -3,10 +3,14 @@
  * @desc The editor's map browser (GET /api/maps/browse): filters under a mod lens, results with
  *       values under it, and Add on each difficulty. Its props are the editor's interface: the
  *       pool's buckets and beatmap ids ("hide maps in this pool", "In this pool"), the bucket a
- *       "Find maps" opened it for (its mods set the lens, and Add goes there while the lens still
- *       matches), a count that brings focus here on each press, and onAdd. Its state lives in the
- *       editor URL's `browse` param (read once mounted, written with history.replaceState so the
- *       page doesn't reload), so a refresh keeps it. The lenses come from the answer.
+ *       "Find maps" opened it for (its mods set the lens, Qualified and Pending go back to Ranked,
+ *       and Add goes there while the lens is the one it set or still matches), a count that
+ *       brings focus here on each press, and onAdd. Its state lives in the editor URL's `browse`
+ *       param (read once mounted, written with history.replaceState so the page doesn't reload),
+ *       so a refresh keeps it. The lenses come from the answer, and so does the lens Add and the
+ *       range labels go by (the page on screen is under it, even while a new lens loads); when
+ *       the answer to the current search is under another lens (one the mirror doesn't offer),
+ *       the state snaps to it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -22,10 +26,11 @@ import { BrowseResults } from "@/components/builder/BrowseResults";
 import { BROWSE_LENSES } from "@/constants/browse";
 import { SEARCH_FAILED_COUNT } from "@/constants/search";
 import { useMapBrowse } from "@/hooks/useMapBrowse";
-import { defaultBucketFor, lensForBucket } from "@/utils/browse-add";
+import { defaultBucketFor, findMapsState, lensForBucket, type OpenedFor } from "@/utils/browse-add";
 import {
   DEFAULT_BROWSE_STATE,
   editorSearchFor,
+  isLensStatus,
   lensOf,
   readBrowseState,
 } from "@/utils/browse-state";
@@ -50,6 +55,7 @@ export function MapBrowserPane(props: MapBrowserProps) {
   const heading = useRef<HTMLHeadingElement>(null);
   const [state, setState] = useState(DEFAULT_BROWSE_STATE);
   const [urlRead, setUrlRead] = useState(false);
+  const [opened, setOpened] = useState<OpenedFor | null>(null);
   const browse = useMapBrowse(state, poolIds, {
     enabled: urlRead,
     ...(fetcher ? { fetcher } : {}),
@@ -75,11 +81,20 @@ export function MapBrowserPane(props: MapBrowserProps) {
   useEffect(() => {
     if (openCount === 0) return;
     const entry = buckets.find((bucket) => bucket.code === openedFor);
-    if (entry) setState((s) => ({ ...s, lens: lensForBucket(entry, lensList.current), page: 1 }));
+    if (entry) {
+      setState((s) => findMapsState(s, entry, lensList.current));
+      setOpened({ bucket: entry.code, lens: lensForBucket(entry, lensList.current) });
+    }
     heading.current?.focus();
   }, [openCount]);
 
-  const lens = lensOf(state);
+  const answered = browse.data?.lens ?? null;
+  useEffect(() => {
+    if (!browse.fresh || answered === null || !isLensStatus(state.status)) return;
+    if (answered !== state.lens) setState((s) => ({ ...s, lens: answered }));
+  }, [browse.fresh, answered, state.status, state.lens]);
+
+  const lens = answered ?? lensOf(state);
   const count =
     browse.status === "error"
       ? SEARCH_FAILED_COUNT
@@ -92,11 +107,17 @@ export function MapBrowserPane(props: MapBrowserProps) {
         Find maps
       </h2>
       <div className="flex flex-col gap-4">
-        <BrowseFilters state={state} lenses={lenses} onChange={setState} resultCount={count} />
+        <BrowseFilters
+          state={state}
+          lenses={lenses}
+          valuesLens={lens}
+          onChange={setState}
+          resultCount={count}
+        />
         <BrowseResults
           browse={browse}
           buckets={buckets}
-          defaultBucket={defaultBucketFor(lens, buckets, openedFor)}
+          defaultBucket={defaultBucketFor(lens, buckets, opened)}
           poolIds={new Set(poolIds)}
           onAdd={onAdd}
           onPage={(page) => setState((s) => ({ ...s, page }))}

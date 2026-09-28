@@ -2,7 +2,8 @@
  * @file tests/helpers/browse-pane.tsx
  * @desc For the map browser's component tests: a set and a difficulty as the route sends them,
  *       and the pane rendered over a fake fetch (no network) that answers every search from the
- *       test's function and records each URL, with the Add calls and a user-event session.
+ *       test's function (by default one set under the lens asked for) and records each URL, with
+ *       the Add calls and a user-event session.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -13,6 +14,7 @@ import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { MapBrowserPane } from "@/components/builder/MapBrowserPane";
+import type { BrowseLens } from "@/constants/browse";
 import type { BrowseDiff, BrowseSet } from "@/utils/browse-params";
 import { browsePage, DEFAULT_BUCKETS } from "./pool-editor";
 
@@ -47,6 +49,14 @@ export const set = (
   ...over,
 });
 
+/**
+ * @function lensAsked
+ * @param url {URL} a search's URL
+ * @returns {BrowseLens} the lens it asks for (NM without one), as a route that offers it answers
+ */
+export const lensAsked = (url: URL): BrowseLens =>
+  (url.searchParams.get("lens") ?? "NM") as BrowseLens;
+
 type PaneOptions = {
   buckets?: readonly BucketEntry[];
   poolIds?: readonly number[];
@@ -63,7 +73,8 @@ type PaneOptions = {
 export const renderPane = ({
   buckets = DEFAULT_BUCKETS,
   poolIds = [],
-  answer = () => Response.json(browsePage({ sets: [set(1, [diff(11), diff(12)])] })),
+  answer = (url) =>
+    Response.json(browsePage({ lens: lensAsked(url), sets: [set(1, [diff(11), diff(12)])] })),
 }: PaneOptions = {}) => {
   const urls: URL[] = [];
   const fetcher = vi.fn(async (input: RequestInfo | URL) => {

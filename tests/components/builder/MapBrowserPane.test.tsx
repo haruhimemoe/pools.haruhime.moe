@@ -3,7 +3,9 @@
  * @desc The map browser in the editor: each set with its tags and each difficulty with values
  *       under the lens, played-in links and what the page left out; the failure (with Retry),
  *       empty and loading states; Qualified and Pending forcing the lens to NM (and taking the
- *       explicit checkbox, which the other statuses replace with a line); the filters in the
+ *       explicit checkbox, which the other statuses replace with a line); the lens of the page on
+ *       screen naming the ranges and Add (snapping to the answer's lens, kept while a new lens
+ *       loads) and "no mod data" on values worked out without the mirror's; the filters in the
  *       editor URL's browse param. Add, the picker and the keyboard are in
  *       MapBrowserAdd.test.tsx. A fake fetch answers; nothing reaches the network.
  * @author David @dvhsh (https://dvh.sh)
@@ -16,7 +18,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EXPLICIT_LINE, NO_MOD_VALUES } from "@/components/builder/BrowseFilters";
 import { MOD_VALUES_NOTE } from "@/components/builder/BrowseResults";
 import { UNRANKED_WARNING } from "@/constants/search";
-import { diff, renderPane, set } from "../../helpers/browse-pane";
+import { diff, lensAsked, renderPane, set } from "../../helpers/browse-pane";
 import { browsePage } from "../../helpers/pool-editor";
 
 const home = () => window.history.replaceState(null, "", "/pools/b-a0000001/edit");
@@ -70,6 +72,20 @@ describe("MapBrowserPane results", () => {
     expect(screen.getByText(UNRANKED_WARNING)).toBeInTheDocument();
     expect(screen.getByText(MOD_VALUES_NOTE)).toBeInTheDocument();
     expect(screen.getByText("2 sets on this page")).toBeInTheDocument();
+  });
+
+  it("marks values worked out without the mirror's mod data, under a mod lens only", async () => {
+    const sets = [set(1, [diff(11, { source: "math" }), diff(12)])];
+    const { user } = renderPane({
+      answer: (url) => Response.json(browsePage({ lens: lensAsked(url), sets })),
+    });
+    const row = async (id: number) =>
+      (await screen.findByText("xi - Song 1")).closest("li")?.querySelector(`[data-diff="${id}"]`);
+    expect(await row(11)).not.toHaveTextContent("no mod data");
+    await user.selectOptions(screen.getByRole("combobox", { name: /Values under/ }), "HR");
+    await screen.findByRole("group", { name: "Stars (HR)" });
+    expect(await row(11)).toHaveTextContent("AR 10 · OD 9.5 · CS 4.5 (no mod data)");
+    expect(await row(12)).not.toHaveTextContent("no mod data");
   });
 
   it("says when nothing on the page matches", async () => {
@@ -141,9 +157,49 @@ describe("MapBrowserPane lens and statuses", () => {
   it("names the ranges with the lens they're under", async () => {
     const { user } = renderPane();
     await user.selectOptions(await screen.findByRole("combobox", { name: /Values under/ }), "DT");
-    for (const name of ["Stars", "BPM", "Length", "AR", "OD"]) {
+    await screen.findByRole("group", { name: "Stars (DT)" });
+    for (const name of ["BPM", "Length", "AR", "OD"]) {
       expect(screen.getByRole("group", { name: `${name} (DT)` })).toBeInTheDocument();
     }
+  });
+
+  it("snaps to the lens the answer is under when the mirror doesn't offer the one asked", async () => {
+    window.history.replaceState(null, "", "/pools/b-a0000001/edit?browse=lens%3DEZHT");
+    renderPane({
+      answer: () =>
+        Response.json(
+          browsePage({ lens: "NM", lenses: ["NM", "HD", "HR", "DT"], sets: [set(1, [diff(11)])] }),
+        ),
+    });
+    expect(await screen.findByRole("button", { name: "Add Diff 11 to NM" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Stars (NM)" })).toBeInTheDocument();
+    await vi.waitFor(() =>
+      expect(screen.getByRole("combobox", { name: /Values under/ })).toHaveValue("NM"),
+    );
+    await vi.waitFor(() => expect(window.location.search).toBe(""));
+  });
+
+  it("keeps the page on screen under its own lens while a new lens loads", async () => {
+    let release = () => {};
+    const answer = (url: URL) => {
+      const reply = () =>
+        Response.json(browsePage({ lens: lensAsked(url), sets: [set(1, [diff(11)])] }));
+      if (lensAsked(url) !== "HR") return reply();
+      return new Promise<Response>((resolve) => {
+        release = () => resolve(reply());
+      });
+    };
+    const { user, urls } = renderPane({ answer });
+    const lens = await screen.findByRole("combobox", { name: /Values under/ });
+    await screen.findByRole("button", { name: "Add Diff 11 to NM" });
+    await user.selectOptions(lens, "HR");
+    await vi.waitFor(() => expect(urls.at(-1)?.search).toBe("?lens=HR"));
+    expect(screen.getByRole("button", { name: "Add Diff 11 to NM" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Stars (NM)" })).toBeInTheDocument();
+    expect(lens).toHaveValue("HR");
+    release();
+    expect(await screen.findByRole("button", { name: "Add Diff 11 to HR" })).toBeInTheDocument();
+    expect(lens).toHaveValue("HR");
   });
 });
 

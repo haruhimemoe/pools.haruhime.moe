@@ -33,6 +33,8 @@ export const EXPLICIT_LINE = "Mod searches can include explicit maps.";
 type BrowseFiltersProps = {
   state: BrowseState;
   lenses: readonly string[];
+  /** The lens the page on screen is under, for the range labels. */
+  valuesLens: string;
   onChange: (next: BrowseState) => void;
   resultCount: ReactNode;
 };
@@ -43,7 +45,8 @@ const isActive = (state: BrowseState): boolean => {
   return JSON.stringify(rest) !== JSON.stringify(defaults);
 };
 
-export function BrowseFilters({ state, lenses, onChange, resultCount }: BrowseFiltersProps) {
+export function BrowseFilters(props: BrowseFiltersProps) {
+  const { state, lenses, valuesLens, onChange, resultCount } = props;
   const set = (patch: Partial<BrowseState>) => onChange({ ...state, ...patch, page: 1 });
   const withMods = isLensStatus(state.status);
   const lens = lensOf(state);
@@ -99,7 +102,11 @@ export function BrowseFilters({ state, lenses, onChange, resultCount }: BrowseFi
           </Select>
         </FilterRow>
       ) : null}
-      <BrowseRanges state={state} lens={lens} onChange={(key, value) => set({ [key]: value })} />
+      <BrowseRanges
+        state={state}
+        lens={valuesLens}
+        onChange={(key, value) => set({ [key]: value })}
+      />
       <FilterRow label="Hide">
         <div className="flex flex-col gap-2">
           <Checkbox

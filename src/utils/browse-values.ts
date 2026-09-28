@@ -4,8 +4,8 @@
  *       arrives. BPM and length always come from the row's no-mod values and the mod math (the
  *       mirror's rows aren't adjusted); AR, OD and CS come from the mirror's pp/batch when it
  *       has the map ("mirror"), else from no-mod values and the math ("math": the page says
- *       "no mod data"), else they're unknown. AR, OD, CS and BPM are rounded to 2 decimals,
- *       length to whole seconds. Pure, and safe in the browser.
+ *       "no mod data" under a mod lens), else they're unknown. AR, OD, CS and BPM are rounded
+ *       to 2 decimals, length to whole seconds. Pure, and safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026

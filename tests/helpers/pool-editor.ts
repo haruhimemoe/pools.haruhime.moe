@@ -14,6 +14,7 @@
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import { vi } from "vitest";
+import type { BrowseLens } from "@/constants/browse";
 import type { Fetcher } from "@/lib/pool-client";
 import type { BuiltMap, ClientPack, ClientPool } from "@/schemas/built-pool-view";
 import type { BrowseResponse } from "@/utils/browse-params";
@@ -119,7 +120,8 @@ type Answer = (call: Call) => Response | Promise<Response>;
 export const fakePoolApi = (initial: ClientPool) => {
   let pool = initial;
   let details: BuiltMap[] = [];
-  let browse: (url: URL) => Response = () => Response.json(browsePage());
+  let browse: (url: URL) => Response = (url) =>
+    Response.json(browsePage({ lens: (url.searchParams.get("lens") ?? "NM") as BrowseLens }));
   let values: (current: ClientPool) => SlotValueMap = () => ({});
   const browseCalls: URL[] = [];
   const valueCalls: string[] = [];

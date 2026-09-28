@@ -4,7 +4,9 @@
  *       slot forced to the lens's mods; the slot Find maps opened it for while the lens matches),
  *       and with no match it opens the slot picker instead; "Choose slot" opens it for any slot
  *       or none; Escape and Cancel close it and give focus back to Add; a map in the pool can't
- *       be added again; all of it works from the keyboard. In the editor, Add sends addMap.
+ *       be added again; all of it works from the keyboard. Find maps keeps its slot even when its
+ *       mods aren't a lens, and goes back to Ranked from Qualified. In the editor, Add sends
+ *       addMap, and a 409 takes the server's pool with the notice.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -13,8 +15,9 @@
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CONFLICT } from "@/hooks/usePoolEditor";
 import { diff, renderPane, set } from "../../helpers/browse-pane";
-import { browsePage, clientPool, DEFAULT_BUCKETS } from "../../helpers/pool-editor";
+import { browsePage, clientPool, DEFAULT_BUCKETS, nm } from "../../helpers/pool-editor";
 import { renderEditor } from "../../helpers/render-editor";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }));
@@ -26,9 +29,14 @@ afterEach(home);
 const EZ = { code: "EZ", color: 0, mods: { kind: "forced", set: ["EZ"] } } as BucketEntry;
 const BUCKETS = [...DEFAULT_BUCKETS.slice(0, 5), EZ, DEFAULT_BUCKETS[5]] as BucketEntry[];
 
+/**
+ * Picks a lens once a page is on screen and waits for the answer under it: the ranges name the
+ * lens of the page on screen, so they change only when that answer comes.
+ */
 const underLens = async (user: ReturnType<typeof renderPane>["user"], lens: string) => {
-  await user.selectOptions(await screen.findByRole("combobox", { name: /Values under/ }), lens);
   await screen.findByText("xi - Song 1");
+  await user.selectOptions(screen.getByRole("combobox", { name: /Values under/ }), lens);
+  await screen.findByRole("group", { name: `Stars (${lens})` });
 };
 
 describe("Add", () => {
@@ -51,6 +59,24 @@ describe("Add", () => {
     expect(onAdd).toHaveBeenCalledWith(11, "FM");
     await underLens(user, "HD");
     expect(screen.getByRole("button", { name: "Add Diff 11 to HD" })).toBeInTheDocument();
+  });
+
+  it("keeps the slot Find maps opened it for when its mods aren't a lens", async () => {
+    const HDFL = { code: "HDFL", color: 1, mods: { kind: "forced", set: ["HD", "FL"] } };
+    const { user, onAdd, rerender } = renderPane({ buckets: [...BUCKETS, HDFL] as BucketEntry[] });
+    rerender({ openedFor: "HDFL", openCount: 1 });
+    await user.click(await screen.findByRole("button", { name: "Add Diff 11 to HDFL" }));
+    expect(onAdd).toHaveBeenCalledWith(11, "HDFL");
+  });
+
+  it("goes back to Ranked when Find maps is pressed on Qualified", async () => {
+    const { user, onAdd, rerender } = renderPane();
+    await user.click(await screen.findByRole("radio", { name: "Qualified" }));
+    rerender({ openedFor: "DT", openCount: 1 });
+    expect(screen.getByRole("radio", { name: "Ranked" })).toBeChecked();
+    expect(screen.getByRole("combobox", { name: /Values under/ })).toHaveValue("DT");
+    await user.click(await screen.findByRole("button", { name: "Add Diff 11 to DT" }));
+    expect(onAdd).toHaveBeenCalledWith(11, "DT");
   });
 
   it("opens the slot picker when no slot matches the lens", async () => {
@@ -128,5 +154,19 @@ describe("Add in the editor", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Diff 77 is in this pool" })).toBeInTheDocument(),
     );
+  });
+
+  it("takes the pool the server sent on a 409, and says the add wasn't saved", async () => {
+    const { api, user, order } = renderEditor(clientPool());
+    api.browse = browsePage({ sets: [set(1, [diff(77)])] });
+    const theirs = clientPool({ version: 9, slots: [nm(1, 10)] });
+    api.next(() =>
+      Response.json({ error: { code: "conflict", message: "x" }, pool: theirs }, { status: 409 }),
+    );
+    api.pool = theirs;
+    await user.click(await screen.findByRole("button", { name: "Add Diff 77 to NM" }));
+    expect(await screen.findByText(CONFLICT)).toBeInTheDocument();
+    expect(order()).toEqual([10]);
+    expect(screen.getByRole("button", { name: "Add Diff 77 to NM" })).toBeInTheDocument();
   });
 });

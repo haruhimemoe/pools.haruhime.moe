@@ -3,8 +3,10 @@
  * @desc One beatmapset in the map browser: artist, title (a link to it on osu!), mapper, its
  *       status, an Unranked tag and "Check first" with why; then each osu!standard difficulty
  *       with its values under the lens (stars, with the no-mod rating small beside them when
- *       they differ; AR, OD, CS, BPM, length), how many past pools played it (a link to its map
- *       page), and Add (which says "In this pool" for a map the pool has). Presentational.
+ *       they differ; AR, OD, CS, BPM, length; under a mod lens, "no mod data" beside AR, OD and CS
+ *       the mirror had no values for, so they're worked out), how many past pools played it (a
+ *       link to its map page), and Add (which says "In this pool" for a map the pool has).
+ *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -20,6 +22,8 @@ import { starsText } from "@/utils/pool-text";
 
 type BrowseSetCardProps = {
   set: BrowseSet;
+  /** The lens the page is under. */
+  lens: string;
   buckets: readonly BucketEntry[];
   defaultBucket: string | null;
   poolIds: ReadonlySet<number>;
@@ -42,7 +46,8 @@ const played = ({ id, playedIn }: BrowseDiff) => {
   );
 };
 
-export function BrowseSetCard({ set, buckets, defaultBucket, poolIds, onAdd }: BrowseSetCardProps) {
+export function BrowseSetCard(props: BrowseSetCardProps) {
+  const { set, lens, buckets, defaultBucket, poolIds, onAdd } = props;
   return (
     <li className="rounded-lg bg-b4 p-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -74,6 +79,9 @@ export function BrowseSetCard({ set, buckets, defaultBucket, poolIds, onAdd }: B
               </span>
               <span>
                 {[stat("AR", diff.ar), stat("OD", diff.od), stat("CS", diff.cs)].join(" · ")}
+                {diff.source === "math" && lens !== "NM" ? (
+                  <span className="text-c3 text-xs"> (no mod data)</span>
+                ) : null}
               </span>
               <span>{`${formatBpm(diff.bpm)} BPM · ${formatDuration(diff.length)}`}</span>
             </div>
