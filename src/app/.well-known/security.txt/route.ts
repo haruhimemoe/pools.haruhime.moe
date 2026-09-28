@@ -1,7 +1,8 @@
 /**
  * @file src/app/.well-known/security.txt/route.ts
- * @desc GET /.well-known/security.txt (RFC 9116). Static: built on deploy, so Expires is a year
- *       from the last deploy.
+ * @desc GET /.well-known/security.txt (RFC 9116), from next-kit's buildSecurityTxt: GitHub
+ *       private vulnerability reporting first, then the email, as SECURITY.md orders them.
+ *       Static: built on deploy, so Expires is a year from the last deploy.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
@@ -24,7 +25,8 @@ export function GET() {
     policyUrl: `${SITE.repoUrl}/blob/main/SECURITY.md`,
     now: new Date(),
   });
-  return new Response(body, {
+  // RFC 9116 lists contacts in order of preference: GitHub's private reporting comes first.
+  return new Response(`Contact: ${SITE.advisoriesUrl}\n${body}`, {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 }

@@ -1,6 +1,11 @@
 # Security
 
-Please report vulnerabilities privately to **contact@haruhime.moe** instead of opening an issue or posting in the Discord server. Include steps to reproduce and the impact you expect. You'll get a reply within 7 days.
+Please report vulnerabilities privately, not in an issue or the Discord server:
+
+1. **GitHub private vulnerability reporting** (preferred): [report a vulnerability](https://github.com/haruhimemoe/pools.haruhime.moe/security/advisories/new) on this repository.
+2. **Email**: contact@haruhime.moe, if you can't use GitHub.
+
+Include steps to reproduce and the impact you expect. You'll get a reply within 7 days.
 
 In scope: this repository and the live site at https://pools.haruhime.moe (in beta), its JSON routes (`/api/search`, including the all-maps search it passes to the mirror, and `/api/check`), its osu! sign-in, account deletion (`/api/account`), the pool builder routes (`/api/pools`) and admin routes (including adding a pool at `/api/admin/pools`). Pool credit links are typed by admins and open with `rel="nofollow ugc noopener"`; report one that could harm visitors the same way. Only the current `main` branch and the live site are supported.
 

@@ -23,6 +23,8 @@ export const SITE = {
   discordUrl: "https://discord.gg/bKy9kjMV4y",
   /** Public source repository, linked from the footer. */
   repoUrl: "https://github.com/haruhimemoe/pools.haruhime.moe",
+  /** GitHub private vulnerability reporting, the first way to report one (SECURITY.md). */
+  advisoriesUrl: "https://github.com/haruhimemoe/pools.haruhime.moe/security/advisories/new",
   /** The parent brand, linked from the footer wordmark. */
   parentUrl: "https://www.haruhime.moe",
   /** The GitHub organization, linked from the footer's GitHub mark. */
