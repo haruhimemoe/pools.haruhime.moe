@@ -17,9 +17,10 @@ import type { z } from "zod";
 import type { RateLimitRule } from "@/constants/api";
 import { MAX_POOL_BODY_BYTES } from "@/constants/built-pools";
 import { refuseCrossSite } from "@/lib/api";
-import { getUserFromHeaders, type SessionUser } from "@/lib/auth";
+import { getUserFromHeaders } from "@/lib/auth";
 import { refuseOverLimit } from "@/lib/rate-limit";
-import type { Refusal } from "@/services/built-pools";
+import type { SessionUser } from "@/schemas/session-user";
+import type { Refusal } from "@/utils/built-answer";
 
 export type Guarded<T> = { ok: true; value: T } | { ok: false; response: Response };
 

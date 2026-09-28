@@ -16,7 +16,8 @@ import type { BuiltPackState, Visibility } from "@/constants/built-pools";
 import { BUILT_POOL_INDEXES, QUERY_TIME_MS } from "@/constants/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
-import { markPackPending, ownerNamesOf, readBuiltPool } from "@/services/built-pools";
+import { ownerNamesOf, readBuiltPool } from "@/services/built-pool-read";
+import { markPackPending } from "@/services/built-pools";
 
 /** Built pools /admin lists. */
 export const ADMIN_BUILT_LIMIT = 50;

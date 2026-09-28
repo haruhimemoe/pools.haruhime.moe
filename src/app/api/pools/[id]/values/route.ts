@@ -17,7 +17,7 @@ import { RATE_LIMITS } from "@/constants/api";
 import { getUserFromHeaders } from "@/lib/auth";
 import { limitUser, poolResponse, refusalResponse } from "@/lib/pool-routes";
 import { getBuiltMaps } from "@/services/built-pool-maps";
-import { loadFor } from "@/services/built-pools";
+import { loadFor } from "@/services/built-pool-read";
 import { builtSlotValues } from "@/services/slot-values";
 
 type Context = { params: Promise<{ id: string }> };

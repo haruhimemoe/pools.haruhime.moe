@@ -15,24 +15,17 @@
 import "server-only";
 import { userSubject } from "@haruhimemoe/next-kit/server";
 import { MAX_EDITORS } from "@/constants/built-pools";
-import type { SessionUser } from "@/lib/auth";
 import { connectedDb } from "@/lib/db";
 import { osuBudget } from "@/lib/osu";
 import { lookupOsuUser, type OsuUserLookup } from "@/lib/osu-users";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { BuiltEditor } from "@/schemas/built-pool";
+import type { SessionUser } from "@/schemas/session-user";
 import { recordFor } from "@/services/built-pool-activity";
-import {
-  type Answer,
-  type BuiltPoolView,
-  loadFor,
-  markPackPending,
-  NOT_FOUND,
-  readBuiltPool,
-  refuse,
-  viewOf,
-} from "@/services/built-pools";
+import { loadFor, readBuiltPool, viewOf } from "@/services/built-pool-read";
+import { markPackPending } from "@/services/built-pools";
 import { editorActivity } from "@/utils/activity";
+import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
 
 export type LookupUser = (
   username: string,

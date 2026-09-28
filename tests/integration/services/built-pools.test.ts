@@ -17,13 +17,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { linkNewEditor } from "@/lib/auth";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { applyBuiltPoolOps } from "@/services/built-pool-ops";
-import {
-  deleteBuiltPool,
-  findBuiltPool,
-  getBuiltPoolFor,
-  listBuiltPoolsFor,
-  setBuiltPoolVisibility,
-} from "@/services/built-pools";
+import { findBuiltPool, getBuiltPoolFor } from "@/services/built-pool-read";
+import { deleteBuiltPool, listBuiltPoolsFor, setBuiltPoolVisibility } from "@/services/built-pools";
 import { packCleanupCollection } from "@/services/pack-cleanup";
 import { EMPTY_BUILT_PACK, PACK_GONE } from "@/utils/built-pack";
 import { makeBuiltPool } from "../../helpers/built-pools";

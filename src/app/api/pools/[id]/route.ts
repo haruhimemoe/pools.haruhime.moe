@@ -8,7 +8,7 @@
  *       gone anyway; the removal is retried later). Never cached: the answer depends on who asks.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { RATE_LIMITS } from "@/constants/api";
@@ -17,7 +17,8 @@ import { getUserFromHeaders } from "@/lib/auth";
 import { schedulePackSync } from "@/lib/pack-sync-after";
 import { guardWrite, limitUser, noContent, poolResponse, refusalResponse } from "@/lib/pool-routes";
 import { revalidateBuiltLists } from "@/lib/revalidate";
-import { deleteBuiltPool, getBuiltPoolFor } from "@/services/built-pools";
+import { getBuiltPoolFor } from "@/services/built-pool-read";
+import { deleteBuiltPool } from "@/services/built-pools";
 import { packWaiting } from "@/utils/built-pack";
 
 type Context = { params: Promise<{ id: string }> };

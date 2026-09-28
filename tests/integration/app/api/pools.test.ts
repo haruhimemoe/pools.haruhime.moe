@@ -15,7 +15,7 @@ import { POST } from "@/app/api/pools/route";
 import { builtPoolIdsCollection, builtPoolsCollection } from "@/models/BuiltPool";
 import { poolsCollection } from "@/models/Pool";
 import { claimBuiltPoolId, startPreview } from "@/services/built-pool-create";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { makeBuiltPool } from "../../../helpers/built-pools";
 import { setupTestDb } from "../../../helpers/db";
 import { createCast, insertPool, poolRequest } from "../../../helpers/pool-requests";

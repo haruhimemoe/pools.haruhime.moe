@@ -21,24 +21,18 @@ import {
   BUILT_POOL_ID_PREFIX,
   MAX_POOLS_PER_OWNER,
 } from "@/constants/built-pools";
-import type { SessionUser } from "@/lib/auth";
 import { builtPoolIdsCollection, builtPoolsCollection } from "@/models/BuiltPool";
 import { passingNotes } from "@/schemas/built-plan";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 import type { CreatePoolBody } from "@/schemas/built-pool-ops";
 import type { StartFrom } from "@/schemas/built-pool-view";
 import { poolIdSchema } from "@/schemas/pool";
-import {
-  type Answer,
-  type BuiltPoolView,
-  findBuiltPool,
-  refuse,
-  toStored,
-  viewOf,
-} from "@/services/built-pools";
+import type { SessionUser } from "@/schemas/session-user";
+import { findBuiltPool, toStored, viewOf } from "@/services/built-pool-read";
 import { getPublicPool } from "@/services/pools";
 import { templateTargets } from "@/utils/bucket-targets";
 import { accessOf } from "@/utils/built-access";
+import { type Answer, type BuiltPoolView, refuse } from "@/utils/built-answer";
 import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
 import type { BuiltSearchFields } from "@/utils/built-record";
 import { newSourceId, type RandomBytes } from "@/utils/source-ids";

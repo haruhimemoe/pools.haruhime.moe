@@ -17,23 +17,15 @@
 
 import "server-only";
 import { MAX_POOLS_PER_OWNER } from "@/constants/built-pools";
-import type { SessionUser } from "@/lib/auth";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { BuiltEditor, StoredBuiltPool } from "@/schemas/built-pool";
+import type { SessionUser } from "@/schemas/session-user";
 import { recordFor } from "@/services/built-pool-activity";
-import {
-  type Answer,
-  type BuiltPoolView,
-  findBuiltPool,
-  loadFor,
-  markPackPending,
-  NOT_FOUND,
-  readBuiltPool,
-  refuse,
-  viewOf,
-} from "@/services/built-pools";
+import { findBuiltPool, loadFor, readBuiltPool, viewOf } from "@/services/built-pool-read";
+import { markPackPending } from "@/services/built-pools";
 import { ownerActivity } from "@/utils/activity";
 import { accessOf } from "@/utils/built-access";
+import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
 
 /** Who owns the pool and who edits it. */
 type Hands = Pick<StoredBuiltPool, "ownerId" | "editors">;

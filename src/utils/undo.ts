@@ -15,7 +15,8 @@
 import { bucketsOf, findBucket, isCustomBucket, type PoolSlot, slotLabel } from "@haruhimemoe/pool";
 import { MAX_OPS_PER_CALL } from "@/constants/built-pools";
 import type { PoolOp } from "@/schemas/built-pool-ops";
-import { applyOps, type BuiltContent } from "@/utils/built-ops";
+import type { BuiltContent } from "@/utils/built-content";
+import { applyOps } from "@/utils/built-ops";
 
 /** Steps the editor can undo. */
 export const MAX_UNDO_STEPS = 20;

@@ -12,7 +12,8 @@
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { describe, expect, it } from "vitest";
 import type { PoolOp } from "@/schemas/built-pool-ops";
-import { applyOps, type BuiltContent } from "@/utils/built-ops";
+import type { BuiltContent } from "@/utils/built-content";
+import { applyOps } from "@/utils/built-ops";
 import { confirmSteps, dropUnsaved, inverseOf, pushStep, sameContent } from "@/utils/undo";
 
 const BUILT_IN = ["NM", "HD", "HR", "DT", "FM", "TB"].map((code) => ({ code })) as BucketEntry[];

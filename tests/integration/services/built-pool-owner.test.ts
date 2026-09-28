@@ -14,7 +14,7 @@ import { Collection } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { transferBuiltPool } from "@/services/built-pool-owner";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { makeBuiltPool } from "../../helpers/built-pools";
 import { setupTestDb } from "../../helpers/db";
 import { type Cast, createCast, EDITOR_OSU_ID, insertPool } from "../../helpers/pool-requests";

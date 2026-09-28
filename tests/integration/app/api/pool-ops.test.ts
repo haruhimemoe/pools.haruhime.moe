@@ -9,14 +9,14 @@
  *       a minute per user); a failing op changes nothing; text goes through the content filter.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { Collection } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/pools/[id]/ops/route";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { setupTestDb } from "../../../helpers/db";
 import {
   type Cast,

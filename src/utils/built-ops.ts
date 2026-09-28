@@ -33,67 +33,17 @@ import {
   planMerge,
   removeBucket,
   removeSlot,
-  type SlotLineError,
   setBucketMods,
   sortSlots,
 } from "@haruhimemoe/pool";
 import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
-import { hasDuplicateMaps, type StoredBuiltPool } from "@/schemas/built-pool";
+import { hasDuplicateMaps } from "@/schemas/built-pool";
 import type { PoolOp } from "@/schemas/built-pool-ops";
+import { type BuiltContent, OP_MESSAGES, OpError, type OpFailure } from "@/utils/built-content";
 import { type PlannedContent, tidyPlan, withNote, withTarget } from "@/utils/built-plan-ops";
 
-/** What ops change: the details, the buckets, the slots and the targets. */
-export type BuiltContent = Pick<
-  StoredBuiltPool,
-  "name" | "tournament" | "round" | "year" | "notes" | "buckets" | "slots" | "targets" | "slotNotes"
->;
-
-export type OpErrorCode =
-  | "duplicate"
-  | "too_many_maps"
-  | "too_many_buckets"
-  | "unknown_bucket"
-  | "unknown_slot"
-  | "slot_full"
-  | "bad_bucket_code"
-  | "not_custom"
-  | "bucket_not_empty"
-  | "bad_paste"
-  | "content_filter";
-
-/** One op's refusal, before it knows which op it was. */
-export class OpError extends Error {
-  constructor(
-    readonly code: OpErrorCode,
-    message: string,
-    readonly lines?: SlotLineError[],
-  ) {
-    super(message);
-  }
-}
-
-export type OpFailure = {
-  ok: false;
-  code: OpErrorCode;
-  message: string;
-  /** The index of the op that couldn't apply. */
-  op: number;
-  lines?: SlotLineError[];
-};
-
+/** An ops call's result: the whole new content, or the first op that couldn't apply. */
 export type OpResult = { ok: true; pool: PlannedContent } | OpFailure;
-
-export const OP_MESSAGES = {
-  duplicate: "That map is already in the pool.",
-  tooManyMaps: `A pool can have at most ${MAX_SLOTS} maps.`,
-  tooManyBuckets: `A pool can have at most ${MAX_CUSTOM_BUCKETS} custom slots.`,
-  unknownSlot: "That map isn't in the pool any more.",
-  slotFull: `A slot can have at most ${MAX_SLOT_INDEX} maps.`,
-  notCustom: "Only custom slots can change their mods or be removed.",
-  notEmpty: "Move or remove this slot's maps first.",
-  badPaste: "Some lines couldn't be read.",
-  filtered: "A slot code fails the content filter.",
-} as const;
 
 type Op<K extends PoolOp["type"]> = Extract<PoolOp, { type: K }>;
 

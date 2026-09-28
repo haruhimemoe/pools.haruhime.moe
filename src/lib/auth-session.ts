@@ -13,7 +13,8 @@ import "server-only";
 import { signInHref } from "@haruhimemoe/next-kit/server";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { type AdminUser, getUserFromHeaders, type SessionUser } from "@/lib/auth";
+import { getUserFromHeaders } from "@/lib/auth";
+import type { AdminUser, SessionUser } from "@/schemas/session-user";
 
 /**
  * @function getCurrentUser

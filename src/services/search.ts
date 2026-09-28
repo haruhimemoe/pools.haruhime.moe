@@ -10,7 +10,7 @@
  *       else comes back as a message for the person.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -21,7 +21,7 @@ import { MAX_SEARCH_PAGE, SEARCH_PAGE_SIZE } from "@/constants/search";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { mapsCollection } from "@/models/Map";
 import { poolsCollection } from "@/models/Pool";
-import { ownerNamesOf } from "@/services/built-pools";
+import { ownerNamesOf } from "@/services/built-pool-read";
 import { countMatching } from "@/services/count";
 import { builtSearchFieldsOf } from "@/utils/built-record";
 import type {

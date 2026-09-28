@@ -15,7 +15,7 @@ import { HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE, PATCH } from "@/app/api/admin/built-pools/[id]/route";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { packCleanupCollection } from "@/services/pack-cleanup";
 import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
 import { runAfterTasks } from "../../../helpers/after";

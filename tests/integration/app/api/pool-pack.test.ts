@@ -22,7 +22,7 @@ import { POST as postPack } from "@/app/api/pools/[id]/pack/route";
 import { GET } from "@/app/api/pools/[id]/route";
 import { PUT } from "@/app/api/pools/[id]/visibility/route";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { EMPTY_BUILT_PACK, PACK_GONE } from "@/utils/built-pack";
 import { afterTaskCount, runAfterTasks } from "../../../helpers/after";
 import { setupTestDb } from "../../../helpers/db";

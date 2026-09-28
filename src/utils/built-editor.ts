@@ -7,7 +7,7 @@
  *       pool twice, maps played in past pools). Safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -22,7 +22,8 @@ import {
 } from "@haruhimemoe/pool";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
-import { applyOps, type OpFailure } from "@/utils/built-ops";
+import type { OpFailure } from "@/utils/built-content";
+import { applyOps } from "@/utils/built-ops";
 
 export type LocalResult = { ok: true; pool: ClientPool } | OpFailure;
 

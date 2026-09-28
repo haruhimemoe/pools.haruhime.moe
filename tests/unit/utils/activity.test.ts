@@ -18,7 +18,7 @@ import {
   visibilityActivity,
   withoutSubject,
 } from "@/utils/activity";
-import type { BuiltContent } from "@/utils/built-ops";
+import type { BuiltContent } from "@/utils/built-content";
 
 const POOL: BuiltContent = {
   name: "Cup",

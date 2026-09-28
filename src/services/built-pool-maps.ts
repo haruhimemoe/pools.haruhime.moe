@@ -8,7 +8,7 @@
  *       their /maps page doesn't exist.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -21,7 +21,7 @@ import {
   clientPoolOf,
 } from "@/schemas/built-pool-view";
 import type { StoredMap } from "@/schemas/map";
-import { getBuiltPoolFor } from "@/services/built-pools";
+import { getBuiltPoolFor } from "@/services/built-pool-read";
 import { seedBlankMaps } from "@/services/import";
 import { fillMaps, type MapLookup } from "@/services/map-fill";
 import type { Caller } from "@/utils/built-access";

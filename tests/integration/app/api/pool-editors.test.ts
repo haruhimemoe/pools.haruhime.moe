@@ -21,7 +21,7 @@ import { POST as postOps } from "@/app/api/pools/[id]/ops/route";
 import { GET } from "@/app/api/pools/[id]/route";
 import { RATE_LIMITS_COLLECTION } from "@/constants/db";
 import { getDb } from "@/lib/db";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
 import {

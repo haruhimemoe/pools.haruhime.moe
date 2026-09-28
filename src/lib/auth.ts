@@ -14,11 +14,12 @@
  */
 
 import "server-only";
-import { createOsuAuth, getOsuUser, type OsuSessionUser } from "@haruhimemoe/next-kit/auth";
+import { createOsuAuth, getOsuUser } from "@haruhimemoe/next-kit/auth";
 import { SIGNED_IN_COOKIE } from "@/constants/site";
 import { getServerEnv } from "@/env";
 import { isAdminOsuId } from "@/lib/admin";
 import { connectDb, getDb, getMongoClient } from "@/lib/db";
+import type { AdminUser, SessionUser } from "@/schemas/session-user";
 import { linkEditorAccount } from "@/services/built-pool-editors";
 
 /**
@@ -64,12 +65,6 @@ export const getAuth = (): Auth => {
   instance ??= createAuth();
   return instance;
 };
-
-/** The signed-in user, and whether ADMIN_OSU_IDS lists them right now. */
-export type SessionUser = OsuSessionUser & { isAdmin: boolean };
-
-/** A signed-in admin. */
-export type AdminUser = OsuSessionUser;
 
 /**
  * @function getUserFromHeaders

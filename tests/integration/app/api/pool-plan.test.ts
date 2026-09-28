@@ -15,7 +15,7 @@ import { POST as postOps } from "@/app/api/pools/[id]/ops/route";
 import { GET as getPool } from "@/app/api/pools/[id]/route";
 import { POST as create } from "@/app/api/pools/route";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { setupTestDb } from "../../../helpers/db";
 import {
   type Cast,

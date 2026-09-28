@@ -16,9 +16,10 @@
  */
 
 import "server-only";
-import { getAuth, type SessionUser } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 import { connectDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
+import type { SessionUser } from "@/schemas/session-user";
 import { deleteActivityOf, forgetActivityBy } from "@/services/built-pool-activity";
 import { WANTS_PACK_SYNC } from "@/services/built-pools";
 import { removePackOrQueue } from "@/services/pack-cleanup";

@@ -14,7 +14,8 @@
 
 import { describe, expect, it } from "vitest";
 import type { PoolOp } from "@/schemas/built-pool-ops";
-import { applyOps, type BuiltContent } from "@/utils/built-ops";
+import type { BuiltContent } from "@/utils/built-content";
+import { applyOps } from "@/utils/built-ops";
 
 const EMPTY: BuiltContent = {
   name: "Cup",

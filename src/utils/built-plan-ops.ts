@@ -13,7 +13,7 @@
 import { bucketsOf, findBucket } from "@haruhimemoe/pool";
 import type { BucketTarget, BucketTargets, SlotNotes } from "@/schemas/built-plan";
 import type { PoolOp } from "@/schemas/built-pool-ops";
-import type { BuiltContent } from "@/utils/built-ops";
+import type { BuiltContent } from "@/utils/built-content";
 
 type SetTarget = Extract<PoolOp, { type: "setTarget" }>;
 type SetNote = Extract<PoolOp, { type: "setNote" }>;

@@ -17,9 +17,10 @@ import { DELETED_USER, MAX_ACTIVITY_PER_POOL, RECENT_ACTIVITY } from "@/constant
 import { QUERY_TIME_MS } from "@/constants/db";
 import { builtPoolActivityCollection } from "@/models/BuiltPoolActivity";
 import { type ClientActivity, storedActivitySchema } from "@/schemas/activity";
-import { type Answer, loadFor } from "@/services/built-pools";
+import { loadFor } from "@/services/built-pool-read";
 import { type ActivityNote, withoutSubject } from "@/utils/activity";
 import type { Caller } from "@/utils/built-access";
+import type { Answer } from "@/utils/built-answer";
 
 /** Who made a change. */
 export type Actor = { osuId: number; username: string };

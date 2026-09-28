@@ -18,25 +18,22 @@
 
 import "server-only";
 import { z } from "zod";
-import type { SessionUser } from "@/lib/auth";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 import type { PoolOp } from "@/schemas/built-pool-ops";
+import type { SessionUser } from "@/schemas/session-user";
 import { recordActivity } from "@/services/built-pool-activity";
 import {
-  type Answer,
-  type BuiltPoolView,
   findBuiltPool,
   loadFor,
-  markPackPending,
-  NOT_FOUND,
   readBuiltPool,
-  refuse,
   toStored,
   viewOf,
-} from "@/services/built-pools";
+} from "@/services/built-pool-read";
+import { markPackPending } from "@/services/built-pools";
 import { opsActivity } from "@/utils/activity";
 import { accessOf } from "@/utils/built-access";
+import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
 import { applyOps } from "@/utils/built-ops";
 import type { BuiltSearchFields } from "@/utils/built-record";
 

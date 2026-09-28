@@ -15,7 +15,8 @@ import { type ActivityKind, DELETED_USER, MAX_SUMMARY_LENGTH } from "@/constants
 import type { Visibility } from "@/constants/built-pools";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import { targetText } from "@/utils/bucket-targets";
-import { applyOps, type BuiltContent } from "@/utils/built-ops";
+import type { BuiltContent } from "@/utils/built-content";
+import { applyOps } from "@/utils/built-ops";
 import { formatShortDate } from "@/utils/date";
 
 /** Someone an entry names besides its author: an editor added or removed, a new owner. */

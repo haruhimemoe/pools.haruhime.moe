@@ -21,7 +21,7 @@ import { PUT as putVisibility } from "@/app/api/pools/[id]/visibility/route";
 import { RATE_LIMITS } from "@/constants/api";
 import { refuseOverLimit } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { afterTaskCount } from "../../../helpers/after";
 import { makeBuiltPool } from "../../../helpers/built-pools";
 import { setupTestDb } from "../../../helpers/db";

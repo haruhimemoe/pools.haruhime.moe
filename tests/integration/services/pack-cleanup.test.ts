@@ -17,7 +17,7 @@ import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import {
   packCleanupCollection,
   removePackOrQueue,

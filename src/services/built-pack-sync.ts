@@ -22,23 +22,14 @@
 
 import "server-only";
 import { getPacksService, type PacksService } from "@/env";
-import type { SessionUser } from "@/lib/auth";
 import { type Fetch, PACKS_TIMEOUT_MS, putPoolPack } from "@/lib/packs-client";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
-import {
-  type Answer,
-  type BuiltPoolView,
-  findBuiltPool,
-  loadFor,
-  markPackPending,
-  NOT_FOUND,
-  ownerOf,
-  readBuiltPool,
-  refuse,
-  viewOf,
-} from "@/services/built-pools";
+import type { SessionUser } from "@/schemas/session-user";
+import { findBuiltPool, loadFor, ownerOf, readBuiltPool, viewOf } from "@/services/built-pool-read";
+import { markPackPending } from "@/services/built-pools";
 import { removePackOrQueue, retryDuePackCleanup } from "@/services/pack-cleanup";
+import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
 import {
   builtPackInput,
   EMPTY_BUILT_PACK,

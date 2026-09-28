@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE } from "@/app/api/pools/[id]/route";
 import { PUT } from "@/app/api/pools/[id]/visibility/route";
 import { PACK_REMOVAL_QUEUED } from "@/constants/built-pools";
-import { findBuiltPool } from "@/services/built-pools";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { packCleanupCollection } from "@/services/pack-cleanup";
 import { setupTestDb } from "../../../helpers/db";
 import { packsDeleteHandler, TEST_SERVICE } from "../../../helpers/packs-server";

@@ -14,7 +14,7 @@ import "server-only";
 import { isEnvValidationSkipped } from "@haruhimemoe/next-kit/env";
 import { BUILT_POOL_INDEXES, QUERY_TIME_MS } from "@/constants/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
-import { ownerNamesOf } from "@/services/built-pools";
+import { ownerNamesOf } from "@/services/built-pool-read";
 
 /** A public built pool as listings show it. */
 export type ListedBuiltPool = {
