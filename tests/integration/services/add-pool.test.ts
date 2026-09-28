@@ -17,6 +17,7 @@
  * @modified Sat Sep 26, 2026
  */
 
+import { HINAI_BATCH_URL } from "@haruhimemoe/hinai/testing";
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { encodePackKey } from "@haruhimemoe/pool";
 import { revalidatePath } from "next/cache";
@@ -322,9 +323,7 @@ describe("addPool", () => {
   it("still saves when the mirror fails, and says why the maps weren't filled", async () => {
     const { http, HttpResponse } = await import("msw");
     server.use(
-      http.get("https://mirror.hinamizawa.ai/api/v2/beatmaps", () =>
-        HttpResponse.json({ error: "down" }, { status: 400 }),
-      ),
+      http.get(HINAI_BATCH_URL, () => HttpResponse.json({ error: "down" }, { status: 400 })),
     );
     const answer = await added();
     expect(answer.outcome).toBe("created");

@@ -1,16 +1,17 @@
 /**
  * @file tests/helpers/hinai-server.ts
- * @desc A stand-in for the mirror's batch endpoint: rows shaped like the mirror's, built from
- *       otdb seeds, answered for the ids asked (unknown ids left out, as the mirror does).
+ * @desc A stand-in for the mirror's batch endpoint (HINAI_BATCH_URL from hinai/testing) with
+ *       rows built from otdb seeds, for tests whose maps the recorded rows don't cover; answered
+ *       for the ids asked (unknown ids left out, as the mirror does). Tests that only need real
+ *       mirror rows use hinai/testing's hinaiBatchHandler.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
+import { HINAI_BATCH_URL } from "@haruhimemoe/hinai/testing";
 import { HttpResponse, http } from "msw";
 import type { MapSeed } from "@/utils/map-record";
-
-export const HINAI_BATCH_URL = "https://mirror.hinamizawa.ai/api/v2/beatmaps";
 
 /**
  * @function mirrorRow

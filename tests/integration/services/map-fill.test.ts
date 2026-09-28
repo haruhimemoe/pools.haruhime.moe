@@ -1,15 +1,18 @@
 /**
  * @file tests/integration/services/map-fill.test.ts
- * @desc The mirror fill: every otdb-seeded map is asked for 100 at a time, found maps take the
+ * @desc The mirror fill (through the real client against the mirror's recorded rows, and with
+ *       injected lookups): every otdb-seeded map is asked for 100 at a time, found maps take the
  *       mirror's values, misses stay for the next run (which asks only them), a retryable
  *       mirror error waits its Retry-After and tries again (at most 3 times), and any other
  *       error stops the fill with a reason instead of throwing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { HinaiError } from "@haruhimemoe/hinai";
+import { hinaiBatchHandler, recordedBeatmaps } from "@haruhimemoe/hinai/testing";
+import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { describe, expect, it, vi } from "vitest";
 import { mapsCollection } from "@/models/Map";
@@ -19,6 +22,8 @@ import { setupTestDb } from "../../helpers/db";
 import { T0 } from "../../helpers/records";
 
 setupTestDb();
+// The real client, answered by the mirror's own recorded rows (hinai/testing).
+setupMsw(hinaiBatchHandler);
 
 const SEED = {
   setId: 1,
@@ -62,6 +67,26 @@ const seedMapsRange = async (count: number) => {
 const noWait = async () => {};
 
 describe("fillMaps", () => {
+  it("fills maps from the mirror's own answers, through the real client", async () => {
+    const maps = await mapsCollection();
+    const ids = [...recordedBeatmaps.map((row) => row.id), 5];
+    await maps.insertMany(ids.map((id) => seededMap(id, SEED, T0)));
+    expect(await fillMaps({ now: () => T0, sleep: noWait })).toEqual({
+      asked: 4,
+      filled: 3,
+      missing: 1,
+      error: null,
+    });
+    const [row] = recordedBeatmaps;
+    expect(await maps.findOne({ _id: row?.id })).toMatchObject({
+      setId: row?.beatmapset_id,
+      version: row?.version,
+      stars: row?.difficulty_rating,
+      metaSource: "mirror",
+    });
+    expect(await maps.findOne({ _id: 5 })).toMatchObject({ metaSource: "otdb" });
+  });
+
   it("fills what the mirror has, 100 ids a call, and leaves misses for the next run", async () => {
     const maps = await seedMapsRange(150);
     const lookup = vi.fn<MapLookup>(async (ids) => ({
