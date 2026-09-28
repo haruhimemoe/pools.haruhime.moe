@@ -3,11 +3,12 @@
  * @desc Fixed-window rate limits in MongoDB (collection rate_limits): one document per
  *       scope/subject/window, bumped with a single findOneAndUpdate upsert $inc, removed by the
  *       TTL index on expiresAt a minute after its window ends. The osu! budget (the check) shares
- *       the collection and the document shape. Counting fails open: if the write fails, the
- *       request is allowed and the error logged.
+ *       the collection and the document shape. A hit can cost more than one (a call carrying
+ *       several ops counts each). Subjects are IP subjects or, for signed-in writes, "user:<id>".
+ *       Counting fails open: if the write fails, the request is allowed and the error logged.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
@@ -63,9 +64,10 @@ export const rateLimitId = (rule: RateLimitRule, subject: string, nowMs: number)
 /**
  * @function hitRateLimit
  * @param rule {RateLimitRule} the limit
- * @param subject {string} an IP subject
+ * @param subject {string} an IP or user subject
  * @param now {Date} current time (tests)
  * @param db {() => Promise<Db>} the database (tests)
+ * @param cost {number} how much this hit counts (default 1)
  * @returns {Promise<RateLimitResult>} this hit counted; allowed while count <= limit (allowed with
  *          the full limit left when counting fails)
  */
@@ -74,6 +76,7 @@ export const hitRateLimit = async (
   subject: string,
   now: Date = new Date(),
   db: () => Promise<Db> = connectedDb,
+  cost = 1,
 ): Promise<RateLimitResult> => {
   const window = windowFor(rule, now.getTime());
   const base = { limit: rule.limit, resetSeconds: window.resetSeconds };
@@ -82,7 +85,7 @@ export const hitRateLimit = async (
     const bump = () =>
       collection.findOneAndUpdate(
         { _id: rateLimitId(rule, subject, now.getTime()) },
-        { $inc: { count: 1 }, $setOnInsert: { expiresAt: window.expiresAt } },
+        { $inc: { count: cost }, $setOnInsert: { expiresAt: window.expiresAt } },
         { upsert: true, returnDocument: "after" },
       );
     // Two first hits in a window can race to insert; the loser's retry finds the document.
@@ -90,7 +93,7 @@ export const hitRateLimit = async (
       if (!isDuplicateKey(error)) throw error;
       return bump();
     });
-    const count = doc?.count ?? 1;
+    const count = doc?.count ?? cost;
     return { ...base, allowed: count <= rule.limit, remaining: Math.max(0, rule.limit - count) };
   } catch (error) {
     console.error(`rate limit: couldn't count ${rule.scope}`, error);
@@ -146,15 +149,17 @@ export const tooManyRequests = (result: RateLimitResult): Response =>
 /**
  * @function refuseOverLimit
  * @param rule {RateLimitRule} the limit
- * @param subject {string} an IP subject
+ * @param subject {string} an IP or user subject
+ * @param cost {number} how much this hit counts (default 1)
  * @returns {Promise<Response | null>} counts this hit; a 429 (Retry-After, no-store) when it's over
  *          the limit, otherwise null
  */
 export const refuseOverLimit = async (
   rule: RateLimitRule,
   subject: string,
+  cost = 1,
 ): Promise<Response | null> => {
-  const result = await hitRateLimit(rule, subject);
+  const result = await hitRateLimit(rule, subject, new Date(), connectedDb, cost);
   if (result.allowed) return null;
   return withHeaders(tooManyRequests(result), { "Cache-Control": "no-store" });
 };

@@ -1,11 +1,11 @@
 /**
  * @file src/constants/db.ts
- * @desc Collection names in the pools database, the session TTL index name, how long a public
- *       read and a batch read (importer, admin) may run (the cluster is a shared free M0), and
- *       the index names searches hint.
+ * @desc Collection names in the pools database (built pools and their id claims included), the
+ *       session TTL index name, how long a public read and a batch read (importer, admin) may
+ *       run (the cluster is a shared free M0), and the index names searches hint.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 export const POOLS_COLLECTION = "pools";
@@ -13,6 +13,9 @@ export const MAPS_COLLECTION = "maps";
 export const IMPORTS_COLLECTION = "imports";
 export const SET_FACTS_COLLECTION = "setFacts";
 export const RATE_LIMITS_COLLECTION = "rate_limits";
+/** Pools people build here, and every built pool id ever handed out (so none is reused). */
+export const BUILT_POOLS_COLLECTION = "built_pools";
+export const BUILT_POOL_IDS_COLLECTION = "built_pool_ids";
 
 export const SESSION_TTL_INDEX = "session_expiresAt_ttl";
 
@@ -32,6 +35,14 @@ export const POOL_INDEXES = Object.freeze({
   tournament: "tournamentKey_1_year_1",
   badged: "visible_1_badged_1",
   packState: "pack.state_1",
+});
+
+/** Index names on built_pools. */
+export const BUILT_POOL_INDEXES = Object.freeze({
+  owner: "ownerId_1_updatedAt_-1",
+  editor: "editors.osuId_1",
+  listed: "visibility_1_updatedAt_-1",
+  hidden: "hidden_1",
 });
 
 /** Index names on maps. */

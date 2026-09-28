@@ -1,12 +1,13 @@
 /**
  * @file tests/unit/lib/api.test.ts
- * @desc JSON errors ({ error: { code, message } }), body parsing (JSON only, 16 KB, schema
+ * @desc JSON errors ({ error: { code, message } }), body parsing (JSON only, 16 KB or a cap the
+ *       route gives, like the 32 KB of the pool routes, schema
  *       errors as 400 with the first message), no-store, and the same-origin guard (a foreign
  *       Origin or a cross-site or same-site Sec-Fetch-Site is refused; our own origin, previews
  *       and server calls pass), and the /check ids parser (1 to 64 valid beatmap ids, or null).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -59,6 +60,15 @@ describe("parseJsonBody", () => {
     const result = await parseJsonBody(request, schema);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.response.status).toBe(status);
+  });
+
+  it("takes a route's own cap", async () => {
+    const body = JSON.stringify({ hidden: true, pad: "x".repeat(20_000) });
+    const loose = z.object({ hidden: z.boolean() });
+    expect((await parseJsonBody(post(body), loose, { maxBytes: 32_768 })).ok).toBe(true);
+    const tooBig = JSON.stringify({ hidden: true, pad: "x".repeat(33_000) });
+    const result = await parseJsonBody(post(tooBig), loose, { maxBytes: 32_768 });
+    expect(result.ok ? 200 : result.response.status).toBe(413);
   });
 });
 

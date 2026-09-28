@@ -4,7 +4,8 @@
  *       client, osu! generic OAuth (identify + public, PKCE, pools' own osu! app). Anyone with an
  *       osu! account can sign in (to make pools); admin rights come only from ADMIN_OSU_IDS,
  *       read on every request by getUserFromHeaders and getAdminFromHeaders, so a removed id
- *       stops being an admin at once. osu! tokens are never kept. A readable signed-in marker
+ *       stops being an admin at once. A first sign-in links the new user to the pools that
+ *       already list their osu! id as an editor. osu! tokens are never kept. A readable signed-in marker
  *       cookie follows the session (set with it, cleared on sign-out or a get-session that finds
  *       none), so pages ask for the session only when it's there. Errors with no page to return
  *       to go to /signin?error=<code>.
@@ -24,6 +25,7 @@ import { getServerEnv } from "@/env";
 import { isAdminOsuId } from "@/lib/admin";
 import { connectDb, getDb, getMongoClient } from "@/lib/db";
 import { markerMaxAge, SIGNED_IN_COOKIE } from "@/lib/signed-in-marker";
+import { linkEditorAccount } from "@/services/built-pool-editors";
 
 /**
  * @function osuProfileToUser
@@ -40,6 +42,21 @@ export const osuProfileToUser = (raw: unknown) => {
     ...user,
     ...(user.avatarUrl ? { image: user.avatarUrl } : {}),
   };
+};
+
+/**
+ * @function linkNewEditor
+ * @param user {Record<string, unknown>} the user better-auth just created
+ * @returns {Promise<void>} fills in their user id on pools that list their osu! id as an editor
+ *          (a failure is logged: signing in never fails over it)
+ */
+export const linkNewEditor = async (user: Record<string, unknown>): Promise<void> => {
+  if (typeof user.osuId !== "number" || typeof user.id !== "string") return;
+  try {
+    await linkEditorAccount(user.osuId, user.id);
+  } catch (error) {
+    console.error("[auth] couldn't link a new user to the pools they edit", error);
+  }
 };
 
 /** Drops OAuth tokens from an account write. */
@@ -76,6 +93,10 @@ const createAuth = () => {
       },
     },
     databaseHooks: {
+      user: {
+        // An owner may have added this osu! id as an editor before its first sign-in.
+        create: { after: async (user) => linkNewEditor(user as Record<string, unknown>) },
+      },
       account: {
         create: { before: async (account) => ({ data: withoutTokens(account) }) },
         update: { before: async (account) => ({ data: withoutTokens(account) }) },

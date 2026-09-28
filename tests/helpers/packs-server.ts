@@ -1,11 +1,12 @@
 /**
  * @file tests/helpers/packs-server.ts
  * @desc A stand-in for packs' service endpoint: PUT /api/service/pools/:id recording each call
- *       (id, body, Authorization, User-Agent) and answering as the test says, and POST
- *       /api/service/pools/stats answering from a list.
+ *       (id, body, Authorization, User-Agent) and answering as the test says, DELETE
+ *       /api/service/pools/:id recording the ref and headers, and POST /api/service/pools/stats
+ *       answering from a list.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { HttpResponse, http } from "msw";
@@ -74,3 +75,25 @@ export const packsStatsHandler = (answers: (() => Response)[]) => {
     return answer ? answer() : HttpResponse.json({ updated: 0, remaining: 0 });
   });
 };
+
+export type DeleteCall = { id: string; authorization: string | null; userAgent: string | null };
+
+/**
+ * @function packsDeleteHandler
+ * @param answer {(id: string) => Response} what packs says (204 removed, 404 none)
+ * @param calls {DeleteCall[]} filled with every request
+ * @returns the msw handler
+ */
+export const packsDeleteHandler = (
+  answer: (id: string) => Response = () => new HttpResponse(null, { status: 204 }),
+  calls: DeleteCall[] = [],
+) =>
+  http.delete(`${PACKS_URL_FOR_TESTS}/api/service/pools/:id`, ({ params, request }) => {
+    const id = String(params.id);
+    calls.push({
+      id,
+      authorization: request.headers.get("authorization"),
+      userAgent: request.headers.get("user-agent"),
+    });
+    return answer(id);
+  });

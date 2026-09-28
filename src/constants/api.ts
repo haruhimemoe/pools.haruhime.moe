@@ -1,10 +1,11 @@
 /**
  * @file src/constants/api.ts
- * @desc Per-IP rate limits on the public JSON routes. Counters live in rate_limits
- *       (src/lib/rate-limit.ts); the CDN answers repeats without counting them.
+ * @desc Rate limits: per IP on the public JSON routes (the CDN answers repeats without counting
+ *       them), and per user on the pool builder's writes. Counters live in rate_limits
+ *       (src/lib/rate-limit.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 export type RateLimitRule = { scope: string; limit: number; windowSeconds: number };
@@ -14,4 +15,10 @@ export const RATE_LIMITS = {
   search: { scope: "search", limit: 60, windowSeconds: 60 },
   /** GET /api/check, per IP (its osu! calls also count against the osu! budget). */
   check: { scope: "check", limit: 30, windowSeconds: 60 },
+  /** POST /api/pools/<id>/ops, per user: each op in a call counts. */
+  poolOps: { scope: "pool-ops", limit: 120, windowSeconds: 60 },
+  /** POST /api/pools, per user. */
+  poolCreate: { scope: "pool-create", limit: 10, windowSeconds: 3600 },
+  /** Adding and removing editors, per user. */
+  poolEditors: { scope: "pool-editors", limit: 30, windowSeconds: 3600 },
 } as const satisfies Record<string, RateLimitRule>;

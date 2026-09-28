@@ -2,11 +2,11 @@
  * @file src/lib/api.ts
  * @desc Shared pieces for our JSON route handlers: { error: { code, message } } responses,
  *       no-store, body parsing (application/json only, so a cross-site form can't send it
- *       without a CORS preflight, and at most 16 KB), the same-origin guard every admin
- *       mutation runs, and the /check ids parser.
+ *       without a CORS preflight, and at most 16 KB unless the route gives its own cap), the
+ *       same-origin guard every cookie-authenticated write runs, and the /check ids parser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { beatmapIdSchema } from "@haruhimemoe/pool";
@@ -68,24 +68,28 @@ export const noStore = (response: Response): Response => {
  * @function parseJsonBody
  * @param request {Request} incoming request
  * @param schema {z.ZodType} what the body must be
- * @param options {{ tooLarge?: string }} the 413 message
+ * @param options {{ tooLarge?: string; maxBytes?: number }} the 413 message and the cap
+ *        (default MAX_BODY_BYTES)
  * @returns {Promise<{ ok: true; data } | { ok: false; response }>} parsed data or a ready
  *          error response
  */
 export const parseJsonBody = async <T extends z.ZodType>(
   request: Request,
   schema: T,
-  { tooLarge = "That request is too large." }: { tooLarge?: string } = {},
+  {
+    tooLarge = "That request is too large.",
+    maxBytes = MAX_BODY_BYTES,
+  }: { tooLarge?: string; maxBytes?: number } = {},
 ): Promise<{ ok: true; data: z.output<T> } | { ok: false; response: Response }> => {
   const type = request.headers.get("content-type")?.toLowerCase() ?? "";
   if (!type.startsWith("application/json")) {
     return { ok: false, response: jsonError(415, "Send the request as JSON.") };
   }
-  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) {
+  if (Number(request.headers.get("content-length") ?? 0) > maxBytes) {
     return { ok: false, response: jsonError(413, tooLarge) };
   }
   const text = await request.text();
-  if (new TextEncoder().encode(text).length > MAX_BODY_BYTES) {
+  if (new TextEncoder().encode(text).length > maxBytes) {
     return { ok: false, response: jsonError(413, tooLarge) };
   }
   let body: unknown;

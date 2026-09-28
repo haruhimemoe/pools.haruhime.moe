@@ -4,21 +4,24 @@
  *       every answer lands in the right class (ok, config for 401 and 503 not_configured in
  *       either error body shape, gone for 410, error for 429/5xx/HTML/network with Retry-After,
  *       rejected with packs' message for other 4xx, error for a 2xx it can't read); the stats
- *       call the same way.
+ *       call the same way; the DELETE of a built pool's pack (204, 404 and 410 are done, 401 and
+ *       503 not_configured are configuration, anything else an error).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { SERVER_USER_AGENT } from "@/constants/site";
-import { postStatsBackfill, putPoolPack } from "@/lib/packs-client";
+import { deletePack, postStatsBackfill, putPoolPack } from "@/lib/packs-client";
 import type { PackInput } from "@/utils/pack-input";
 import { setupMsw } from "../../helpers/msw";
 import {
+  type DeleteCall,
   PACKS_URL_FOR_TESTS,
   type PutCall,
+  packsDeleteHandler,
   packsPutHandler,
   TEST_SERVICE,
 } from "../../helpers/packs-server";
@@ -189,5 +192,50 @@ describe("postStatsBackfill", () => {
       kind: "error",
       message: "packs answered 200 with a body pools can't read.",
     });
+  });
+});
+
+describe("deletePack", () => {
+  const deleteWith = (response: () => Response) => {
+    server.use(packsDeleteHandler(() => response()));
+    return deletePack(TEST_SERVICE, "b-a0000001");
+  };
+
+  it("sends the token and our User-Agent, and reads 204 as removed", async () => {
+    const calls: DeleteCall[] = [];
+    server.use(packsDeleteHandler(undefined, calls));
+    expect(await deletePack(TEST_SERVICE, "b-a0000001")).toEqual({ kind: "ok" });
+    expect(calls).toEqual([
+      {
+        id: "b-a0000001",
+        authorization: `Bearer ${TEST_SERVICE.token}`,
+        userAgent: SERVER_USER_AGENT,
+      },
+    ]);
+  });
+
+  it.each([404, 410])("reads %i as done: there's no pack either way", async (status) => {
+    expect(await deleteWith(() => HttpResponse.json({}, { status }))).toEqual({ kind: "ok" });
+  });
+
+  it("stops on configuration errors", async () => {
+    expect((await deleteWith(() => HttpResponse.json({}, { status: 401 }))).kind).toBe("config");
+    const notConfigured = () =>
+      HttpResponse.json({ error: { code: "not_configured", message: "x" } }, { status: 503 });
+    expect((await deleteWith(notConfigured)).kind).toBe("config");
+  });
+
+  it("reads anything else, and a network failure, as an error", async () => {
+    expect(await deleteWith(() => HttpResponse.json({ message: "Oops" }, { status: 500 }))).toEqual(
+      {
+        kind: "error",
+        message: "packs answered 500: Oops.",
+      },
+    );
+    expect(await deleteWith(() => HttpResponse.json({}, { status: 400 }))).toEqual({
+      kind: "error",
+      message: "packs answered 400.",
+    });
+    expect((await deleteWith(() => HttpResponse.error())).kind).toBe("error");
   });
 });

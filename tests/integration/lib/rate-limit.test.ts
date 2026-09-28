@@ -1,11 +1,11 @@
 /**
  * @file tests/integration/lib/rate-limit.test.ts
  * @desc Fixed-window counters in rate_limits: hits counted per subject and window, refused past
- *       the limit with RateLimit headers and Retry-After, 429 no-store from refuseOverLimit, and
- *       counting that fails open.
+ *       the limit with RateLimit headers and Retry-After, 429 no-store from refuseOverLimit, a
+ *       hit that costs more than one (a call carrying several ops), and counting that fails open.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -46,6 +46,20 @@ describe("hitRateLimit", () => {
     expect(response?.status).toBe(429);
     expect(response?.headers.get("cache-control")).toBe("no-store");
     expect(response?.headers.get("retry-after")).toMatch(/^\d+$/);
+  });
+
+  it("counts a hit's cost, refusing one that would go past the limit", async () => {
+    const rule = { scope: "cost", limit: 5, windowSeconds: 60 };
+    expect(await hitRateLimit(rule, "u1", NOW, undefined, 3)).toMatchObject({
+      allowed: true,
+      remaining: 2,
+    });
+    expect(await hitRateLimit(rule, "u1", NOW, undefined, 3)).toMatchObject({
+      allowed: false,
+      remaining: 0,
+    });
+    expect(await refuseOverLimit(rule, "u2", 5)).toBeNull();
+    expect((await refuseOverLimit(rule, "u2", 1))?.status).toBe(429);
   });
 
   it("fails open when counting fails", async () => {

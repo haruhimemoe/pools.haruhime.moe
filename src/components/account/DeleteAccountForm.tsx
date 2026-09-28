@@ -59,7 +59,8 @@ export function DeleteAccountForm({ username }: { username: string }) {
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
       <p className="text-c2 text-sm">
-        This deletes your pools account and signs you out everywhere. It can't be undone.
+        This deletes your account and every pool you own (with its pack on packs), takes you off the
+        pools you edit, and signs you out everywhere. It can't be undone.
       </p>
       <TextInput
         id={id}

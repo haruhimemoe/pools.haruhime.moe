@@ -2,8 +2,8 @@
  * @file tests/unit/app/account-pages.test.ts
  * @desc /signin says signing in is for making pools (anyone with an osu! account), explains an
  *       error code, and sends a signed-in visitor on to `next` through the browser; /account
- *       asks for sign-in, then shows the osu! name and avatar and the delete form. Neither is
- *       indexed.
+ *       asks for sign-in, then shows the osu! name and avatar, how many pools they own and edit
+ *       with each one listed under Your pools (#pools), and the delete form. Neither is indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -12,11 +12,13 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getCurrentUser, requireUser } = vi.hoisted(() => ({
+const { getCurrentUser, requireUser, listBuiltPoolsFor } = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   requireUser: vi.fn(),
+  listBuiltPoolsFor: vi.fn(),
 }));
 vi.mock("@/lib/auth-session", () => ({ getCurrentUser, requireUser }));
+vi.mock("@/services/built-pools", () => ({ listBuiltPoolsFor }));
 vi.mock("@/lib/auth-client", () => ({ authClient: {} }));
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
@@ -70,6 +72,7 @@ describe("/signin", () => {
 describe("/account", () => {
   it("asks for sign-in, then shows the osu! name, avatar and the delete form", async () => {
     requireUser.mockResolvedValue(USER);
+    listBuiltPoolsFor.mockResolvedValue({ owned: [], editing: [] });
     const page = await import("@/app/account/page");
     const html = renderToStaticMarkup(await page.default());
     expect(requireUser).toHaveBeenCalledWith("/account");
@@ -77,5 +80,34 @@ describe("/account", () => {
     expect(html).toMatch(/src="[^"]*a\.ppy\.sh(%2F|\/)2/);
     expect(html).toContain("Delete my account");
     expect(page.metadata.robots).toEqual({ index: false });
+    expect(html).toContain('id="pools"');
+    expect(html).toContain("You haven&#x27;t made a pool yet.");
+  });
+
+  it("counts and lists the pools they own and edit", async () => {
+    requireUser.mockResolvedValue(USER);
+    const item = (id: string, name: string, visibility: string, maps: number) => ({
+      id,
+      name,
+      visibility,
+      maps,
+      updatedAt: new Date("2026-09-27T12:00:00Z"),
+    });
+    listBuiltPoolsFor.mockResolvedValue({
+      owned: [
+        item("b-a0000001", "Spring Cup", "public", 12),
+        item("b-a0000002", "Draft", "private", 0),
+      ],
+      editing: [item("b-a0000003", "Their Cup", "unlisted", 1)],
+    });
+    const page = await import("@/app/account/page");
+    const html = renderToStaticMarkup(await page.default());
+    expect(listBuiltPoolsFor).toHaveBeenCalledWith(USER);
+    expect(html).toContain("You own 2 pools and edit 1.");
+    expect(html).toContain("Spring Cup");
+    expect(html).toContain("public · 12 maps");
+    expect(html).toContain("private · 0 maps");
+    expect(html).toContain("Their Cup");
+    expect(html).toContain("unlisted · 1 map");
   });
 });

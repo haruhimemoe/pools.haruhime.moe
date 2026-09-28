@@ -8,7 +8,8 @@
  *       stores (osu! id, username, avatar, country, sessions, the pools you make, never osu!
  *       tokens), the readable signed-in cookie, who sees public, unlisted and private pools,
  *       moderation and deletion, and what the all-maps search sends the hinai mirror (privacy,
- *       dated 2026-09-27); the terms (anyone with osu! can sign in, what's allowed, moderation,
+ *       dated 2026-09-27), per-account counters, the editor lookup and the cascade on deleting;
+ *       the disclaimer's osu! and packs requests for built pools (2026-09-27); the terms (anyone with osu! can sign in, what's allowed, moderation,
  *       deletion, dated 2026-09-27). No em dashes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -33,6 +34,8 @@ describe("legal pages", () => {
     "checks those by hand",
     "those are their pages, not ours",
     "User-Agent",
+    "to look up a pool editor by username",
+    "to remove a pack when its pool goes private or is deleted",
   ])("the disclaimer says %j", (clause) => {
     expect(read("disclaimer")).toContain(clause);
   });
@@ -52,6 +55,9 @@ describe("legal pages", () => {
     "Private pools are seen only by you and the editors you add",
     "Admins can hide or delete",
     "Delete my account",
+    "per account",
+    "look it up on the osu! API",
+    "every pool you own",
   ])("the privacy page says %j", (clause) => {
     expect(read("privacy")).toContain(clause);
   });
@@ -67,8 +73,9 @@ describe("legal pages", () => {
     expect(read("terms")).toContain(clause);
   });
 
-  it("dates the privacy page and the terms from their last change (accounts for everyone)", () => {
+  it("dates the privacy page, disclaimer and terms from their last change (built pools)", () => {
     expect(LEGAL_DOCS.privacy.lastUpdated).toBe("2026-09-27");
+    expect(LEGAL_DOCS.disclaimer.lastUpdated).toBe("2026-09-27");
     expect(LEGAL_DOCS.terms.lastUpdated).toBe("2026-09-27");
   });
 
