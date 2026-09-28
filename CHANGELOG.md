@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Export on built pool pages and in the editor: copy beatmap IDs, copy `!mp map` and `!mp mods` lines per slot, and download a CSV with values under each slot's mods.
 - Undo in the editor (and Ctrl+Z / Cmd+Z outside text fields): takes back your own last changes in this session, up to 20 steps, by sending their inverse. No redo.
 - Map previews: covers and osu!'s preview clips (one at a time) in the map browser, the editor and built pool pages, loaded straight from osu!'s servers. The Content-Security-Policy now names the image and media hosts.
 - Notes on slots: a short note on each map (up to 280 characters), shown under it in the editor and on the pool's page.

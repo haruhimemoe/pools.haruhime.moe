@@ -3,7 +3,7 @@
  * @desc The pool editor at /pools/<id>/edit. Two panes on wide screens, stacked on phones: the
  *       pool (details, maps by bucket with values under each slot's mods, the map browser right
  *       under them, where its range sliders have room, paste, targets, custom slots) and the side
- *       (summary with the content rules check, editors, the pack on packs with "Update pack
+ *       (summary with the content rules check, export, editors, the pack on packs with "Update pack
  *       now", and the owner's settings: who can see it, handing it to an editor, and delete).
  *       Every change is saved at once through usePoolEditor; the saving bar stays in view, with
  *       Undo. A
@@ -24,6 +24,7 @@ import { type CheckRules, ContentRulesCheck } from "@/components/builder/Content
 import { CustomBucketForm } from "@/components/builder/CustomBucketForm";
 import { DetailsForm } from "@/components/builder/DetailsForm";
 import { EditorsPanel } from "@/components/builder/EditorsPanel";
+import { ExportPanel } from "@/components/builder/ExportPanel";
 import { MapBrowserPane } from "@/components/builder/MapBrowserPane";
 import { OwnerSettings } from "@/components/builder/OwnerSettings";
 import { PackPanel } from "@/components/builder/PackPanel";
@@ -151,6 +152,9 @@ export function PoolEditor({
             <PoolSummary pool={pool} maps={maps} values={values} />
             <h3 className="mt-4 mb-2 font-bold text-c1">Check against the content rules</h3>
             <ContentRulesCheck slots={pool.slots} rules={rules} />
+          </Card>
+          <Card title="Export">
+            <ExportPanel pool={pool} maps={maps} values={values} />
           </Card>
           <Card title="Editors">
             <EditorsPanel

@@ -5,7 +5,8 @@
  *       from this pool" (to /new?from=<id>, which asks a visitor to sign in), a moderation
  *       notice for its owner and editors when it's hidden, the notes, "Built by" (owner and
  *       editors, linking osu! profiles), the maps with their values under each slot's mods, and
- *       the summary with the content rules check. Presentational; the page loads the pool for
+ *       the summary with the content rules check, and export (beatmap IDs, !mp
+ *       lines, CSV). Presentational; the page loads the pool for
  *       the visitor.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
@@ -16,6 +17,7 @@ import { userUrl } from "@haruhimemoe/osu/shapes";
 import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import { BuiltSlotList } from "@/components/builder/BuiltSlotList";
 import { type CheckRules, ContentRulesCheck } from "@/components/builder/ContentRulesCheck";
+import { ExportPanel } from "@/components/builder/ExportPanel";
 import { PoolSummary } from "@/components/builder/PoolSummary";
 import { HIDDEN_BY_MODERATION, VISIBILITY_TEXT } from "@/constants/built-pools";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
@@ -90,6 +92,9 @@ export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps)
         <PoolSummary pool={pool} maps={maps} values={values} />
         <h3 className="mt-4 mb-2 font-bold text-c1">Check against the content rules</h3>
         <ContentRulesCheck slots={pool.slots} rules={rules} />
+      </Card>
+      <Card title="Export">
+        <ExportPanel pool={pool} maps={maps} values={values} />
       </Card>
     </article>
   );
