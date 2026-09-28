@@ -17,7 +17,7 @@
 "use client";
 
 import { type PoolSlot, slotLabel } from "@haruhimemoe/pool";
-import { Badge, Button, cx, fieldClasses } from "@haruhimemoe/ui";
+import { Badge, Button, cx, fieldClasses, ModBadge } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
@@ -81,7 +81,9 @@ export function SlotRow(props: SlotRowProps) {
             ⋮⋮
           </span>
         ) : null}
-        <span className="w-14 shrink-0 font-bold text-c1">{label}</span>
+        <span className="w-14 shrink-0">
+          <ModBadge mod={label} />
+        </span>
         <MapPreview setId={map?.setId ?? null} song={songOf(map, slot.beatmapId)} />
         <div className="flex min-w-0 flex-col items-start gap-1">
           <SlotMapText beatmapId={slot.beatmapId} map={map} values={values} />

@@ -13,8 +13,8 @@
 
 import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
 import { Badge, TextLink } from "@haruhimemoe/ui";
+import { StarsUnder } from "@/components/maps/StarsUnder";
 import { SET_STATUS_LABELS } from "@/constants/search";
-import { starsText } from "@/utils/pool-text";
 import type { AllMapDifficulty, AllMapSet } from "@/utils/search-params";
 
 const playedText = (map: AllMapDifficulty) => {
@@ -50,9 +50,8 @@ export function AllMapResultList({ results }: { results: readonly AllMapSet[] })
             {set.maps.map((map) => (
               <li key={map.id} className="flex flex-wrap gap-x-2 text-c2">
                 <span className="font-bold">{map.version}</span>
-                <span>
-                  {`${starsText(map.stars)} (no mod) · ${formatDuration(map.length)} · ${formatBpm(map.bpm)} BPM`}
-                </span>
+                <StarsUnder stars={map.stars} under="(no mod)" />
+                <span>{`${formatDuration(map.length)} · ${formatBpm(map.bpm)} BPM`}</span>
                 <span className="text-c3">·</span>
                 {playedText(map)}
               </li>

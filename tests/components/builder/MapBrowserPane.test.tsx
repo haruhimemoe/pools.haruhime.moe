@@ -53,9 +53,8 @@ describe("MapBrowserPane results", () => {
     expect(within(card).getByText("Ranked")).toBeInTheDocument();
     expect(within(card).getByText("Mapped by Mapper")).toBeInTheDocument();
     const row = card.querySelector('[data-diff="11"]') as HTMLElement;
-    expect(row).toHaveTextContent("6.42★ (5.80★ no mod)");
-    expect(row).toHaveTextContent("AR 10 · OD 9.5 · CS 4.5");
-    expect(row).toHaveTextContent("240 BPM · 2:00");
+    expect(row).toHaveTextContent("6.42 starsHR (5.80★ no mod)");
+    expect(row).toHaveTextContent("CS4.5AR10OD9.5BPM240Length2:00");
     expect(row).toHaveTextContent("Not played in a past pool");
     const link = within(card).getByRole("link", { name: "Played in 2 past pools" });
     expect(link).toHaveAttribute("href", "/maps/12");
@@ -85,7 +84,7 @@ describe("MapBrowserPane results", () => {
     expect(await row(11)).not.toHaveTextContent("no mod data");
     await user.selectOptions(screen.getByRole("combobox", { name: /Values under/ }), "HR");
     await screen.findByRole("group", { name: "Stars (HR)" });
-    expect(await row(11)).toHaveTextContent("AR 10 · OD 9.5 · CS 4.5 (no mod data)");
+    expect(await row(11)).toHaveTextContent("Length2:00(no mod data)");
     expect(await row(12)).not.toHaveTextContent("no mod data");
   });
 

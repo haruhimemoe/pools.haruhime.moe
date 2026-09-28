@@ -13,11 +13,11 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { formatBpm, formatDuration, formatStat } from "@haruhimemoe/osu/format";
 import type { BucketEntry } from "@haruhimemoe/pool";
-import { Badge, TextLink } from "@haruhimemoe/ui";
+import { Badge, BeatmapStats, TextLink } from "@haruhimemoe/ui";
 import { AddToPool } from "@/components/builder/AddToPool";
 import { MapPreview } from "@/components/builder/MapPreview";
+import { StarsUnder } from "@/components/maps/StarsUnder";
 import { SET_STATUS_LABELS } from "@/constants/search";
 import type { BrowseDiff, BrowseSet } from "@/utils/browse-params";
 import { starsText } from "@/utils/pool-text";
@@ -31,9 +31,6 @@ type BrowseSetCardProps = {
   poolIds: ReadonlySet<number>;
   onAdd: (beatmapId: number, bucket: string | null) => void;
 };
-
-const stat = (name: string, value: number | null) =>
-  `${name} ${value === null ? "?" : formatStat(value)}`;
 
 const played = ({ id, playedIn }: BrowseDiff) => {
   if (playedIn === null) return <span>Pool history unavailable</span>;
@@ -73,19 +70,27 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
           <li key={diff.id} data-diff={diff.id} className="flex flex-col gap-1">
             <div className="flex flex-wrap items-baseline gap-x-2 text-c2">
               <span className="font-bold text-c1">{diff.version}</span>
-              <span>
-                {starsText(diff.stars)}
-                {diff.starsNoMod !== diff.stars ? (
-                  <span className="text-c3 text-xs"> ({starsText(diff.starsNoMod)} no mod)</span>
-                ) : null}
-              </span>
-              <span>
-                {[stat("AR", diff.ar), stat("OD", diff.od), stat("CS", diff.cs)].join(" · ")}
-                {diff.source === "math" && lens !== "NM" ? (
-                  <span className="text-c3 text-xs"> (no mod data)</span>
-                ) : null}
-              </span>
-              <span>{`${formatBpm(diff.bpm)} BPM · ${formatDuration(diff.length)}`}</span>
+              <StarsUnder
+                stars={diff.stars}
+                under={
+                  diff.starsNoMod !== diff.stars
+                    ? `${lens} (${starsText(diff.starsNoMod)} no mod)`
+                    : lens === "NM"
+                      ? "no mod"
+                      : lens
+                }
+              />
+              <BeatmapStats
+                cs={diff.cs}
+                ar={diff.ar}
+                od={diff.od}
+                bpm={diff.bpm}
+                lengthSeconds={diff.length}
+                className="text-sm"
+              />
+              {diff.source === "math" && lens !== "NM" ? (
+                <span className="text-c3 text-xs">(no mod data)</span>
+              ) : null}
             </div>
             <div className="text-c3">{played(diff)}</div>
             <AddToPool

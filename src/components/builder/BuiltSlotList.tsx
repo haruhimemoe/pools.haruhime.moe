@@ -9,6 +9,7 @@
  */
 
 import { type BucketEntry, type PoolSlot, slotLabel } from "@haruhimemoe/pool";
+import { ModBadge } from "@haruhimemoe/ui";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
 import type { SlotNotes } from "@/schemas/built-plan";
@@ -40,7 +41,9 @@ export function BuiltSlotList({ pool, maps, values }: BuiltSlotListProps) {
             <ol className="flex flex-col">
               {group.slots.map((slot) => (
                 <li key={slot.beatmapId} className="flex gap-3 border-b3 border-t py-3">
-                  <span className="w-14 shrink-0 font-bold text-c1">{slotLabel(slot)}</span>
+                  <span className="w-14 shrink-0">
+                    <ModBadge mod={slotLabel(slot)} />
+                  </span>
                   <MapPreview
                     setId={maps[slot.beatmapId]?.setId ?? null}
                     song={songOf(maps[slot.beatmapId], slot.beatmapId)}

@@ -8,7 +8,7 @@
  *       in packs, and the hidden notice only in the admin preview.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -100,7 +100,7 @@ describe("PoolView", () => {
     const dt = { stars: 10.2, ar: 10.33, od: 9.78, cs: 4, bpm: 333, length: 172 };
     view({}, false, [VALUES[0], { ...dt, mods: "DT", source: "mirror" }]);
     const row = within(screen.getByRole("table")).getAllByRole("row")[2] as HTMLElement;
-    expect(row).toHaveTextContent("10.20★DT");
+    expect(row).toHaveTextContent("10.20 starsDT");
     expect(row).toHaveTextContent("10.3");
     expect(row).toHaveTextContent("9.8");
     expect(row).toHaveTextContent("2:52");
@@ -116,7 +116,7 @@ describe("PoolView", () => {
         name: "xi - FREEDOM DiVE [FOUR DIMENSIONS]",
       }),
     ).toHaveAttribute("href", "/maps/129891");
-    expect(rows[0]).toHaveTextContent("7.81★");
+    expect(rows[0]).toHaveTextContent("7.81 stars");
     expect(rows[0]).toHaveTextContent("4:18");
     expect(rows[0]).toHaveTextContent("222");
     expect(
@@ -128,7 +128,7 @@ describe("PoolView", () => {
     for (const name of ["Stars", "AR", "OD", "Length", "BPM"]) {
       expect(screen.getByRole("columnheader", { name })).toBeInTheDocument();
     }
-    expect(rows[0]).toHaveTextContent("7.81★no mod");
+    expect(rows[0]).toHaveTextContent("7.81 starsno mod");
   });
 
   it("credits otdb and links each source, earlier versions included", () => {

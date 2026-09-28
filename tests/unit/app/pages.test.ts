@@ -7,7 +7,7 @@
  *       without a lookup.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -96,7 +96,7 @@ describe("public pages", () => {
       await PoolPage({ params: Promise.resolve({ id: "otdb-1" }) } as never),
     );
     expect(pastSlotValues).toHaveBeenCalledWith(pool, maps);
-    expect(html).toContain("7.20★");
+    expect(html).toContain("7.20 stars");
     expect(html).toContain(">DT<");
   });
 
