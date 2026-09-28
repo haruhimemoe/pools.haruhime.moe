@@ -50,6 +50,13 @@ export const NAV_LINKS: readonly { href: string; label: string }[] = [
   { href: "/submit", label: "Submit a pool" },
 ];
 
+/** The header's account menu links, above Sign out. */
+export const ACCOUNT_MENU_ITEMS: readonly { href: string; label: string }[] = [
+  { href: "/new", label: "Make a pool" },
+  { href: "/account#pools", label: "Your pools" },
+  { href: "/account", label: "Account" },
+];
+
 /** What the builder does, in one line. */
 export const BUILDER_LINE =
   "Search every osu! map under a mod and see its star rating, AR and OD with it, check the pool against the content rules for officially supported tournaments, see where each map was played before, work on it with co-editors, and download it on packs.";

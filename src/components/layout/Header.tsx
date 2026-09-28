@@ -11,8 +11,8 @@
 
 import { Badge, SiteHeader } from "@haruhimemoe/ui";
 import Link from "next/link";
-import { AccountMenu } from "@/components/layout/AccountMenu";
-import { NAV_LINKS, SITE } from "@/constants/site";
+import { ACCOUNT_MENU_ITEMS, NAV_LINKS, SITE } from "@/constants/site";
+import { AccountMenu } from "@/lib/account";
 
 type HeaderProps = {
   /** Show the beta tag (NEXT_PUBLIC_POOLS_BETA, read by the root layout). */
@@ -39,7 +39,7 @@ export function Header({ beta = false }: HeaderProps) {
         </div>
       }
       links={NAV_LINKS}
-      actions={<AccountMenu />}
+      actions={<AccountMenu items={ACCOUNT_MENU_ITEMS} />}
     />
   );
 }

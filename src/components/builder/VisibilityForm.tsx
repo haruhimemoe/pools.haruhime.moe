@@ -11,9 +11,9 @@
 
 "use client";
 
-import { Button, RadioGroup } from "@haruhimemoe/ui";
+import { Button, VisibilitySelect } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
-import { PACK_NOTE, VISIBILITIES, VISIBILITY_TEXT, type Visibility } from "@/constants/built-pools";
+import { PACK_NOTE, VISIBILITY_TEXT, type Visibility } from "@/constants/built-pools";
 import { useStoredField } from "@/hooks/useStoredField";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientPool } from "@/schemas/built-pool-view";
@@ -25,12 +25,6 @@ type VisibilityFormProps = {
   fetcher?: Fetcher;
 };
 
-const VISIBILITY_OPTIONS = VISIBILITIES.map((value) => ({
-  value,
-  label: VISIBILITY_TEXT[value].label,
-  hint: VISIBILITY_TEXT[value].hint,
-}));
-
 /**
  * @function VisibilityForm
  * @param props {VisibilityFormProps} the pool, the editor's exclusive and adopt, a fetcher (tests)
@@ -38,10 +32,6 @@ const VISIBILITY_OPTIONS = VISIBILITIES.map((value) => ({
  */
 export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityFormProps) {
   const [picked, setPicked] = useStoredField<Visibility>(pool.visibility);
-  const pick = (value: string) => {
-    const found = VISIBILITIES.find((visibility) => visibility === value);
-    if (found) setPicked(found);
-  };
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -62,12 +52,12 @@ export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityForm
   };
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
-      <RadioGroup
+      <VisibilitySelect
         label="Who can see this pool"
-        name="visibility"
-        options={VISIBILITY_OPTIONS}
+        id="visibility"
+        text={VISIBILITY_TEXT}
         value={picked}
-        onChange={pick}
+        onChange={setPicked}
       />
       {picked !== "private" ? <p className="text-c3 text-sm">{PACK_NOTE}</p> : null}
       <Button

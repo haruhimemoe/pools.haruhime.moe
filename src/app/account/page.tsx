@@ -10,17 +10,15 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { osuAvatarSrc } from "@haruhimemoe/next-kit/auth-react";
 import { userUrl } from "@haruhimemoe/osu/shapes";
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Image from "next/image";
-import { DeleteAccountForm } from "@/components/account/DeleteAccountForm";
 import { YourPools } from "@/components/account/YourPools";
-import { SignOutButton } from "@/components/auth/SignOutButton";
-import { RestoreSignedIn } from "@/lib/account";
+import { DeleteAccountForm, RestoreSignedIn, SignOutButton } from "@/lib/account";
 import { requireUser } from "@/lib/auth-session";
 import { listBuiltPoolsFor } from "@/services/built-pools";
-import { avatarSrc } from "@/utils/avatar";
 
 /** The account page's title; it's never indexed. */
 export const metadata: Metadata = { title: "Account", robots: { index: false } };
@@ -32,7 +30,7 @@ export const metadata: Metadata = { title: "Account", robots: { index: false } }
  */
 export default async function AccountPage() {
   const user = await requireUser("/account");
-  const avatar = avatarSrc(user.avatarUrl);
+  const avatar = osuAvatarSrc(user.avatarUrl);
   const pools = await listBuiltPoolsFor(user);
   return (
     <div className="flex flex-col gap-6">
@@ -68,7 +66,11 @@ export default async function AccountPage() {
         <YourPools {...pools} />
       </Card>
       <Card title="Delete my account">
-        <DeleteAccountForm username={user.username} />
+        <DeleteAccountForm
+          username={user.username}
+          appName="pools"
+          deletes="This deletes your account and every pool you own (with its pack on packs), takes you off the pools you edit, and signs you out everywhere. It can't be undone."
+        />
       </Card>
     </div>
   );

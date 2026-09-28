@@ -14,9 +14,9 @@
 
 import { Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
-import { SignInWithOsu } from "@/components/auth/SignInWithOsu";
 import { NewPoolForm } from "@/components/builder/NewPoolForm";
 import { MAX_POOLS_PER_OWNER } from "@/constants/built-pools";
+import { SignInWithOsu } from "@/lib/account";
 import { getCurrentUser } from "@/lib/auth-session";
 import { startPreview } from "@/services/built-pool-create";
 import { startFromHref } from "@/utils/pool-links";

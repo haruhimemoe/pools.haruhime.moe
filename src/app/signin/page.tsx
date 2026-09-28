@@ -14,9 +14,8 @@ import { safeNextPath } from "@haruhimemoe/next-kit/server";
 import { PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SignInWithOsu } from "@/components/auth/SignInWithOsu";
 import { DEFAULT_AFTER_SIGN_IN } from "@/constants/site";
-import { RestoreSignedIn } from "@/lib/account";
+import { RestoreSignedIn, SignInWithOsu } from "@/lib/account";
 import { getCurrentUser } from "@/lib/auth-session";
 import { signInErrorText } from "@/utils/signin-errors";
 

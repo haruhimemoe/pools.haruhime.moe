@@ -19,7 +19,7 @@ import { ImportReportList } from "@/components/admin/ImportReportList";
 import { RefreshPagesButton } from "@/components/admin/RefreshPagesButton";
 import { RetryPackCleanupButton } from "@/components/admin/RetryPackCleanupButton";
 import { RetrySyncButtons } from "@/components/admin/RetrySyncButtons";
-import { SignOutButton } from "@/components/auth/SignOutButton";
+import { SignOutButton } from "@/lib/account";
 import { requireAdmin } from "@/lib/auth-session";
 import { countSyncStates } from "@/services/admin-pools";
 import { ADMIN_BUILT_LIMIT, listRecentBuiltPools } from "@/services/built-moderation";

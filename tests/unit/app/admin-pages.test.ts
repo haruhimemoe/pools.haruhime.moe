@@ -64,7 +64,7 @@ vi.mock("@/services/admin-pools", () => ({
 }));
 vi.mock("@/services/imports", () => ({ listImportReports }));
 // The sign-out button pulls in the better-auth browser client, which this page test doesn't need.
-vi.mock("@/components/auth/SignOutButton", () => ({ SignOutButton: () => null }));
+vi.mock("@/lib/account", () => ({ SignOutButton: () => null }));
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
