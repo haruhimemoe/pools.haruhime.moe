@@ -4,12 +4,15 @@
  *       exactly; the editor must have signed in (so they have a user id to own it with) and own
  *       fewer than 50 pools. The editor becomes the owner, the old owner stays on as an editor,
  *       and the version goes up, in one write guarded by the version read (a change in between
- *       is a 409 with the pool as it is now). The cap is counted again after the write, which
- *       backs out when a create landed meanwhile. A shared pool's pack is marked pending, since
- *       its description credits the owner first.
+ *       is a 409 with the pool as it is now, or a 404 for an old owner who can't see it any
+ *       more). The cap is counted again after the write, which gives the pool back when a create
+ *       landed meanwhile: exactly as it was, or, when something changed in between, keeping the
+ *       change and swapping only the two back; one that can't be given back (handed on or
+ *       deleted) is reported as it stands. A shared pool's pack is marked pending, since its
+ *       description credits the owner first.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -28,6 +31,7 @@ import {
   refuse,
   viewOf,
 } from "@/services/built-pools";
+import { accessOf } from "@/utils/built-access";
 
 /** Who owns the pool and who edits it. */
 type Hands = Pick<StoredBuiltPool, "ownerId" | "editors">;
@@ -41,6 +45,54 @@ const swap = async (id: string, version: number, hands: Hands) =>
       { returnDocument: "after" },
     ),
   );
+
+/**
+ * Gives the pool back to its old owner after a handover that went over the cap. Unchanged since
+ * the handover, it gets its old owner and editors back; changed (an op, an editor added), it
+ * keeps the change and only the two swap back, as long as the editor still owns it. The pool
+ * after, or null when it can't be given back (deleted, or handed on).
+ */
+const giveBack = async (
+  after: StoredBuiltPool,
+  before: StoredBuiltPool,
+  target: BuiltEditor & { userId: string },
+  oldOwnerOsuId: number,
+): Promise<StoredBuiltPool | null> => {
+  const exact = await swap(after._id, after.version, {
+    ownerId: before.ownerId,
+    editors: before.editors,
+  });
+  if (exact) return exact;
+  const withoutOldOwner = {
+    $filter: { input: "$editors", cond: { $ne: ["$$this.osuId", oldOwnerOsuId] } },
+  };
+  return readBuiltPool(
+    await (await builtPoolsCollection()).findOneAndUpdate(
+      { _id: after._id, ownerId: target.userId },
+      [
+        {
+          $set: {
+            ownerId: before.ownerId,
+            editors: { $concatArrays: [withoutOldOwner, [{ $literal: target }]] },
+            updatedAt: new Date(),
+            version: { $add: ["$version", 1] },
+          },
+        },
+      ],
+      { returnDocument: "after" },
+    ),
+  );
+};
+
+/** The pool as it is now, to a caller who can still see it; a 404 otherwise. */
+const asItStands = async (
+  id: string,
+  caller: SessionUser,
+): Promise<Answer<{ pool: StoredBuiltPool; view: BuiltPoolView }>> => {
+  const now = await findBuiltPool(id);
+  if (!now || !accessOf(now, caller).canView) return refuse(404, "not_found", NOT_FOUND);
+  return { ok: true, value: { pool: now, view: await viewOf(now, caller) } };
+};
 
 /**
  * @function transferBuiltPool
@@ -84,15 +136,18 @@ export const transferBuiltPool = async (
   const editors = [...pool.editors.filter((editor) => editor.osuId !== osuId), oldOwner];
   const after = await swap(id, pool.version, { ownerId: userId, editors });
   if (!after) {
-    const now = await findBuiltPool(id);
-    if (!now) return refuse(404, "not_found", NOT_FOUND);
+    // An editor removed since the first read gets a 404, never the pool.
+    const now = await asItStands(id, caller);
+    if (!now.ok) return now;
     const message = "Someone changed this pool meanwhile. Nothing was handed over.";
-    return refuse(409, "conflict", message, { pool: await viewOf(now, caller) });
+    return refuse(409, "conflict", message, { pool: now.value.view });
   }
   // A create may have landed since the count: take the pool back.
   if ((await owned()) > MAX_POOLS_PER_OWNER) {
-    await swap(id, after.version, { ownerId: pool.ownerId, editors: pool.editors });
-    return full();
+    if (await giveBack(after, pool, { ...target, userId }, caller.osuId)) return full();
+    // It can't be given back any more (handed on, or deleted): say how it stands.
+    const now = await asItStands(id, caller);
+    return now.ok ? { ok: true, value: now.value.view } : now;
   }
   return { ok: true, value: await viewOf((await markPackPending(id)) ?? after, caller) };
 };
