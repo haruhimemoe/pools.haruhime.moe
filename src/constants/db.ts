@@ -2,10 +2,10 @@
  * @file src/constants/db.ts
  * @desc Collection names in the pools database, the session TTL index name, how long a public
  *       read and a batch read (importer, admin) may run (the cluster is a shared free M0), and
- *       the index names searches hint.
+ *       the index names searches hint (and the mod_values TTL index).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sun Sep 27, 2026
  */
 
 export const POOLS_COLLECTION = "pools";
@@ -13,6 +13,8 @@ export const MAPS_COLLECTION = "maps";
 export const IMPORTS_COLLECTION = "imports";
 export const SET_FACTS_COLLECTION = "setFacts";
 export const RATE_LIMITS_COLLECTION = "rate_limits";
+/** Values under mods from the mirror, one row per beatmap id and combo. */
+export const MOD_VALUES_COLLECTION = "mod_values";
 
 export const SESSION_TTL_INDEX = "session_expiresAt_ttl";
 
@@ -47,3 +49,8 @@ export const MAP_INDEXES = Object.freeze({
 
 /** maxTimeMS for the importer's and the admin's batch reads over every pool or map. */
 export const BATCH_QUERY_MS = 60_000;
+
+/** Index names on mod_values. */
+export const MOD_VALUES_INDEXES = Object.freeze({
+  ttl: "mod_values_fetchedAt_ttl",
+});
