@@ -1,11 +1,11 @@
 /**
  * @file tests/unit/schemas/built-pool-ops.test.ts
  * @desc The pool routes' bodies, all strict: a create (a name and details, or a pool to start
- *       from), an ops call (a base version and 1 to 20 ops, each op's own fields checked and
+ *       from, with a template's targets), an ops call (a base version and 1 to 20 ops, each op's own fields checked and
  *       text through the content filter), a visibility, and an editor's osu! username.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -28,6 +28,10 @@ describe("createPoolBodySchema", () => {
     expect(createPoolBodySchema.parse({ startedFrom: "otdb-12" })).toEqual({
       startedFrom: "otdb-12",
     });
+    expect(createPoolBodySchema.parse({ name: "Cup", template: "finals" })).toEqual({
+      name: "Cup",
+      template: "finals",
+    });
   });
 
   it.each([
@@ -36,6 +40,7 @@ describe("createPoolBodySchema", () => {
     { name: "Cup", extra: 1 },
     { startedFrom: "Bad Id" },
     { name: "fags" },
+    { name: "Cup", template: "semis" },
   ])("refuses %j", (body) => {
     expect(createPoolBodySchema.safeParse(body).success).toBe(false);
   });
@@ -55,6 +60,9 @@ describe("opsBodySchema", () => {
     { type: "removeBucket", code: "EZ" },
     { type: "replaceMaps", text: "NM1 129891" },
     { type: "replaceMaps", text: "129891", mode: "merge" },
+    { type: "setTarget", bucket: "NM", count: 5 },
+    { type: "setTarget", bucket: "HD", count: 0, sr: { min: 5.8, max: 6.3 } },
+    { type: "setTarget", bucket: "EZ", count: 16, sr: { min: 6, max: 6 } },
   ])("takes %j", (op) => {
     expect(ok(op)).toBe(true);
   });
@@ -73,6 +81,15 @@ describe("opsBodySchema", () => {
     { type: "replaceMaps", text: "1", mode: "append" },
     { type: "renameBucket", code: "EZ" },
     { type: "addMap", beatmapId: 1, bucket: "NM", extra: true },
+    { type: "setTarget", bucket: "NM", count: 17 },
+    { type: "setTarget", bucket: "NM", count: -1 },
+    { type: "setTarget", bucket: "NM", count: 2.5 },
+    { type: "setTarget", bucket: "NM" },
+    { type: "setTarget", bucket: "NM", count: 2, sr: { min: 7, max: 6 } },
+    { type: "setTarget", bucket: "NM", count: 2, sr: { min: 1, max: 10.5 } },
+    { type: "setTarget", bucket: "NM", count: 2, sr: { min: 1 } },
+    { type: "setTarget", bucket: "NM", count: 2, sr: null },
+    { type: "setTarget", bucket: "chink", count: 2 },
   ])("refuses %j", (op) => {
     expect(ok(op)).toBe(false);
   });

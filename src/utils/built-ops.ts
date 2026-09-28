@@ -5,10 +5,11 @@
  *       (never a half-changed pool). Maps and buckets are edited through @haruhimemoe/pool
  *       (sortSlots, removeSlot, addBucket, setBucketMods, parsePoolText, planMerge, mergeSlots),
  *       so the result keeps its rules; this adds what the builder needs on top: a slot number to
- *       add or move to, no map twice ("duplicate"), and a clear refusal for every limit. Pure.
+ *       add or move to, no map twice ("duplicate"), a clear refusal for every limit, and the
+ *       plan's ops (src/utils/built-plan-ops.ts: targets). Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -38,12 +39,13 @@ import {
 } from "@haruhimemoe/pool";
 import { hasDuplicateMaps, type StoredBuiltPool } from "@/schemas/built-pool";
 import type { PoolOp } from "@/schemas/built-pool-ops";
+import { type PlannedContent, tidyPlan, withTarget } from "@/utils/built-plan-ops";
 import { hasBlockedLanguage } from "@/utils/content-filter";
 
-/** What ops change: the details, the buckets and the slots. */
+/** What ops change: the details, the buckets, the slots and the targets. */
 export type BuiltContent = Pick<
   StoredBuiltPool,
-  "name" | "tournament" | "round" | "year" | "notes" | "buckets" | "slots"
+  "name" | "tournament" | "round" | "year" | "notes" | "buckets" | "slots" | "targets"
 >;
 
 export type OpErrorCode =
@@ -79,7 +81,7 @@ export type OpFailure = {
   lines?: SlotLineError[];
 };
 
-export type OpResult = { ok: true; pool: BuiltContent } | OpFailure;
+export type OpResult = { ok: true; pool: PlannedContent } | OpFailure;
 
 export const OP_MESSAGES = {
   duplicate: "That map is already in the pool.",
@@ -228,6 +230,9 @@ const applyOp = (pool: BuiltContent, op: PoolOp): BuiltContent => {
       return removeCustomBucket(pool, op);
     case "replaceMaps":
       return replaceMaps(pool, op);
+    case "setTarget":
+      requireBucket(pool, op.bucket);
+      return { ...pool, targets: withTarget(pool.targets ?? {}, op) };
   }
 };
 
@@ -235,15 +240,16 @@ const applyOp = (pool: BuiltContent, op: PoolOp): BuiltContent => {
  * @function applyOps
  * @param pool {BuiltContent} the pool's current content
  * @param ops {readonly PoolOp[]} the call's ops (already parsed), in order
- * @returns {OpResult} the whole new content, or the first op that couldn't apply (its index,
- *          code, message, and the unreadable lines of a paste)
+ * @returns {OpResult} the whole new content (its targets always there, only on buckets it has),
+ *          or the first op that couldn't apply (its index, code, message, and the unreadable
+ *          lines of a paste)
  * @throws when something other than an op's own refusal goes wrong (a bug)
  */
 export const applyOps = (pool: BuiltContent, ops: readonly PoolOp[]): OpResult => {
-  let current = pool;
+  let current = tidyPlan(pool);
   for (const [index, op] of ops.entries()) {
     try {
-      current = applyOp(current, op);
+      current = tidyPlan(applyOp(current, op));
     } catch (error) {
       if (!(error instanceof OpError)) throw error;
       const { code, message, lines } = error;

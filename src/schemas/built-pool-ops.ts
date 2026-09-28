@@ -4,13 +4,14 @@
  *       to start from), POST /api/pools/<id>/ops (a base version and 1 to 20 ops), PUT
  *       .../visibility, POST .../editors (an osu! username), POST .../owner (an editor's osu!
  *       id and the pool's name typed to confirm). Each op's fields come from @haruhimemoe/pool's
- *       schemas (beatmap ids, bucket codes, palette colors, forced mod sets); every piece of text
+ *       schemas (beatmap ids, bucket codes, palette colors, forced mod sets), and a bucket's
+ *       target (src/schemas/built-plan.ts); a create may name a template; every piece of text
  *       a person types and we keep, bucket codes included, goes through the content filter (the
  *       name typed to confirm is only compared, never kept). What an op does to a pool lives in
  *       src/utils/built-ops.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import {
@@ -27,6 +28,8 @@ import {
   MAX_USERNAME_LENGTH,
   VISIBILITIES,
 } from "@/constants/built-pools";
+import { TEMPLATE_IDS } from "@/constants/targets";
+import { targetCountSchema, targetRangeSchema } from "@/schemas/built-plan";
 import { builtDetailsFields, FILTER_ISSUE } from "@/schemas/built-pool";
 import { poolIdSchema } from "@/schemas/pool";
 import { hasBlockedLanguage } from "@/utils/content-filter";
@@ -86,6 +89,12 @@ export const opSchema = z.union([
     text: z.string().max(MAX_PASTE_LENGTH, `Paste at most ${MAX_PASTE_LENGTH} characters.`),
     mode: z.enum(["replace", "merge"]).optional(),
   }),
+  z.strictObject({
+    type: z.literal("setTarget"),
+    bucket: codeSchema,
+    count: targetCountSchema,
+    sr: targetRangeSchema.optional(),
+  }),
 ]);
 
 export type PoolOp = z.infer<typeof opSchema>;
@@ -107,6 +116,8 @@ export const createPoolBodySchema = z
     notes: builtDetailsFields.notes.optional(),
     /** A past pool's id, or a built pool the caller can see: its maps are copied. */
     startedFrom: poolIdSchema.optional(),
+    /** A template's targets (counts only; never maps). */
+    template: z.enum(TEMPLATE_IDS).optional(),
   })
   .refine(
     (body) => body.name !== undefined || body.startedFrom !== undefined,

@@ -5,14 +5,14 @@
  *       apply in memory, all or nothing (src/utils/built-ops.ts; a refusal is a 400 naming the
  *       op), the whole new pool is checked against the stored schema (so a pool a newer content
  *       filter refuses has to be renamed in the same call), and its content (details, buckets,
- *       slots, version) is written with one $set that only matches the version it was read at,
- *       so two editors can't both win: the loser gets the 409. Fields ops don't own (editors,
+ *       slots, targets, version) is written with one $set that only matches the version it was
+ *       read at, so two editors can't both win: the loser gets the 409. Fields ops don't own (editors,
  *       pack, hidden) are never written here, so a change to them without a new version isn't
  *       undone. An unlisted or public pool's pack is marked pending (the route syncs it after
  *       the answer). The 409's pool goes only to someone who can still see it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import "server-only";
@@ -47,7 +47,7 @@ const conflict = async (id: string, caller: SessionUser): Promise<Answer<BuiltPo
 };
 
 /** What an ops write sets: the content, its search fields, the version and when. */
-const contentOf = ({ buckets, ...pool }: StoredBuiltPool & BuiltSearchFields) => ({
+const contentOf = ({ buckets, targets, ...pool }: StoredBuiltPool & BuiltSearchFields) => ({
   $set: {
     searchText: pool.searchText,
     sortName: pool.sortName,
@@ -61,8 +61,17 @@ const contentOf = ({ buckets, ...pool }: StoredBuiltPool & BuiltSearchFields) =>
     version: pool.version,
     updatedAt: pool.updatedAt,
     ...(buckets === undefined ? {} : { buckets }),
+    ...(targets === undefined ? {} : { targets }),
   },
-  ...(buckets === undefined ? { $unset: { buckets: "" as const } } : {}),
+  // toStored leaves out the default buckets and no targets: the stored ones go too.
+  ...(buckets === undefined || targets === undefined
+    ? {
+        $unset: {
+          ...(buckets === undefined ? { buckets: "" as const } : {}),
+          ...(targets === undefined ? { targets: "" as const } : {}),
+        },
+      }
+    : {}),
 });
 
 /**

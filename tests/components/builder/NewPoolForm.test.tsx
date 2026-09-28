@@ -2,7 +2,7 @@
  * @file tests/components/builder/NewPoolForm.test.tsx
  * @desc "Make a pool": a missing name or a year that isn't one is said under its field (focus
  *       goes there) with nothing sent; a good form POSTs the name and every detail (an empty one
- *       as "" or a null year), then goes to the new pool's editor; a refusal is said in the page.
+ *       as "" or a null year), then goes to the new pool's editor, with the template picked (its targets, never maps); a refusal is said in the page.
  *       Starting from a pool fills in its details, says how many maps come with it, sends
  *       startedFrom, and sends a detail cleared from it as empty.
  * @author David @dvhsh (https://dvh.sh)
@@ -74,6 +74,22 @@ describe("NewPoolForm", () => {
     });
   });
 
+  it("sends the template picked, and none for Blank", async () => {
+    const { fetcher, user, field, make } = setup(() =>
+      Response.json({ id: "b-a0000001" }, { status: 201 }),
+    );
+    const picker = screen.getByRole("combobox", { name: "Template" });
+    expect(picker).toHaveValue("blank");
+    await user.selectOptions(picker, "Finals (7 NM, 4 HD, 4 HR, 5 DT, 4 FM, 1 TB)");
+    await user.type(field("Name"), "Cup");
+    await make();
+    await waitFor(() => expect(push).toHaveBeenCalled());
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toMatchObject({
+      name: "Cup",
+      template: "finals",
+    });
+  });
+
   it("says why the server refused", async () => {
     const message = "You can own at most 50 pools. Delete one to make another.";
     const { field, make, user } = setup(() =>
@@ -104,6 +120,7 @@ describe("NewPoolForm", () => {
       year: 2023,
       startedFrom: "otdb-9",
     });
+    expect(screen.queryByRole("combobox", { name: "Template" })).toBeNull();
   });
 
   it("sends the details cleared from a pool it starts from as empty, not as the pool's", async () => {

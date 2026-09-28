@@ -9,7 +9,7 @@
  *       page 1, and Ranked instead of Qualified or Pending.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BucketEntry } from "@haruhimemoe/pool";
@@ -104,5 +104,13 @@ describe("findMapsState", () => {
       const state = { ...DEFAULT_BROWSE_STATE, status };
       expect(findMapsState(state, HDHR, lenses)).toMatchObject({ status: "ranked", lens: "NM" });
     }
+  });
+
+  it("puts the bucket's target range in the star filter, keeping the filter without one", () => {
+    const state = { ...DEFAULT_BROWSE_STATE, sr: [4, 5] as [number, number] };
+    const nm = { code: "NM" } as BucketEntry;
+    expect(findMapsState(state, nm, lenses, { min: 5.8, max: 6.3 }).sr).toEqual([5.8, 6.3]);
+    expect(findMapsState(state, nm, lenses, { min: 0, max: 10 }).sr).toBeNull();
+    expect(findMapsState(state, nm, lenses).sr).toEqual([4, 5]);
   });
 });

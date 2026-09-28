@@ -2,7 +2,7 @@
  * @file src/components/builder/PoolEditor.tsx
  * @desc The pool editor at /pools/<id>/edit. Two panes on wide screens, stacked on phones: the
  *       pool (details, maps by bucket with values under each slot's mods, the map browser right
- *       under them, where its range sliders have room, paste, custom slots) and the side
+ *       under them, where its range sliders have room, paste, targets, custom slots) and the side
  *       (summary with the content rules check, editors, the pack on packs with "Update pack
  *       now", and the owner's settings: who can see it, handing it to an editor, and delete).
  *       Every change is saved at once through usePoolEditor; the saving bar stays in view. A
@@ -21,17 +21,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { type CheckRules, ContentRulesCheck } from "@/components/builder/ContentRulesCheck";
 import { CustomBucketForm } from "@/components/builder/CustomBucketForm";
-import { DeletePoolForm } from "@/components/builder/DeletePoolForm";
 import { DetailsForm } from "@/components/builder/DetailsForm";
 import { EditorsPanel } from "@/components/builder/EditorsPanel";
 import { MapBrowserPane } from "@/components/builder/MapBrowserPane";
+import { OwnerSettings } from "@/components/builder/OwnerSettings";
 import { PackPanel } from "@/components/builder/PackPanel";
 import { PasteBox } from "@/components/builder/PasteBox";
 import { PoolMaps } from "@/components/builder/PoolMaps";
 import { PoolSummary } from "@/components/builder/PoolSummary";
 import { SaveState } from "@/components/builder/SaveState";
-import { TransferOwnerForm } from "@/components/builder/TransferOwnerForm";
-import { VisibilityForm } from "@/components/builder/VisibilityForm";
+import { TargetsForm } from "@/components/builder/TargetsForm";
 import { HIDDEN_BY_MODERATION, VISIBILITY_TEXT } from "@/constants/built-pools";
 import { usePoolEditor } from "@/hooks/usePoolEditor";
 import { useSlotMaps } from "@/hooks/useSlotMaps";
@@ -131,10 +130,14 @@ export function PoolEditor({
             openedFor={openedFor}
             openCount={openCount}
             onAdd={(beatmapId, bucket) => change([{ type: "addMap", beatmapId, bucket }])}
+            targets={pool.targets}
             fetcher={fetcher}
           />
           <Card title="Paste a pool">
             <PasteBox change={change} lines={editor.failure?.lines} />
+          </Card>
+          <Card title="Targets">
+            <TargetsForm pool={pool} change={change} />
           </Card>
           <Card title="Custom slots">
             <CustomBucketForm pool={pool} change={change} />
@@ -159,26 +162,13 @@ export function PoolEditor({
             <PackPanel pool={pool} editor={editor} fetcher={fetcher} />
           </Card>
           {pool.access.isOwner ? (
-            <Card title="Owner settings">
-              <div className="flex flex-col gap-6">
-                <VisibilityForm pool={pool} editor={editor} fetcher={fetcher} />
-                <h3 className="font-bold text-c1">Hand this pool to an editor</h3>
-                <TransferOwnerForm
-                  pool={pool}
-                  editor={editor}
-                  fetcher={fetcher}
-                  onDone={setHandedOver}
-                />
-                <h3 className="font-bold text-c1">Delete this pool</h3>
-                <DeletePoolForm
-                  poolId={pool.id}
-                  name={pool.name}
-                  editor={editor}
-                  fetcher={fetcher}
-                  onDeleted={() => router.push(YOUR_POOLS)}
-                />
-              </div>
-            </Card>
+            <OwnerSettings
+              pool={pool}
+              editor={editor}
+              fetcher={fetcher}
+              onHandedOver={setHandedOver}
+              onDeleted={() => router.push(YOUR_POOLS)}
+            />
           ) : null}
         </div>
       </div>

@@ -9,7 +9,7 @@
  *       refused with their line numbers). A failure names the op it stopped at.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -237,5 +237,45 @@ describe("replaceMaps", () => {
     expect(failure([paste("NM1 10\nhello\nNM0 5")]).lines?.map((line) => line.line)).toEqual([
       2, 3,
     ]);
+  });
+});
+
+describe("setTarget", () => {
+  const target = (bucket: string, count: number, sr?: { min: number; max: number }): PoolOp =>
+    sr ? { type: "setTarget", bucket, count, sr } : { type: "setTarget", bucket, count };
+  const targetsOf = (ops: PoolOp[], pool?: BuiltContent) => {
+    const result = run(ops, pool);
+    if (!result.ok) throw new Error(`${result.code}: ${result.message}`);
+    return result.pool.targets;
+  };
+
+  it("sets, replaces and clears a bucket's target (a count of 0 with no range is none)", () => {
+    expect(targetsOf([])).toEqual({});
+    expect(targetsOf([target("NM", 5), target("HD", 0, { min: 5, max: 6 })])).toEqual({
+      NM: { count: 5 },
+      HD: { count: 0, sr: { min: 5, max: 6 } },
+    });
+    expect(targetsOf([target("NM", 3)], { ...EMPTY, targets: { NM: { count: 5 } } })).toEqual({
+      NM: { count: 3 },
+    });
+    expect(targetsOf([target("NM", 0)], { ...EMPTY, targets: { NM: { count: 5 } } })).toEqual({});
+  });
+
+  it("refuses a bucket the pool lacks, and drops a removed bucket's target", () => {
+    expect(failure([target("EZ", 2)])).toMatchObject({ code: "unknown_bucket", op: 0 });
+    const ops: PoolOp[] = [
+      { type: "addBucket", code: "EZ" },
+      target("EZ", 2),
+      target("NM", 1),
+      { type: "removeBucket", code: "EZ" },
+    ];
+    expect(targetsOf(ops)).toEqual({ NM: { count: 1 } });
+  });
+
+  it("keeps targets through other ops", () => {
+    const pool = { ...EMPTY, targets: { NM: { count: 2 } } };
+    expect(targetsOf([add(1), { type: "setDetails", name: "X" }], pool)).toEqual({
+      NM: { count: 2 },
+    });
   });
 });

@@ -2,7 +2,8 @@
  * @file src/components/builder/SlotRow.tsx
  * @desc One slot in the editor: its label, its map, and buttons to move it up or down, move it to
  *       another bucket (a picker and a Move button, so arrow keys in the picker never move
- *       anything) and remove it. Every control names its slot for screen readers. Its map and
+ *       anything) and remove it, and a badge when its stars sit outside the bucket's target.
+ *       Every control names its slot for screen readers. Its map and
  *       controls sit side by side only once the maps card (a size container) is 48rem wide;
  *       narrower, on phones and in the desktop editor's pool column, they stack. The editor
  *       decides what each button does and where focus goes after.
@@ -27,6 +28,8 @@ type SlotRowProps = {
   map: BuiltMap | null | undefined;
   /** Its values under the slot's mods, once known. */
   values?: SlotValueAnswer | undefined;
+  /** Where its stars fall outside the bucket's target range ("Below 5.80–6.30★"), or null. */
+  badge?: string | null;
   first: boolean;
   last: boolean;
   /** The buckets it can move to (every other one). */
@@ -36,7 +39,8 @@ type SlotRowProps = {
   onRemove: () => void;
 };
 
-export function SlotRow({ slot, map, values, first, last, targets, ...on }: SlotRowProps) {
+export function SlotRow(props: SlotRowProps) {
+  const { slot, map, values, badge, first, last, targets, ...on } = props;
   const [target, setTarget] = useState("");
   const label = slotLabel(slot);
   const chosen = targets.find((option) => option.code === target);
@@ -47,7 +51,14 @@ export function SlotRow({ slot, map, values, first, last, targets, ...on }: Slot
     >
       <div className="flex min-w-0 flex-1 gap-3">
         <span className="w-14 shrink-0 font-bold text-c1">{label}</span>
-        <SlotMapText beatmapId={slot.beatmapId} map={map} values={values} />
+        <div className="flex min-w-0 flex-col items-start gap-1">
+          <SlotMapText beatmapId={slot.beatmapId} map={map} values={values} />
+          {badge ? (
+            <span className="rounded-full bg-amber-300/20 px-2 py-0.5 font-bold text-amber-200 text-xs">
+              {badge}
+            </span>
+          ) : null}
+        </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button

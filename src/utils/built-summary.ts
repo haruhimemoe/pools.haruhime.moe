@@ -7,7 +7,7 @@
  *       set are worth a look), and the maps past pools played. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { type PoolSlot, slotLabel } from "@haruhimemoe/pool";
@@ -27,8 +27,16 @@ export type StarRange = {
   known: number;
 };
 
-/** A slot's stars under its mods: the mirror's for a modded slot, no-mod for a no-mod one. */
-const starsUnderMods = (
+/**
+ * @function starsUnderMods
+ * @param slot {PoolSlot} a slot
+ * @param entry {SlotGroup["entry"]} its bucket
+ * @param maps {BuiltMaps} map details
+ * @param values {SlotValueMap} values under each slot's mods, as far as they're known
+ * @returns {number | null} its stars under its mods: the mirror's for a modded slot, no-mod for
+ *          a no-mod one; null when that isn't known
+ */
+export const starsUnderMods = (
   slot: PoolSlot,
   entry: SlotGroup["entry"],
   maps: BuiltMaps,

@@ -1,17 +1,20 @@
 /**
  * @file src/components/builder/PoolSummary.tsx
  * @desc A built pool's summary, on its page and in the editor: how many maps, each bucket's star
- *       range (each map under its slot's mods when known), beatmapsets in more than one slot,
- *       and the maps past pools played (linking each map's history). Presentational; the content rules check sits
+ *       range (each map under its slot's mods when known), the targets (buckets short of maps,
+ *       maps outside their range), beatmapsets in more than one slot, and the maps past pools
+ *       played (linking each map's history). Presentational; the content rules check sits
  *       beside it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import Link from "next/link";
+import { TargetSummary } from "@/components/builder/TargetSummary";
 import { MAX_SLOTS } from "@/constants/built-pools";
+import type { BucketTargets } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { groupSlots } from "@/utils/built-editor";
 import { playedBefore, repeatedSets, type StarRange, starRanges } from "@/utils/built-summary";
@@ -20,7 +23,7 @@ import type { SlotValueMap } from "@/utils/slot-values";
 import { usageSummary } from "@/utils/usage";
 
 type PoolSummaryProps = {
-  pool: { buckets: readonly BucketEntry[]; slots: readonly PoolSlot[] };
+  pool: { buckets: readonly BucketEntry[]; slots: readonly PoolSlot[]; targets?: BucketTargets };
   maps: BuiltMaps;
   /** Values under each slot's mods, as far as they're known. */
   values?: SlotValueMap;
@@ -60,6 +63,9 @@ export function PoolSummary({ pool, maps, values = {} }: PoolSummaryProps) {
           </dl>
         )}
       </section>
+      {pool.targets && Object.keys(pool.targets).length > 0 ? (
+        <TargetSummary groups={groups} targets={pool.targets} maps={maps} values={values} />
+      ) : null}
       <section className="flex flex-col gap-1">
         <h3 className={H3}>Same beatmapset twice</h3>
         {repeats.length === 0 ? (

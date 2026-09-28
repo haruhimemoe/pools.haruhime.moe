@@ -6,7 +6,9 @@
  *       hour) or no answer is said in the page. Started from a pool (/new?from=<id>), the form
  *       comes filled in with its details, says how many maps come with it, and sends
  *       startedFrom, so the new pool copies its maps and buckets. Every detail is sent, an
- *       empty one as "" (a null year), so one cleared from the source pool stays cleared.
+ *       empty one as "" (a null year), so one cleared from the source pool stays cleared. A new
+ *       pool can take a template (its slot counts as targets, never maps); one started from a
+ *       pool keeps that pool's targets instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -14,12 +16,14 @@
 
 "use client";
 
-import { Button, TextInput } from "@haruhimemoe/ui";
+import { Button, Select, TextInput } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
+import { POOL_TEMPLATES, type TemplateId } from "@/constants/targets";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import { builtDetailsFields } from "@/schemas/built-pool";
 import type { StartFrom } from "@/schemas/built-pool-view";
+import { templateLabel } from "@/utils/bucket-targets";
 
 type Field = "name" | "tournament" | "round" | "year";
 
@@ -43,6 +47,7 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
     round: startFrom?.round ?? "",
     year: startFrom?.year === null || !startFrom ? "" : String(startFrom.year),
   });
+  const [template, setTemplate] = useState<TemplateId>("blank");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [failure, setFailure] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -69,6 +74,7 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
       return;
     }
     if (startFrom) body.startedFrom = startFrom.id;
+    else if (template !== "blank") body.template = template;
     setPending(true);
     setFailure(null);
     const answer = await callPools<{ id: string }>(fetcher, "/api/pools", { method: "POST", body });
@@ -102,6 +108,21 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
           />
         ))}
       </div>
+      {startFrom ? null : (
+        <Select
+          id="new-template"
+          label="Template"
+          hint="Sets how many maps each slot should hold. It adds no maps, and you can change the counts."
+          value={template}
+          onChange={(event) => setTemplate(event.target.value as TemplateId)}
+        >
+          {POOL_TEMPLATES.map((entry) => (
+            <option key={entry.id} value={entry.id}>
+              {templateLabel(entry)}
+            </option>
+          ))}
+        </Select>
+      )}
       <Button type="submit" className="self-start" disabled={pending}>
         {pending ? "Making it…" : "Make the pool"}
       </Button>

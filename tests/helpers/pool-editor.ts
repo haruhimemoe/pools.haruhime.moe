@@ -71,6 +71,7 @@ export const clientPool = (over: Partial<ClientPool> = {}): ClientPool => ({
   editors: [{ osuId: 20, username: "editor" }],
   buckets: DEFAULT_BUCKETS,
   slots: [nm(1, 10), nm(2, 20), nm(3, 30)],
+  targets: {},
   version: 1,
   pack: NO_PACK,
   access: OWNER_ACCESS,

@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Slot targets: how many maps each slot should hold and a star range under its mods, with placeholder rows, out-of-range badges and a list in the summary. `/new` offers Qualifiers, Group stage, Knockout and Finals templates that set the counts, and Find maps fills in the slot's star range.
 - Build a pool: anyone signs in with osu! and makes pools at `/new`, then edits them at `/pools/<id>/edit`: details, maps in slots (built-in and custom, with forced mods or freemod), moving without drag, pasted slot lines, IDs or links, and a summary with the content rules check. Every change saves at once, and a change someone else made first reloads the pool.
 - A map browser in the editor that searches osu! maps under a mod lens, with star rating, AR, OD, BPM and length under that mod, and adds a difficulty to the matching slot.
 - Pool slots show their values under the slot's mods, on past and built pools.

@@ -4,7 +4,8 @@
  *       values under it, and Add on each difficulty. Its props are the editor's interface: the
  *       pool's buckets and beatmap ids ("hide maps in this pool", "In this pool"), the bucket a
  *       "Find maps" opened it for (its mods set the lens, Qualified and Pending go back to Ranked,
- *       and Add goes there while the lens is the one it set or still matches), a count that
+ *       and Add goes there while the lens is the one it set or still matches; its target's star
+ *       range, when it has one, becomes the star filter), a count that
  *       brings focus here on each press, and onAdd. Its state lives in the editor URL's `browse`
  *       param (read once mounted, written with history.replaceState so the page doesn't reload),
  *       so a refresh keeps it. The lenses come from the answer, and so does the lens Add and the
@@ -27,6 +28,7 @@ import { BrowseResults } from "@/components/builder/BrowseResults";
 import { BROWSE_LENSES } from "@/constants/browse";
 import { SEARCH_FAILED_COUNT } from "@/constants/search";
 import { useMapBrowse } from "@/hooks/useMapBrowse";
+import type { BucketTargets } from "@/schemas/built-plan";
 import { defaultBucketFor, findMapsState, lensForBucket, type OpenedFor } from "@/utils/browse-add";
 import {
   DEFAULT_BROWSE_STATE,
@@ -46,12 +48,14 @@ export type MapBrowserProps = {
   openCount: number;
   /** Adds a map to a bucket (null: no slot), at its end. */
   onAdd: (beatmapId: number, bucket: string | null) => void;
+  /** The pool's targets: Find maps on a bucket with a star range puts it in the star filter. */
+  targets?: BucketTargets | undefined;
   /** fetch (tests; the editor passes its own). */
   fetcher?: typeof fetch;
 };
 
 export function MapBrowserPane(props: MapBrowserProps) {
-  const { buckets, poolIds, openedFor, openCount, onAdd, fetcher } = props;
+  const { buckets, poolIds, openedFor, openCount, onAdd, fetcher, targets } = props;
   const headingId = useId();
   const heading = useRef<HTMLHeadingElement>(null);
   const [state, setState] = useState(DEFAULT_BROWSE_STATE);
@@ -83,7 +87,8 @@ export function MapBrowserPane(props: MapBrowserProps) {
     if (openCount === 0) return;
     const entry = buckets.find((bucket) => bucket.code === openedFor);
     if (entry) {
-      setState((s) => findMapsState(s, entry, lensList.current));
+      const sr = targets?.[entry.code]?.sr;
+      setState((s) => findMapsState(s, entry, lensList.current, sr));
       setOpened({ bucket: entry.code, lens: lensForBucket(entry, lensList.current) });
     }
     heading.current?.focus();

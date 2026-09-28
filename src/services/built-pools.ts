@@ -4,7 +4,7 @@
  *       a pool a newer content filter or limit would refuse still reads and can be fixed or
  *       deleted; a row of the wrong shape is left out, never shown half-broken), what a caller
  *       sees of it (the owner's current osu! name, every bucket, and for the owner which editors
- *       have signed in), creating one (at most 50 per owner, a fresh "b-" id claimed in
+ *       have signed in, and its targets), creating one (at most 50 per owner, a fresh "b-" id claimed in
  *       built_pool_ids so no id is ever reused, maybe copied from a past pool or a built one the
  *       caller can see), changing who sees it, and deleting it. A pool with a pack on packs
  *       loses the pack (going private, being deleted); when packs can't be asked, the change
@@ -28,6 +28,7 @@ import { QUERY_TIME_MS } from "@/constants/db";
 import type { SessionUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
+import type { BucketTargets } from "@/schemas/built-plan";
 import {
   type BuiltEditor,
   builtPoolReadSchema,
@@ -85,6 +86,8 @@ export type BuiltPoolView = {
   editors: (Omit<BuiltEditor, "userId"> & { signedIn?: boolean })[];
   buckets: BucketEntry[];
   slots: PoolSlot[];
+  /** Each bucket's target ({} when there are none). */
+  targets: BucketTargets;
   version: number;
   pack: ClientPack;
   startedFrom: string | null;
@@ -123,13 +126,17 @@ export const findBuiltPool = async (id: string): Promise<StoredBuiltPool | null>
  * @function toStored
  * @param pool {StoredBuiltPool} a pool about to be written
  * @returns {StoredBuiltPool & BuiltSearchFields} the same pool, checked, with `buckets` left out
- *          for the default list (the driver would store an undefined value as null), and its
- *          search fields
+ *          for the default list and `targets` when there are none (the driver would store an
+ *          undefined value as null), and its search fields
  * @throws {z.ZodError} when it doesn't satisfy the stored schema (a bug)
  */
 export const toStored = (pool: StoredBuiltPool): StoredBuiltPool & BuiltSearchFields => {
-  const { buckets, ...rest } = storedBuiltPoolSchema.parse(pool);
-  const stored = buckets === undefined ? rest : { ...rest, buckets };
+  const { buckets, targets, ...rest } = storedBuiltPoolSchema.parse(pool);
+  const stored = {
+    ...rest,
+    ...(buckets === undefined ? {} : { buckets }),
+    ...(targets === undefined || Object.keys(targets).length === 0 ? {} : { targets }),
+  };
   return { ...stored, ...builtSearchFields(stored) };
 };
 
@@ -198,6 +205,7 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     })),
     buckets: bucketsOf(pool).map((entry) => ({ ...entry })),
     slots: pool.slots,
+    targets: pool.targets ?? {},
     version: pool.version,
     // packs' reasons are for the people who fix the pool.
     pack: clientPackOf(pool, { withError: canEdit }),

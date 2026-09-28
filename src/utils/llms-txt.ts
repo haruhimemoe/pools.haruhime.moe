@@ -10,7 +10,7 @@
  *       escaped. Sections with nothing in them are left out. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
@@ -115,7 +115,7 @@ export const llmsSections = ({
         title: "Make a pool",
         url: at("/new"),
         description:
-          "Sign in with osu! to build a pool: its details, maps in slots (built-in and custom, with forced mods or freemod), a map browser that searches osu! maps under a mod (star rating, AR, OD, BPM and length with that mod) and adds them to a slot, pasted IDs or links, a summary and the content rules check. Pools start private; the owner can make them unlisted or public (then they get a pack on packs), add editors and hand the pool to one of them. Start from this pool, on any pool page, copies its maps into a new pool.",
+          "Sign in with osu! to build a pool: its details, maps in slots (built-in and custom, with forced mods or freemod), a map browser that searches osu! maps under a mod (star rating, AR, OD, BPM and length with that mod) and adds them to a slot, pasted IDs or links, targets per slot (a map count and star range, with templates for common rounds), a summary and the content rules check. Pools start private; the owner can make them unlisted or public (then they get a pack on packs), add editors and hand the pool to one of them. Start from this pool, on any pool page, copies its maps into a new pool.",
       },
       {
         title: "Submit a pool",

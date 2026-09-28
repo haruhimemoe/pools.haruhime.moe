@@ -3,13 +3,13 @@
  * @desc A built pool as stored: @haruhimemoe/pool's slots and buckets (bucket list rules, 64 maps,
  *       8 custom buckets), no map twice, a "b-" id, text fields trimmed, within their limits and
  *       through the content filter (one-line fields refuse line breaks, notes keep them), a year
- *       from 2007 to next year or none, editors (at most 10), the pack state, and nothing half-set.
+ *       from 2007 to next year or none, editors (at most 10), the pack state, targets only on its buckets, and nothing half-set.
  *       No text field takes a lone surrogate (the driver would store U+FFFD in its place), and the
  *       filter's refusal carries the code content_filter. Reads use a shape-only schema, so a
  *       stored pool a newer filter would refuse still reads.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -43,6 +43,16 @@ describe("storedBuiltPoolSchema", () => {
       slots: [{ mod: "EZ", index: 1, beatmapId: 5 }],
     });
     expect(custom.success).toBe(true);
+  });
+
+  it("keeps targets on buckets the pool has", () => {
+    const targets = { NM: { count: 5 }, HD: { count: 0, sr: { min: 5.8, max: 6.3 } } };
+    const parsed = parse({ targets });
+    expect(parsed.success && parsed.data.targets).toEqual(targets);
+    expect(parse({ targets: { EZ: { count: 2 } } }).success).toBe(false);
+    expect(parse({ targets: { NM: { count: 17 } } }).success).toBe(false);
+    expect(parse({ targets: { NM: { count: 1, sr: { min: 7, max: 6 } } } }).success).toBe(false);
+    expect(builtPoolReadSchema.safeParse(makeBuiltPool({ targets })).success).toBe(true);
   });
 
   it.each([
