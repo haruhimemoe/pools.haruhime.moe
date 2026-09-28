@@ -7,7 +7,7 @@
  *       none.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
@@ -20,11 +20,13 @@ import { RestoreSignedIn } from "@/components/auth/RestoreSignedIn";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { requireUser } from "@/lib/auth-session";
 import { listBuiltPoolsFor } from "@/services/built-pools";
+import { avatarSrc } from "@/utils/avatar";
 
 export const metadata: Metadata = { title: "Account", robots: { index: false } };
 
 export default async function AccountPage() {
   const user = await requireUser("/account");
+  const avatar = avatarSrc(user.avatarUrl);
   const pools = await listBuiltPoolsFor(user);
   return (
     <div className="flex flex-col gap-6">
@@ -44,8 +46,8 @@ export default async function AccountPage() {
       />
       <Card title="Your osu! account">
         <div className="flex items-center gap-3">
-          {user.avatarUrl ? (
-            <Image src={user.avatarUrl} alt="" width={48} height={48} className="rounded-full" />
+          {avatar ? (
+            <Image src={avatar} alt="" width={48} height={48} className="rounded-full" />
           ) : null}
           <a
             href={userUrl(user.osuId)}

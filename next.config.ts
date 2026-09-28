@@ -2,8 +2,8 @@
  * @file next.config.ts
  * @desc Next.js config: MDX page extensions (the legal pages), strict mode, unoptimized images
  *       (every raster is an osu! CDN asset we never transform), security headers on every route
- *       (no framing, no MIME sniffing, a trimmed Referer, images and media only from here and
- *       osu!'s hosts; a full CSP needs nonces and comes later), no X-Powered-By, and built pools' pages: /pools/<b- id> is served by
+ *       (no framing, no MIME sniffing, a trimmed Referer, images only from here, data: URIs and
+ *       osu!'s hosts, media only from osu!'s; a full CSP needs nonces and comes later), no X-Powered-By, and built pools' pages: /pools/<b- id> is served by
  *       /pools/built/[id], which reads the session, while past pools stay cookie-free ISR. The
  *       internal path itself redirects (308) to /pools/<id>: redirects match the incoming path
  *       before rewrites run, so only a direct request for it is sent back.
@@ -19,12 +19,14 @@ const withMDX = createMDX({ extension: /\.mdx?$/ });
 
 /**
  * frame-ancestors (with X-Frame-Options for older browsers) stops clickjacking. Images load from
- * here and osu!'s hosts only: avatars (a.ppy.sh, and osu.ppy.sh's guest avatar) and map covers
- * (assets.ppy.sh); media only from osu!'s preview clips (b.ppy.sh). Nothing else is limited yet.
+ * here, data: URIs (inline images CSS and Next.js may use; nothing on the site needs one today,
+ * and they can't run script) and osu!'s hosts only: avatars (a.ppy.sh, and osu.ppy.sh's guest
+ * avatar; src/utils/avatar.ts shows no other) and map covers (assets.ppy.sh); media only from
+ * osu!'s preview clips (b.ppy.sh). Nothing else is limited yet.
  */
 const CSP = [
   "frame-ancestors 'none'",
-  "img-src 'self' https://a.ppy.sh https://osu.ppy.sh https://assets.ppy.sh",
+  "img-src 'self' data: https://a.ppy.sh https://osu.ppy.sh https://assets.ppy.sh",
   "media-src https://b.ppy.sh",
 ].join("; ");
 

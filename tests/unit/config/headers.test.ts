@@ -25,7 +25,7 @@ describe("security headers", () => {
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "X-Frame-Options": "DENY",
       "Content-Security-Policy":
-        "frame-ancestors 'none'; img-src 'self' https://a.ppy.sh https://osu.ppy.sh https://assets.ppy.sh; media-src https://b.ppy.sh",
+        "frame-ancestors 'none'; img-src 'self' data: https://a.ppy.sh https://osu.ppy.sh https://assets.ppy.sh; media-src https://b.ppy.sh",
     });
   });
 

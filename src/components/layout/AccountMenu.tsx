@@ -7,7 +7,7 @@
  *       it and puts focus back on the button; so does a click outside or on a link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
@@ -18,6 +18,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { useAccount } from "@/hooks/useAccount";
+import { avatarSrc } from "@/utils/avatar";
 import { signInHref } from "@/utils/safe-next";
 
 const ITEM = "block rounded px-3 py-2 font-bold text-c2 text-sm hover:bg-b4 hover:text-c1";
@@ -57,7 +58,8 @@ export function AccountMenu() {
       </Link>
     );
   }
-  const { username, avatarUrl } = account.user;
+  const { username } = account.user;
+  const avatar = avatarSrc(account.user.avatarUrl);
   return (
     <div ref={wrapper} className="relative">
       <button
@@ -68,8 +70,8 @@ export function AccountMenu() {
         onClick={() => setOpen((was) => !was)}
         className="flex items-center gap-2 font-bold text-c1 text-sm transition-colors hover:text-h1"
       >
-        {avatarUrl ? (
-          <Image src={avatarUrl} alt="" width={28} height={28} className="rounded-full" />
+        {avatar ? (
+          <Image src={avatar} alt="" width={28} height={28} className="rounded-full" />
         ) : null}
         <span>{username}</span>
       </button>
