@@ -6,7 +6,7 @@
  *       (sortSlots, removeSlot, addBucket, setBucketMods, parsePoolText, planMerge, mergeSlots),
  *       so the result keeps its rules; this adds what the builder needs on top: a slot number to
  *       add or move to, no map twice ("duplicate"), a clear refusal for every limit, and the
- *       plan's ops (src/utils/built-plan-ops.ts: targets). Pure.
+ *       plan's ops (src/utils/built-plan-ops.ts: targets and slot notes). Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -39,13 +39,13 @@ import {
 } from "@haruhimemoe/pool";
 import { hasDuplicateMaps, type StoredBuiltPool } from "@/schemas/built-pool";
 import type { PoolOp } from "@/schemas/built-pool-ops";
-import { type PlannedContent, tidyPlan, withTarget } from "@/utils/built-plan-ops";
+import { type PlannedContent, tidyPlan, withNote, withTarget } from "@/utils/built-plan-ops";
 import { hasBlockedLanguage } from "@/utils/content-filter";
 
 /** What ops change: the details, the buckets, the slots and the targets. */
 export type BuiltContent = Pick<
   StoredBuiltPool,
-  "name" | "tournament" | "round" | "year" | "notes" | "buckets" | "slots" | "targets"
+  "name" | "tournament" | "round" | "year" | "notes" | "buckets" | "slots" | "targets" | "slotNotes"
 >;
 
 export type OpErrorCode =
@@ -233,6 +233,11 @@ const applyOp = (pool: BuiltContent, op: PoolOp): BuiltContent => {
     case "setTarget":
       requireBucket(pool, op.bucket);
       return { ...pool, targets: withTarget(pool.targets ?? {}, op) };
+    case "setNote":
+      if (!pool.slots.some((slot) => slot.beatmapId === op.beatmapId)) {
+        throw new OpError("unknown_slot", OP_MESSAGES.unknownSlot);
+      }
+      return { ...pool, slotNotes: withNote(pool.slotNotes ?? {}, op) };
   }
 };
 

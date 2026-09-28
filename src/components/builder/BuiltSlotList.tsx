@@ -1,21 +1,22 @@
 /**
  * @file src/components/builder/BuiltSlotList.tsx
  * @desc A built pool's maps on its page: each bucket that has maps, in the pool's order, with its
- *       slots (label, the map linking osu!, its mapper and its values under the slot's mods).
+ *       slots (label, the map linking osu!, its mapper, its values under the slot's mods and its note).
  *       Read only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { type BucketEntry, type PoolSlot, slotLabel } from "@haruhimemoe/pool";
 import { SlotMapText } from "@/components/builder/SlotMapText";
+import type { SlotNotes } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { groupHeading, groupSlots } from "@/utils/built-editor";
 import { groupSlotCode, type SlotValueMap, slotValueKey } from "@/utils/slot-values";
 
 type BuiltSlotListProps = {
-  pool: { buckets: readonly BucketEntry[]; slots: readonly PoolSlot[] };
+  pool: { buckets: readonly BucketEntry[]; slots: readonly PoolSlot[]; slotNotes?: SlotNotes };
   maps: BuiltMaps;
   /** Values under each slot's mods. */
   values: SlotValueMap;
@@ -38,12 +39,21 @@ export function BuiltSlotList({ pool, maps, values }: BuiltSlotListProps) {
               {group.slots.map((slot) => (
                 <li key={slot.beatmapId} className="flex gap-3 border-b3 border-t py-3">
                   <span className="w-14 shrink-0 font-bold text-c1">{slotLabel(slot)}</span>
-                  <SlotMapText
-                    beatmapId={slot.beatmapId}
-                    map={maps[slot.beatmapId]}
-                    values={values[slotValueKey(slot.beatmapId, groupSlotCode(slot, group.entry))]}
-                    link
-                  />
+                  <div className="min-w-0">
+                    <SlotMapText
+                      beatmapId={slot.beatmapId}
+                      map={maps[slot.beatmapId]}
+                      values={
+                        values[slotValueKey(slot.beatmapId, groupSlotCode(slot, group.entry))]
+                      }
+                      link
+                    />
+                    {pool.slotNotes?.[String(slot.beatmapId)] ? (
+                      <p className="mt-1 break-words text-c2 text-sm">
+                        {pool.slotNotes[String(slot.beatmapId)]}
+                      </p>
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ol>

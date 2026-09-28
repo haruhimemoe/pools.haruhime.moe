@@ -2,7 +2,7 @@
  * @file src/components/builder/SlotRow.tsx
  * @desc One slot in the editor: its label, its map, and buttons to move it up or down, move it to
  *       another bucket (a picker and a Move button, so arrow keys in the picker never move
- *       anything) and remove it, and a badge when its stars sit outside the bucket's target.
+ *       anything) and remove it, a badge when its stars sit outside the bucket's target, and its note.
  *       Every control names its slot for screen readers. Its map and
  *       controls sit side by side only once the maps card (a size container) is 48rem wide;
  *       narrower, on phones and in the desktop editor's pool column, they stack. The editor
@@ -18,6 +18,7 @@ import { type PoolSlot, slotLabel } from "@haruhimemoe/pool";
 import { Button, fieldClasses } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { SlotMapText } from "@/components/builder/SlotMapText";
+import { SlotNote } from "@/components/builder/SlotNote";
 import type { BuiltMap } from "@/schemas/built-pool-view";
 import type { SlotValueAnswer } from "@/utils/slot-values";
 
@@ -30,6 +31,9 @@ type SlotRowProps = {
   values?: SlotValueAnswer | undefined;
   /** Where its stars fall outside the bucket's target range ("Below 5.80–6.30★"), or null. */
   badge?: string | null;
+  /** Its note, if it has one. */
+  note?: string | undefined;
+  onNote: (note: string) => void;
   first: boolean;
   last: boolean;
   /** The buckets it can move to (every other one). */
@@ -40,7 +44,7 @@ type SlotRowProps = {
 };
 
 export function SlotRow(props: SlotRowProps) {
-  const { slot, map, values, badge, first, last, targets, ...on } = props;
+  const { slot, map, values, badge, note, first, last, targets, ...on } = props;
   const [target, setTarget] = useState("");
   const label = slotLabel(slot);
   const chosen = targets.find((option) => option.code === target);
@@ -58,6 +62,7 @@ export function SlotRow(props: SlotRowProps) {
               {badge}
             </span>
           ) : null}
+          <SlotNote beatmapId={slot.beatmapId} label={label} note={note} onSave={on.onNote} />
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">

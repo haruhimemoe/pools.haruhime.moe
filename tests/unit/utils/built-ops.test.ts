@@ -279,3 +279,36 @@ describe("setTarget", () => {
     });
   });
 });
+
+describe("setNote", () => {
+  const note = (beatmapId: number, text: string): PoolOp => ({
+    type: "setNote",
+    beatmapId,
+    note: text,
+  });
+  const notesOf = (ops: PoolOp[], pool?: BuiltContent) => {
+    const result = run(ops, pool);
+    if (!result.ok) throw new Error(`${result.code}: ${result.message}`);
+    return result.pool.slotNotes;
+  };
+
+  it("sets, replaces and clears a map's note, which follows the map when it moves", () => {
+    expect(notesOf([add(1), note(1, "jump aim check")])).toEqual({ 1: "jump aim check" });
+    expect(notesOf([add(1), note(1, "a"), note(1, "b")])).toEqual({ 1: "b" });
+    expect(notesOf([add(1), note(1, "a"), note(1, "")])).toEqual({});
+    const moved = [
+      add(1),
+      note(1, "a"),
+      { type: "moveMap", slot: { bucket: "NM", index: 1 }, bucket: "HD" },
+    ];
+    expect(notesOf(moved as PoolOp[])).toEqual({ 1: "a" });
+  });
+
+  it("refuses a map not in the pool, and drops a removed map's note", () => {
+    expect(failure([note(9, "a")])).toMatchObject({ code: "unknown_slot", op: 0 });
+    const removed: PoolOp[] = [add(1), add(2), note(1, "a"), note(2, "b")];
+    removed.push({ type: "removeMap", slot: { bucket: "NM", index: 1 } });
+    expect(notesOf(removed)).toEqual({ 2: "b" });
+    expect(notesOf([add(1), note(1, "a"), { type: "replaceMaps", text: "NM1 5" }])).toEqual({});
+  });
+});

@@ -2,7 +2,7 @@
  * @file src/schemas/built-pool-view.ts
  * @desc What the browser holds of a built pool: the pool as the pages and editor show it (no
  *       dates, the pack as a state with its link or reason, editors as osu! id and name, and for
- *       the owner whether each has signed in, each bucket's target) and each of its maps' details from the maps
+ *       the owner whether each has signed in, each bucket's target, each slot's note) and each of its maps' details from the maps
  *       collection (label parts, no-mod stars, length, BPM, AR, OD, CS, and how many past pools
  *       used it), and the pool a new one starts from. Plain JSON, so a server page and an API
  *       answer give the same shape.
@@ -13,7 +13,7 @@
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import type { BuiltPackState, Visibility } from "@/constants/built-pools";
-import type { BucketTargets } from "@/schemas/built-plan";
+import type { BucketTargets, SlotNotes } from "@/schemas/built-plan";
 
 /** An osu! user on a pool: the owner or an editor. */
 export type PoolPerson = { osuId: number; username: string };
@@ -56,6 +56,8 @@ export type ClientPool = {
   slots: PoolSlot[];
   /** Each bucket's target ({} when there are none). */
   targets: BucketTargets;
+  /** Each slot's note by beatmap id ({} when there are none). */
+  slotNotes: SlotNotes;
   version: number;
   pack: ClientPack;
   access: ClientAccess;
@@ -114,6 +116,7 @@ export const clientPoolOf = (view: ClientPool): ClientPool => ({
   buckets: view.buckets,
   slots: view.slots,
   targets: view.targets,
+  slotNotes: view.slotNotes,
   version: view.version,
   pack: view.pack,
   access: view.access,

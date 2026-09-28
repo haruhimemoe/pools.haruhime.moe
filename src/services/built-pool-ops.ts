@@ -5,7 +5,7 @@
  *       apply in memory, all or nothing (src/utils/built-ops.ts; a refusal is a 400 naming the
  *       op), the whole new pool is checked against the stored schema (so a pool a newer content
  *       filter refuses has to be renamed in the same call), and its content (details, buckets,
- *       slots, targets, version) is written with one $set that only matches the version it was
+ *       slots, targets, slot notes, version) is written with one $set that only matches the version it was
  *       read at, so two editors can't both win: the loser gets the 409. Fields ops don't own (editors,
  *       pack, hidden) are never written here, so a change to them without a new version isn't
  *       undone. An unlisted or public pool's pack is marked pending (the route syncs it after
@@ -47,32 +47,37 @@ const conflict = async (id: string, caller: SessionUser): Promise<Answer<BuiltPo
 };
 
 /** What an ops write sets: the content, its search fields, the version and when. */
-const contentOf = ({ buckets, targets, ...pool }: StoredBuiltPool & BuiltSearchFields) => ({
-  $set: {
-    searchText: pool.searchText,
-    sortName: pool.sortName,
-    mapCount: pool.mapCount,
-    name: pool.name,
-    tournament: pool.tournament,
-    round: pool.round,
-    year: pool.year,
-    notes: pool.notes,
-    slots: pool.slots,
-    version: pool.version,
-    updatedAt: pool.updatedAt,
-    ...(buckets === undefined ? {} : { buckets }),
-    ...(targets === undefined ? {} : { targets }),
-  },
-  // toStored leaves out the default buckets and no targets: the stored ones go too.
-  ...(buckets === undefined || targets === undefined
-    ? {
-        $unset: {
-          ...(buckets === undefined ? { buckets: "" as const } : {}),
-          ...(targets === undefined ? { targets: "" as const } : {}),
-        },
-      }
-    : {}),
-});
+const contentOf = ({
+  buckets,
+  targets,
+  slotNotes,
+  ...pool
+}: StoredBuiltPool & BuiltSearchFields) => {
+  // toStored leaves out the default buckets, no targets and no notes: the stored ones go too.
+  const gone: Record<string, ""> = {};
+  for (const [key, value] of Object.entries({ buckets, targets, slotNotes })) {
+    if (value === undefined) gone[key] = "";
+  }
+  return {
+    $set: {
+      searchText: pool.searchText,
+      sortName: pool.sortName,
+      mapCount: pool.mapCount,
+      name: pool.name,
+      tournament: pool.tournament,
+      round: pool.round,
+      year: pool.year,
+      notes: pool.notes,
+      slots: pool.slots,
+      version: pool.version,
+      updatedAt: pool.updatedAt,
+      ...(buckets === undefined ? {} : { buckets }),
+      ...(targets === undefined ? {} : { targets }),
+      ...(slotNotes === undefined ? {} : { slotNotes }),
+    },
+    ...(Object.keys(gone).length > 0 ? { $unset: gone } : {}),
+  };
+};
 
 /**
  * @function applyBuiltPoolOps

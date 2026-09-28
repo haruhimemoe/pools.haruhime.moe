@@ -1,7 +1,7 @@
 /**
  * @file src/components/builder/PoolMaps.tsx
  * @desc The editor's maps: every bucket in the pool's order (with its target's placeholders and
- *       badges), each slot with its move and remove buttons. Keyboard use never loses its place: after a move, focus stays on the moved map
+ *       badges), each slot with its move and remove buttons and its note. Keyboard use never loses its place: after a move, focus stays on the moved map
  *       (the same button when it still applies, else the next one that does); after a remove, it
  *       goes to the next map in the bucket, or the one before, or the bucket's Find maps. Focus
  *       moves once the changed pool is on screen, not on a render in between. It's a size
@@ -91,6 +91,8 @@ export function PoolMaps({ pool, maps, values, change, onFind }: PoolMapsProps) 
           values={values}
           targets={targets}
           plan={group.code === null ? undefined : pool.targets[group.code]}
+          notes={pool.slotNotes}
+          onNote={(slot, note) => change([{ type: "setNote", beatmapId: slot.beatmapId, note }])}
           onFind={onFind}
           onRemoveBucket={(code) => run({ type: "removeBucket", code }, ['[data-control="find"]'])}
           onMove={onMove}

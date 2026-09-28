@@ -55,6 +55,13 @@ describe("storedBuiltPoolSchema", () => {
     expect(builtPoolReadSchema.safeParse(makeBuiltPool({ targets })).success).toBe(true);
   });
 
+  it("keeps slot notes on maps the pool has", () => {
+    const slots = [{ mod: "NM", index: 1, beatmapId: 5 }];
+    expect(parse({ slots, slotNotes: { 5: "jump aim" } }).success).toBe(true);
+    expect(parse({ slots, slotNotes: { 6: "jump aim" } }).success).toBe(false);
+    expect(parse({ slots, slotNotes: { 5: "x".repeat(281) } }).success).toBe(false);
+  });
+
   it.each([
     ["an id without b-", { _id: "host-abcdefgh" }],
     ["an unknown visibility", { visibility: "secret" }],

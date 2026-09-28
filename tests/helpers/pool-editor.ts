@@ -72,6 +72,7 @@ export const clientPool = (over: Partial<ClientPool> = {}): ClientPool => ({
   buckets: DEFAULT_BUCKETS,
   slots: [nm(1, 10), nm(2, 20), nm(3, 30)],
   targets: {},
+  slotNotes: {},
   version: 1,
   pack: NO_PACK,
   access: OWNER_ACCESS,

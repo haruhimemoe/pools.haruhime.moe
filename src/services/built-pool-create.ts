@@ -6,7 +6,7 @@
  *       generated source id, claimed by inserting it into built_pool_ids (a clash tries another),
  *       so an id is never handed out twice, even after its pool is deleted. Starting from a pool
  *       copies its maps, buckets and details: a past pool that isn't hidden, or a built pool the
- *       caller can see (its targets too). A template sets targets only, never maps. Anything sent wins over what's copied, an empty tournament or round and
+ *       caller can see (its targets and slot notes too). A template sets targets only, never maps. Anything sent wins over what's copied, an empty tournament or round and
  *       a null year included (cleared on purpose). /new?from=<id> previews the pool
  *       to start from (startPreview).
  * @author David @dvhsh (https://dvh.sh)
@@ -70,7 +70,7 @@ export const claimBuiltPoolId = async (now: Date, random?: RandomBytes): Promise
 
 type Start = Pick<
   StoredBuiltPool,
-  "name" | "tournament" | "round" | "year" | "slots" | "buckets" | "targets"
+  "name" | "tournament" | "round" | "year" | "slots" | "buckets" | "targets" | "slotNotes"
 >;
 
 /** The pool to copy: a past pool that isn't hidden, or a built pool the caller can see. */
@@ -149,6 +149,7 @@ export const createBuiltPool = async (
     slots: start?.slots ?? [],
     // A template only sets targets; a built pool's own come with it.
     targets: body.template ? templateTargets(body.template) : (start?.targets ?? {}),
+    slotNotes: start?.slotNotes ?? {},
     version: 1,
     pack: EMPTY_BUILT_PACK,
     hidden: false,

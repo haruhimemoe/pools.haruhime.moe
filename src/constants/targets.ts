@@ -2,7 +2,7 @@
  * @file src/constants/targets.ts
  * @desc Planning a pool: each bucket's target (how many maps it should hold, 0 to 16, and an
  *       optional star range under its mods, on the search's own star scale) and the templates
- *       /new offers. A template only sets counts; it never adds maps. The counts are common
+ *       /new offers, and how long a slot's note can be. A template only sets counts; it never adds maps. The counts are common
  *       shapes for each stage of a tournament, not a rule: the owner changes them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
@@ -10,6 +10,9 @@
  */
 
 import { STAR_RANGE } from "@/constants/search";
+
+/** A slot's note, in characters. */
+export const MAX_SLOT_NOTE_LENGTH = 280;
 
 /** The most maps a bucket's target can ask for. */
 export const MAX_TARGET_COUNT = 16;

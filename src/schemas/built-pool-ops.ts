@@ -5,7 +5,7 @@
  *       .../visibility, POST .../editors (an osu! username), POST .../owner (an editor's osu!
  *       id and the pool's name typed to confirm). Each op's fields come from @haruhimemoe/pool's
  *       schemas (beatmap ids, bucket codes, palette colors, forced mod sets), and a bucket's
- *       target (src/schemas/built-plan.ts); a create may name a template; every piece of text
+ *       target and a slot's note (src/schemas/built-plan.ts); a create may name a template; every piece of text
  *       a person types and we keep, bucket codes included, goes through the content filter (the
  *       name typed to confirm is only compared, never kept). What an op does to a pool lives in
  *       src/utils/built-ops.ts.
@@ -29,7 +29,7 @@ import {
   VISIBILITIES,
 } from "@/constants/built-pools";
 import { TEMPLATE_IDS } from "@/constants/targets";
-import { targetCountSchema, targetRangeSchema } from "@/schemas/built-plan";
+import { slotNoteSchema, targetCountSchema, targetRangeSchema } from "@/schemas/built-plan";
 import { builtDetailsFields, FILTER_ISSUE } from "@/schemas/built-pool";
 import { poolIdSchema } from "@/schemas/pool";
 import { hasBlockedLanguage } from "@/utils/content-filter";
@@ -95,6 +95,7 @@ export const opSchema = z.union([
     count: targetCountSchema,
     sr: targetRangeSchema.optional(),
   }),
+  z.strictObject({ type: z.literal("setNote"), beatmapId: beatmapIdSchema, note: slotNoteSchema }),
 ]);
 
 export type PoolOp = z.infer<typeof opSchema>;

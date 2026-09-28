@@ -63,6 +63,9 @@ describe("opsBodySchema", () => {
     { type: "setTarget", bucket: "NM", count: 5 },
     { type: "setTarget", bucket: "HD", count: 0, sr: { min: 5.8, max: 6.3 } },
     { type: "setTarget", bucket: "EZ", count: 16, sr: { min: 6, max: 6 } },
+    { type: "setNote", beatmapId: 129891, note: "jump aim check" },
+    { type: "setNote", beatmapId: 129891, note: "" },
+    { type: "setNote", beatmapId: 129891, note: "x".repeat(280) },
   ])("takes %j", (op) => {
     expect(ok(op)).toBe(true);
   });
@@ -90,6 +93,11 @@ describe("opsBodySchema", () => {
     { type: "setTarget", bucket: "NM", count: 2, sr: { min: 1 } },
     { type: "setTarget", bucket: "NM", count: 2, sr: null },
     { type: "setTarget", bucket: "chink", count: 2 },
+    { type: "setNote", beatmapId: 129891, note: "x".repeat(281) },
+    { type: "setNote", beatmapId: 129891, note: "two\nlines" },
+    { type: "setNote", beatmapId: 129891, note: "retard map" },
+    { type: "setNote", beatmapId: 0, note: "a" },
+    { type: "setNote", beatmapId: 129891 },
   ])("refuses %j", (op) => {
     expect(ok(op)).toBe(false);
   });

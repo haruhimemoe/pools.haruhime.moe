@@ -2,7 +2,10 @@
  * @file src/schemas/built-plan.ts
  * @desc What a built pool plans besides its maps: each bucket's target (a count of 0 to 16 and
  *       an optional star range, 0 to 10 with the low end at most the high end), keyed by bucket
- *       code. Stored only when there's one; every key names a bucket the pool has.
+ *       code; and each slot's note (0 to 280 characters on one line, through the content filter,
+ *       its refusal coded content_filter), keyed by beatmap id so it follows the map when it
+ *       moves. Each is stored only when there's one; every key names a bucket or map the pool
+ *       has. Reads check shape only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -10,7 +13,13 @@
 
 import { type BucketEntry, bucketsOf, findBucket } from "@haruhimemoe/pool";
 import { z } from "zod";
-import { MAX_TARGET_COUNT, TARGET_MESSAGES, TARGET_STARS } from "@/constants/targets";
+import {
+  MAX_SLOT_NOTE_LENGTH,
+  MAX_TARGET_COUNT,
+  TARGET_MESSAGES,
+  TARGET_STARS,
+} from "@/constants/targets";
+import { hasBlockedLanguage } from "@/utils/content-filter";
 
 const starSchema = z.number().min(TARGET_STARS.min).max(TARGET_STARS.max);
 
@@ -57,6 +66,48 @@ export const checkTargets = (
   for (const code of Object.keys(pool.targets ?? {})) {
     if (!findBucket(list, code)) {
       ctx.addIssue({ code: "custom", message: `No slot ${code} to aim for.`, path: ["targets"] });
+    }
+  }
+};
+
+/** A slot's note: "" clears it. One line, through the content filter. */
+export const slotNoteSchema = z
+  .string()
+  .trim()
+  .max(MAX_SLOT_NOTE_LENGTH, `Keep a note to ${MAX_SLOT_NOTE_LENGTH} characters.`)
+  .regex(/^[^\p{Cc}]*$/u, "A note can't have line breaks.")
+  .refine((text) => !/\p{Cs}/u.test(text), "The note has a broken character.")
+  .refine((text) => !hasBlockedLanguage(text), {
+    message: "That fails the content filter.",
+    params: { code: "content_filter" },
+  });
+
+/** Notes by beatmap id (as a string key). */
+export const slotNotesSchema = z.record(z.string().regex(/^\d+$/), slotNoteSchema.min(1));
+
+export type SlotNotes = Readonly<Record<string, string>>;
+
+/** Notes as read: shape only. */
+export const slotNotesShape = z.record(z.string(), z.string());
+
+/**
+ * @function checkSlotNotes
+ * @param pool {{ slots: { beatmapId: number }[]; slotNotes?: SlotNotes }} a parsed pool
+ * @param ctx {z.RefinementCtx} zod refinement context
+ * @returns {void} adds an issue for a note on a map the pool doesn't have
+ */
+export const checkSlotNotes = (
+  pool: { slots: readonly { beatmapId: number }[]; slotNotes?: SlotNotes | undefined },
+  ctx: z.RefinementCtx,
+): void => {
+  const ids = new Set(pool.slots.map((slot) => String(slot.beatmapId)));
+  for (const id of Object.keys(pool.slotNotes ?? {})) {
+    if (!ids.has(id)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "A note is on a map that isn't here.",
+        path: ["slotNotes"],
+      });
     }
   }
 };

@@ -7,9 +7,9 @@
  *       through the content filter, only notes keeping line breaks); who sees it; the owner (a
  *       user id) and up to 10 editors (osu! id and name, the user id once they've signed in);
  *       the version; the pack state (with when a sync last started); moderation; each bucket's
- *       target (only on buckets the pool has). Nullable fields are stored as null, never
+ *       target (only on buckets the pool has) and each slot's note (only on its maps). Nullable fields are stored as null, never
  *       undefined (the driver would write null anyway); `buckets` is left out for the default,
- *       and `targets` when there are none.
+ *       and `targets` and `slotNotes` when there are none.
  *       No text takes a lone surrogate (the driver would store U+FFFD, so the saved text would
  *       differ from the checked one). The filter's refusal carries `params.code` content_filter,
  *       which the routes send as the error code. Writes check the whole stored schema; reads use
@@ -40,7 +40,14 @@ import {
   MAX_ROUND_LENGTH,
   MAX_TOURNAMENT_LENGTH,
 } from "@/constants/pools";
-import { bucketTargetsSchema, bucketTargetsShape, checkTargets } from "@/schemas/built-plan";
+import {
+  bucketTargetsSchema,
+  bucketTargetsShape,
+  checkSlotNotes,
+  checkTargets,
+  slotNotesSchema,
+  slotNotesShape,
+} from "@/schemas/built-plan";
 import { packSlugSchema } from "@/schemas/pool";
 import { hasBlockedLanguage } from "@/utils/content-filter";
 
@@ -142,6 +149,8 @@ const builtPoolRest = {
   startedFrom: z.string().min(1).nullable(),
   /** Each bucket's target (src/schemas/built-plan.ts); left out when there are none. */
   targets: bucketTargetsSchema.optional(),
+  /** Each slot's note by beatmap id; left out when there are none. */
+  slotNotes: slotNotesSchema.optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 };
@@ -151,6 +160,7 @@ export const storedBuiltPoolSchema = poolFields
   .superRefine((pool, ctx) => {
     checkPoolBuckets(pool, ctx);
     checkTargets(pool, ctx);
+    checkSlotNotes(pool, ctx);
     if (hasDuplicateMaps(pool.slots)) {
       ctx.addIssue({ code: "custom", message: "A map is in the pool twice.", path: ["slots"] });
     }
@@ -174,4 +184,5 @@ export const builtPoolReadSchema = z.object({
   slots: z.array(poolSlotSchema),
   buckets: z.array(bucketEntrySchema).optional(),
   targets: bucketTargetsShape.optional(),
+  slotNotes: slotNotesShape.optional(),
 });

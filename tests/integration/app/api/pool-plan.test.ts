@@ -106,3 +106,29 @@ describe("templates and starting from a pool", () => {
     expect((await findBuiltPool(id))?.targets).toEqual({ TB: { count: 1 } });
   });
 });
+
+describe("setNote", () => {
+  it("stores a note on a map, keeps it through a move, and drops it with the map", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { _id: ID, slots: [{ mod: "NM", index: 1, beatmapId: 5 }] });
+    const set = await send(cast, 1, [{ type: "setNote", beatmapId: 5, note: " jump aim " }]);
+    expect(((await set.json()) as { pool: { slotNotes: unknown } }).pool.slotNotes).toEqual({
+      5: "jump aim",
+    });
+    await send(cast, 2, [{ type: "moveMap", slot: { bucket: "NM", index: 1 }, bucket: "HD" }]);
+    expect((await findBuiltPool(ID))?.slotNotes).toEqual({ 5: "jump aim" });
+    await send(cast, 3, [{ type: "removeMap", slot: { bucket: "HD", index: 1 } }]);
+    const row = await (await builtPoolsCollection()).findOne({ _id: ID });
+    expect(row && "slotNotes" in row).toBe(false);
+  });
+
+  it("refuses a note the content filter blocks", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { _id: ID, slots: [{ mod: "NM", index: 1, beatmapId: 5 }] });
+    const response = await send(cast, 1, [{ type: "setNote", beatmapId: 5, note: "retard" }]);
+    expect(response.status).toBe(400);
+    expect(((await response.json()) as { error: { code: string } }).error.code).toBe(
+      "content_filter",
+    );
+  });
+});

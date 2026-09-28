@@ -17,7 +17,7 @@ import { isCustomBucket, type PoolSlot } from "@haruhimemoe/pool";
 import { Button } from "@haruhimemoe/ui";
 import { useId } from "react";
 import { type MoveTarget, SlotRow } from "@/components/builder/SlotRow";
-import type { BucketTarget } from "@/schemas/built-plan";
+import type { BucketTarget, SlotNotes } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { placeholderText, rangeBadgeText, rangeSide } from "@/utils/bucket-targets";
 import { groupHeading, type SlotGroup } from "@/utils/built-editor";
@@ -28,6 +28,7 @@ export type SlotActions = {
   onMove: (slot: PoolSlot, direction: "up" | "down") => void;
   onMoveTo: (slot: PoolSlot, bucket: string) => void;
   onRemove: (slot: PoolSlot) => void;
+  onNote: (slot: PoolSlot, note: string) => void;
 };
 
 type BucketSectionProps = SlotActions & {
@@ -39,11 +40,14 @@ type BucketSectionProps = SlotActions & {
   targets: readonly MoveTarget[];
   /** The bucket's target: placeholders up to its count, badges outside its range. */
   plan?: BucketTarget | undefined;
+  /** Each slot's note by beatmap id. */
+  notes: SlotNotes;
   onFind: (code: string) => void;
   onRemoveBucket: (code: string) => void;
 };
 
-export function BucketSection({ group, maps, values, targets, plan, ...on }: BucketSectionProps) {
+export function BucketSection(props: BucketSectionProps) {
+  const { group, maps, values, targets, plan, notes, ...on } = props;
   const headingId = useId();
   const { title, detail } = groupHeading(group.entry);
   const { code, entry, slots } = group;
@@ -93,6 +97,8 @@ export function BucketSection({ group, maps, values, targets, plan, ...on }: Buc
               map={maps[slot.beatmapId]}
               values={values[slotValueKey(slot.beatmapId, groupSlotCode(slot, entry))]}
               badge={badgeOf(slot)}
+              note={notes[String(slot.beatmapId)]}
+              onNote={(note) => on.onNote(slot, note)}
               first={i === 0}
               last={i === slots.length - 1}
               targets={others}
