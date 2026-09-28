@@ -10,17 +10,21 @@
  *       on window focus, and takes a newer pool (a conflict when changes are still queued), or
  *       only the pack's state when a sync moved it on the same version. A
  *       404 (or 401) from a read or a save means the pool was deleted or access went: it says
- *       so once and stops asking.
+ *       so once and stops asking. Undo sends the inverse of this session's last change
+ *       (src/utils/undo.ts; up to 20 steps, no redo) as a change of its own; a 409 on it drops
+ *       that step with a notice, and a step that no longer applies is dropped too.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 "use client";
 
 import type { SlotLineError } from "@haruhimemoe/pool";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { MAX_OPS_PER_CALL } from "@/constants/built-pools";
+import { usePoolPolling } from "@/hooks/usePoolPolling";
+import { useUndoSteps } from "@/hooks/useUndoSteps";
 import { callPools, type Fetcher, UNREACHABLE } from "@/lib/pool-client";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import { type ClientPack, type ClientPool, clientPoolOf } from "@/schemas/built-pool-view";
@@ -33,6 +37,11 @@ export const CONFLICT =
 
 export const GONE = "This pool was deleted or you no longer have access.";
 
+export const UNDO_DROPPED =
+  "Someone else changed this pool since, so that undo was dropped. It's reloaded.";
+
+export const UNDO_STALE = "The pool changed since, so that step can't be undone any more.";
+
 export type EditorFailure = { message: string; lines?: SlotLineError[] };
 
 export type PoolEditor = {
@@ -44,6 +53,10 @@ export type PoolEditor = {
   gone: boolean;
   /** Applies a change and queues it; false (with `failure` set) when it can't apply. */
   change: (ops: PoolOp[]) => boolean;
+  /** How many of this session's own changes can be undone (at most 20). */
+  undoSteps: number;
+  /** Sends the inverse of this session's last change; false when there's none or it can't. */
+  undo: () => boolean;
   /** Runs a request in turn with the ops. */
   exclusive: <T>(task: () => Promise<T>) => Promise<T>;
   /** Takes a pool a request answered with as the saved copy. */
@@ -73,7 +86,14 @@ export const usePoolEditor = (
   const saved = useRef(initial);
   const view = useRef(initial);
   const queue = useRef<PoolOp[]>([]);
+  const steps = useUndoSteps();
   const lock = useRef<Promise<unknown>>(Promise.resolve());
+
+  /** Nothing queued any more: steps whose change never saved can't be undone. */
+  const dropQueue = useCallback(() => {
+    queue.current = [];
+    steps.dropped();
+  }, [steps]);
 
   const show = useCallback((next: ClientPool) => {
     view.current = next;
@@ -85,10 +105,10 @@ export const usePoolEditor = (
     (next: ClientPool) => {
       saved.current = next;
       const local = applyLocal(next, queue.current);
-      if (!local.ok) queue.current = [];
+      if (!local.ok) dropQueue();
       show(local.ok ? local.pool : next);
     },
-    [show],
+    [show, dropQueue],
   );
 
   const exclusive = useCallback(<T>(task: () => Promise<T>): Promise<T> => {
@@ -99,16 +119,17 @@ export const usePoolEditor = (
 
   const rollBack = useCallback(
     (next: ClientPool, why: EditorFailure | "conflict") => {
-      queue.current = [];
+      dropQueue();
       rebase(next);
       if (why === "conflict") setConflict(true);
       else setFailure(why);
     },
-    [rebase],
+    [rebase, dropQueue],
   );
 
   const flush = useCallback(async () => {
     const ops = queue.current.splice(0, MAX_OPS_PER_CALL);
+    const sent = steps.sent(ops.length);
     if (ops.length === 0) {
       setSaving(false);
       return;
@@ -116,10 +137,13 @@ export const usePoolEditor = (
     const path = `/api/pools/${saved.current.id}/ops`;
     const body = { baseVersion: saved.current.version, ops };
     const answer = await callPools<PoolBody>(fetcher, path, { method: "POST", body });
-    if (answer.ok) rebase(clientPoolOf(answer.body.pool));
-    else if (answer.status === 409 && answer.pool) rollBack(answer.pool, "conflict");
-    else if (answer.status === 404 || answer.status === 401) {
-      queue.current = [];
+    if (answer.ok) {
+      steps.saved(sent.steps);
+      rebase(clientPoolOf(answer.body.pool));
+    } else if (answer.status === 409 && answer.pool) {
+      rollBack(answer.pool, sent.undoing ? { message: UNDO_DROPPED } : "conflict");
+    } else if (answer.status === 404 || answer.status === 401) {
+      dropQueue();
       rebase(saved.current);
       setGone(true);
     } else {
@@ -128,25 +152,37 @@ export const usePoolEditor = (
       rollBack(saved.current, { message: `${message} Your last change wasn't saved.`, ...lines });
     }
     if (queue.current.length === 0) setSaving(false);
-  }, [fetcher, rebase, rollBack]);
+  }, [fetcher, rebase, rollBack, dropQueue, steps]);
 
   const change = useCallback(
-    (ops: PoolOp[]): boolean => {
-      const local = applyLocal(view.current, ops);
+    (ops: PoolOp[], { undo = false }: { undo?: boolean } = {}): boolean => {
+      const before = view.current;
+      const local = applyLocal(before, ops);
       if (!local.ok) {
         setFailure({ message: local.message, ...(local.lines ? { lines: local.lines } : {}) });
         return false;
       }
       setFailure(null);
       setConflict(false);
+      steps.queued(before, ops, undo);
       queue.current.push(...ops);
       show(local.pool);
       setSaving(true);
       void exclusive(flush);
       return true;
     },
-    [exclusive, flush, show],
+    [exclusive, flush, show, steps],
   );
+
+  const undo = useCallback((): boolean => {
+    const step = steps.pop();
+    if (!step) return false;
+    if (!applyLocal(view.current, step.ops).ok) {
+      setFailure({ message: UNDO_STALE });
+      return false;
+    }
+    return change(step.ops, { undo: true });
+  }, [change, steps]);
 
   const reload = useCallback(
     async (own = false) => {
@@ -165,19 +201,8 @@ export const usePoolEditor = (
     [fetcher, rebase, rollBack],
   );
 
-  useEffect(() => {
-    // A pool that's gone stays gone: no more asking.
-    if (gone) return;
-    const check = () => {
-      if (document.visibilityState !== "hidden") void exclusive(() => reload());
-    };
-    const timer = window.setInterval(check, pollMs);
-    window.addEventListener("focus", check);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener("focus", check);
-    };
-  }, [exclusive, reload, pollMs, gone]);
+  const poll = useCallback(() => void exclusive(() => reload()), [exclusive, reload]);
+  usePoolPolling(poll, pollMs, gone);
 
   const adopt = useCallback((next: ClientPool) => rebase(clientPoolOf(next)), [rebase]);
   const dismiss = useCallback(() => {
@@ -185,5 +210,18 @@ export const usePoolEditor = (
     setConflict(false);
   }, []);
 
-  return { pool, saving, failure, conflict, gone, change, exclusive, adopt, reload, dismiss };
+  return {
+    pool,
+    saving,
+    failure,
+    conflict,
+    gone,
+    change,
+    undoSteps: steps.count,
+    undo,
+    exclusive,
+    adopt,
+    reload,
+    dismiss,
+  };
 };

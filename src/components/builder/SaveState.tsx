@@ -2,13 +2,15 @@
  * @file src/components/builder/SaveState.tsx
  * @desc The editor's saving bar, kept in view while scrolling: "Saving…" or "All changes saved."
  *       in a polite live region, and, announced as they come, a change that wasn't saved (and
- *       why), the 409 notice, and a pool that went away. Presentational.
+ *       why), the 409 notice, and a pool that went away, with room for Undo beside the status.
+ *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { Button, Notice } from "@haruhimemoe/ui";
+import type { ReactNode } from "react";
 import { CONFLICT, type EditorFailure, GONE } from "@/hooks/usePoolEditor";
 
 type SaveStateProps = {
@@ -17,14 +19,20 @@ type SaveStateProps = {
   conflict: boolean;
   gone: boolean;
   onDismiss: () => void;
+  /** Buttons beside the status (Undo). */
+  actions?: ReactNode;
 };
 
-export function SaveState({ saving, failure, conflict, gone, onDismiss }: SaveStateProps) {
+export function SaveState(props: SaveStateProps) {
+  const { saving, failure, conflict, gone, onDismiss, actions } = props;
   return (
     <div className="sticky top-0 z-10 flex flex-col gap-2 rounded-lg bg-b5 px-4 py-2">
-      <p role="status" className="font-bold text-c3 text-sm">
-        {saving ? "Saving…" : "All changes saved."}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p role="status" className="font-bold text-c3 text-sm">
+          {saving ? "Saving…" : "All changes saved."}
+        </p>
+        {actions}
+      </div>
       {gone ? (
         <Notice tone="error" live>
           {GONE}

@@ -5,7 +5,8 @@
  *       under them, where its range sliders have room, paste, targets, custom slots) and the side
  *       (summary with the content rules check, editors, the pack on packs with "Update pack
  *       now", and the owner's settings: who can see it, handing it to an editor, and delete).
- *       Every change is saved at once through usePoolEditor; the saving bar stays in view. A
+ *       Every change is saved at once through usePoolEditor; the saving bar stays in view, with
+ *       Undo. A
  *       pool moderators hid says so. Editors see everything but the owner's settings, which go
  *       once the owner hands the pool over; the notice saying so is a live region that's always
  *       there, and takes focus from the settings that went.
@@ -31,6 +32,7 @@ import { PoolMaps } from "@/components/builder/PoolMaps";
 import { PoolSummary } from "@/components/builder/PoolSummary";
 import { SaveState } from "@/components/builder/SaveState";
 import { TargetsForm } from "@/components/builder/TargetsForm";
+import { UndoButton } from "@/components/builder/UndoButton";
 import { HIDDEN_BY_MODERATION, VISIBILITY_TEXT } from "@/constants/built-pools";
 import { usePoolEditor } from "@/hooks/usePoolEditor";
 import { useSlotMaps } from "@/hooks/useSlotMaps";
@@ -100,6 +102,7 @@ export function PoolEditor({
         conflict={editor.conflict}
         gone={editor.gone}
         onDismiss={editor.dismiss}
+        actions={<UndoButton steps={editor.undoSteps} onUndo={editor.undo} />}
       />
       {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION[pool.visibility]}</Notice> : null}
       {/* Always there, so the handover is announced; it takes focus from the card that goes. */}
