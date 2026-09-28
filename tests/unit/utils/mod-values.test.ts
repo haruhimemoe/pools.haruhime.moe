@@ -4,7 +4,7 @@
  *       as DT, any order, conflicts refused); BPM and length under DT and HT; AR, OD and CS
  *       under HR (capped at 10) and EZ; the DT and HT timing conversion through osu!'s preempt
  *       and 300 hit window formulas (AR9 DT 10.33, OD8 DT 9.78, both sides of AR5); and
- *       combos composing (HR or EZ first, then the timing).
+ *       combos composing (HR or EZ first, then the timing); which mods a pool slot's values use.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Sun Sep 27, 2026
@@ -24,6 +24,7 @@ import {
   odUnderMods,
   parseMods,
   preemptToAr,
+  valueModsOf,
   valuesUnderMods,
 } from "@/utils/mod-values";
 
@@ -168,5 +169,21 @@ describe("valuesUnderMods", () => {
   it("leaves no-mod values alone", () => {
     const base = { ar: 9.3, od: 8.5, cs: 4.2, bpm: 200, length: 95 };
     expect(valuesUnderMods(base, [])).toEqual(base);
+  });
+});
+
+describe("valueModsOf", () => {
+  it.each([
+    ["NM", []],
+    ["HD", []],
+    ["FM", []],
+    ["TB", []],
+    ["HR", ["HR"]],
+    ["DT", ["DT"]],
+    ["FL", ["FL"]],
+    ["HDHR", ["HD", "HR"]],
+    ["EZHT", ["EZ", "HT"]],
+  ])("reads a %s slot as %j", (code, mods) => {
+    expect(valueModsOf(code)).toEqual(mods);
   });
 });
