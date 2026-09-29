@@ -3,7 +3,8 @@
  * @desc Find similar in the map browser and the editor: a result's Find similar opens "Similar to
  *       <map>" under the lens (the URL the route reads), with the method, BoBERT's credit and each
  *       difficulty's similarity; Back to search returns to the search; a difficulty match says
- *       so; a failure has Retry; and a slot's Find similar in the editor opens the browser's
+ *       so; "Leaderboard maps only" is on by default, says what it left out and stays off in the
+ *       browse state once turned off; a failure has Retry; and a slot's Find similar in the editor opens the browser's
  *       source for that map with the pool's id, while a pool's page shows no Find similar.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
@@ -13,7 +14,12 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
-import { BOBERT_CREDIT, SIMILAR_METHOD_TEXT } from "@/constants/similar";
+import {
+  BOBERT_CREDIT,
+  SIMILAR_LEADERBOARD_LABEL,
+  SIMILAR_METHOD_TEXT,
+  similarUnrankedText,
+} from "@/constants/similar";
 import type { SimilarSet } from "@/utils/similar-params";
 import { diff, lensAsked, renderPane, set } from "../../helpers/browse-pane";
 import { browsePage, similarPage } from "../../helpers/pool-editor";
@@ -57,6 +63,40 @@ describe("Similar maps in the map browser", () => {
       await screen.findByRole("button", { name: "Find similar: xi - Song 1 [Diff 11]" }),
     ).toBeVisible();
     expect(screen.queryByText("93% similar")).toBeNull();
+  });
+
+  it("asks for leaderboard maps only by default, says what it left out, and keeps a switch-off in the URL", async () => {
+    window.history.replaceState(null, "", "/pools/b-a0000001/edit");
+    const { user, urls } = renderPane({
+      answer: answering((url) =>
+        Response.json(
+          similarPage({
+            id: 12,
+            sets: [SIMILAR_SET],
+            ...(url.searchParams.get("status") === "leaderboard"
+              ? { unranked: 12, total: 20 }
+              : {}),
+            total: 20,
+          }),
+        ),
+      ),
+    });
+    await user.click(
+      await screen.findByRole("button", { name: "Find similar: xi - Song 1 [Diff 12]" }),
+    );
+    const box = await screen.findByRole("checkbox", { name: SIMILAR_LEADERBOARD_LABEL });
+    expect(box).toBeChecked();
+    expect(urls.at(-1)?.searchParams.get("status")).toBe("leaderboard");
+    expect(await screen.findByText(similarUnrankedText(12, 20, 1))).toBeVisible();
+    await user.click(box);
+    await vi.waitFor(() => expect(urls.at(-1)?.searchParams.get("status")).toBeNull());
+    expect(
+      await screen.findByRole("checkbox", { name: SIMILAR_LEADERBOARD_LABEL }),
+    ).not.toBeChecked();
+    await vi.waitFor(() =>
+      expect(new URLSearchParams(window.location.search).get("browse")).toBe("similar=all"),
+    );
+    expect(screen.queryByText(/no leaderboard/)).toBeNull();
   });
 
   it("says when it's a difficulty match, and offers Retry after a failure", async () => {

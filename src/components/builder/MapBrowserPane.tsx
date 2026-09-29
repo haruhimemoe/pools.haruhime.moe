@@ -17,7 +17,8 @@
  *       candidates" (YourCandidates; the search waits meanwhile). Find similar (on its own rows,
  *       or the editor's slots and candidates through `similar`) switches to "Similar to <map>"
  *       (SimilarMaps) under the current lens, the default bucket's target star range and, in the
- *       editor, without the pool's maps; Back to search returns to the search as it was.
+ *       editor, without the pool's maps, with "Leaderboard maps only" from the browse state;
+ *       Back to search returns to the search as it was.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -164,9 +165,16 @@ export function MapBrowserPane(props: MapBrowserProps) {
             <SimilarMaps
               key={similarTo.id}
               target={similarTo}
-              query={similarQueryFor(lens, defaultBucket, targets, candidate?.poolId)}
+              query={similarQueryFor(
+                lens,
+                defaultBucket,
+                targets,
+                candidate?.poolId,
+                state.similarLeaderboardOnly,
+              )}
               {...cards}
               onBack={() => setSource("search")}
+              onLeaderboardOnly={(on) => setState((s) => ({ ...s, similarLeaderboardOnly: on }))}
               fetcher={fetcher}
             />
           ) : candidate && source === "candidates" ? (

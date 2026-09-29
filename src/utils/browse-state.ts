@@ -4,6 +4,7 @@
  *       this pool" as a switch (the ids come from the pool when a search goes out). It lives in
  *       the editor's URL as one `browse` param holding the browser's own query, so a refresh
  *       keeps it and the editor's other params are left alone; at the defaults the param goes.
+ *       "Leaderboard maps only" on similar maps is on unless it holds `similar=all`.
  *       The request: Qualified and Pending are searched without mods, so their lens is NM and
  *       the sort (the mod data's) isn't sent; explicit only applies to them. Pure, and safe in
  *       the browser.
@@ -28,15 +29,24 @@ import {
   serializeBrowseParams,
 } from "@/utils/browse-params";
 
-/** The browser's state in the editor URL: its params and whether to hide the pool's maps. */
+/**
+ * The browser's state in the editor URL: its params, whether to hide the pool's maps, and
+ * whether "Similar to" keeps only leaderboard maps.
+ */
 export type BrowseState = Omit<BrowseParams, "excludeIds"> & {
   /** "Hide maps in this pool". */
   hideInPool: boolean;
+  /** "Leaderboard maps only" on similar maps (on unless the URL says `similar=all`). */
+  similarLeaderboardOnly: boolean;
 };
 
 const { excludeIds: _, ...defaults } = DEFAULT_BROWSE_PARAMS;
 /** The browser as it opens. */
-export const DEFAULT_BROWSE_STATE: BrowseState = Object.freeze({ ...defaults, hideInPool: false });
+export const DEFAULT_BROWSE_STATE: BrowseState = Object.freeze({
+  ...defaults,
+  hideInPool: false,
+  similarLeaderboardOnly: true,
+});
 
 /** The editor URL's param that holds the browser's query. */
 export const BROWSE_URL_PARAM = "browse";
@@ -58,9 +68,11 @@ export const lensOf = (state: BrowseState): BrowseLens =>
   isLensStatus(state.status) ? state.lens : DEFAULT_LENS;
 
 const queryOf = (state: BrowseState): string => {
-  const { hideInPool, ...params } = state;
+  const { hideInPool, similarLeaderboardOnly, ...params } = state;
   const text = serializeBrowseParams({ ...params, excludeIds: [] });
-  return hideInPool ? [text, "inPool=hide"].filter(Boolean).join("&") : text;
+  return [text, hideInPool ? "inPool=hide" : "", similarLeaderboardOnly ? "" : "similar=all"]
+    .filter(Boolean)
+    .join("&");
 };
 
 const readSearch = (search: string): URLSearchParams => {
@@ -79,7 +91,11 @@ const readSearch = (search: string): URLSearchParams => {
 export const readBrowseState = (search: string): BrowseState => {
   const inner = readSearch(readSearch(search).get(BROWSE_URL_PARAM) ?? "");
   const { excludeIds: _ids, ...params } = parseBrowseParams(inner);
-  return { ...params, hideInPool: inner.get("inPool") === "hide" };
+  return {
+    ...params,
+    hideInPool: inner.get("inPool") === "hide",
+    similarLeaderboardOnly: inner.get("similar") !== "all",
+  };
 };
 
 /**
@@ -104,7 +120,7 @@ export const editorSearchFor = (search: string, state: BrowseState): string => {
  * @returns {string} the GET /api/maps/browse URL for it
  */
 export const browseRequestUrl = (state: BrowseState, poolIds: readonly number[]): string => {
-  const { hideInPool, ...params } = state;
+  const { hideInPool, similarLeaderboardOnly: _similar, ...params } = state;
   const withMods = isLensStatus(state.status);
   const ids = hideInPool ? [...new Set(poolIds)].sort((a, b) => a - b) : [];
   return browseApiUrl({

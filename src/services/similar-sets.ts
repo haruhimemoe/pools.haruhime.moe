@@ -3,6 +3,7 @@
  * @desc Turns similar maps (already in order, each with its similarity) into what the map browser
  *       shows: values under the lens (the mirror's pp/batch; for NM the row's own; else no-mod
  *       values and the math, "math"), then the filters in order: the pool's maps (excluded),
+ *       with `leaderboardOnly` maps with no leaderboard (unranked: not ranked, approved or loved),
  *       sets not allowed in officially supported tournaments (hidden; potential ones "Check
  *       first"), the star range under the lens (filtered); then how many past pools played
  *       each, and the sets grouped in order of their closest difficulty. A failed pp/batch,
@@ -51,6 +52,7 @@ export type SimilarSets = {
   sets: SimilarSet[];
   hidden: number;
   excluded: number;
+  unranked: number;
   filtered: number;
   cacheable: boolean;
 };
@@ -95,7 +97,7 @@ const playedIn = async (ids: readonly number[], counts: PlayedCounts) => {
 /**
  * @function similarSets
  * @param entries {readonly SimilarEntry[]} similar maps, closest first
- * @param query {SimilarQuery} the lens and star range
+ * @param query {SimilarQuery} the lens, star range and status filter
  * @param excludeIds {ReadonlySet<number>} the pool's maps (empty: none)
  * @param deps {SimilarSetsDeps} the mirror calls, played lookup and clock (tests)
  * @returns {Promise<SimilarSets>} the sets, what was left out, and whether it may be cached
@@ -106,7 +108,10 @@ export const similarSets = async (
   excludeIds: ReadonlySet<number>,
   { playedCounts = countPlayed, ...deps }: SimilarSetsDeps = {},
 ): Promise<SimilarSets> => {
-  const kept = entries.filter((entry) => !excludeIds.has(entry.id));
+  const notInPool = entries.filter((entry) => !excludeIds.has(entry.id));
+  const kept = query.leaderboardOnly
+    ? notInPool.filter((entry) => isLeaderboardStatus(entry.status))
+    : notInPool;
   const now = (deps.now ?? Date.now)();
   const judged = await judgeSets(
     [
@@ -154,7 +159,8 @@ export const similarSets = async (
   }
   return {
     sets: [...bySet.values()],
-    excluded: entries.length - kept.length,
+    excluded: entries.length - notInPool.length,
+    unranked: notInPool.length - kept.length,
     hidden: kept.length - allowed.length,
     filtered: allowed.length - shown.length,
     cacheable: judged.ok && counts !== null && !valued.failed,

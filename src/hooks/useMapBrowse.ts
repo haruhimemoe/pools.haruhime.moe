@@ -62,7 +62,8 @@ export const useMapBrowse = (
   const [attempt, setAttempt] = useState(0);
   const latest = useRef({ state, poolIds });
   latest.current = { state, poolIds };
-  const key = editorSearchFor("", state);
+  // The similar source's filter isn't part of the search.
+  const key = editorSearchFor("", { ...state, similarLeaderboardOnly: true });
   // biome-ignore lint/correctness/useExhaustiveDependencies: `key` stands for the state; `attempt` asks again.
   useEffect(() => {
     if (!enabled) return;

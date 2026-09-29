@@ -8,7 +8,9 @@
  *       and new, graveyard and other modes' maps are never in it) gets the "difficulty match"
  *       fallback (src/services/similar-fallback.ts). A lens the mirror doesn't offer reads as NM.
  *       The pool's maps are left out only for its owner and editors; anyone else's pool id is
- *       ignored. A failed similar_maps read falls back and isn't cached; a failed mirror lookup
+ *       ignored. With `leaderboardOnly` only ranked, approved and loved maps are kept, and the
+ *       answer counts the rest (unranked) out of the total; the fallback only finds ranked maps.
+ *       A failed similar_maps read falls back and isn't cached; a failed mirror lookup
  *       or search is a failure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
@@ -108,7 +110,7 @@ export const findSimilarMaps = async (
     entries = matched.entries;
   }
   const built = await similarSets(entries, asked, exclude, deps);
-  const { sets, hidden, excluded, filtered } = built;
+  const { sets, hidden, excluded, unranked, filtered } = built;
   return {
     ok: true,
     cacheable: built.cacheable && stored !== "failed" && query.pool === null,
@@ -118,7 +120,8 @@ export const findSimilarMaps = async (
       method: pattern ? "pattern" : "difficulty",
       rev: pattern?.rev ?? null,
       lens,
-      ...{ hidden, excluded, filtered, missing, sets },
+      ...{ hidden, excluded, unranked, filtered, missing, sets },
+      total: entries.length,
     },
   };
 };

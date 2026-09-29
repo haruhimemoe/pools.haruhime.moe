@@ -32,22 +32,37 @@ describe("parseSimilarId", () => {
 describe("parseSimilarQuery", () => {
   it("reads the lens, range and pool", () => {
     const query = parseSimilarQuery(new URLSearchParams("mods=hddt&sr=6-7.5&pool=b-a1234567"));
-    expect(query).toEqual({ lens: "HDDT", sr: [6, 7.5], pool: "b-a1234567" });
+    expect(query).toEqual({
+      lens: "HDDT",
+      sr: [6, 7.5],
+      pool: "b-a1234567",
+      leaderboardOnly: false,
+    });
   });
 
   it("reads anything unreadable as its default", () => {
     const query = parseSimilarQuery(new URLSearchParams("mods=XX&sr=9-2&pool=../x"));
-    expect(query).toEqual({ lens: "NM", sr: null, pool: null });
-    expect(parseSimilarQuery(new URLSearchParams())).toEqual({ lens: "NM", sr: null, pool: null });
+    expect(query).toEqual({ lens: "NM", sr: null, pool: null, leaderboardOnly: false });
+    expect(parseSimilarQuery(new URLSearchParams()).leaderboardOnly).toBe(false);
   });
 });
 
 describe("similarApiUrl", () => {
   it("leaves NM and empty parts out", () => {
-    expect(similarApiUrl(5, { lens: "NM", sr: null, pool: null })).toBe("/api/maps/5/similar");
-    expect(similarApiUrl(5, { lens: "DT", sr: [6, null], pool: "b-a1234567" })).toBe(
+    const off = { leaderboardOnly: false };
+    expect(similarApiUrl(5, { lens: "NM", sr: null, pool: null, ...off })).toBe(
+      "/api/maps/5/similar",
+    );
+    expect(similarApiUrl(5, { lens: "DT", sr: [6, null], pool: "b-a1234567", ...off })).toBe(
       "/api/maps/5/similar?mods=DT&sr=6-&pool=b-a1234567",
     );
+  });
+
+  it("asks for leaderboard maps only when the switch is on, and reads it back", () => {
+    const url = similarApiUrl(5, { lens: "NM", sr: null, pool: null, leaderboardOnly: true });
+    expect(url).toBe("/api/maps/5/similar?status=leaderboard");
+    expect(parseSimilarQuery(new URL(url, "https://x").searchParams).leaderboardOnly).toBe(true);
+    expect(parseSimilarQuery(new URLSearchParams("status=ranked")).leaderboardOnly).toBe(false);
   });
 });
 
@@ -58,11 +73,13 @@ describe("similarQueryFor", () => {
       lens: "HR",
       sr: [6.2, 6.8],
       pool: "b-a1234567",
+      leaderboardOnly: true,
     });
-    expect(similarQueryFor("NM", "NM", targets, undefined)).toEqual({
+    expect(similarQueryFor("NM", "NM", targets, undefined, false)).toEqual({
       lens: "NM",
       sr: null,
       pool: null,
+      leaderboardOnly: false,
     });
     expect(similarQueryFor("DT", null, undefined, undefined).sr).toBeNull();
   });

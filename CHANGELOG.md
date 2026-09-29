@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- "Similar to <map>" has a "Leaderboard maps only (ranked, approved, loved)" switch, on by default, so pattern matches (mostly graveyard maps) show poolable maps first. It says how many of the similar maps it left out, and turning it off is kept in the browser's URL state. `GET /api/maps/<id>/similar?status=leaderboard` applies it; the answer adds `unranked` and `total`.
 - Past pools and public built pools have their own link preview: the pool's name with its year, map count, star range and mods (`/pools/<id>/og.png`, drawn by `@haruhimemoe/brand` 0.6.0). Unlisted and private pools keep the site's image.
 - A long pool or map title ends in "· pools" instead of "· pools.haruhime.moe", so search results show it whole (`@haruhimemoe/next-kit` 0.4.0).
 - The footer's tools column is now ui 0.6.0's shared "haruhime tools" column (packs, bb, All tools), the same on every haruhime.moe site.

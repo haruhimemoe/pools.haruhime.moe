@@ -42,6 +42,15 @@ describe("the editor's URL", () => {
     expect(readBrowseState(search)).toEqual(STATE);
   });
 
+  it("keeps Leaderboard maps only on unless the URL says similar=all, out of the search", () => {
+    expect(DEFAULT_BROWSE_STATE.similarLeaderboardOnly).toBe(true);
+    const off = { ...DEFAULT_BROWSE_STATE, similarLeaderboardOnly: false };
+    const search = editorSearchFor("", off);
+    expect(search).toBe("?browse=similar%3Dall");
+    expect(readBrowseState(search)).toEqual(off);
+    expect(browseRequestUrl(off, [])).toBe(browseRequestUrl(DEFAULT_BROWSE_STATE, []));
+  });
+
   it("leaves the editor's other params alone, and drops browse at the defaults", () => {
     expect(editorSearchFor("?tab=x", { ...DEFAULT_BROWSE_STATE, lens: "DT" })).toBe(
       "?tab=x&browse=lens%3DDT",

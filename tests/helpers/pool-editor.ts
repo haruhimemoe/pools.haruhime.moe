@@ -131,6 +131,8 @@ export const similarPage = (over: Partial<SimilarResponse> = {}): SimilarRespons
   excluded: 0,
   filtered: 0,
   missing: 0,
+  unranked: 0,
+  total: 0,
   sets: [],
   ...over,
 });

@@ -1,8 +1,9 @@
 /**
  * @file src/app/api/maps/[id]/similar/route.ts
- * @desc GET /api/maps/<id>/similar?mods=&sr=&pool=: maps like this one (src/services/similar-maps.ts),
- *       "pattern match" from BoBERT's table or the "difficulty match" fallback, under the lens,
- *       within the star range, compliance applied. Public: it counts against the search's
+ * @desc GET /api/maps/<id>/similar?mods=&sr=&pool=&status=: maps like this one
+ *       (src/services/similar-maps.ts), "pattern match" from BoBERT's table or the "difficulty
+ *       match" fallback, under the lens, within the star range, compliance applied, and with
+ *       `status=leaderboard` only ranked, approved and loved maps. Public: it counts against the search's
  *       per-IP limit (60 a minute), and without `pool` it reads no cookies and stays 5 minutes
  *       on the CDN like search (never when a lookup behind it failed). With `pool` it reads the
  *       session to leave that pool's maps out for its owner and editors, and is never cached.

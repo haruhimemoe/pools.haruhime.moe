@@ -69,6 +69,30 @@ describe("GET /api/maps/[id]/similar", () => {
     ]);
   });
 
+  it("keeps only leaderboard maps with status=leaderboard", async () => {
+    server.use(
+      beatmapsHandler(
+        rowsOf([
+          beatmapRow(1, 100),
+          beatmapRow(11, 110),
+          beatmapRow(21, 120, { beatmapset: { status: "graveyard" } }),
+        ]),
+      ),
+    );
+    await seedSimilar(1, [
+      { id: 21, score: 255 },
+      { id: 11, score: 204 },
+    ]);
+    const all = await body(await get("1"));
+    expect(all).toMatchObject({ unranked: 0, total: 2 });
+    expect(all.sets.map((set) => set.setId)).toEqual([120, 110]);
+    const response = await get("1", "status=leaderboard");
+    expect(response.headers.get("cache-control")).toBe("public, s-maxage=300");
+    const answer = await body(response);
+    expect(answer).toMatchObject({ unranked: 1, total: 2 });
+    expect(answer.sets.map((set) => set.setId)).toEqual([110]);
+  });
+
   it("answers a difficulty match for a map not in the table", async () => {
     const response = await get("1");
     expect(response.status).toBe(200);

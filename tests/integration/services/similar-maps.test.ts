@@ -47,7 +47,7 @@ beforeEach(() => {
   );
 });
 
-const NM: SimilarQuery = { lens: "NM", sr: null, pool: null };
+const NM: SimilarQuery = { lens: "NM", sr: null, pool: null, leaderboardOnly: false };
 
 const MIRROR = rowsOf([
   beatmapRow(1, 100),
@@ -66,6 +66,25 @@ const similar = async (id: number, query: SimilarQuery = NM, caller = null as ne
 };
 
 describe("findSimilarMaps with a similar_maps row", () => {
+  it("keeps only leaderboard maps when asked, counting the rest out of the total", async () => {
+    server.use(
+      beatmapsHandler(
+        rowsOf([...MIRROR.values(), beatmapRow(61, 160, { beatmapset: { status: "loved" } })]),
+      ),
+    );
+    await seedSimilar(1, [
+      { id: 51, score: 250 },
+      { id: 12, score: 240 },
+      { id: 61, score: 230 },
+    ]);
+    const all = await similar(1);
+    expect(all.answer).toMatchObject({ unranked: 0, total: 3 });
+    expect(all.answer.sets.map((set) => set.setId)).toContain(150);
+    const { answer } = await similar(1, { ...NM, leaderboardOnly: true });
+    expect(answer).toMatchObject({ unranked: 1, total: 3, hidden: 0 });
+    expect(answer.sets.map((set) => set.setId)).toEqual([110, 160]);
+  });
+
   it("keeps the neighbors' order and similarity, grouped by set, in one mirror call", async () => {
     const calls: number[][] = [];
     server.use(beatmapsHandler(MIRROR, calls));
@@ -116,7 +135,7 @@ describe("findSimilarMaps with a similar_maps row", () => {
       { id: 121, score: 240 },
     ]);
     server.use(beatmapsHandler(rowsOf([...MIRROR.values(), beatmapRow(121, 121)])));
-    const { answer } = await similar(1, { lens: "DT", sr: [6, 7], pool: null });
+    const { answer } = await similar(1, { ...NM, lens: "DT", sr: [6, 7] });
     expect(answer.lens).toBe("DT");
     expect(answer.filtered).toBe(1);
     expect(answer.sets.flatMap((set) => set.diffs)).toMatchObject([
@@ -178,8 +197,9 @@ describe("findSimilarMaps fallback", () => {
         ppValues({ stars: id === 71 ? 5.6 : 5.5, bpm: id === 61 ? 240 : 180 }),
       ),
     );
-    const { answer } = await similar(1);
-    expect(answer).toMatchObject({ method: "difficulty", rev: null, missing: 0 });
+    // The fallback only finds ranked maps, so "Leaderboard maps only" leaves nothing out.
+    const { answer } = await similar(1, { ...NM, leaderboardOnly: true });
+    expect(answer).toMatchObject({ method: "difficulty", rev: null, missing: 0, unranked: 0 });
     expect(answer.sets.flatMap((set) => set.diffs.map((d) => d.id))).toEqual([71, 61]);
     const [closest, farther] = answer.sets.flatMap((set) => set.diffs);
     expect(closest?.similarity).toBeGreaterThan(farther?.similarity ?? 100);

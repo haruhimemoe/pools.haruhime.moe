@@ -2,7 +2,8 @@
  * @file src/constants/similar.ts
  * @desc Find similar (GET /api/maps/<id>/similar): how many neighbors a map has, the mirror's
  *       beatmap lookup it loads them through, the "difficulty match" fallback's weights and
- *       scales, the two methods' labels, BoBERT's credit, and the copy the browser shows.
+ *       scales, the two methods' labels, BoBERT's credit, and the copy the browser shows
+ *       (with the "Leaderboard maps only" switch and what it left out).
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -64,5 +65,18 @@ export const BOBERT_CREDIT = Object.freeze({
 export const SIMILAR_FAILED = "Similar maps aren't available right now.";
 /** The 503's code. */
 export const SIMILAR_UNAVAILABLE_CODE = "similar_unavailable";
+/** The similar source's status switch, and what it keeps (compliance's leaderboard statuses). */
+export const SIMILAR_LEADERBOARD_LABEL = "Leaderboard maps only (ranked, approved, loved)";
+
+/**
+ * @function similarUnrankedText
+ * @param unranked {number} similar maps left out as having no leaderboard
+ * @param total {number} similar maps the mirror has
+ * @param shown {number} difficulties shown after every filter
+ * @returns {string} "12 of 20 similar maps have no leaderboard and are left out; showing 6."
+ */
+export const similarUnrankedText = (unranked: number, total: number, shown: number): string =>
+  `${unranked} of ${total} similar ${unranked === 1 ? "map has no leaderboard and is" : "maps have no leaderboard and are"} left out; showing ${shown}.`;
+
 /** The copy when nothing is left after the filters. */
 export const SIMILAR_EMPTY = "No similar maps left after the filters under these mods.";
