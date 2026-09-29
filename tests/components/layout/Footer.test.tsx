@@ -1,7 +1,8 @@
 /**
  * @file tests/components/layout/Footer.test.tsx
- * @desc The footer: the pools, Data, About and Legal columns in that order with their links
- *       (Submit a pool, the /data anchors, Credits, the repo, the email, the legal pages), the
+ * @desc The footer: the pools, Data, haruhime.moe tools, About and Legal columns in that order
+ *       with their links (Submit a pool, the /data anchors, Credits, packs, bb and the parent
+ *       site, the repo, the email, the legal pages), the
  *       Discord icon link beside GitHub's, and fine print on star ratings with mods and the trademark
  *       notice but no otdb line (pools come from more than otdb; pool pages and /credits
  *       credit it).
@@ -33,6 +34,14 @@ const EXPECTED: [string, [string, string][]][] = [
     ],
   ],
   [
+    "haruhime.moe tools",
+    [
+      ["packs: beatmap packs", "https://packs.haruhime.moe"],
+      ["bb: osu! BBCode editor", "https://bb.haruhime.moe"],
+      ["All tools", "https://www.haruhime.moe"],
+    ],
+  ],
+  [
     "About",
     [
       ["Source on GitHub", "https://github.com/haruhimemoe/pools.haruhime.moe"],
@@ -50,7 +59,7 @@ const EXPECTED: [string, [string, string][]][] = [
 ];
 
 describe("Footer", () => {
-  it("has the pools, Data, About and Legal columns, in order", () => {
+  it("has the pools, Data, haruhime.moe tools, About and Legal columns, in order", () => {
     expect(FOOTER_COLUMNS.map((column) => column.title)).toEqual(EXPECTED.map(([title]) => title));
     render(<Footer />);
     const footer = screen.getByRole("contentinfo");

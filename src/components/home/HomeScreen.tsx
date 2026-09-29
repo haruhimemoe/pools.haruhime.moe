@@ -6,7 +6,7 @@
  *       from (/data, rather than naming one source), a pools search (a plain GET form), links to
  *       the full search, the check and Submit a pool, then the public pools built here lately
  *       (Recently built) and the past pools added last (Recently added), each left out when
- *       there are none.
+ *       there are none, and last What pools is and the questions (HomeAbout).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
@@ -15,8 +15,10 @@
 import { Button, ButtonLink, Card, PageHeader, TextInput, TextLink } from "@haruhimemoe/ui";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { HomeAbout } from "@/components/home/HomeAbout";
 import { MapSearchForm } from "@/components/home/MapSearchForm";
 import { RecentlyBuilt } from "@/components/home/RecentlyBuilt";
+import { HOME_FAQ, HOME_INTRO } from "@/constants/home";
 import { BUILDER_LINE } from "@/constants/site";
 import type { ListedBuiltPool } from "@/services/built-listings";
 import type { HomeCounts, RecentPool } from "@/services/pools";
@@ -43,7 +45,8 @@ type HomeScreenProps = {
 /**
  * @function HomeScreen
  * @param props {HomeScreenProps} the counts, the pools added last and the pools built last
- * @returns {JSX.Element} the home page: Make a pool, Recently built, the map search and past pools
+ * @returns {JSX.Element} the home page: Make a pool, Recently built, the map search, past pools,
+ *          then What pools is and the questions
  */
 export function HomeScreen({ counts, recent = [], built = [] }: HomeScreenProps) {
   return (
@@ -114,6 +117,7 @@ export function HomeScreen({ counts, recent = [], built = [] }: HomeScreenProps)
           ) : null}
         </div>
       ) : null}
+      <HomeAbout intro={HOME_INTRO} faq={HOME_FAQ} />
     </div>
   );
 }

@@ -7,7 +7,7 @@
  *       newline.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { readdirSync, readFileSync } from "node:fs";
@@ -27,7 +27,11 @@ const COPY = [
   ...readdirSync("content/legal").map((name) => `content/legal/${name}`),
   "src/constants/site.ts",
   "src/constants/legal.ts",
+  "src/constants/seo.ts",
+  "src/constants/home.ts",
+  "src/constants/llms.ts",
   "src/utils/llms-txt.ts",
+  "src/utils/page-seo.ts",
 ];
 
 /** Copy that says where pools come from: the docs, legal pages and constants, and the pages. */
