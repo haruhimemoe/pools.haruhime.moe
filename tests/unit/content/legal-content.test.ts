@@ -97,10 +97,16 @@ describe("legal pages", () => {
     expect(read("privacy")).toContain("straight from osu!'s servers (assets.ppy.sh and b.ppy.sh)");
   });
 
-  it("dates the privacy page (editor v2.1), disclaimer and terms from their last change", () => {
+  it("dates the privacy page (editor v2.1), disclaimer (similar maps) and terms from their last change", () => {
     expect(LEGAL_DOCS.privacy.lastUpdated).toBe("2026-09-28");
-    expect(LEGAL_DOCS.disclaimer.lastUpdated).toBe("2026-09-27");
+    expect(LEGAL_DOCS.disclaimer.lastUpdated).toBe("2026-09-28");
     expect(LEGAL_DOCS.terms.lastUpdated).toBe("2026-09-27");
+  });
+
+  it("says what similar maps are and that the mirror is asked for them", () => {
+    const disclaimer = read("disclaimer");
+    expect(disclaimer).toContain("Similar maps are a guide.");
+    expect(disclaimer).toContain("for map details when someone asks for similar maps");
   });
 
   it.each(LEGAL_SLUGS)("%s has no em dash", (slug) => {

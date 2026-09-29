@@ -119,7 +119,7 @@ export const llmsSections = ({
         title: "Make a pool",
         url: at("/new"),
         description:
-          "Sign in with osu! to build a pool: its details, maps in slots (built-in and custom, with forced mods or freemod), a map browser that searches osu! maps under a mod (star rating, AR, OD, BPM and length with that mod) and adds them to a slot, pasted IDs or links, targets per slot (a map count and star range, with templates for common rounds), a note on each map, up to 10 candidates per slot (promote, votes and notes, owner and editors only, never on the pool's page, export or pack) and a Your candidates source that reuses them, export (beatmap IDs, !mp lines, CSV), recent changes for its owner and editors, a summary and the content rules check. Pools start private; the owner can make them unlisted or public (then they get a pack on packs), add editors and hand the pool to one of them. Start from this pool, on any pool page, copies its maps into a new pool.",
+          "Sign in with osu! to build a pool: its details, maps in slots (built-in and custom, with forced mods or freemod), a map browser that searches osu! maps under a mod (star rating, AR, OD, BPM and length with that mod) and adds them to a slot, pasted IDs or links, targets per slot (a map count and star range, with templates for common rounds), a note on each map, up to 10 candidates per slot (promote, votes and notes, owner and editors only, never on the pool's page, export or pack) and a Your candidates source that reuses them, Find similar on any map (maps that play alike, from BoBERT's embeddings by token03, or a difficulty match for maps it doesn't cover), export (beatmap IDs, !mp lines, CSV), recent changes for its owner and editors, a summary and the content rules check. Pools start private; the owner can make them unlisted or public (then they get a pack on packs), add editors and hand the pool to one of them. Start from this pool, on any pool page, copies its maps into a new pool.",
       },
       {
         title: "Submit a pool",
@@ -136,7 +136,7 @@ export const llmsSections = ({
       {
         title: "Credits",
         url: at("/credits"),
-        description: "Where the data and the rules come from.",
+        description: "Where the data, similar maps (BoBERT by token03) and the rules come from.",
       },
     ],
   },

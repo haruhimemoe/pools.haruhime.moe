@@ -3,7 +3,8 @@
  * @desc /credits: where pools' data and rules come from (otdb by Sheppsu for some past pools,
  *       the tournament hosts and community members who send the others, credited on each pool
  *       page unless they asked not to be named; the hinai mirror, which serves osu! API data, for
- *       map details; the osu! Mappool Compliance project and the osu! wiki pages behind it), the
+ *       map details; BoBERT by token03 for similar maps; the osu! Mappool Compliance project and
+ *       the osu! wiki pages behind it), the
  *       packages it's built with, and the affiliation notice. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -14,6 +15,7 @@ import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
 import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BOBERT_CREDIT } from "@/constants/similar";
 import { SITE } from "@/constants/site";
 
 /** /credits' title, description and canonical URL. */
@@ -52,6 +54,15 @@ export default function CreditsPage() {
           <a href="https://mirror.hinamizawa.ai">hinai mirror</a>, which serves osu! API data. A map
           the mirror doesn't have keeps what its source gave. Star ratings with mods come from the
           mirror too, and can differ slightly from osu!'s.
+        </p>
+        <h2>Similar maps</h2>
+        <p>
+          Find similar in the map browser uses <a href={BOBERT_CREDIT.url}>BoBERT</a>, by{" "}
+          {BOBERT_CREDIT.author} ({BOBERT_CREDIT.license}), with his permission. BoBERT reads each
+          osu!standard map's hit objects into a list of numbers; maps whose numbers sit close play
+          alike. We use the embeddings it publishes to find each map's nearest maps ahead of time.
+          Its matches leave out AR, OD and CS. Maps it doesn't cover get a plain difficulty match
+          instead, and the browser says which one you're looking at.
         </p>
         <h2>Content rules</h2>
         <p>

@@ -14,13 +14,15 @@ Searching all osu! maps asks the hinai mirror, which reads only map details (nev
 
 A pool's slots show each map's star rating, AR, OD, BPM and length under the slot's mods. Star ratings with mods come from the hinai mirror's precomputed values and can differ slightly from osu!'s. NM, FM and TB slots show the rating without mods, and a map the mirror has no mod data for shows its rating without mods, marked "no mod data". Search results for maps played in pools, and the all-maps search, show ratings without mods. A pool's star range uses these ratings, so it can differ from the range packs shows for the same pool.
 
+Similar maps are a guide. A pattern match comes from the embeddings BoBERT (by token03) publishes, which compare hit objects and leave out AR, OD and CS; a difficulty match only compares numbers. Neither says a map fits your pool.
+
 ## The compliance check
 
 The check reads each beatmapset's details from the osu! API and applies the content rules for officially supported tournaments, as the osu! Mappool Compliance project writes them. Its results are guidance, not rulings: the osu! Tournament Committee decides. A map the check couldn't read is marked as such, never passed.
 
 ## How our requests identify themselves
 
-Our server sends `pools.haruhime.moe (+https://pools.haruhime.moe; contact@haruhime.moe)` as its User-Agent on every request it makes: to the osu! API (for the check, and to look up a pool editor by username, with pools' own osu! app), to the hinai mirror (when someone searches all osu! maps, for star ratings and map values with mods when someone browses maps or opens a pool, and for map details when an admin runs an import or adds a pool, or when someone adds maps pools hadn't seen to a pool they build), to otdb (when an admin runs an import), and to packs.haruhime.moe (to keep each pool's pack up to date, and to remove a pack when its pool goes private or is deleted, trying again later when packs doesn't answer).
+Our server sends `pools.haruhime.moe (+https://pools.haruhime.moe; contact@haruhime.moe)` as its User-Agent on every request it makes: to the osu! API (for the check, and to look up a pool editor by username, with pools' own osu! app), to the hinai mirror (when someone searches all osu! maps, for star ratings and map values with mods when someone browses maps or opens a pool, for map details when someone asks for similar maps, and for map details when an admin runs an import or adds a pool, or when someone adds maps pools hadn't seen to a pool they build), to otdb (when an admin runs an import), and to packs.haruhime.moe (to keep each pool's pack up to date, and to remove a pack when its pool goes private or is deleted, trying again later when packs doesn't answer).
 
 ## Contact
 

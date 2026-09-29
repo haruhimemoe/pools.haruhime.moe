@@ -23,7 +23,7 @@ export const LEGAL_DOCS: Record<
     title: "Disclaimer",
     description:
       "Who pools isn't affiliated with, what its data, star ratings and checks mean, and how its requests identify themselves.",
-    lastUpdated: "2026-09-27",
+    lastUpdated: "2026-09-28",
   },
   privacy: {
     title: "Privacy",
