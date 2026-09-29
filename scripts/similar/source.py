@@ -4,7 +4,8 @@
       token03): embeddings.parquet (beatmap_id int64, embedding fixed_size_list<float16>[384],
       density) and data/beatmaps.parquet (id, beatmapset_id and osu!'s other fields), downloaded
       once into the gitignored .cache/<rev>/ and checked against their SHA-256. A map missing
-      from beatmaps.parquet gets its own negative set id, so only itself is left out.
+      from beatmaps.parquet gets its own negative set id, so only itself is left out. Its
+      `status` column (osu!'s integer codes as strings) says which maps have a leaderboard.
 @author David @dvhsh (https://dvh.sh)
 @created Mon Sep 28, 2026
 @modified Mon Sep 28, 2026
@@ -34,6 +35,10 @@ FILES = {
 
 CACHE = Path(__file__).resolve().parent / ".cache"
 """Downloads live here (gitignored)."""
+
+LEADERBOARD_STATUSES = frozenset({"1", "2", "4"})
+"""osu!'s status codes for ranked, approved and loved (compliance's isLeaderboardStatus); -2
+graveyard, -1 WIP, 0 pending and 3 qualified have no leaderboard."""
 
 USER_AGENT = "pools.haruhime.moe similar-maps build (+https://pools.haruhime.moe)"
 
@@ -101,3 +106,15 @@ def load_set_ids(path: Path, ids: np.ndarray) -> np.ndarray:
     table = pq.read_table(path, columns=["id", "beatmapset_id"])
     known = dict(zip(table.column("id").to_pylist(), table.column("beatmapset_id").to_pylist()))
     return np.array([known.get(int(i), -int(i)) for i in ids], dtype=np.int64)
+
+
+def load_leaderboard(path: Path, ids: np.ndarray) -> np.ndarray:
+    """
+    @function load_leaderboard
+    @param path {Path} beatmaps.parquet
+    @param ids {np.ndarray} the embedded beatmap ids
+    @returns {np.ndarray} (n,) bool: the map is ranked, approved or loved (unknown maps aren't)
+    """
+    table = pq.read_table(path, columns=["id", "status"])
+    known = dict(zip(table.column("id").to_pylist(), table.column("status").to_pylist()))
+    return np.array([known.get(int(i)) in LEADERBOARD_STATUSES for i in ids], dtype=bool)

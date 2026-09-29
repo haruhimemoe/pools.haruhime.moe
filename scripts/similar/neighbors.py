@@ -6,7 +6,8 @@
       one slice per row. Batched matrix products on the CPU (numpy's BLAS), float32, a few batches
       at a time on threads; each row's top K comes from the columns over a sampled floor.
       Neighbors at COPY_COSINE or over are copies of the map in other sets (reuploads, HP or AR
-      edits) and are left out, so popular maps don't list their own copies.
+      edits) and are left out, so popular maps don't list their own copies. `among` limits the
+      neighbors to a subset (the leaderboard maps) while every map still gets a row.
 @author David @dvhsh (https://dvh.sh)
 @created Mon Sep 28, 2026
 @modified Mon Sep 28, 2026
@@ -97,6 +98,7 @@ def top_neighbors(
     k: int = K,
     batch: int = BATCH,
     progress=None,
+    among: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     @function top_neighbors
@@ -106,8 +108,10 @@ def top_neighbors(
     @param k {int} neighbors per map
     @param batch {int} rows per matrix product
     @param progress {callable | None} called with (rows done, rows) as batches finish
+    @param among {np.ndarray | None} (n,) bool: only these maps may be neighbors (every map
+           still gets a row); None lets every map be one
     @returns {tuple} ids (n,) sorted by beatmap id; neighbors (n, m) uint32 beatmap ids, best
-             first; cosines (n, m) float32, where m is k or fewer when fewer maps are in other sets.
+             first; cosines (n, m) float32, where m is k or fewer when fewer maps can be neighbors.
              A row with fewer than m candidates (copies left out) is padded with id 0 and
              cosine -1.
     """
@@ -115,16 +119,28 @@ def top_neighbors(
     sorted_ids = np.asarray(ids)[order]
     x = normalize(np.asarray(vectors)[order])
     n = len(sorted_ids)
-    m = max(0, min(k, n - 1))
+    # The neighbor columns: every map, or only those in `among` (a subset of the set-sorted
+    # rows is still set-sorted, so each row's own set is still one run of columns).
+    if among is None:
+        columns = np.arange(n)
+        xc = x
+    else:
+        columns = np.flatnonzero(np.asarray(among, dtype=bool)[order])
+        xc = x[columns]
+        starts = np.searchsorted(columns, starts)
+        ends = np.searchsorted(columns, ends)
+    column_ids = sorted_ids[columns]
+    width = len(columns)
+    m = max(0, min(k, n - 1, width))
     neighbors = np.zeros((n, m), dtype=np.uint32)
     cosines = np.full((n, m), -1.0, dtype=np.float32)
     if m == 0:
         return sorted_ids, neighbors, cosines
-    wide = min(m + SPARE, n - 1)
+    wide = min(m + SPARE, width)
 
     def run(lo: int) -> int:
         hi = min(lo + batch, n)
-        sims = x[lo:hi] @ x.T
+        sims = x[lo:hi] @ xc.T
         for row in range(hi - lo):
             sims[row, starts[lo + row] : ends[lo + row]] = -np.inf
         cols, picked = _row_top(sims, wide)
@@ -132,7 +148,7 @@ def top_neighbors(
         # Stable: valid ones first, each keeping its place, then cut to m.
         keep = np.argsort(~valid, axis=1, kind="stable")[:, :m]
         valid = np.take_along_axis(valid, keep, axis=1)
-        chosen = sorted_ids[np.take_along_axis(cols, keep, axis=1)]
+        chosen = column_ids[np.take_along_axis(cols, keep, axis=1)]
         neighbors[lo:hi] = np.where(valid, chosen, 0)
         cosines[lo:hi] = np.where(valid, np.take_along_axis(picked, keep, axis=1), -1.0)
         return hi - lo

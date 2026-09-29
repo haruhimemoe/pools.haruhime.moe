@@ -1,9 +1,9 @@
 /**
  * @file src/utils/similar-binary.ts
  * @desc Reads a similar_maps row: `n` holds the neighbors' beatmap ids as little-endian uint32s,
- *       best first, and `s` one uint8 score each (cosine similarity 0..1 as 0..255). Rows with
- *       a ragged or empty `n`, a zero id, or fewer scores than ids read as far as they're whole.
- *       Pure.
+ *       best first, and `s` one uint8 score each (cosine similarity 0..1 as 0..255); `nl`, `sl`
+ *       (the leaderboard-only list) read the same way. Rows with a ragged or empty `n`, a zero
+ *       id, or fewer scores than ids read as far as they're whole. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026

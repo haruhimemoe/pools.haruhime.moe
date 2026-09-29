@@ -2,7 +2,8 @@
  * @file tests/helpers/similar.ts
  * @desc Find similar's stand-ins: rows shaped like the mirror's live /api/v2/beatmaps answer (set
  *       status included), a handler answering the ids it knows and recording each call, and a
- *       similar_maps row written the way scripts/similar writes it (uint32 ids, uint8 scores).
+ *       similar_maps row written the way scripts/similar writes it (uint32 ids, uint8 scores,
+ *       optionally the leaderboard list nl, sl).
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -82,18 +83,23 @@ export const rowsOf = (rows: Record<string, unknown>[]): Map<number, Record<stri
  * @param id {number} the map
  * @param neighbors {readonly Neighbor[]} its neighbors and scores 0..255, best first
  * @param rev {string} the BoBERT revision
+ * @param leaderboard {readonly Neighbor[] | undefined} its leaderboard list (nl, sl); none when
+ *        left out, like rows imported before that list existed
  * @returns {Promise<void>} once the row is in similar_maps
  */
 export const seedSimilar = async (
   id: number,
   neighbors: readonly Neighbor[],
   rev = "v14.1",
+  leaderboard?: readonly Neighbor[],
 ): Promise<void> => {
   const { n, s } = encodeNeighbors(neighbors);
+  const lb = leaderboard ? encodeNeighbors(leaderboard) : null;
   await (await similarMapsCollection()).insertOne({
     _id: id,
     n: new Binary(n),
     s: new Binary(s),
+    ...(lb ? { nl: new Binary(lb.n), sl: new Binary(lb.s) } : {}),
     rev,
   });
 };

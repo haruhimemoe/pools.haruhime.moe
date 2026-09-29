@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- "Leaderboard maps only" in "Similar to <map>" now shows the 20 closest maps that have a leaderboard instead of filtering the 20 closest of all maps, which were mostly graveyard (map 129891 kept 2 of 18). `scripts/similar` stores a second list per map (`nl`, `sl`: the top 20 among ranked, approved and loved maps, by BoBERT's `status` column), which `?status=leaderboard` reads; rows imported before it existed still get the filter. The "left out" line shows only when the filter drops something. The import grows from about 80 MB to about 137 MB.
+
 ### Added
 
 - "Similar to <map>" has a "Leaderboard maps only (ranked, approved, loved)" switch, on by default, so pattern matches (mostly graveyard maps) show poolable maps first. It says how many of the similar maps it left out, and turning it off is kept in the browser's URL state. `GET /api/maps/<id>/similar?status=leaderboard` applies it; the answer adds `unranked` and `total`.

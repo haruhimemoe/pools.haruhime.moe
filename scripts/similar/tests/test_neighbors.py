@@ -86,3 +86,42 @@ def test_copies_are_left_out():
     assert near[0].tolist() == [3, 4]
     assert near[1].tolist() == [3, 4]
     assert (cos < nb.COPY_COSINE).all()
+
+
+def test_among_limits_neighbors_but_every_map_gets_a_row():
+    # Leaderboard maps: 30 and 50 only; 10, 20 and 40 have none themselves but still get rows.
+    among = np.isin(IDS, [30, 50])
+    ids, near, cos = nb.top_neighbors(IDS, SETS, VECTORS, k=3, batch=2, among=among)
+    assert ids.tolist() == [10, 20, 30, 40, 50, 60]
+    assert near.shape == (6, 2)
+    by_id = dict(zip(ids.tolist(), near.tolist()))
+    assert by_id[10] == [30, 50]
+    assert by_id[40] == [50, 0]  # 30 is its own set
+    assert by_id[30] == [50, 0]  # never itself
+    assert by_id[60] == [30, 0]  # never 50, its own set
+    assert set(np.unique(near)) <= {0, 30, 50}
+    assert (np.diff(np.where(near == 0, -2.0, cos), axis=1) <= 1e-6).all()
+
+
+def test_among_matches_brute_force(monkeypatch):
+    monkeypatch.setattr(nb, "SAMPLE", 64)
+    rng = np.random.default_rng(11)
+    n = 900
+    vectors = rng.standard_normal((n, 16))
+    ids = np.arange(1, n + 1) * 3
+    sets = rng.integers(0, 300, n)
+    among = rng.random(n) < 0.3
+    _, near, cos = nb.top_neighbors(ids, sets, vectors, k=10, batch=128, among=among)
+    unit = nb.normalize(vectors)
+    sims = unit @ unit.T
+    sims[sets[:, None] == sets[None, :]] = -np.inf
+    sims[:, ~among] = -np.inf
+    top = np.argsort(-sims, axis=1, kind="stable")[:, :10]
+    assert np.allclose(cos, np.take_along_axis(sims, top, axis=1), atol=1e-5)
+    assert (near == ids[top]).mean() > 0.99
+    assert among[np.searchsorted(ids, near)].all()
+
+
+def test_among_with_no_leaderboard_maps_gives_none():
+    ids, near, _ = nb.top_neighbors(IDS, SETS, VECTORS, among=np.zeros(6, dtype=bool))
+    assert len(ids) == 6 and near.shape == (6, 0)

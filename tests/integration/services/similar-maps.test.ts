@@ -5,7 +5,8 @@
  *       match"); values under the lens; disallowed sets hidden, the star range and the pool's
  *       maps (for its editors only) left out and counted; neighbors the mirror lacks counted; an
  *       empty table falling back to "difficulty match" (closest by stars, BPM, length, AR, OD,
- *       CS; never the map's own set; nothing for other modes); a failed mirror as a failure.
+ *       CS; never the map's own set; nothing for other modes); a failed mirror as a failure;
+ *       "Leaderboard maps only" reading the row's nl, sl, or filtering n, s on a row without them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -66,6 +67,35 @@ const similar = async (id: number, query: SimilarQuery = NM, caller = null as ne
 };
 
 describe("findSimilarMaps with a similar_maps row", () => {
+  it("reads the leaderboard list (nl, sl) when asked, and n, s otherwise", async () => {
+    const calls: number[][] = [];
+    server.use(
+      beatmapsHandler(
+        rowsOf([...MIRROR.values(), beatmapRow(61, 160, { beatmapset: { status: "loved" } })]),
+        calls,
+      ),
+    );
+    await seedSimilar(
+      1,
+      [
+        { id: 51, score: 250 },
+        { id: 12, score: 240 },
+      ],
+      "v14.1",
+      [
+        { id: 12, score: 240 },
+        { id: 61, score: 230 },
+        { id: 21, score: 220 },
+      ],
+    );
+    const all = await similar(1);
+    expect(all.answer.sets.map((set) => set.setId)).toEqual([150, 110]);
+    const { answer } = await similar(1, { ...NM, leaderboardOnly: true });
+    expect(calls.at(-1)).toEqual([1, 12, 61, 21]);
+    expect(answer).toMatchObject({ method: "pattern", unranked: 0, total: 3 });
+    expect(answer.sets.map((set) => set.setId)).toEqual([110, 160, 120]);
+  });
+
   it("keeps only leaderboard maps when asked, counting the rest out of the total", async () => {
     server.use(
       beatmapsHandler(

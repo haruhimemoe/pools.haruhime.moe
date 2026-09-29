@@ -36,12 +36,34 @@ def test_docs_skip_maps_with_no_neighbors():
     assert [doc["_id"] for doc in store.docs_of(ids, near, cos, "v")] == [1]
 
 
+def test_doc_packs_leaderboard_neighbors_too():
+    doc = store.doc_of(
+        42,
+        np.array([7, 8], dtype=np.uint32),
+        np.array([0.9, 0.8], dtype=np.float32),
+        "v",
+        np.array([9, 0], dtype=np.uint32),
+        np.array([0.5, -1.0], dtype=np.float32),
+    )
+    assert struct.unpack("<I", doc["nl"]) == (9,)
+    assert list(doc["sl"]) == [128]
+    ids = np.array([1])
+    near = np.array([[0]], dtype=np.uint32)
+    cos = np.array([[-1.0]], dtype=np.float32)
+    lb = np.array([[5]], dtype=np.uint32)
+    kept = list(store.docs_of(ids, near, cos, "v", lb, np.array([[0.7]], np.float32)))
+    assert [d["_id"] for d in kept] == [1] and kept[0]["n"] == b""
+
+
 def test_estimate_counts_bson_and_the_index():
     doc = store.doc_of(1, np.ones(20, np.uint32), np.ones(20, np.float32), "v14.1")
     size = store.doc_bytes(doc)
     assert 130 < size < 160
     assert store.estimate_bytes(1000, doc) == 1000 * (size + store.INDEX_BYTES_PER_DOC)
     assert store.estimate_bytes(0, None) == 0
+    ones, scores = np.ones(20, np.uint32), np.ones(20, np.float32)
+    full = store.doc_of(1, ones, scores, "v14.1", ones, scores)
+    assert 250 < store.doc_bytes(full) < 280
 
 
 def test_space_guard_refuses_past_the_limit():

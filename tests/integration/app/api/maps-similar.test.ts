@@ -4,7 +4,8 @@
  *       as a pattern match and cached like search; one that isn't as a difficulty match; mods
  *       read as the browser writes them; a pool id leaving the pool's maps out for its editor and
  *       never cached; a bad id 400; a failed mirror 503 similar_unavailable, no-store; and the
- *       per-IP search limit (60 a minute) then 429.
+ *       per-IP search limit (60 a minute) then 429; status=leaderboard reading the row's
+ *       leaderboard list (nl, sl), or filtering n, s on a row without one.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -91,6 +92,36 @@ describe("GET /api/maps/[id]/similar", () => {
     const answer = await body(response);
     expect(answer).toMatchObject({ unranked: 1, total: 2 });
     expect(answer.sets.map((set) => set.setId)).toEqual([110]);
+  });
+
+  it("reads the leaderboard list with status=leaderboard when the row has one", async () => {
+    server.use(
+      beatmapsHandler(
+        rowsOf([
+          beatmapRow(1, 100),
+          beatmapRow(11, 110),
+          beatmapRow(12, 130),
+          beatmapRow(21, 120, { beatmapset: { status: "graveyard" } }),
+        ]),
+      ),
+    );
+    await seedSimilar(
+      1,
+      [
+        { id: 21, score: 255 },
+        { id: 11, score: 204 },
+      ],
+      "v14.1",
+      [
+        { id: 11, score: 204 },
+        { id: 12, score: 190 },
+      ],
+    );
+    const all = await body(await get("1"));
+    expect(all.sets.map((set) => set.setId)).toEqual([120, 110]);
+    const answer = await body(await get("1", "status=leaderboard"));
+    expect(answer).toMatchObject({ unranked: 0, total: 2 });
+    expect(answer.sets.map((set) => set.setId)).toEqual([110, 130]);
   });
 
   it("answers a difficulty match for a map not in the table", async () => {

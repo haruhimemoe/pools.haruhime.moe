@@ -1,7 +1,8 @@
 """
 @file scripts/similar/build.py
 @desc Builds similar_maps from BoBERT's embeddings (run on David's Mac, never in production):
-      downloads the pinned revision, finds each map's top 20 neighbors, then either saves them
+      downloads the pinned revision, finds each map's top 20 neighbors and its top 20 among
+      leaderboard maps (ranked, approved, loved), then either saves them
       to a local .npz (--out, no database), prints the space estimate (--dry-run: reads dbStats,
       writes nothing), or imports them (similar_maps_next, then a rename over similar_maps) after
       the space guard. Reads MONGODB_URI from the environment and never prints it.
@@ -22,32 +23,47 @@ import numpy as np
 import pyarrow.parquet as pq
 
 from neighbors import K, top_neighbors
-from source import REV, fetch, load_embeddings, load_set_ids
-from store import check_space, docs_of, estimate_bytes, write_docs
+from source import REV, fetch, load_embeddings, load_leaderboard, load_set_ids
+from store import check_space, doc_bytes, docs_of, estimate_bytes, write_docs
 
 DB_NAME = "pools"
 """The app's database (DB_NAME in src/lib/db.ts)."""
 
 
-def compute(limit: int | None) -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
+Result = tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, float]
+
+
+def compute(limit: int | None) -> Result:
     """
     @function compute
     @param limit {int | None} only the first this many maps (a quick trial), else all
-    @returns {tuple} ids, neighbors, cosines and the seconds the neighbor math took
+    @returns {tuple} ids, neighbors, cosines, leaderboard neighbors, their cosines, and the
+             seconds the neighbor math took
     """
     ids, vectors = load_embeddings(fetch("embeddings.parquet"))
     if limit:
         ids, vectors = ids[:limit], vectors[:limit]
-    set_ids = load_set_ids(fetch("data/beatmaps.parquet"), ids)
-    print(f"{len(ids)} maps, {vectors.shape[1]} dimensions, {len(np.unique(set_ids))} sets")
+    beatmaps = fetch("data/beatmaps.parquet")
+    set_ids = load_set_ids(beatmaps, ids)
+    leaderboard = load_leaderboard(beatmaps, ids)
+    print(
+        f"{len(ids)} maps ({int(leaderboard.sum())} with a leaderboard), {vectors.shape[1]} "
+        f"dimensions, {len(np.unique(set_ids))} sets"
+    )
     started = time.monotonic()
 
     def progress(done: int, total: int) -> None:
         if done % (100 * 512) < 512 or done == total:
             print(f"  {done}/{total} ({time.monotonic() - started:.0f} s)", flush=True)
 
-    out = top_neighbors(ids, set_ids, vectors, K, progress=progress)
-    return (*out, time.monotonic() - started)
+    print("all maps:")
+    out, near, cos = top_neighbors(ids, set_ids, vectors, K, progress=progress)
+    print("leaderboard maps only:")
+    lb_ids, lb_near, lb_cos = top_neighbors(
+        ids, set_ids, vectors, K, progress=progress, among=leaderboard
+    )
+    assert (lb_ids == out).all()
+    return out, near, cos, lb_near, lb_cos, time.monotonic() - started
 
 
 def embedded_count() -> int:
@@ -63,8 +79,9 @@ def full_doc() -> dict:
     @function full_doc
     @returns {dict} a document with K neighbors, the size every real one has at most
     """
-    ones = np.ones(K, dtype=np.uint32)
-    return next(docs_of(np.array([1]), ones[None, :], np.ones((1, K), np.float32), REV))
+    ones = np.ones((1, K), dtype=np.uint32)
+    scores = np.ones((1, K), np.float32)
+    return next(docs_of(np.array([1]), ones, scores, REV, ones, scores))
 
 
 def database():
@@ -93,27 +110,36 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.out:
-        ids, neighbors, cosines, seconds = compute(args.limit)
+        ids, neighbors, cosines, lb_neighbors, lb_cosines, seconds = compute(args.limit)
         print(f"neighbors in {seconds:.0f} s")
         estimate = estimate_bytes(len(ids), full_doc())
-        np.savez_compressed(args.out, ids=ids, neighbors=neighbors, cosines=cosines)
+        np.savez_compressed(
+            args.out,
+            ids=ids,
+            neighbors=neighbors,
+            cosines=cosines,
+            lb_neighbors=lb_neighbors,
+            lb_cosines=lb_cosines,
+        )
         print(f"saved {args.out}; a real import would be about {estimate / 1024 / 1024:.1f} MB")
         return
     count = min(embedded_count(), args.limit or sys.maxsize)
     db = database()
     stats = db.command("dbStats")
-    estimate = estimate_bytes(count, full_doc())
+    sample = full_doc()
+    estimate = estimate_bytes(count, sample)
     fits, line = check_space(int(stats["dataSize"]), int(stats["indexSize"]), estimate)
-    print(f"{count} maps; {line}")
+    print(f"{count} maps, at most {doc_bytes(sample)} bytes each (n, s, nl, sl); {line}")
     if args.dry_run:
         print("dry run: nothing written")
         return
     if not fits:
         sys.exit("refusing: the import would pass the space limit")
-    ids, neighbors, cosines, seconds = compute(args.limit)
+    ids, neighbors, cosines, lb_neighbors, lb_cosines, seconds = compute(args.limit)
     print(f"neighbors in {seconds:.0f} s")
     started = time.monotonic()
-    written = write_docs(db, docs_of(ids, neighbors, cosines, REV))
+    docs = docs_of(ids, neighbors, cosines, REV, lb_neighbors, lb_cosines)
+    written = write_docs(db, docs)
     print(f"wrote {written} documents to similar_maps in {time.monotonic() - started:.0f} s")
 
 

@@ -2,7 +2,8 @@
  * @file tests/unit/utils/similar-binary.test.ts
  * @desc Reading similar_maps rows: little-endian uint32 ids with one uint8 score each, as
  *       scripts/similar writes them (the bytes here are what its test fixture packs), ragged or
- *       short rows read as far as they're whole, zero ids and repeats dropped; scores as percents.
+ *       short rows read as far as they're whole, zero ids and repeats dropped; the leaderboard
+ *       list (nl, sl) read the same; scores as percents.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -20,6 +21,12 @@ describe("decodeNeighbors", () => {
       { id: 7, score: 255 },
       { id: 70000, score: 128 },
     ]);
+  });
+
+  it("reads the leaderboard list (nl, sl) the same way", () => {
+    // struct.pack("<I", 9) and bytes([128]) for nl, sl in scripts/similar/tests/test_store.py
+    const nl = Uint8Array.from([9, 0, 0, 0]);
+    expect(decodeNeighbors(nl, Uint8Array.from([128]))).toEqual([{ id: 9, score: 128 }]);
   });
 
   it("reads a Node Buffer slice at its own offset", () => {

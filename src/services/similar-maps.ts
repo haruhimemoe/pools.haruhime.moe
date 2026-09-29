@@ -8,8 +8,11 @@
  *       and new, graveyard and other modes' maps are never in it) gets the "difficulty match"
  *       fallback (src/services/similar-fallback.ts). A lens the mirror doesn't offer reads as NM.
  *       The pool's maps are left out only for its owner and editors; anyone else's pool id is
- *       ignored. With `leaderboardOnly` only ranked, approved and loved maps are kept, and the
- *       answer counts the rest (unranked) out of the total; the fallback only finds ranked maps.
+ *       ignored. With `leaderboardOnly` the row's leaderboard list (nl, sl: the top 20 among
+ *       ranked, approved and loved maps) is read instead, falling back to filtering n, s on rows
+ *       that lack it; either way only maps the mirror calls ranked, approved or loved are kept,
+ *       and the answer counts the rest (unranked) out of the total. The fallback only finds
+ *       ranked maps.
  *       A failed similar_maps read falls back and isn't cached; a failed mirror lookup
  *       or search is a failure.
  * @author David @dvhsh (https://dvh.sh)
@@ -38,9 +41,14 @@ export type SimilarResult =
   | { ok: true; answer: SimilarResponse; cacheable: boolean }
   | { ok: false };
 
-/** The map's neighbors and BoBERT's revision; null with no row, "failed" when the read failed. */
+/**
+ * The map's neighbors and BoBERT's revision; null with no row, "failed" when the read failed.
+ * With `leaderboardOnly` the row's leaderboard list (nl, sl) when it has one; a row imported
+ * before that list existed gives its n, s, and similarSets filters them.
+ */
 const readNeighbors = async (
   id: number,
+  leaderboardOnly: boolean,
 ): Promise<{ neighbors: Neighbor[]; rev: string } | null | "failed"> => {
   try {
     const row = await (await similarMapsCollection()).findOne(
@@ -48,7 +56,8 @@ const readNeighbors = async (
       { maxTimeMS: QUERY_TIME_MS },
     );
     if (!row) return null;
-    const neighbors = decodeNeighbors(row.n.value(), row.s.value());
+    const [n, s] = leaderboardOnly && row.nl && row.sl ? [row.nl, row.sl] : [row.n, row.s];
+    const neighbors = decodeNeighbors(n.value(), s.value());
     return neighbors.length > 0 ? { neighbors, rev: String(row.rev) } : null;
   } catch (error) {
     console.error("[similar] the similar_maps read failed", error);
@@ -87,7 +96,10 @@ export const findSimilarMaps = async (
   const lenses = await availableLenses(deps);
   const lens = lenses.includes(query.lens) ? query.lens : DEFAULT_LENS;
   const asked = { ...query, lens };
-  const [stored, exclude] = await Promise.all([readNeighbors(id), poolIds(query.pool, caller)]);
+  const [stored, exclude] = await Promise.all([
+    readNeighbors(id, query.leaderboardOnly),
+    poolIds(query.pool, caller),
+  ]);
   const pattern = stored !== null && stored !== "failed" ? stored : null;
   const ids = [id, ...(pattern?.neighbors.map((neighbor) => neighbor.id) ?? [])];
   const rows = await getBeatmapRows(ids, deps);
