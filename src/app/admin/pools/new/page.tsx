@@ -7,13 +7,19 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { AddPoolForm } from "@/components/admin/AddPoolForm";
+import { SEO_SITE } from "@/constants/seo";
 import { requireAdmin } from "@/lib/auth-session";
 
 /** The add-a-pool page's title; it's never indexed. */
-export const metadata: Metadata = { title: "Add a pool", robots: { index: false } };
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/admin/pools/new",
+  title: "Add a pool",
+  index: false,
+});
 
 /**
  * @function AddPoolPage

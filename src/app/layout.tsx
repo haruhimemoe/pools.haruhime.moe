@@ -1,34 +1,30 @@
 /**
  * @file src/app/layout.tsx
- * @desc Root layout: Nunito font variable, site metadata, dark osu!-web body, and the library
- *       PageShell frame around the pools header and footer. A beta build (NEXT_PUBLIC_POOLS_BETA)
+ * @desc Root layout: Nunito font variable, site metadata (next-kit's siteMetadata: "osu!
+ *       tournament mappool builder · pools.haruhime.moe" by default, "%s · pools.haruhime.moe"
+ *       for pages, the static link preview; no canonical, which each page sets), dark osu!-web
+ *       body, and the library PageShell frame around the pools header and footer. A beta build (NEXT_PUBLIC_POOLS_BETA)
  *       gets the header's beta tag; the title template and robots stay the same.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
  */
 
+import { siteMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageShell } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import type { ReactNode } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { SITE } from "@/constants/site";
+import { SEO_SITE } from "@/constants/seo";
 import { isBeta } from "@/lib/beta";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", display: "swap" });
 
-/** The site's default title template, description, icons and link preview. */
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE.url),
-  title: { default: SITE.title, template: `%s · ${SITE.title}` },
-  description: SITE.description,
-  applicationName: SITE.name,
-  openGraph: { type: "website", siteName: SITE.name, locale: "en_US" },
-  twitter: { card: "summary_large_image" },
-};
+/** The site's default title and template, description, link preview and twitter card. */
+export const metadata: Metadata = siteMetadata(SEO_SITE);
 
 /**
  * @function RootLayout

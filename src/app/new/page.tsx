@@ -12,17 +12,23 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { NewPoolForm } from "@/components/builder/NewPoolForm";
 import { MAX_POOLS_PER_OWNER } from "@/constants/built-pools";
+import { SEO_SITE } from "@/constants/seo";
 import { SignInWithOsu } from "@/lib/account";
 import { getCurrentUser } from "@/lib/auth-session";
 import { startPreview } from "@/services/built-pool-create";
 import { startFromHref } from "@/utils/pool-links";
 
 /** /new's title; it's never indexed. */
-export const metadata: Metadata = { title: "Make a pool", robots: { index: false } };
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/new",
+  title: "Make a pool",
+  index: false,
+});
 
 /**
  * @function NewPoolPage

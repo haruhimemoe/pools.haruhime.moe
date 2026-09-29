@@ -13,6 +13,12 @@
 
 import { FIRST_YEAR } from "@/constants/pools";
 
+/** /search's heading (its one h1), in the words people search with. */
+export const SEARCH_HEADING = "Search osu! tournament mappools and maps";
+/** The line under /search's heading. */
+export const SEARCH_LEAD =
+  "Past osu! tournament pools, pools built here, the maps they played, and every osu! map. Star ratings are without mods.";
+
 /** A search query is cut to this many characters before it's folded and matched. */
 export const MAX_QUERY_LENGTH = 100;
 

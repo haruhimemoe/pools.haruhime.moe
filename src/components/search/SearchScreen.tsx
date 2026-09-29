@@ -31,6 +31,8 @@ import {
   hiddenSetsText,
   MIRROR_UNAVAILABLE_CODE,
   SEARCH_FAILED_COUNT,
+  SEARCH_HEADING,
+  SEARCH_LEAD,
   UNRANKED_WARNING,
   URL_WRITE_MS,
 } from "@/constants/search";
@@ -123,10 +125,7 @@ export function SearchScreen() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Search"
-        lead="Past osu! tournament pools, pools built here, the maps they played, and every osu! map. Star ratings are without mods."
-      />
+      <PageHeader title={SEARCH_HEADING} lead={SEARCH_LEAD} />
       <LinkTabs
         label="What to search"
         items={(["pools", "maps"] as const).map((tab) => ({

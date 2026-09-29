@@ -22,17 +22,19 @@ export const LEGAL_DOCS: Record<
   disclaimer: {
     title: "Disclaimer",
     description:
-      "Who pools isn't affiliated with, what its data, star ratings and checks mean, and how its requests identify themselves.",
+      "Who pools isn't affiliated with, where its pool data and star ratings come from, what the content rules check means, and how its requests identify themselves.",
     lastUpdated: "2026-09-28",
   },
   privacy: {
     title: "Privacy",
-    description: "What pools.haruhime.moe stores, why, and for how long.",
+    description:
+      "What pools.haruhime.moe stores when you visit, sign in with osu! and make pools, why, and for how long. No analytics, and no cookies unless you sign in.",
     lastUpdated: "2026-09-28",
   },
   terms: {
     title: "Terms",
-    description: "The rules for signing in and making pools on pools.haruhime.moe.",
+    description:
+      "The rules for signing in with osu! and making pools on pools.haruhime.moe: what you're responsible for, what gets moderated, and deleting a pool or account.",
     lastUpdated: "2026-09-27",
   },
 };

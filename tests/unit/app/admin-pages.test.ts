@@ -96,7 +96,7 @@ describe("admin pages", () => {
     expect(html).toContain("someone");
     expect(html).toContain("Unhide");
     expect(html).toContain("2026-09-27");
-    expect(page.metadata.robots).toEqual({ index: false });
+    expect(page.metadata.robots).toEqual({ index: false, follow: true });
   });
 
   it("lists every pool on /admin/pools, reading a bad show or page as the defaults", async () => {
@@ -115,7 +115,7 @@ describe("admin pages", () => {
     const html = renderToStaticMarkup(element);
     expect(html).toContain("otdb-7");
     expect(html).toContain(">hidden</td>");
-    expect(page.metadata.robots).toEqual({ index: false });
+    expect(page.metadata.robots).toEqual({ index: false, follow: true });
   });
 
   it("previews a hidden pool for an admin", async () => {

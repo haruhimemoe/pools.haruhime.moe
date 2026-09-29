@@ -12,18 +12,16 @@
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PACKS_SITE_URL, SOURCE_CREDITS } from "@/constants/pools";
+import { PAGE_SEO, SEO_SITE } from "@/constants/seo";
 import { SITE } from "@/constants/site";
 
-/** /data's title, description and canonical URL. */
-export const metadata: Metadata = {
-  title: "Data",
-  description:
-    "Where the pools and map details on pools.haruhime.moe come from, how the content rules check works, and how to send a correction.",
-};
+/** /data's title, description, canonical URL and link preview. */
+export const metadata: Metadata = pageMetadata(SEO_SITE, { path: "/data", ...PAGE_SEO["/data"] });
 
 const otdb = SOURCE_CREDITS.otdb;
 

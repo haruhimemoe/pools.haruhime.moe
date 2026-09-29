@@ -8,15 +8,13 @@
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import type { Metadata } from "next";
 import { CheckScreen } from "@/components/check/CheckScreen";
+import { PAGE_SEO, SEO_SITE } from "@/constants/seo";
 
-/** /check's title, description and canonical URL. */
-export const metadata: Metadata = {
-  title: "Check a pool",
-  description:
-    "Check the maps of an osu! pool against the content rules for officially supported tournaments. A guide, not a ruling.",
-};
+/** /check's title, description, canonical URL and link preview. */
+export const metadata: Metadata = pageMetadata(SEO_SITE, { path: "/check", ...PAGE_SEO["/check"] });
 
 /**
  * @function CheckPage

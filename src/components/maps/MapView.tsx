@@ -2,7 +2,8 @@
  * @file src/components/maps/MapView.tsx
  * @desc A map page: cover, "Artist - Title [Difficulty]", its usage line, links to osu! and the
  *       mirror, details (set host, no-mod stars, length, BPM, AR, OD, CS, HP, mode) and its
- *       tournament history. Presentational.
+ *       tournament history, under one sentence saying how often and how it was played and where
+ *       last. The cover's alt names the song. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
@@ -21,11 +22,19 @@ import { usageSummary } from "@/utils/usage";
 
 /**
  * @function MapView
- * @param props {{ map: StoredMap; history: readonly HistoryRow[] }} the map and the current pools
- *        it's in
+ * @param props {{ map: StoredMap; history: readonly HistoryRow[]; sentence?: string }} the map,
+ *        the current pools it's in, and the line about its history
  * @returns {JSX.Element} the map's page: cover, header and links, details and history
  */
-export function MapView({ map, history }: { map: StoredMap; history: readonly HistoryRow[] }) {
+export function MapView({
+  map,
+  history,
+  sentence,
+}: {
+  map: StoredMap;
+  history: readonly HistoryRow[];
+  sentence?: string;
+}) {
   const details: [string, ReactNode][] = [
     ["Set host", map.setHost ?? "Not known"],
     ["Stars (no mod)", map.stars === null ? "–" : <StarRating key="stars" value={map.stars} />],
@@ -35,7 +44,7 @@ export function MapView({ map, history }: { map: StoredMap; history: readonly Hi
       {map.setId !== null ? (
         <Image
           src={coverUrl(map.setId, "cover")}
-          alt=""
+          alt={map.title ? `${map.artist ?? "Unknown artist"} - ${map.title} cover` : ""}
           width={900}
           height={250}
           className="h-auto w-full rounded-lg object-cover"
@@ -78,6 +87,7 @@ export function MapView({ map, history }: { map: StoredMap; history: readonly Hi
         />
       </Card>
       <Card title="Tournament history">
+        {sentence ? <p className="mb-3 text-c2">{sentence}</p> : null}
         {history.length === 0 ? (
           <p className="text-c3 text-sm">No current pool uses this map.</p>
         ) : (

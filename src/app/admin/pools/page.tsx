@@ -7,16 +7,22 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { Button, ButtonLink, PageHeader, Select, TextInput } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { AdminPoolTable } from "@/components/admin/AdminPoolTable";
 import { MAX_QUERY_LENGTH } from "@/constants/search";
+import { SEO_SITE } from "@/constants/seo";
 import { requireAdmin } from "@/lib/auth-session";
 import { ADMIN_SHOWS, type AdminShow, listPoolsForAdmin } from "@/services/admin-pools";
 import { parsePageParam } from "@/utils/search-ranges";
 
 /** The admin pool list's title; it's never indexed. */
-export const metadata: Metadata = { title: "Every pool", robots: { index: false } };
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/admin/pools",
+  title: "Every pool",
+  index: false,
+});
 
 const first = (value: string | string[] | undefined): string =>
   (Array.isArray(value) ? value[0] : value) ?? "";

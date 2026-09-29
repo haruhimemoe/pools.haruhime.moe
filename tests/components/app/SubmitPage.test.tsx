@@ -6,7 +6,7 @@
  *       every pool by hand before it appears.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -59,7 +59,10 @@ describe("/submit", () => {
   });
 
   it("has a title and a description", () => {
-    expect(metadata.title).toBe("Submit a pool");
+    expect(metadata.title).toEqual({
+      absolute: "Submit a past osu! tournament mappool · pools.haruhime.moe",
+    });
+    expect(metadata.alternates?.canonical).toBe("https://pools.haruhime.moe/submit");
     expect(metadata.description).toMatch(/Discord/);
   });
 

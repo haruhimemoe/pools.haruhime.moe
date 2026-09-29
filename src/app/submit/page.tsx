@@ -9,18 +9,19 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PACKS_SITE_URL } from "@/constants/pools";
+import { PAGE_SEO, SEO_SITE } from "@/constants/seo";
 import { SITE } from "@/constants/site";
 
-/** /submit's title, description and canonical URL. */
-export const metadata: Metadata = {
-  title: "Submit a pool",
-  description:
-    "How tournament hosts and community members send a pool to pools: post in the Discord server or email, with the tournament, round, year and maps.",
-};
+/** /submit's title, description, canonical URL and link preview. */
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/submit",
+  ...PAGE_SEO["/submit"],
+});
 
 const discord = <a href={SITE.discordUrl}>Discord server</a>;
 const email = <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>;

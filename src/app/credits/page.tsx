@@ -12,17 +12,19 @@
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PAGE_SEO, SEO_SITE } from "@/constants/seo";
 import { BOBERT_CREDIT } from "@/constants/similar";
 import { SITE } from "@/constants/site";
 
-/** /credits' title, description and canonical URL. */
-export const metadata: Metadata = {
-  title: "Credits",
-  description: "Where pools' pool data, map details and content rules come from.",
-};
+/** /credits's title, description, canonical URL and link preview. */
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/credits",
+  ...PAGE_SEO["/credits"],
+});
 
 const PACKAGES = ["pool", "osu", "hinai", "compliance", "ui", "brand"] as const;
 

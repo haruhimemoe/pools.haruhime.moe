@@ -11,17 +11,23 @@
  */
 
 import { osuAvatarSrc } from "@haruhimemoe/next-kit/auth-react";
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { userUrl } from "@haruhimemoe/osu/shapes";
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { YourPools } from "@/components/account/YourPools";
+import { SEO_SITE } from "@/constants/seo";
 import { DeleteAccountForm, RestoreSignedIn, SignOutButton } from "@/lib/account";
 import { requireUser } from "@/lib/auth-session";
 import { listBuiltPoolsFor } from "@/services/built-pools";
 
 /** The account page's title; it's never indexed. */
-export const metadata: Metadata = { title: "Account", robots: { index: false } };
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/account",
+  title: "Account",
+  index: false,
+});
 
 /**
  * @function AccountPage

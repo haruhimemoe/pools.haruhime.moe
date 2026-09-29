@@ -2,8 +2,8 @@
  * @file src/services/maps.ts
  * @desc Map reads for pages: one map (missing unless some pool that isn't hidden has it), its
  *       history (one indexed lookup of current pools by beatmap id, the one query a public
- *       request runs over pools' slots), and the used maps for the sitemap and llms.txt (most
- *       used first; empty under SKIP_ENV_VALIDATION, while at runtime a database error goes
+ *       request runs over pools' slots), and the used maps for the sitemap (2 or more pools) and
+ *       llms.txt (most used first; empty under SKIP_ENV_VALIDATION, while at runtime a database error goes
  *       through so ISR keeps the last good version).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -56,16 +56,17 @@ export const getMapHistory = async (id: number): Promise<HistoryRow[]> => {
 /**
  * @function listListedMaps
  * @param limit {number} most maps to return (default: all)
- * @returns {Promise<LlmsMap[]>} maps some current pool uses, most used first; empty under
- *          SKIP_ENV_VALIDATION
+ * @param minPools {number} fewest current pools a map is in (default 1: any)
+ * @returns {Promise<LlmsMap[]>} maps at least minPools current pools use, most used first;
+ *          empty under SKIP_ENV_VALIDATION
  * @throws {Error} on a database error (ISR keeps the last good sitemap and llms.txt)
  */
-export const listListedMaps = async (limit?: number): Promise<LlmsMap[]> => {
+export const listListedMaps = async (limit?: number, minPools = 1): Promise<LlmsMap[]> => {
   if (isEnvValidationSkipped() || limit === 0) return [];
   const maps = await mapsCollection();
   return maps
     .find(
-      { "usage.count": { $gte: 1 } },
+      { "usage.count": { $gte: minPools } },
       {
         projection: { artist: 1, title: 1, version: 1, usage: 1 },
         sort: { "usage.count": -1, _id: 1 },

@@ -9,7 +9,7 @@
  *       takedowns on ranked and loved maps; corrections go to Discord or email.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -114,7 +114,10 @@ describe("/data", () => {
   });
 
   it("has a title and a description that don't pin every pool on otdb", () => {
-    expect(metadata.title).toBe("Data");
+    expect(metadata.title).toEqual({
+      absolute: "Where pool and map data comes from · pools.haruhime.moe",
+    });
+    expect(metadata.alternates?.canonical).toBe("https://pools.haruhime.moe/data");
     expect(metadata.description).toMatch(/pools/);
     expect(String(metadata.description)).not.toContain("otdb");
   });

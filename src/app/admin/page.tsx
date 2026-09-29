@@ -11,6 +11,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { AdminBuiltPoolTable } from "@/components/admin/AdminBuiltPoolTable";
@@ -19,6 +20,7 @@ import { ImportReportList } from "@/components/admin/ImportReportList";
 import { RefreshPagesButton } from "@/components/admin/RefreshPagesButton";
 import { RetryPackCleanupButton } from "@/components/admin/RetryPackCleanupButton";
 import { RetrySyncButtons } from "@/components/admin/RetrySyncButtons";
+import { SEO_SITE } from "@/constants/seo";
 import { SignOutButton } from "@/lib/account";
 import { requireAdmin } from "@/lib/auth-session";
 import { countSyncStates } from "@/services/admin-pools";
@@ -27,7 +29,11 @@ import { listImportReports } from "@/services/imports";
 import { countPackCleanup } from "@/services/pack-cleanup";
 
 /** The admin page's title; it's never indexed. */
-export const metadata: Metadata = { title: "Admin", robots: { index: false } };
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/admin",
+  title: "Admin",
+  index: false,
+});
 
 /**
  * @function AdminPage

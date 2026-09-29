@@ -129,8 +129,9 @@ describe("/pools/<b- id>", () => {
     expect(html).toContain(`href="/pools/${ID}/edit"`);
     expect(html).toContain("Beatmap 100");
     expect(html).toContain("Check against the content rules");
-    expect(metadata.robots).toEqual({ index: false });
-    expect(metadata.alternates?.canonical).toBe(`/pools/${ID}`);
+    expect(metadata.robots).toEqual({ index: false, follow: true });
+    expect(metadata.alternates?.canonical).toBe(`https://pools.haruhime.moe/pools/${ID}`);
+    expect(html).not.toContain("application/ld+json");
   });
 
   it("shows unlisted and public pools to anyone, indexing only public ones", async () => {
@@ -141,11 +142,13 @@ describe("/pools/<b- id>", () => {
     expect(unlisted.html).toContain("Spring Cup Finals");
     expect(unlisted.html).not.toContain(`/pools/${ID}/edit`);
     expect(unlisted.html).toContain(`href="/new?from=${ID}"`);
-    expect(unlisted.metadata.robots).toEqual({ index: false });
+    expect(unlisted.metadata.robots).toEqual({ index: false, follow: true });
+    expect(unlisted.html).not.toContain("application/ld+json");
     await (await builtPoolsCollection()).updateOne({ _id: ID }, { $set: { visibility: "public" } });
     const listed = await builtPage();
     expect(listed.metadata.robots).toBeUndefined();
-    expect(listed.metadata.title).toBe("Spring Cup Finals");
+    expect(listed.metadata.title).toEqual({ absolute: "Spring Cup Finals · pools.haruhime.moe" });
+    expect(listed.html).toContain('"@type":"BreadcrumbList"');
   });
 
   it("404s a hidden pool for everyone but its owner, editors and admins", async () => {
@@ -159,7 +162,8 @@ describe("/pools/<b- id>", () => {
     const { html, metadata } = await builtPage();
     expect(html).toContain("Hidden by moderation.");
     expect(html).not.toContain(`/pools/${ID}/edit`);
-    expect(metadata.robots).toEqual({ index: false });
+    expect(metadata.robots).toEqual({ index: false, follow: true });
+    expect(html).not.toContain("application/ld+json");
     as(cast, "visitor");
     expect(await thrown(() => builtPage("b-zzzzzzzz"))).toBe("404");
     expect(await thrown(() => builtPage("otdb-1"))).toBe("404");

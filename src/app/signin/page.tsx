@@ -10,17 +10,23 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { safeNextPath } from "@haruhimemoe/next-kit/server";
 import { PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SEO_SITE } from "@/constants/seo";
 import { DEFAULT_AFTER_SIGN_IN } from "@/constants/site";
 import { RestoreSignedIn, SignInWithOsu } from "@/lib/account";
 import { getCurrentUser } from "@/lib/auth-session";
 import { signInErrorText } from "@/utils/signin-errors";
 
 /** /signin's title; it's never indexed. */
-export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
+export const metadata: Metadata = pageMetadata(SEO_SITE, {
+  path: "/signin",
+  title: "Sign in",
+  index: false,
+});
 
 /**
  * @function SignInPage

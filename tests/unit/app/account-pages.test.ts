@@ -9,7 +9,7 @@
  *       when that pool is there to copy. None is indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { renderToStaticMarkup } from "react-dom/server";
@@ -59,7 +59,10 @@ describe("/signin", () => {
     expect(html).toContain("Sign in with your osu! account to make pools.");
     expect(html).toContain("Sign in with osu!");
     expect(html).not.toContain("admin");
-    expect((await import("@/app/signin/page")).metadata.robots).toEqual({ index: false });
+    expect((await import("@/app/signin/page")).metadata.robots).toEqual({
+      index: false,
+      follow: true,
+    });
   });
 
   it("explains an error code", async () => {
@@ -85,7 +88,7 @@ describe("/account", () => {
     expect(html).toContain("peppy");
     expect(html).toMatch(/src="[^"]*a\.ppy\.sh(%2F|\/)2/);
     expect(html).toContain("Delete my account");
-    expect(page.metadata.robots).toEqual({ index: false });
+    expect(page.metadata.robots).toEqual({ index: false, follow: true });
     expect(html).toContain('id="pools"');
     expect(html).toContain("You haven&#x27;t made a pool yet.");
   });
@@ -147,7 +150,10 @@ describe("/new", () => {
     const from = await newPage({ from: "otdb-9" });
     expect(findProps(from, (props) => props.next === "/new?from=otdb-9")).toBeDefined();
     expect(startPreview).not.toHaveBeenCalled();
-    expect((await import("@/app/new/page")).metadata.robots).toEqual({ index: false });
+    expect((await import("@/app/new/page")).metadata.robots).toEqual({
+      index: false,
+      follow: true,
+    });
   });
 
   it("shows a signed-in user the form", async () => {

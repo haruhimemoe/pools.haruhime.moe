@@ -123,11 +123,12 @@ export type RecentPool = Pick<
 
 /**
  * @function listRecentPools
- * @returns {Promise<RecentPool[]>} the 8 visible pools added last, newest first (on the
+ * @param limit {number} how many (default RECENT_POOLS, 8)
+ * @returns {Promise<RecentPool[]>} the visible pools added last, newest first (on the
  *          visible_1_createdAt_-1__id_1 index); empty under SKIP_ENV_VALIDATION
  * @throws {Error} on a database error (ISR keeps the last good page)
  */
-export const listRecentPools = async (): Promise<RecentPool[]> => {
+export const listRecentPools = async (limit = RECENT_POOLS): Promise<RecentPool[]> => {
   if (isEnvValidationSkipped()) return [];
   const pools = await poolsCollection();
   const rows = await pools
@@ -136,7 +137,7 @@ export const listRecentPools = async (): Promise<RecentPool[]> => {
       {
         projection: { name: 1, tournament: 1, round: 1, year: 1, createdAt: 1 },
         sort: { createdAt: -1, _id: 1 },
-        limit: RECENT_POOLS,
+        limit,
         hint: POOL_INDEXES.recent,
         maxTimeMS: QUERY_TIME_MS,
       },

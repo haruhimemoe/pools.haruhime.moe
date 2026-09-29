@@ -8,7 +8,7 @@
  *       title template and robots don't change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { within } from "@testing-library/react";
@@ -103,7 +103,7 @@ describe("RootLayout beta tag", () => {
     vi.resetModules();
     const { metadata } = await import("@/app/layout");
     expect(metadata.title).toEqual({
-      default: "pools.haruhime.moe",
+      default: "osu! tournament mappool builder · pools.haruhime.moe",
       template: "%s · pools.haruhime.moe",
     });
     expect(metadata.robots).toBeUndefined();
