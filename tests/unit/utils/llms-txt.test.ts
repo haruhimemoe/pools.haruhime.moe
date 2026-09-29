@@ -5,14 +5,15 @@
  *       community members, no-mod stars, no file hosting, guidance not rulings, no API), the
  *       pages (Make a pool, Submit a pool and Data among them), every current pool, every public
  *       built pool with who built it and the most used maps it's given, the legal pages; markdown in imported names escaped so a name can't add a
- *       link or break one; empty sections left out.
+ *       link or break one; empty sections left out; the short index keeps the latest 50 pools,
+ *       links /llms-full.txt and the other haruhime.moe tools, and lists no maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
-import { buildLlmsTxt, llmsSections } from "@/utils/llms-txt";
+import { buildLlmsTxt, LLMS_SHORT_POOLS, llmsSections, shortLlmsSections } from "@/utils/llms-txt";
 
 describe("buildLlmsTxt", () => {
   it("lists the pages, the pools and maps it's given, and the legal pages", () => {
@@ -96,10 +97,10 @@ describe("buildLlmsTxt", () => {
       }),
     );
     expect(text).toContain(
-      "- [OWC\\]\\(https://evil.example/x\\) \\[](https://pools.haruhime.moe/pools/otdb-9): OWC\\]\\(https://evil.example/y\\) \\<https://evil.example/z\\>",
+      "- [OWC\\](https://evil.example/x) \\[](https://pools.haruhime.moe/pools/otdb-9): OWC\\]\\(https://evil.example/y\\) \\<https://evil.example/z\\>",
     );
     expect(text).toContain("- [a\\\\b - Song \\[\\[Extra\\]](https://pools.haruhime.moe/maps/5): ");
-    expect(text).not.toContain("](https://evil.example");
+    expect(text).not.toMatch(/(?<!\\)\]\(https:\/\/evil\.example/);
   });
 
   it("leaves out empty sections", () => {
@@ -136,5 +137,26 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain(
       "- [My Cup \\[Finals\\]](https://pools.haruhime.moe/pools/b-a0000001): My Cup · 3 maps · Built by peppy",
     );
+  });
+
+  it("keeps the short index short: the latest pools, the full lists' link, the other tools", () => {
+    const pools = Array.from({ length: 120 }, (_, i) => ({
+      _id: `otdb-${i + 1}`,
+      name: `Cup ${i + 1}`,
+      tournament: "Cup",
+      round: null,
+      year: 2020,
+    }));
+    const text = buildLlmsTxt(shortLlmsSections({ pools }));
+    expect(text).toContain("## Latest pools");
+    expect(text).toContain(`(https://pools.haruhime.moe/pools/otdb-${LLMS_SHORT_POOLS})`);
+    expect(text).not.toContain(`(https://pools.haruhime.moe/pools/otdb-${LLMS_SHORT_POOLS + 1})`);
+    expect(text).toContain(
+      "- [llms-full.txt](https://pools.haruhime.moe/llms-full.txt): every current past pool (120)",
+    );
+    expect(text).toContain("- [packs.haruhime.moe](https://packs.haruhime.moe/llms.txt): ");
+    expect(text).toContain("- [bb.haruhime.moe](https://bb.haruhime.moe/llms.txt): ");
+    expect(text).not.toContain("/maps/");
+    expect(text.length).toBeLessThan(20_000);
   });
 });
