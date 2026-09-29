@@ -23,6 +23,7 @@ const COLLECTIONS = [
   "mod_values",
   "pack_cleanup",
   "built_pool_activity",
+  "similar_maps",
   ...BETTER_AUTH_COLLECTIONS,
 ];
 

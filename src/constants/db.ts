@@ -2,7 +2,7 @@
  * @file src/constants/db.ts
  * @desc Collection names in the pools database (built pools and their id claims included), how
  *       long a public read and a batch read (importer, admin) may run (the cluster is a shared
- *       free M0), and the index names searches hint (and the mod_values TTL index). better-auth's
+ *       free M0), the similar_maps table, and the index names searches hint (and the mod_values TTL index). better-auth's
  *       index names are next-kit's AUTH_INDEXES.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
@@ -27,6 +27,8 @@ export const BUILT_POOL_IDS_COLLECTION = "built_pool_ids";
 export const PACK_CLEANUP_COLLECTION = "pack_cleanup";
 /** Values under mods from the mirror, one row per beatmap id and combo. */
 export const MOD_VALUES_COLLECTION = "mod_values";
+/** Each map's nearest maps by BoBERT's embeddings, written by scripts/similar (never the app). */
+export const SIMILAR_MAPS_COLLECTION = "similar_maps";
 /** Who changed what on built pools (src/services/built-pool-activity.ts). */
 export const BUILT_POOL_ACTIVITY_COLLECTION = "built_pool_activity";
 
