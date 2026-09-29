@@ -52,3 +52,7 @@ jobs:
 
       - name: Build
         run: bun run build
+
+      - name: Similar-maps script tests
+        working-directory: scripts/similar
+        run: pipx run --spec uv==0.12.20 uv run --locked pytest -q

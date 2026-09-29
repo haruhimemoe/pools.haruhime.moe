@@ -1,0 +1,22 @@
+# @file scripts/similar/pyproject.toml
+# @desc The similar-maps build's Python project (run with uv from this folder): numpy and pyarrow
+#       for the neighbor math, pymongo for the import, pytest for its tests.
+# @author David @dvhsh (https://dvh.sh)
+# @created Mon Sep 28, 2026
+# @modified Mon Sep 28, 2026
+
+[project]
+name = "pools-similar-maps"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["numpy>=2.2", "pyarrow>=19", "pymongo>=4.10"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

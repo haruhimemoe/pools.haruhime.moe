@@ -10,3 +10,7 @@ next-env.d.ts
 .DS_Store
 .superpowers/
 CLAUDE.local.md
+scripts/similar/.cache/
+scripts/similar/.venv/
+__pycache__/
+.pytest_cache/
