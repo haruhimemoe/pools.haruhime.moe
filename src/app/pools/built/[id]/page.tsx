@@ -5,7 +5,7 @@
  *       session (a private pool shows only to its owner and editors). Anyone who can't see the
  *       pool (private, hidden, or not there) gets the site 404. Private, unlisted and hidden
  *       pools aren't indexed and carry no JSON-LD; the canonical address is /pools/<id>, and a
- *       listed one gets breadcrumbs. Each slot shows its values
+ *       listed one gets breadcrumbs and its own link preview card (/pools/<id>/og.png). Each slot shows its values
  *       under its mods (src/services/slot-values.ts, from the mod_values cache or the mirror).
  *       A pack still waiting to sync to packs syncs after the page is sent.
  * @author David @dvhsh (https://dvh.sh)
@@ -27,6 +27,7 @@ import { schedulePackSync } from "@/lib/pack-sync-after";
 import { loadBuiltPoolFor } from "@/services/built-pool-maps";
 import { builtSlotValues } from "@/services/slot-values";
 import { packWaiting } from "@/utils/built-pack";
+import { poolCard, poolCardImage } from "@/utils/pool-card";
 import { builtHeadline } from "@/utils/pool-text";
 
 const isListed = (pool: { visibility: string; hidden: boolean }): boolean =>
@@ -56,6 +57,7 @@ export async function generateMetadata({
     title: pool.name,
     description: `${headline ? `${headline}. ` : ""}An osu! tournament mappool of ${pool.slots.length} ${pool.slots.length === 1 ? "map" : "maps"} built on pools, with star ratings under each slot's mods and the content rules check.`,
     index: isListed(pool),
+    ...(isListed(pool) ? { images: [poolCardImage(pool.id, poolCard(pool))] } : {}),
   });
 }
 

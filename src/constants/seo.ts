@@ -18,6 +18,8 @@ export const SEO_SITE: Site = {
   name: SITE.name,
   url: SITE.url,
   title: "osu! tournament mappool builder",
+  // A long pool or map name ends " · pools" instead, so the title stays within 60 characters.
+  shortTitleSuffix: "pools",
   description: SITE.description,
   ogImages: [
     {

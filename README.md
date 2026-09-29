@@ -62,7 +62,7 @@ pools uses these shared haruhime.moe packages:
 - [`@haruhimemoe/compliance`](https://www.npmjs.com/package/@haruhimemoe/compliance): the content rules for officially supported tournaments.
 - [`@haruhimemoe/next-kit`](https://www.npmjs.com/package/@haruhimemoe/next-kit): the server plumbing packs and pools share: JSON route helpers, rate limits and the osu! budget in MongoDB (`/server`), env parsing (`/env`), the MongoDB client and its indexes (`/mongo`), osu! sign-in (`/auth`) with the signed-in marker, account store and account components (sign in, sign out, the account menu, delete my account) for the browser (`/auth-react`), page titles, canonicals, robots.txt, the sitemap, JSON-LD and llms.txt (`/seo`), and the fake env, in-memory MongoDB and msw setup the tests use (`/testing`).
 - [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme, buttons, cards, form fields, filters, chips, radios, confirmations, badges, text links, tabs, tables, star ratings, beatmap stats, slot badges, pagination, the header menu, the visibility picker, and the site header, footer and page frame.
-- [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image.
+- [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image, and each pool's preview card (drawn per request).
 
 ## License
 

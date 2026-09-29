@@ -5,8 +5,8 @@
  *       page with a "Replaced by" link. Each slot's values under its mods are read at render
  *       (src/services/slot-values.ts: the mod_values cache, else the hinai mirror, else the math
  *       marked "no mod data"; a render the mirror failed shows the math until the next hour).
- *       Titled "<name> mappool" with a Dataset and breadcrumbs as JSON-LD; a superseded pool
- *       isn't indexed.
+ *       Titled "<name> mappool" with a Dataset and breadcrumbs as JSON-LD and its own link
+ *       preview card (/pools/<id>/og.png); a superseded pool isn't indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
@@ -23,6 +23,7 @@ import { getMapSummaries, getPublicPool } from "@/services/pools";
 import { pastSlotValues } from "@/services/slot-values";
 import { openInPacksHref } from "@/utils/pack-input";
 import { poolDescription, poolLd, poolTitle } from "@/utils/page-seo";
+import { poolCard, poolCardImage } from "@/utils/pool-card";
 
 /** ISR: rebuilt at most once an hour, and on an admin's Refresh public pages. */
 export const revalidate = 3600;
@@ -40,8 +41,8 @@ const loadPool = cache(getPublicPool);
 /**
  * @function generateMetadata
  * @param props {PageProps<"/pools/[id]">} the pool's id
- * @returns {Promise<Metadata>} the pool's title, description, canonical URL and link preview
- *          (noindex once superseded), or "Pool not found"
+ * @returns {Promise<Metadata>} the pool's title, description, canonical URL and its own card
+ *          as the link preview (noindex once superseded), or "Pool not found"
  */
 export async function generateMetadata({ params }: PageProps<"/pools/[id]">): Promise<Metadata> {
   const { id } = await params;
@@ -52,6 +53,7 @@ export async function generateMetadata({ params }: PageProps<"/pools/[id]">): Pr
     title: poolTitle(pool.name),
     description: poolDescription(pool),
     index: pool.supersededBy === null,
+    images: [poolCardImage(pool._id, poolCard(pool))],
   });
 }
 

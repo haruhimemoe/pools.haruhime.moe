@@ -1,6 +1,6 @@
 /**
  * @file tests/components/layout/Footer.test.tsx
- * @desc The footer: the pools, Data, haruhime.moe tools, About and Legal columns in that order
+ * @desc The footer: the pools, Data, haruhime tools (ui's column), About and Legal columns in that order
  *       with their links (Submit a pool, the /data anchors, Credits, packs, bb and the parent
  *       site, the repo, the email, the legal pages), the
  *       Discord icon link beside GitHub's, and fine print on star ratings with mods and the trademark
@@ -34,9 +34,9 @@ const EXPECTED: [string, [string, string][]][] = [
     ],
   ],
   [
-    "haruhime.moe tools",
+    "haruhime tools",
     [
-      ["packs: beatmap packs", "https://packs.haruhime.moe"],
+      ["packs: mappool downloads", "https://packs.haruhime.moe"],
       ["bb: osu! BBCode editor", "https://bb.haruhime.moe"],
       ["All tools", "https://www.haruhime.moe"],
     ],
@@ -59,8 +59,11 @@ const EXPECTED: [string, [string, string][]][] = [
 ];
 
 describe("Footer", () => {
-  it("has the pools, Data, haruhime.moe tools, About and Legal columns, in order", () => {
-    expect(FOOTER_COLUMNS.map((column) => column.title)).toEqual(EXPECTED.map(([title]) => title));
+  it("has the pools, Data, haruhime tools, About and Legal columns, in order", () => {
+    // The site's own columns; ui's SiteFooter puts "haruhime tools" third.
+    expect(FOOTER_COLUMNS.map((column) => column.title)).toEqual(
+      EXPECTED.map(([title]) => title).filter((title) => title !== "haruhime tools"),
+    );
     render(<Footer />);
     const footer = screen.getByRole("contentinfo");
     const navs = within(footer).getAllByRole("navigation");

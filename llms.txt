@@ -41,5 +41,5 @@
 - [@haruhimemoe/next-kit](https://github.com/haruhimemoe/next-kit): the Next.js server plumbing packs and pools share
 - [@haruhimemoe/compliance](https://github.com/haruhimemoe/compliance): the content rules for officially supported tournaments
 - [@haruhimemoe/ui](https://github.com/haruhimemoe/ui): the React components and theme the site is built from
-- [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview
+- [@haruhimemoe/brand](https://github.com/haruhimemoe/brand): generates the logos, icons and link preview, and draws each pool's preview card
 - [packs.haruhime.moe](https://github.com/haruhimemoe/packs.haruhime.moe): the pack builder each pool opens in, and where shared built pools get their packs

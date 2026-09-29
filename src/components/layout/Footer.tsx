@@ -1,6 +1,7 @@
 /**
  * @file src/components/layout/Footer.tsx
- * @desc Site footer: the pools / Data / About / Legal link columns, one line of fine print
+ * @desc Site footer: the pools / Data / About / Legal link columns with ui's "haruhime tools"
+ *       column (packs, bb, All tools) after Data, one line of fine print
  *       (where star ratings with mods come from, the affiliation notice; no source credit, since pools come from more than
  *       one place and each pool page and /credits name them), and the row linking the parent
  *       brand, the Discord server and the haruhimemoe GitHub org.
@@ -21,6 +22,7 @@ export function Footer() {
   return (
     <SiteFooter
       columns={FOOTER_COLUMNS}
+      tools={{ current: "pools", position: 2 }}
       finePrint={
         <>
           Star ratings with mods come from the hinai mirror and can differ slightly from osu!'s.{" "}

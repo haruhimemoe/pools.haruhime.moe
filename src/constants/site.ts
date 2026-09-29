@@ -1,8 +1,8 @@
 /**
  * @file src/constants/site.ts
  * @desc Site identity, the contact email and Discord server, the source repo, the parent brand
- *       and GitHub org, navigation and the footer's columns (the other haruhime.moe tools
- *       among them), the home page's builder line, the affiliation notice, the User-Agent our server sends, and sign-in's marker and landing.
+ *       and GitHub org, navigation and the footer's own columns (ui's SiteFooter adds the other
+ *       haruhime tools), the home page's builder line, the affiliation notice, the User-Agent our server sends, and sign-in's marker and landing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Mon Sep 28, 2026
@@ -61,7 +61,7 @@ export const ACCOUNT_MENU_ITEMS: readonly { href: string; label: string }[] = [
 export const BUILDER_LINE =
   "Search every osu! map under a mod and see its star rating, AR and OD with it, check the pool against the content rules for officially supported tournaments, see where each map was played before, work on it with co-editors, and download it on packs.";
 
-/** The footer's link columns: pools, Data, the other haruhime.moe tools, About and Legal. */
+/** The footer's own link columns: pools, Data, About and Legal (ui adds "haruhime tools"). */
 export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
   {
     title: "pools",
@@ -77,14 +77,6 @@ export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
       { href: "/data#pools", label: "Pool data" },
       { href: "/data#maps", label: "Map data" },
       { href: "/credits", label: "Credits" },
-    ],
-  },
-  {
-    title: "haruhime.moe tools",
-    items: [
-      { href: "https://packs.haruhime.moe", label: "packs: beatmap packs" },
-      { href: "https://bb.haruhime.moe", label: "bb: osu! BBCode editor" },
-      { href: "https://www.haruhime.moe", label: "All tools" },
     ],
   },
   {

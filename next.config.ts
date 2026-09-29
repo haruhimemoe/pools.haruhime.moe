@@ -49,6 +49,13 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [{ source: "/pools/built/:id", destination: "/pools/:id", permanent: true }];
   },
+  // brand draws the pool cards per request: resvg is a native binary and brand reads its fonts
+  // by a computed path, so both stay out of the bundle and the fonts are traced for the route
+  // (the key is a picomatch glob: "[id]" would be a character class).
+  serverExternalPackages: ["@haruhimemoe/brand", "@resvg/resvg-js"],
+  outputFileTracingIncludes: {
+    "/pools/*/og.png": ["./node_modules/@haruhimemoe/brand/fonts/*.ttf"],
+  },
   async rewrites() {
     return {
       beforeFiles: [{ source: "/pools/:id(b-[^/]+)", destination: "/pools/built/:id" }],

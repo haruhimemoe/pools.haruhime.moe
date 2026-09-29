@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Past pools and public built pools have their own link preview: the pool's name with its year, map count, star range and mods (`/pools/<id>/og.png`, drawn by `@haruhimemoe/brand` 0.6.0). Unlisted and private pools keep the site's image.
+- A long pool or map title ends in "· pools" instead of "· pools.haruhime.moe", so search results show it whole (`@haruhimemoe/next-kit` 0.4.0).
+- The footer's tools column is now ui 0.6.0's shared "haruhime tools" column (packs, bb, All tools), the same on every haruhime.moe site.
+
 - A "What pools is" paragraph and five questions on the home page, with the same questions as FAQPage structured data. Structured data on the home page (the haruhime.moe organization, the site with its search, the app), on past pool pages (a Dataset) and map pages, with breadcrumbs.
 - `/search` sends a real page before its script loads: the heading, what can be searched, common searches and the 20 latest past pools.
 - `/llms-full.txt` with every current past pool, every public built pool and the 500 most used maps; `/llms.txt` is now a short index that links it.
