@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- A "What pools is" paragraph and five questions on the home page, with the same questions as FAQPage structured data. Structured data on the home page (the haruhime.moe organization, the site with its search, the app), on past pool pages (a Dataset) and map pages, with breadcrumbs.
+- `/search` sends a real page before its script loads: the heading, what can be searched, common searches and the 20 latest past pools.
+- `/llms-full.txt` with every current past pool, every public built pool and the 500 most used maps; `/llms.txt` is now a short index that links it.
+- Map pages say in one line how often and how a map was played, and where last. The footer links the other haruhime.moe tools.
 - Find similar on every map in the map browser, each slot and candidate in the editor, and Your candidates: a "Similar to <map>" source with up to 20 maps that play alike and how similar each is, under the current mod lens and the slot's target star range, with the content rules applied and the pool's own maps left out. Pattern matches come from the embeddings [BoBERT](https://github.com/token03/bobert) by token03 publishes (MIT, credited next to the results and on /credits); maps it doesn't cover get a difficulty match on stars, BPM, length, AR, OD and CS, labelled as such. `GET /api/maps/<id>/similar` answers it (rate limited and cached like search). `scripts/similar/` precomputes the table offline.
 - Candidates per slot: up to 10 maps a slot is still considering besides its pick (100 per pool). Add them from the map browser with "Add as candidate" (choose the slot, or a new one); each slot's "N candidates" list shows their stars under the slot's mods, who added them, a note and votes ("2 of 3 editors", yours as a toggle), with Promote and Remove. A pick can be demoted ("Demote") to a candidate and its slot stays. Drag a candidate onto a pick to promote it, a pick onto a list to demote it, or a candidate to another slot of the same bucket. Undo covers them, and the activity log records every candidate change but votes. Only the owner and editors ever see candidates: the pool's page, the API for anyone else, exports, the pack on packs, targets, the summary and the content rules check go by picks alone.
 - "Your candidates" in the map browser: every candidate (and, if you like, every pick) from the pools you own or edit, newest first, filtered by slot and text, with stars under the current bucket's mods. Add or Add as candidate copies one into the pool you're editing, with its note.
@@ -46,6 +50,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Titles, descriptions, canonicals, link previews, robots.txt and the sitemap now come from `@haruhimemoe/next-kit/seo` (0.3.0). The home page is titled "osu! tournament mappool builder", past pools "<name> mappool", and every public page has its own canonical and og:url (every `/search` query string shares `/search`). robots.txt names each AI crawler and allows them all, as before.
+- Map pages used in only one pool are no longer indexed or in the sitemap (they stay reachable and followable). Superseded pools' pages aren't indexed. Missing pools and maps are titled "not found".
+- The site description is shorter (160 characters), and the legal pages have fuller descriptions.
 - Removing a pick from a slot that has candidates keeps the slot (with no pick) instead of closing the bucket up, and adding a map to such a slot makes it the pick. Moving a map within its bucket moves its slot's candidates with it; moving it to another bucket leaves them. A custom slot with candidates can't be removed.
 - Deleting an account also takes its votes and its name off the candidates of pools it edited.
 - `@haruhimemoe/next-kit` 0.2.1.
