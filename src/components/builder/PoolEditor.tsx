@@ -3,7 +3,8 @@
  * @desc The pool editor at /pools/<id>/edit. Two panes on wide screens, stacked on phones: the
  *       pool (details, maps by bucket with values under each slot's mods and each slot's
  *       candidates, whose details and values are asked for as picks' are, the map browser right
- *       under them, where its range sliders have room, paste, targets, custom slots) and the side
+ *       under them, where its range sliders have room, and Find similar on slots and candidates
+ *       opens it on that map, paste, targets, custom slots) and the side
  *       (summary with the content rules check, recent changes, export, editors, the pack on packs with "Update pack
  *       now", and the owner's settings: who can see it, handing it to an editor, and delete).
  *       Every change is saved at once through usePoolEditor; the saving bar stays in view, with
@@ -36,12 +37,14 @@ import { SaveState } from "@/components/builder/SaveState";
 import { TargetsForm } from "@/components/builder/TargetsForm";
 import { UndoButton } from "@/components/builder/UndoButton";
 import { HIDDEN_BY_MODERATION, VISIBILITY_TEXT } from "@/constants/built-pools";
+import { FindSimilarContext } from "@/hooks/useFindSimilar";
 import { usePoolEditor } from "@/hooks/usePoolEditor";
 import { useSlotMaps } from "@/hooks/useSlotMaps";
 import { useSlotValues } from "@/hooks/useSlotValues";
 import type { Fetcher } from "@/lib/pool-client";
 import type { BuiltMaps, ClientPool } from "@/schemas/built-pool-view";
 import { candidateSlots } from "@/utils/candidate-view";
+import type { SimilarTarget } from "@/utils/similar-params";
 import type { SlotValueMap } from "@/utils/slot-values";
 
 type PoolEditorProps = {
@@ -100,6 +103,9 @@ export function PoolEditor({
     setOpenedFor(code);
     setOpenCount((n) => n + 1);
   };
+  const [similar, setSimilar] = useState<{ target: SimilarTarget; count: number }>();
+  const onFindSimilar = (target: SimilarTarget) =>
+    setSimilar((was) => ({ target, count: (was?.count ?? 0) + 1 }));
   const role = pool.access.isOwner ? "You own this pool." : "You edit this pool.";
   return (
     <div className="flex flex-col gap-6">
@@ -141,7 +147,9 @@ export function PoolEditor({
             <DetailsForm pool={pool} change={change} />
           </Card>
           <Card title="Maps">
-            <PoolMaps pool={pool} maps={maps} values={values} change={change} onFind={onFind} />
+            <FindSimilarContext value={onFindSimilar}>
+              <PoolMaps pool={pool} maps={maps} values={values} change={change} onFind={onFind} />
+            </FindSimilarContext>
           </Card>
           {/* Under the maps, in the wide column: the side column is too narrow for its sliders. */}
           <EditorBrowser
@@ -149,6 +157,7 @@ export function PoolEditor({
             change={change}
             openedFor={openedFor}
             openCount={openCount}
+            similar={similar}
             fetcher={fetcher}
           />
           <Card title="Paste a pool">

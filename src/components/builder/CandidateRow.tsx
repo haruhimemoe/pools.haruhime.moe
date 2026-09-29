@@ -3,7 +3,8 @@
  * @desc One candidate under a slot in the editor: a drag handle (hidden from screen readers; the
  *       buttons do the same), its cover and preview clip, its map with stars under the slot's
  *       mods, who added it, its note, its votes ("2 of 3 editors") with the viewer's own vote as
- *       a toggle, Promote and Remove. Every control names the map and slot. Presentational.
+ *       a toggle, Promote and Remove. Every control names the map and slot. Presentational. Find similar opens the
+ *       map browser on maps like it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -12,6 +13,7 @@
 "use client";
 
 import { Button, cx } from "@haruhimemoe/ui";
+import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
 import { SlotNote } from "@/components/builder/SlotNote";
@@ -106,6 +108,7 @@ export function CandidateRow(props: CandidateRowProps) {
         >
           Promote
         </Button>
+        <FindSimilarButton beatmapId={entry.beatmapId} label={mapLabel(map, entry.beatmapId)} />
         <Button
           variant="ghost"
           data-control="remove-candidate"

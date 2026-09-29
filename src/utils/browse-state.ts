@@ -115,3 +115,21 @@ export const browseRequestUrl = (state: BrowseState, poolIds: readonly number[])
     excludeIds: ids.slice(0, MAX_EXCLUDE_IDS),
   });
 };
+
+/** Where the browser's maps come from: osu!'s maps, your own candidates, or maps like one. */
+export type BrowseSource = "search" | "candidates" | "similar";
+
+/**
+ * @function browseSources
+ * @param withCandidates {boolean} in the editor ("Your candidates")
+ * @param withSimilar {boolean} after a Find similar ("Similar maps")
+ * @returns {{ value: BrowseSource; label: string }[]} the Source choices, search first
+ */
+export const browseSources = (
+  withCandidates: boolean,
+  withSimilar: boolean,
+): { value: BrowseSource; label: string }[] => [
+  { value: "search", label: "Search osu! maps" },
+  ...(withCandidates ? [{ value: "candidates" as const, label: "Your candidates" }] : []),
+  ...(withSimilar ? [{ value: "similar" as const, label: "Similar maps" }] : []),
+];

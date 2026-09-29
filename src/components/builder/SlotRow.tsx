@@ -2,7 +2,7 @@
  * @file src/components/builder/SlotRow.tsx
  * @desc One slot in the editor: its label, its cover and preview clip, its map, and buttons to move it up or down, move it to
  *       another bucket (a picker and a Move button, so arrow keys in the picker never move
- *       anything), demote it to a candidate ("Demote") and remove it, with the slot's
+ *       anything), demote it to a candidate ("Demote"), find maps like it (Find similar) and remove it, with the slot's
  *       candidate list under it, a badge when its stars sit outside the bucket's target, and its note. A handle drags it
  *       (mouse or touch) onto another row or bucket; it's hidden from screen readers, since the
  *       buttons do the same by keyboard.
@@ -20,12 +20,14 @@
 import { type PoolSlot, slotLabel } from "@haruhimemoe/pool";
 import { Badge, Button, cx, fieldClasses, ModBadge } from "@haruhimemoe/ui";
 import { type ReactNode, useState } from "react";
+import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
 import { SlotNote } from "@/components/builder/SlotNote";
 import type { SlotDrag } from "@/hooks/useSlotDrag";
 import type { BuiltMap } from "@/schemas/built-pool-view";
 import { songOf } from "@/utils/map-preview";
+import { mapLabel } from "@/utils/map-record";
 import type { SlotValueAnswer } from "@/utils/slot-values";
 
 /** A bucket a map can move to: its code and label. */
@@ -160,6 +162,7 @@ export function SlotRow(props: SlotRowProps) {
               Demote
             </Button>
           ) : null}
+          <FindSimilarButton beatmapId={slot.beatmapId} label={mapLabel(map, slot.beatmapId)} />
           <Button
             variant="ghost"
             data-control="remove"

@@ -22,6 +22,7 @@ import type { BuiltMap, ClientPack, ClientPool } from "@/schemas/built-pool-view
 import type { YourCandidatesAnswer } from "@/schemas/your-candidates";
 import type { BrowseResponse } from "@/utils/browse-params";
 import { applyLocal } from "@/utils/built-editor";
+import type { SimilarResponse } from "@/utils/similar-params";
 import type { SlotValueMap } from "@/utils/slot-values";
 
 export const DEFAULT_BUCKETS = ["NM", "HD", "HR", "DT", "FM", "TB"].map((code) => ({
@@ -119,6 +120,21 @@ export const browsePage = (over: Partial<BrowseResponse> = {}): BrowseResponse =
   ...over,
 });
 
+/** A Find similar answer with nothing on it (override what a test needs). */
+export const similarPage = (over: Partial<SimilarResponse> = {}): SimilarResponse => ({
+  id: 1,
+  source: null,
+  method: "pattern",
+  rev: "v14.1",
+  lens: "NM",
+  hidden: 0,
+  excluded: 0,
+  filtered: 0,
+  missing: 0,
+  sets: [],
+  ...over,
+});
+
 export type Call = { method: string; path: string; body: unknown };
 type Answer = (call: Call) => Response | Promise<Response>;
 
@@ -144,6 +160,7 @@ export const fakePoolApi = (initial: ClientPool) => {
     complete: true,
   });
   const ownCalls: URL[] = [];
+  const similarCalls: URL[] = [];
   const activityCalls: string[] = [];
   const browseCalls: URL[] = [];
   const valueCalls: string[] = [];
@@ -162,6 +179,11 @@ export const fakePoolApi = (initial: ClientPool) => {
       const url = new URL(String(input), "http://localhost");
       ownCalls.push(url);
       return Response.json(own(url));
+    }
+    if (/^\/api\/maps\/\d+\/similar/.test(String(input))) {
+      const url = new URL(String(input), "http://localhost");
+      similarCalls.push(url);
+      return Response.json(similarPage({ id: Number(url.pathname.split("/")[3]) }));
     }
     if (String(input).startsWith("/api/maps/browse")) {
       const url = new URL(String(input), "http://localhost");
@@ -223,6 +245,7 @@ export const fakePoolApi = (initial: ClientPool) => {
       own = next;
     },
     ownCalls,
+    similarCalls,
     next: (answer: Answer) => overrides.push(answer),
   };
 };

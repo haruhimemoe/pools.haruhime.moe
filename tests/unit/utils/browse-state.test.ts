@@ -7,13 +7,14 @@
  *       out only when "hide maps in this pool" is on.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Sep 28, 2026
  */
 
 import { describe, expect, it } from "vitest";
 import {
   type BrowseState,
   browseRequestUrl,
+  browseSources,
   DEFAULT_BROWSE_STATE,
   editorSearchFor,
   lensOf,
@@ -72,5 +73,20 @@ describe("the request", () => {
     );
     expect(browseRequestUrl({ ...STATE, explicit: true }, [])).not.toContain("explicit");
     expect(lensOf(STATE)).toBe("HR");
+  });
+});
+
+describe("browseSources", () => {
+  it("offers Your candidates in the editor and Similar maps after a Find similar", () => {
+    expect(browseSources(false, false).map((source) => source.value)).toEqual(["search"]);
+    expect(browseSources(true, true).map((source) => source.value)).toEqual([
+      "search",
+      "candidates",
+      "similar",
+    ]);
+    expect(browseSources(false, true).map((source) => source.label)).toEqual([
+      "Search osu! maps",
+      "Similar maps",
+    ]);
   });
 });

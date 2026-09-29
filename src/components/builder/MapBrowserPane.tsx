@@ -14,7 +14,10 @@
  *       the state snaps to it. Retry after a failure puts focus on the pane's heading, since
  *       the failure view (and its button) goes while the search runs. In the editor (`candidate`)
  *       each difficulty also has "Add as candidate", and a Source choice switches to "Your
- *       candidates" (YourCandidates; the search waits meanwhile).
+ *       candidates" (YourCandidates; the search waits meanwhile). Find similar (on its own rows,
+ *       or the editor's slots and candidates through `similar`) switches to "Similar to <map>"
+ *       (SimilarMaps) under the current lens, the default bucket's target star range and, in the
+ *       editor, without the pool's maps; Back to search returns to the search as it was.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -27,20 +30,25 @@ import { Card, ChoiceChips } from "@haruhimemoe/ui";
 import { useEffect, useId, useRef, useState } from "react";
 import { BrowseFilters } from "@/components/builder/BrowseFilters";
 import { BrowseResults } from "@/components/builder/BrowseResults";
+import { SimilarMaps } from "@/components/builder/SimilarMaps";
 import { YourCandidates } from "@/components/builder/YourCandidates";
 import { BROWSE_LENSES } from "@/constants/browse";
 import { SEARCH_FAILED_COUNT } from "@/constants/search";
+import { FindSimilarContext } from "@/hooks/useFindSimilar";
 import { useMapBrowse } from "@/hooks/useMapBrowse";
 import type { BucketTargets } from "@/schemas/built-plan";
 import type { CandidateAdder } from "@/schemas/candidate-editor";
 import { defaultBucketFor, findMapsState, lensForBucket, type OpenedFor } from "@/utils/browse-add";
 import {
+  type BrowseSource,
+  browseSources,
   DEFAULT_BROWSE_STATE,
   editorSearchFor,
   isLensStatus,
   lensOf,
   readBrowseState,
 } from "@/utils/browse-state";
+import { type SimilarTarget, similarQueryFor } from "@/utils/similar-params";
 
 /**
  * The map browser's interface: the pool's buckets and maps, the bucket Find maps opened it for, and
@@ -60,15 +68,11 @@ export type MapBrowserProps = {
   candidate?: (CandidateAdder & { poolId: string; refresh: number }) | undefined;
   /** The pool's targets: Find maps on a bucket with a star range puts it in the star filter. */
   targets?: BucketTargets | undefined;
+  /** The editor's last Find similar (a slot or candidate) and a count that goes up with each. */
+  similar?: { target: SimilarTarget; count: number } | undefined;
   /** fetch (tests; the editor passes its own). */
   fetcher?: typeof fetch;
 };
-
-/** Where the browser's maps come from: osu!'s maps, or your own candidates. */
-const SOURCES = [
-  { value: "search" as const, label: "Search osu! maps" },
-  { value: "candidates" as const, label: "Your candidates" },
-];
 
 /**
  * @function MapBrowserPane
@@ -78,12 +82,14 @@ const SOURCES = [
  */
 export function MapBrowserPane(props: MapBrowserProps) {
   const { buckets, poolIds, openedFor, openCount, onAdd, fetcher, targets, candidate } = props;
+  const { similar } = props;
   const headingId = useId();
   const heading = useRef<HTMLHeadingElement>(null);
   const [state, setState] = useState(DEFAULT_BROWSE_STATE);
   const [urlRead, setUrlRead] = useState(false);
   const [opened, setOpened] = useState<OpenedFor | null>(null);
-  const [source, setSource] = useState<"search" | "candidates">("search");
+  const [source, setSource] = useState<BrowseSource>("search");
+  const [similarTo, setSimilarTo] = useState<SimilarTarget | null>(null);
   const browse = useMapBrowse(state, poolIds, {
     // Your candidates on screen: the search waits.
     enabled: urlRead && source === "search",
@@ -118,6 +124,16 @@ export function MapBrowserPane(props: MapBrowserProps) {
     heading.current?.focus();
   }, [openCount]);
 
+  const openSimilar = (target: SimilarTarget) => {
+    setSimilarTo(target);
+    setSource("similar");
+    heading.current?.focus();
+  };
+  // biome-ignore lint/correctness/useExhaustiveDependencies: each editor Find similar press.
+  useEffect(() => {
+    if (similar && similar.count > 0) openSimilar(similar.target);
+  }, [similar?.count]);
+
   const answered = browse.data?.lens ?? null;
   useEffect(() => {
     if (!browse.fresh || answered === null || !isLensStatus(state.status)) return;
@@ -131,55 +147,62 @@ export function MapBrowserPane(props: MapBrowserProps) {
       : browse.status === "loading" || !browse.data
         ? "Searching…"
         : `${browse.data.sets.length} ${browse.data.sets.length === 1 ? "set" : "sets"} on this page`;
+  const defaultBucket = defaultBucketFor(lens, buckets, opened);
+  const cards = { buckets, defaultBucket, poolIds: new Set(poolIds), onAdd, candidate };
+  const sources = browseSources(candidate !== undefined, similarTo !== null);
   return (
-    <Card aria-labelledby={headingId} id="map-browser">
-      <h2 id={headingId} ref={heading} tabIndex={-1} className="mb-3 font-bold text-c1 text-lg">
-        Find maps
-      </h2>
-      <div className="flex flex-col gap-4">
-        {candidate ? (
-          <ChoiceChips label="Source" options={SOURCES} value={source} onChange={setSource} />
-        ) : null}
-        {candidate && source === "candidates" ? (
-          <YourCandidates
-            poolId={candidate.poolId}
-            buckets={buckets}
-            under={defaultBucketFor(lens, buckets, opened) ?? "NM"}
-            defaultBucket={defaultBucketFor(lens, buckets, opened)}
-            poolIds={new Set(poolIds)}
-            onAdd={onAdd}
-            adder={candidate}
-            refresh={candidate.refresh}
-            fetcher={fetcher}
-          />
-        ) : (
-          <>
-            <BrowseFilters
-              state={state}
-              lenses={lenses}
-              valuesLens={lens}
-              onChange={setState}
-              resultCount={count}
+    <FindSimilarContext value={openSimilar}>
+      <Card aria-labelledby={headingId} id="map-browser">
+        <h2 id={headingId} ref={heading} tabIndex={-1} className="mb-3 font-bold text-c1 text-lg">
+          Find maps
+        </h2>
+        <div className="flex flex-col gap-4">
+          {sources.length > 1 ? (
+            <ChoiceChips label="Source" options={sources} value={source} onChange={setSource} />
+          ) : null}
+          {similarTo && source === "similar" ? (
+            <SimilarMaps
+              key={similarTo.id}
+              target={similarTo}
+              query={similarQueryFor(lens, defaultBucket, targets, candidate?.poolId)}
+              {...cards}
+              onBack={() => setSource("search")}
+              fetcher={fetcher}
             />
-            <BrowseResults
-              // Retry's failure view goes while the search runs: focus waits on the heading.
-              browse={{
-                ...browse,
-                retry: () => {
-                  heading.current?.focus();
-                  browse.retry();
-                },
-              }}
-              buckets={buckets}
-              defaultBucket={defaultBucketFor(lens, buckets, opened)}
-              poolIds={new Set(poolIds)}
-              onAdd={onAdd}
-              candidate={candidate}
-              onPage={(page) => setState((s) => ({ ...s, page }))}
+          ) : candidate && source === "candidates" ? (
+            <YourCandidates
+              poolId={candidate.poolId}
+              {...cards}
+              under={defaultBucket ?? "NM"}
+              adder={candidate}
+              refresh={candidate.refresh}
+              fetcher={fetcher}
             />
-          </>
-        )}
-      </div>
-    </Card>
+          ) : (
+            <>
+              <BrowseFilters
+                state={state}
+                lenses={lenses}
+                valuesLens={lens}
+                onChange={setState}
+                resultCount={count}
+              />
+              <BrowseResults
+                // Retry's failure view goes while the search runs: focus waits on the heading.
+                browse={{
+                  ...browse,
+                  retry: () => {
+                    heading.current?.focus();
+                    browse.retry();
+                  },
+                }}
+                {...cards}
+                onPage={(page) => setState((s) => ({ ...s, page }))}
+              />
+            </>
+          )}
+        </div>
+      </Card>
+    </FindSimilarContext>
   );
 }

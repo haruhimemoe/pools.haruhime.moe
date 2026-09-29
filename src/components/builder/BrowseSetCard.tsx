@@ -6,8 +6,9 @@
  *       with its values under the lens (stars, with the no-mod rating small beside them when
  *       they differ; AR, OD, CS, BPM, length; under a mod lens, "no mod data" beside AR, OD and CS
  *       the mirror had no values for, so they're worked out), how many past pools played it (a
- *       link to its map page), and Add (which says "In this pool" for a map the pool has).
- *       Presentational.
+ *       link to its map page), and Add (which says "In this pool" for a map the pool has). In
+ *       the "Similar to" source each difficulty also says how similar it is, and every row can
+ *       Find similar. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Sep 28, 2026
@@ -17,15 +18,19 @@ import type { BucketEntry } from "@haruhimemoe/pool";
 import { Badge, BeatmapStats, TextLink } from "@haruhimemoe/ui";
 import { AddAsCandidate } from "@/components/builder/AddAsCandidate";
 import { AddToPool } from "@/components/builder/AddToPool";
+import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { StarsUnder } from "@/components/maps/StarsUnder";
 import { SET_STATUS_LABELS } from "@/constants/search";
 import type { CandidateAdder } from "@/schemas/candidate-editor";
 import type { BrowseDiff, BrowseSet } from "@/utils/browse-params";
+import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";
+import type { SimilarSet } from "@/utils/similar-params";
 
 type BrowseSetCardProps = {
-  set: BrowseSet;
+  /** A search's set, or a "Similar to" set whose difficulties say how similar they are. */
+  set: BrowseSet | SimilarSet;
   /** The lens the page is under. */
   lens: string;
   buckets: readonly BucketEntry[];
@@ -35,6 +40,9 @@ type BrowseSetCardProps = {
   /** "Add as candidate" (the editor). */
   candidate?: CandidateAdder | undefined;
 };
+
+const similarityOf = (diff: BrowseDiff): number | null =>
+  "similarity" in diff && typeof diff.similarity === "number" ? diff.similarity : null;
 
 const played = ({ id, playedIn }: BrowseDiff) => {
   if (playedIn === null) return <span>Pool history unavailable</span>;
@@ -75,9 +83,12 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
       </div>
       {set.check ? <p className="text-amber-200 text-sm">{set.check.text}</p> : null}
       <ul className="mt-2 flex flex-col gap-3 text-sm">
-        {set.diffs.map((diff) => (
+        {set.diffs.map((diff: BrowseDiff) => (
           <li key={diff.id} data-diff={diff.id} className="flex flex-col gap-1">
             <div className="flex flex-wrap items-baseline gap-x-2 text-c2">
+              {similarityOf(diff) === null ? null : (
+                <Badge tone="accent">{`${similarityOf(diff)}% similar`}</Badge>
+              )}
               <span className="font-bold text-c1">{diff.version}</span>
               <StarsUnder
                 stars={diff.stars}
@@ -120,6 +131,10 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
                   adder={candidate}
                 />
               ) : null}
+              <FindSimilarButton
+                beatmapId={diff.id}
+                label={mapLabel({ ...set, version: diff.version }, diff.id)}
+              />
             </div>
           </li>
         ))}

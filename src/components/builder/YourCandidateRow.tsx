@@ -3,7 +3,8 @@
  * @desc One map in "Your candidates": its cover and clip, its name with stars under the current
  *       bucket's mods, where it's from (pool, slot, candidate or pick) and its note, then Add (as
  *       the pick, like a search result) and Add as candidate (the note comes along; votes don't).
- *       Presentational.
+ *       Presentational. Find similar opens the
+ *       map browser on maps like it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
@@ -14,6 +15,7 @@
 import { type BucketEntry, slotLabel } from "@haruhimemoe/pool";
 import { AddAsCandidate } from "@/components/builder/AddAsCandidate";
 import { AddToPool } from "@/components/builder/AddToPool";
+import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
 import type { CandidateAdder } from "@/schemas/candidate-editor";
@@ -68,6 +70,7 @@ export function YourCandidateRow(props: YourCandidateRowProps) {
           note={row.note}
           adder={adder}
         />
+        <FindSimilarButton beatmapId={row.beatmapId} label={mapLabel(row.map, row.beatmapId)} />
       </div>
     </li>
   );

@@ -15,6 +15,7 @@ import type { Fetcher } from "@/lib/pool-client";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { ClientPool } from "@/schemas/built-pool-view";
 import { candidateSlotOptions } from "@/utils/candidate-view";
+import type { SimilarTarget } from "@/utils/similar-params";
 
 type EditorBrowserProps = {
   pool: ClientPool;
@@ -23,6 +24,8 @@ type EditorBrowserProps = {
   openedFor: string | null;
   /** Goes up by one on every "Find maps" press. */
   openCount: number;
+  /** The last Find similar on a slot or candidate, counted. */
+  similar?: { target: SimilarTarget; count: number } | undefined;
   fetcher?: Fetcher | undefined;
 };
 
@@ -31,7 +34,8 @@ type EditorBrowserProps = {
  * @param props {EditorBrowserProps} the pool, the change call, Find maps' bucket and count
  * @returns {JSX.Element} the map browser wired to the editor's ops
  */
-export function EditorBrowser({ pool, change, openedFor, openCount, fetcher }: EditorBrowserProps) {
+export function EditorBrowser(props: EditorBrowserProps) {
+  const { pool, change, openedFor, openCount, similar, fetcher } = props;
   return (
     <MapBrowserPane
       buckets={pool.buckets}
@@ -49,6 +53,7 @@ export function EditorBrowser({ pool, change, openedFor, openCount, fetcher }: E
           ]),
       }}
       targets={pool.targets}
+      similar={similar}
       {...(fetcher ? { fetcher } : {})}
     />
   );
