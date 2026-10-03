@@ -8,7 +8,7 @@
  *       title template and robots don't change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { within } from "@testing-library/react";
@@ -61,7 +61,8 @@ describe("RootLayout header and footer", () => {
       ["Submit a pool", "/submit"],
     ]);
     const footer = page.getByRole("contentinfo");
-    expect(within(footer).getByRole("navigation", { name: "Legal" })).toBeInTheDocument();
+    expect(within(footer).getByRole("navigation", { name: "Footer" })).toBeInTheDocument();
+    expect(within(footer).getByRole("region", { name: "Legal" })).toBeInTheDocument();
     expect(within(footer).getByRole("link", { name: "Credits" })).toHaveAttribute(
       "href",
       "/credits",

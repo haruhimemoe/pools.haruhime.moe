@@ -11,7 +11,7 @@
  *       MapBrowserAdd.test.tsx. A fake fetch answers; nothing reaches the network.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { screen, within } from "@testing-library/react";
@@ -53,7 +53,10 @@ describe("MapBrowserPane results", () => {
     expect(within(card).getByText("Mapped by Mapper")).toBeInTheDocument();
     const row = card.querySelector('[data-diff="11"]') as HTMLElement;
     expect(row).toHaveTextContent("6.42 starsHR (5.80★ no mod)");
-    expect(row).toHaveTextContent("CS4.5AR10OD9.5BPM240Length2:00");
+    // Each stat reads its short form to sighted users and its full name to screen readers.
+    expect(row).toHaveTextContent(
+      "CSCircle size4.5ARApproach rate10ODOverall difficulty9.5BPMBeats per minute240Length2:00",
+    );
     expect(row).toHaveTextContent("Not played in a past pool");
     const link = within(card).getByRole("link", { name: "Played in 2 past pools" });
     expect(link).toHaveAttribute("href", "/maps/12");

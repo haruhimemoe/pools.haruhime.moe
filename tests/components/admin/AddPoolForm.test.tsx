@@ -8,7 +8,7 @@
  *       name hint offers "a community member" for a sender who'd rather not be named.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Sep 26, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -157,7 +157,8 @@ describe("AddPoolForm", () => {
     expect(screen.getByLabelText("Maps")).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByLabelText("Credit link")).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByLabelText("Tournament")).not.toHaveAttribute("aria-invalid", "true");
-    expect(screen.getByRole("status")).toHaveTextContent("Fix the fields marked above.");
+    // The field errors are status messages too (ui 0.7.0), so pick the form's own output by text.
+    expect(screen.getByText("Fix the fields marked above.").tagName).toBe("OUTPUT");
   });
 
   it("says when the request didn't reach the server", async () => {

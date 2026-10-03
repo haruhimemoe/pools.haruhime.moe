@@ -8,7 +8,7 @@
  *       credit it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -66,15 +66,19 @@ describe("Footer", () => {
     );
     render(<Footer />);
     const footer = screen.getByRole("contentinfo");
-    const navs = within(footer).getAllByRole("navigation");
-    expect(navs.map((nav) => nav.getAttribute("aria-label"))).toEqual(
-      EXPECTED.map(([title]) => title),
-    );
+    // One Footer nav; each column is a region named by its heading (ui 0.7.0).
+    expect(within(footer).getAllByRole("navigation")).toHaveLength(1);
+    const nav = within(footer).getByRole("navigation", { name: "Footer" });
+    const names = within(nav)
+      .getAllByRole("region")
+      .map((column) => document.getElementById(column.getAttribute("aria-labelledby") ?? ""))
+      .map((heading) => heading?.textContent);
+    expect(names).toEqual(EXPECTED.map(([title]) => title));
   });
 
   it.each(EXPECTED)("links the %s column's pages in order", (title, links) => {
     render(<Footer />);
-    const nav = screen.getByRole("navigation", { name: title });
+    const nav = screen.getByRole("region", { name: title });
     expect(
       within(nav)
         .getAllByRole("link")

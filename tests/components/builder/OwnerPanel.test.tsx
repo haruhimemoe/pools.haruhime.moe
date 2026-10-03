@@ -10,7 +10,7 @@
  *       panes and slot rows stack on phones, and the map browser sits under the maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { screen, waitFor } from "@testing-library/react";
@@ -51,9 +51,10 @@ describe("owner settings", () => {
     await user.clear(confirm);
     await user.type(confirm, "Spring Cup Finals");
     await user.click(remove);
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "packs didn't answer. The pool is still there.",
-    );
+    // Field errors are polite status messages (ui 0.7.0), not alerts.
+    expect(
+      await screen.findByText("packs didn't answer. The pool is still there."),
+    ).toHaveAttribute("role", "status");
     expect(push).not.toHaveBeenCalled();
     await user.click(remove);
     await waitFor(() => expect(push).toHaveBeenCalledWith("/account#pools"));
@@ -164,7 +165,10 @@ describe("handing the pool to an editor", () => {
     const message = "editor already owns 50 pools.";
     api.next(() => Response.json({ error: { code: "too_many_pools", message } }, { status: 400 }));
     await user.click(screen.getByRole("button", { name: "Hand the pool over" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    expect(await screen.findByText(`${message} You still own the pool.`)).toHaveAttribute(
+      "role",
+      "status",
+    );
     expect(screen.getByRole("heading", { name: "Owner settings" })).toBeInTheDocument();
   });
 
