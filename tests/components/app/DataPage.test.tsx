@@ -9,7 +9,7 @@
  *       takedowns on ranked and loved maps; corrections go to Discord or email.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -25,8 +25,9 @@ describe("/data", () => {
     const ids = [...container.querySelectorAll("section[id]")].map((node) => node.id);
     expect(ids).toEqual(["pools", "maps", "rules", "corrections"]);
     for (const [id, name] of [
-      ["pools", "Pools"],
-      ["maps", "Maps"],
+      // Named as the footer links are, and unlike the footer's "pools" column (landmark-unique).
+      ["pools", "Pool data"],
+      ["maps", "Map data"],
       ["rules", "Content rules"],
       ["corrections", "Corrections"],
     ] as const) {
@@ -38,7 +39,7 @@ describe("/data", () => {
 
   it("names every place pools come from, credits otdb and links sending one", () => {
     render(<DataPage />);
-    const pools = section("Pools");
+    const pools = section("Pool data");
     expect(within(pools).getByRole("link", { name: "otdb" })).toHaveAttribute(
       "href",
       "https://otdb.sheppsu.me",
@@ -57,7 +58,7 @@ describe("/data", () => {
 
   it("says pools built here get a pack on packs and never count as played before", () => {
     render(<DataPage />);
-    const pools = section("Pools");
+    const pools = section("Pool data");
     expect(pools).toHaveTextContent(/Pools built here/);
     expect(pools).toHaveTextContent(/unlisted or public and has maps gets a pack on packs/);
     expect(pools).toHaveTextContent(/never count toward where a map was played before/);
@@ -65,7 +66,7 @@ describe("/data", () => {
 
   it("says where map details and values with mods come from, and that no files are hosted", () => {
     render(<DataPage />);
-    const maps = section("Maps");
+    const maps = section("Map data");
     expect(maps).toHaveTextContent("which serves osu! API data");
     expect(maps).toHaveTextContent("A map the mirror doesn't have keeps what its source gave.");
     expect(within(maps).getByRole("link", { name: "hinai mirror" })).toHaveAttribute(

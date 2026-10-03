@@ -8,7 +8,7 @@
  *       (Discord or email). Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -38,7 +38,9 @@ export default function DataPage() {
       />
       <Prose className="mt-6 [&>:first-child>:first-child]:mt-0">
         <section id="pools" aria-labelledby="pools-title">
-          <h2 id="pools-title">Pools</h2>
+          {/* "Pool data", as the footer link says: a region named "Pools" would double the footer's
+            pools column (axe landmark-unique). */}
+          <h2 id="pools-title">Pool data</h2>
           <p>Pools on this site come from a few places:</p>
           <ul>
             <li>
@@ -65,7 +67,7 @@ export default function DataPage() {
           </p>
         </section>
         <section id="maps" aria-labelledby="maps-title">
-          <h2 id="maps-title">Maps</h2>
+          <h2 id="maps-title">Map data</h2>
           <p>
             Map details (artist, title, difficulty, length, BPM, AR, OD, CS and star rating) come
             from the <a href="https://mirror.hinamizawa.ai">hinai mirror</a>, which serves osu! API

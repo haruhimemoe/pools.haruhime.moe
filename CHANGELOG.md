@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- `/data`'s first two sections are headed "Pool data" and "Map data", as the footer links read; a section named "Pools" doubled the footer's pools column for screen readers.
 - Depends on `@haruhimemoe/ui` 0.7.0, its accessibility release: one footer nav with headed columns, field errors read as polite status messages instead of alerts, a visible focus ring on fields, 24px slider thumbs and chips, lighter accent links, and beatmap stats that read their full names ("Circle size") to screen readers.
 
 - "Leaderboard maps only" in "Similar to <map>" now shows the 20 closest maps that have a leaderboard instead of filtering the 20 closest of all maps, which were mostly graveyard (map 129891 kept 2 of 18). `scripts/similar` stores a second list per map (`nl`, `sl`: the top 20 among ranked, approved and loved maps, by BoBERT's `status` column), which `?status=leaderboard` reads; rows imported before it existed still get the filter. The "left out" line shows only when the filter drops something. The import grows from about 80 MB to about 137 MB.
