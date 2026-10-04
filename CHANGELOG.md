@@ -2,9 +2,11 @@
 
 All notable changes to pools.haruhime.moe are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.0] - 2026-10-04
 
 ### Added
 
@@ -84,3 +86,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The admin buttons that run something (Refresh public pages, Retry pack cleanup, the two sync retries) are ui's `AsyncButton`, each with its own result (while one sync retry runs the other is off, as before, so two runs never send the same pools twice); the account menu is ui's `HeaderMenu` (it now also closes when focus leaves it); the map browser pages with ui's `Pagination` in button mode.
 - SECURITY.md and /.well-known/security.txt name GitHub private vulnerability reporting first, then the email.
 - Inside: no source file over about 250 lines, no import cycles, a doc comment on every export (with a test that keeps it so), GitHub Actions pinned to commit SHAs, and components that export only components.
+
+[unreleased]: https://github.com/haruhimemoe/pools.haruhime.moe/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/haruhimemoe/pools.haruhime.moe/releases/tag/v0.1.0
