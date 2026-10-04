@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `/llms.txt` lists Docs, API and Legal from the registry, each page linking its `.md` copy, before the pages and pools. `/llms-full.txt` is now Markdown with the text of every docs and legal page, then the full lists.
 - The sitemap adds `/brand`, `/docs` and `/legal`.
 - `@haruhimemoe/ui` 0.11.1: decorative alt on brand page previews.
+- `@haruhimemoe/ui` 0.11.2: Copy as Markdown works on Safari and iOS.
 
 ## [0.1.0] - 2026-10-04
 
