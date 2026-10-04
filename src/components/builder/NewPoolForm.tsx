@@ -16,7 +16,7 @@
 
 "use client";
 
-import { Button, Select, TextInput } from "@haruhimemoe/ui";
+import { Button, Select, Text, TextInput } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { POOL_TEMPLATES, type TemplateId } from "@/constants/targets";
@@ -133,9 +133,9 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
         {pending ? "Making it…" : "Make the pool"}
       </Button>
       {failure ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Text role="alert" tone="error" bold>
           {failure}
-        </p>
+        </Text>
       ) : null}
     </form>
   );

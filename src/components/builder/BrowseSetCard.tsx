@@ -11,11 +11,11 @@
  *       Find similar. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import type { BucketEntry } from "@haruhimemoe/pool";
-import { Badge, BeatmapStats, TextLink } from "@haruhimemoe/ui";
+import { Badge, BeatmapStats, Text, TextLink } from "@haruhimemoe/ui";
 import { AddAsCandidate } from "@/components/builder/AddAsCandidate";
 import { AddToPool } from "@/components/builder/AddToPool";
 import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
@@ -78,10 +78,10 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
             {set.unranked ? <Badge tone="warning">Unranked</Badge> : null}
             {set.check ? <Badge tone="warning">Check first</Badge> : null}
           </div>
-          <p className="text-c3 text-sm">Mapped by {set.creator}</p>
+          <Text tone="muted">Mapped by {set.creator}</Text>
         </div>
       </div>
-      {set.check ? <p className="text-amber-200 text-sm">{set.check.text}</p> : null}
+      {set.check ? <Text tone="warning">{set.check.text}</Text> : null}
       <ul className="mt-2 flex flex-col gap-3 text-sm">
         {set.diffs.map((diff: BrowseDiff) => (
           <li key={diff.id} data-diff={diff.id} className="flex flex-col gap-1">

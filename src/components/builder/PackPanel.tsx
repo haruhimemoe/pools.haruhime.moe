@@ -14,7 +14,7 @@
 
 "use client";
 
-import { Button } from "@haruhimemoe/ui";
+import { Button, textClasses } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { PACK_STATUS_TEXT } from "@/constants/built-pools";
 import { callPools, type Fetcher } from "@/lib/pool-client";
@@ -81,7 +81,10 @@ export function PackPanel({ pool, editor, fetcher = fetch }: PackPanelProps) {
           {pending ? "Updating…" : "Update pack now"}
         </Button>
       ) : null}
-      <output aria-live="polite" className={note.error ? "font-bold text-rose-300" : "sr-only"}>
+      <output
+        aria-live="polite"
+        className={note.error ? textClasses({ tone: "error", bold: true }) : "sr-only"}
+      >
         {note.text}
       </output>
     </div>

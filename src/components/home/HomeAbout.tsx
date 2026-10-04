@@ -5,10 +5,10 @@
  *       questions go out as FAQPage JSON-LD. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { Card } from "@haruhimemoe/ui";
+import { Card, Text } from "@haruhimemoe/ui";
 import type { HomeFaq } from "@/constants/home";
 
 /**
@@ -27,7 +27,9 @@ export function HomeAbout({ intro, faq }: { intro: string; faq: readonly HomeFaq
           {faq.map(({ q, a }) => (
             <div key={q}>
               <h3 className="font-bold text-c1">{q}</h3>
-              <p className="mt-1 text-c3 text-sm">{a}</p>
+              <Text tone="muted" className="mt-1">
+                {a}
+              </Text>
             </div>
           ))}
         </div>

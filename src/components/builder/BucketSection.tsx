@@ -8,13 +8,13 @@
  *       NM maps"). Its rows, candidates included, are BucketRows. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import { isCustomBucket } from "@haruhimemoe/pool";
-import { Button, cx } from "@haruhimemoe/ui";
+import { Button, cx, Text } from "@haruhimemoe/ui";
 import { useId } from "react";
 import { BucketRows, type SlotActions } from "@/components/builder/BucketRows";
 import type { MoveTarget } from "@/components/builder/SlotRow";
@@ -80,7 +80,12 @@ export function BucketSection(props: BucketSectionProps) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 id={headingId} tabIndex={-1} className="font-bold text-c1">
           {title}
-          {detail ? <span className="font-normal text-c3 text-sm"> {detail}</span> : null}
+          {detail ? (
+            <Text as="span" tone="muted">
+              {" "}
+              {detail}
+            </Text>
+          ) : null}
         </h3>
         {code !== null ? (
           <div className="flex gap-2">
@@ -105,7 +110,9 @@ export function BucketSection(props: BucketSectionProps) {
         ) : null}
       </div>
       {slots.length === 0 && missing <= 0 && !hasCandidates ? (
-        <p className="py-2 text-c3 text-sm">No maps yet.</p>
+        <Text tone="muted" className="py-2">
+          No maps yet.
+        </Text>
       ) : (
         <BucketRows
           code={code}
@@ -125,12 +132,13 @@ export function BucketSection(props: BucketSectionProps) {
         />
       )}
       {missing > 0 && code !== null ? (
-        <p
+        <Text
           data-placeholder
-          className="mt-2 rounded-lg border border-b1 border-dashed px-3 py-2 text-c3 text-sm"
+          tone="muted"
+          className="mt-2 rounded-lg border border-b1 border-dashed px-3 py-2"
         >
           {placeholderText(code, missing)}
-        </p>
+        </Text>
       ) : null}
     </section>
   );

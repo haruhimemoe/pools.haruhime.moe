@@ -7,13 +7,13 @@
  *       editors only (it's in the editor).
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
-import { Checkbox, Notice, Pagination, Select, TextInput } from "@haruhimemoe/ui";
+import { Checkbox, Notice, Pagination, Select, Text, TextInput } from "@haruhimemoe/ui";
 import { useId, useState } from "react";
 import { YourCandidateRow } from "@/components/builder/YourCandidateRow";
 import { YOUR_CANDIDATES, YOUR_CANDIDATES_TEXT } from "@/constants/candidates";
@@ -88,14 +88,14 @@ export function YourCandidates(props: YourCandidatesProps) {
         checked={filters.picks}
         onChange={(event) => set({ picks: event.target.checked })}
       />
-      <p className="text-c3 text-sm" aria-live="polite">
+      <Text tone="muted" aria-live="polite">
         {list.status === "loading" ? "Loading…" : count}
         {data ? ` · stars under ${data.under === "NM" ? "no mod" : data.under}` : ""}
-      </p>
+      </Text>
       {list.status === "error" ? (
         <Notice tone="warning">{`${YOUR_CANDIDATES_TEXT.failed} ${list.message}`}</Notice>
       ) : data && data.total === 0 ? (
-        <p className="text-c3 text-sm">{YOUR_CANDIDATES_TEXT.empty}</p>
+        <Text tone="muted">{YOUR_CANDIDATES_TEXT.empty}</Text>
       ) : null}
       {data && data.rows.length > 0 ? (
         <ul className="flex flex-col gap-3">

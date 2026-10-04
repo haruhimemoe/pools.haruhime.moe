@@ -6,12 +6,12 @@
  *       last. The cover's alt names the song. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { setDownloadUrl } from "@haruhimemoe/hinai";
 import { beatmapUrl, coverUrl } from "@haruhimemoe/osu/shapes";
-import { BeatmapStats, ButtonLink, Card, PageHeader, StarRating } from "@haruhimemoe/ui";
+import { BeatmapStats, ButtonLink, Card, PageHeader, StarRating, Text } from "@haruhimemoe/ui";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { MapHistoryTable } from "@/components/maps/MapHistoryTable";
@@ -89,7 +89,7 @@ export function MapView({
       <Card title="Tournament history">
         {sentence ? <p className="mb-3 text-c2">{sentence}</p> : null}
         {history.length === 0 ? (
-          <p className="text-c3 text-sm">No current pool uses this map.</p>
+          <Text tone="muted">No current pool uses this map.</Text>
         ) : (
           <MapHistoryTable rows={history} />
         )}

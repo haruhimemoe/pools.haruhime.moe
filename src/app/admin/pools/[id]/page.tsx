@@ -5,10 +5,10 @@
  *       sync state, the edit form, and badged for the whole tournament. 404 for an unknown id.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { Card } from "@haruhimemoe/ui";
+import { Card, Text } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BadgedForm } from "@/components/admin/BadgedForm";
@@ -53,7 +53,7 @@ export default async function AdminPoolPage({ params }: PageProps<"/admin/pools/
             ? ` · ${pool.pack.syncedAt.toISOString().slice(0, 16).replace("T", " ")} UTC`
             : ""}
         </p>
-        {pool.pack.error ? <p className="text-rose-300 text-sm">{pool.pack.error}</p> : null}
+        {pool.pack.error ? <Text tone="error">{pool.pack.error}</Text> : null}
       </Card>
       <Card title="Edit">
         <PoolEditForm

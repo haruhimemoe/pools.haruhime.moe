@@ -4,10 +4,10 @@
  *       superseded marks, and the pack's sync state.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { Table, TBody, Td, TextLink, THead, Th } from "@haruhimemoe/ui";
+import { Table, TBody, Td, Text, TextLink, THead, Th } from "@haruhimemoe/ui";
 import type { AdminPoolRow } from "@/services/admin-pools";
 import { poolHeadline } from "@/utils/pool-text";
 
@@ -48,7 +48,9 @@ export function AdminPoolTable({ rows }: { rows: readonly AdminPoolRow[] }) {
             <Td>
               {pool.pack.state ?? "never sent"}
               {pool.pack.error ? (
-                <div className="text-rose-300 text-xs">{pool.pack.error}</div>
+                <Text as="div" tone="error" size="xs">
+                  {pool.pack.error}
+                </Text>
               ) : null}
             </Td>
           </tr>

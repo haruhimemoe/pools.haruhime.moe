@@ -9,7 +9,7 @@
  * @modified Sun Oct 4, 2026
  */
 
-import { Button, Notice } from "@haruhimemoe/ui";
+import { Button, Notice, Text } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
 import { CONFLICT, GONE } from "@/constants/editor";
 import type { EditorFailure } from "@/schemas/pool-editor";
@@ -34,9 +34,9 @@ export function SaveState(props: SaveStateProps) {
   return (
     <div className="sticky top-0 z-10 flex flex-col gap-2 rounded-lg bg-b5 px-4 py-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p role="status" className="font-bold text-c3 text-sm">
+        <Text role="status" tone="muted" bold>
           {saving ? "Saving…" : "All changes saved."}
-        </p>
+        </Text>
         {actions}
       </div>
       {gone ? (

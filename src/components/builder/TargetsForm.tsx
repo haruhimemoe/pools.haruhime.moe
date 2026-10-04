@@ -13,7 +13,7 @@
 "use client";
 
 import { bucketOptionLabel } from "@haruhimemoe/pool";
-import { Button, Select, TextInput } from "@haruhimemoe/ui";
+import { Button, Select, Text, TextInput } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
 import { MAX_TARGET_COUNT } from "@/constants/targets";
 import type { BucketTarget } from "@/schemas/built-plan";
@@ -67,10 +67,10 @@ export function TargetsForm({ pool, change }: TargetsFormProps) {
   });
   return (
     <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         How many maps each slot should hold, and the star range they should sit in (under the slot's
         mods). The maps pane shows the gaps.
-      </p>
+      </Text>
       <div className="grid gap-3 sm:grid-cols-2">
         <Select id="target-slot" label="Slot" value={code} onChange={(e) => pick(e.target.value)}>
           {pool.buckets.map((entry) => (

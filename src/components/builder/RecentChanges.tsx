@@ -6,11 +6,12 @@
  *       A failed ask keeps the list it had and says so.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
+import { Text } from "@haruhimemoe/ui";
 import { useEffect, useState } from "react";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientActivity } from "@/schemas/activity";
@@ -41,7 +42,7 @@ export function RecentChanges({ poolId, version, fetcher }: RecentChangesProps) 
     };
   }, [poolId, version, fetcher]);
   if (entries === null) {
-    return <p className="text-c3 text-sm">{failed ? "Recent changes didn't load." : "Loading…"}</p>;
+    return <Text tone="muted">{failed ? "Recent changes didn't load." : "Loading…"}</Text>;
   }
   const now = new Date();
   return (

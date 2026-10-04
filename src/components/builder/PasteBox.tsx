@@ -13,7 +13,7 @@
 "use client";
 
 import type { SlotLineError } from "@haruhimemoe/pool";
-import { Button, Select, Textarea } from "@haruhimemoe/ui";
+import { Button, Select, Text, Textarea } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
 import { MAX_PASTE_LENGTH } from "@/constants/built-pools";
 import type { PoolOp } from "@/schemas/built-pool-ops";
@@ -64,7 +64,9 @@ export function PasteBox({ change, lines }: PasteBoxProps) {
       </Button>
       {lines && lines.length > 0 ? (
         <div className="flex flex-col gap-1">
-          <p className="font-bold text-rose-300 text-sm">These lines couldn't be read:</p>
+          <Text tone="error" bold>
+            These lines couldn't be read:
+          </Text>
           <ul className="flex flex-col gap-1 text-sm">
             {lines.map((line) => (
               <li key={`${line.line}-${line.code}`}>

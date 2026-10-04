@@ -6,10 +6,10 @@
  *       Hide or Unhide and Delete.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { Table, TBody, Td, TextLink, THead, Th } from "@haruhimemoe/ui";
+import { Table, TBody, Td, Text, TextLink, THead, Th } from "@haruhimemoe/ui";
 import { BuiltPoolModeration } from "@/components/admin/BuiltPoolModeration";
 import { VISIBILITY_TEXT } from "@/constants/built-pools";
 import type { AdminBuiltPool } from "@/services/built-moderation";
@@ -24,7 +24,7 @@ const HEADINGS = ["Pool", "Owner", "Seen by", "Maps", "Pack", "Made", "Moderatio
  */
 export function AdminBuiltPoolTable({ pools }: { pools: readonly AdminBuiltPool[] }) {
   if (pools.length === 0) {
-    return <p className="text-c3 text-sm">No unlisted or public pool has been built yet.</p>;
+    return <Text tone="muted">No unlisted or public pool has been built yet.</Text>;
   }
   return (
     <Table>
@@ -51,7 +51,11 @@ export function AdminBuiltPoolTable({ pools }: { pools: readonly AdminBuiltPool[
             <Td>{pool.owner ?? "unknown"}</Td>
             <Td>
               {VISIBILITY_TEXT[pool.visibility].label}
-              {pool.hidden ? <div className="font-bold text-rose-300 text-xs">hidden</div> : null}
+              {pool.hidden ? (
+                <Text as="div" tone="error" bold size="xs">
+                  hidden
+                </Text>
+              ) : null}
             </Td>
             <Td>{pool.maps}</Td>
             <Td>{pool.pack}</Td>

@@ -8,11 +8,11 @@
  *       set on osu!.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
-import { Badge, TextLink } from "@haruhimemoe/ui";
+import { Badge, Text, TextLink } from "@haruhimemoe/ui";
 import { StarsUnder } from "@/components/maps/StarsUnder";
 import { SET_STATUS_LABELS } from "@/constants/search";
 import type { AllMapDifficulty, AllMapSet } from "@/schemas/search-response";
@@ -49,8 +49,8 @@ export function AllMapResultList({ results }: { results: readonly AllMapSet[] })
             {set.unranked ? <Badge tone="warning">Unranked</Badge> : null}
             {set.check ? <Badge tone="warning">Check first</Badge> : null}
           </div>
-          <p className="text-c3 text-sm">Mapped by {set.creator}</p>
-          {set.check ? <p className="text-amber-200 text-sm">{set.check.text}</p> : null}
+          <Text tone="muted">Mapped by {set.creator}</Text>
+          {set.check ? <Text tone="warning">{set.check.text}</Text> : null}
           <ul className="mt-2 flex flex-col gap-1 text-sm">
             {set.maps.map((map) => (
               <li key={map.id} className="flex flex-wrap gap-x-2 text-c2">

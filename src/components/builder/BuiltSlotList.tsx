@@ -5,11 +5,11 @@
  *       Read only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { type BucketEntry, type PoolSlot, slotLabel } from "@haruhimemoe/pool";
-import { ModBadge } from "@haruhimemoe/ui";
+import { ModBadge, Text } from "@haruhimemoe/ui";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
 import type { SlotNotes } from "@/schemas/built-plan";
@@ -32,7 +32,7 @@ type BuiltSlotListProps = {
  */
 export function BuiltSlotList({ pool, maps, values }: BuiltSlotListProps) {
   const groups = groupSlots(pool).filter((group) => group.slots.length > 0);
-  if (groups.length === 0) return <p className="text-c3 text-sm">No maps yet.</p>;
+  if (groups.length === 0) return <Text tone="muted">No maps yet.</Text>;
   return (
     <div className="flex flex-col gap-5">
       {groups.map((group) => {
@@ -41,7 +41,12 @@ export function BuiltSlotList({ pool, maps, values }: BuiltSlotListProps) {
           <section key={group.code ?? ""} className="flex flex-col">
             <h3 className="font-bold text-c1">
               {title}
-              {detail ? <span className="font-normal text-c3 text-sm"> {detail}</span> : null}
+              {detail ? (
+                <Text as="span" tone="muted">
+                  {" "}
+                  {detail}
+                </Text>
+              ) : null}
             </h3>
             <ol className="flex flex-col">
               {group.slots.map((slot) => (

@@ -7,14 +7,13 @@
  *       (src/utils/signin-errors.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { safeNextPath } from "@haruhimemoe/next-kit/server";
-import { PageHeader } from "@haruhimemoe/ui";
+import { PageHeader, Text, TextLink } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SEO_SITE } from "@/constants/seo";
 import { DEFAULT_AFTER_SIGN_IN } from "@/constants/site";
 import { RestoreSignedIn, SignInWithOsu } from "@/lib/account";
@@ -48,17 +47,14 @@ export default async function SignInPage({ searchParams }: PageProps<"/signin">)
         lead="Sign in with your osu! account to make pools. Searching maps, checking a pool and past pools all work without an account."
       />
       {error ? (
-        <p role="alert" className="font-bold text-rose-300 text-sm">
+        <Text role="alert" tone="error" bold>
           {error}
-        </p>
+        </Text>
       ) : null}
       <SignInWithOsu next={next} />
       <p className="text-c4 text-xs">
         We keep your osu! ID, username, avatar and country, and the pools you make. See the{" "}
-        <Link href="/legal/privacy" className="underline underline-offset-2 hover:text-c1">
-          privacy page
-        </Link>
-        .
+        <TextLink href="/legal/privacy">privacy page</TextLink>.
       </p>
     </div>
   );

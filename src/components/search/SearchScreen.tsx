@@ -11,12 +11,12 @@
  *       so instead of "Loading…"; with no total the count says the page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { LinkTabs, Notice, PageHeader, Pagination } from "@haruhimemoe/ui";
+import { LinkTabs, Notice, PageHeader, Pagination, Text } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -183,12 +183,10 @@ export function SearchScreen() {
         </Notice>
       ) : null}
       {data && "hiddenMissing" in data && data.hiddenMissing > 0 ? (
-        <p className="text-c3 text-sm">
-          {data.hiddenMissing} more hidden: data missing for a filter.
-        </p>
+        <Text tone="muted">{data.hiddenMissing} more hidden: data missing for a filter.</Text>
       ) : null}
-      {hiddenText ? <p className="text-c3 text-sm">{hiddenText}</p> : null}
-      {unranked ? <p className="text-amber-200 text-sm">{UNRANKED_WARNING}</p> : null}
+      {hiddenText ? <Text tone="muted">{hiddenText}</Text> : null}
+      {unranked ? <Text tone="warning">{UNRANKED_WARNING}</Text> : null}
       {data?.tab === "pools" ? <PoolResultList results={data.results} /> : null}
       {data?.tab === "maps" && data.scope === "played" ? (
         <MapResultList results={data.results} />

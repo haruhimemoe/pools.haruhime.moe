@@ -8,12 +8,12 @@
  *       back to page 1. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { Checkbox, FilterPanel, FilterRow, Select, TextInput } from "@haruhimemoe/ui";
+import { Checkbox, FilterPanel, FilterRow, Select, Text, TextInput } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
 import { BrowseRanges } from "@/components/builder/BrowseRanges";
 import { StatusChips } from "@/components/search/StatusChips";
@@ -128,7 +128,7 @@ export function BrowseFilters(props: BrowseFiltersProps) {
       </FilterRow>
       <FilterRow label="Explicit">
         {withMods ? (
-          <p className="text-c3 text-sm">{EXPLICIT_LINE}</p>
+          <Text tone="muted">{EXPLICIT_LINE}</Text>
         ) : (
           <Checkbox
             id="browse-explicit"

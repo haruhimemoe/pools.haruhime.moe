@@ -6,10 +6,10 @@
  *       still get a real page. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { Card, PageHeader, TextLink } from "@haruhimemoe/ui";
+import { Card, PageHeader, Text, TextLink } from "@haruhimemoe/ui";
 import { SEARCH_HEADING, SEARCH_LEAD } from "@/constants/search";
 import { SEARCH_INTRO, SEARCH_STARTS } from "@/constants/seo";
 import type { RecentPool } from "@/services/pools";
@@ -45,7 +45,7 @@ export function SearchDefault({ latest }: { latest: readonly RecentPool[] }) {
                   <TextLink href={`/pools/${pool._id}`} variant="plain">
                     {pool.name}
                   </TextLink>
-                  <p className="text-c3 text-sm">{poolHeadline(pool)}</p>
+                  <Text tone="muted">{poolHeadline(pool)}</Text>
                 </li>
               ))}
             </ul>

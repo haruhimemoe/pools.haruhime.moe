@@ -20,7 +20,7 @@ import {
   modSetProblem,
 } from "@haruhimemoe/pool";
 import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
-import { Button, ChipGroup, Select, TextInput } from "@haruhimemoe/ui";
+import { Button, ChipGroup, Select, Text, TextInput } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { ClientPool } from "@/schemas/built-pool-view";
@@ -94,9 +94,9 @@ export function CustomBucketForm({ pool, change }: CustomBucketFormProps) {
             onChange={(next) => setSet(next as ModAcronym[])}
           />
           {modsError ? (
-            <p role="alert" className="text-rose-300 text-sm">
+            <Text role="alert" tone="error">
               {modsError}
-            </p>
+            </Text>
           ) : null}
         </div>
       ) : null}

@@ -11,7 +11,7 @@
 
 "use client";
 
-import { Button, VisibilitySelect } from "@haruhimemoe/ui";
+import { Button, Text, VisibilitySelect } from "@haruhimemoe/ui";
 import { type FormEvent, useState } from "react";
 import { PACK_NOTE, VISIBILITY_TEXT, type Visibility } from "@/constants/built-pools";
 import { useStoredField } from "@/hooks/useStoredField";
@@ -59,7 +59,7 @@ export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityForm
         value={picked}
         onChange={setPicked}
       />
-      {picked !== "private" ? <p className="text-c3 text-sm">{PACK_NOTE}</p> : null}
+      {picked !== "private" ? <Text tone="muted">{PACK_NOTE}</Text> : null}
       <Button type="submit" variant="secondary" disabled={pending || picked === pool.visibility}>
         Save who can see it
       </Button>

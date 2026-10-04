@@ -8,12 +8,12 @@
  *       go and onDone says who owns it. A refusal is said in the page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { RadioGroup, TypeToConfirm } from "@haruhimemoe/ui";
+import { RadioGroup, Text, TypeToConfirm } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { NO_HANDOVER } from "@/constants/built-pools";
 import { callPools, type Fetcher } from "@/lib/pool-client";
@@ -44,7 +44,7 @@ export function TransferOwnerForm(props: TransferOwnerFormProps) {
   const [error, setError] = useState<string | null>(null);
   const target = pool.editors.find((person) => person.osuId === picked && person.signedIn);
   if (!pool.editors.some((person) => person.signedIn)) {
-    return <p className="text-c3 text-sm">{NO_HANDOVER}</p>;
+    return <Text tone="muted">{NO_HANDOVER}</Text>;
   }
   const pick = (value: string) => setPicked(Number(value));
   const handOver = async () => {

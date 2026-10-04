@@ -5,17 +5,18 @@
  *       pool editor shows it under its own heading, so the title and heading level can change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { Card, cx } from "@haruhimemoe/ui";
+import { Card, Text, type TextTone } from "@haruhimemoe/ui";
 import type { CheckSummary } from "@/utils/compliance-view";
 
-const TONE_CLASSES: Readonly<Record<CheckSummary["tone"], string>> = {
-  disallowed: "text-rose-300",
-  potential: "text-amber-300",
-  unchecked: "text-c2",
-  ok: "text-emerald-300",
+/** A summary has no "missing" tone, unlike a row's verdict. */
+const TONES: Readonly<Record<CheckSummary["tone"], TextTone>> = {
+  disallowed: "error",
+  potential: "warning",
+  unchecked: "default",
+  ok: "success",
 };
 
 type ComplianceSummaryProps = {
@@ -39,11 +40,13 @@ export function ComplianceSummary({
   const { ok, potential, disallowed, unchecked } = summary.counts;
   return (
     <Card title={title} headingLevel={headingLevel} className={className} aria-live="polite">
-      <p className={cx("font-bold", TONE_CLASSES[summary.tone])}>{summary.headline}</p>
-      <p className="text-c3 text-sm">
+      <Text tone={TONES[summary.tone]} size="base" bold>
+        {summary.headline}
+      </Text>
+      <Text tone="muted">
         {ok} allowed · {potential} need a closer look · {disallowed} not allowed · {unchecked}{" "}
         couldn't be checked
-      </p>
+      </Text>
     </Card>
   );
 }

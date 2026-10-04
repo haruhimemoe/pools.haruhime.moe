@@ -4,11 +4,11 @@
  *       BPM, and what it was played as.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
-import { TextLink } from "@haruhimemoe/ui";
+import { Text, TextLink } from "@haruhimemoe/ui";
 import type { MapResult } from "@/schemas/search-response";
 import { mapLabel } from "@/utils/map-record";
 import { starsText } from "@/utils/pool-text";
@@ -27,7 +27,7 @@ export function MapResultList({ results }: { results: readonly MapResult[] }) {
           <TextLink href={`/maps/${map.id}`} variant="plain">
             {mapLabel(map, map.id)}
           </TextLink>
-          <p className="text-c3 text-sm">
+          <Text tone="muted">
             {[
               map.setHost ? `Set host ${map.setHost}` : null,
               usageSummary(map.usage),
@@ -38,7 +38,7 @@ export function MapResultList({ results }: { results: readonly MapResult[] }) {
             ]
               .filter(Boolean)
               .join(" · ")}
-          </p>
+          </Text>
         </li>
       ))}
     </ul>

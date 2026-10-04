@@ -6,12 +6,12 @@
  *       packs): only picks do. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
-import { cx, ModBadge } from "@haruhimemoe/ui";
+import { cx, ModBadge, Text } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
 import type { SlotDrag } from "@/hooks/useSlotDrag";
 
@@ -50,7 +50,7 @@ export function EmptySlotRow({ place, label, drag, children }: EmptySlotRowProps
         <span className="w-14 shrink-0">
           <ModBadge mod={label} />
         </span>
-        <p className="text-c3 text-sm">No pick yet. Promote a candidate or drop one here.</p>
+        <Text tone="muted">No pick yet. Promote a candidate or drop one here.</Text>
       </div>
       {children}
     </li>

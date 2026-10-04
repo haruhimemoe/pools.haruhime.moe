@@ -15,7 +15,7 @@
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
-import { Badge, Button, Checkbox, cx, Notice } from "@haruhimemoe/ui";
+import { Badge, Button, Checkbox, cx, Notice, Text } from "@haruhimemoe/ui";
 import { BrowseSetCard } from "@/components/builder/BrowseSetCard";
 import { SimilarCredit } from "@/components/builder/SimilarCredit";
 import { hiddenSetsText, UNRANKED_WARNING } from "@/constants/search";
@@ -86,9 +86,9 @@ export function SimilarMaps(props: SimilarMapsProps) {
         <div className="flex flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={data?.method === "pattern" ? "accent" : "neutral"}>{method.label}</Badge>
-            <span className="text-c3 text-sm">
+            <Text as="span" tone="muted">
               {`Under ${data?.lens === "NM" ? "no mod" : data?.lens}`}
-            </span>
+            </Text>
           </div>
           <p className="text-c2 text-sm">{method.about}</p>
         </div>
@@ -108,18 +108,18 @@ export function SimilarMaps(props: SimilarMapsProps) {
           </Button>
         </div>
       ) : !data ? (
-        <p className="text-c3 text-sm" aria-live="polite">
+        <Text tone="muted" aria-live="polite">
           Finding similar maps…
-        </p>
+        </Text>
       ) : (
         <div className={cx("flex flex-col gap-3", status === "loading" && "opacity-60")}>
           {leftOut(data).map((line) => (
-            <p key={line} className="text-c3 text-sm">
+            <Text key={line} tone="muted">
               {line}
-            </p>
+            </Text>
           ))}
           {data.sets.some((set) => set.unranked) ? (
-            <p className="text-amber-200 text-sm">{UNRANKED_WARNING}</p>
+            <Text tone="warning">{UNRANKED_WARNING}</Text>
           ) : null}
           {data.sets.length === 0 ? (
             <p className="text-c2 text-sm">{SIMILAR_EMPTY}</p>

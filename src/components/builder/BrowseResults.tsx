@@ -14,7 +14,7 @@
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
-import { Button, cx, Notice, Pagination } from "@haruhimemoe/ui";
+import { Button, cx, Notice, Pagination, Text } from "@haruhimemoe/ui";
 import { BrowseSetCard } from "@/components/builder/BrowseSetCard";
 import { MOD_VALUES_NOTE } from "@/constants/browse";
 import { hiddenSetsText, MAX_SEARCH_PAGE, UNRANKED_WARNING } from "@/constants/search";
@@ -65,7 +65,7 @@ export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) 
       </div>
     );
   }
-  if (!data) return <p className="text-c3 text-sm">Loading maps…</p>;
+  if (!data) return <Text tone="muted">Loading maps…</Text>;
   const lastPage = Math.min(
     data.pageCount ?? data.page + (data.sets.length > 0 ? 1 : 0),
     MAX_SEARCH_PAGE,
@@ -73,12 +73,12 @@ export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) 
   return (
     <div className={cx("flex flex-col gap-3", status === "loading" && "opacity-60")}>
       {leftOut(data).map((line) => (
-        <p key={line} className="text-c3 text-sm">
+        <Text key={line} tone="muted">
           {line}
-        </p>
+        </Text>
       ))}
       {data.sets.some((set) => set.unranked) ? (
-        <p className="text-amber-200 text-sm">{UNRANKED_WARNING}</p>
+        <Text tone="warning">{UNRANKED_WARNING}</Text>
       ) : null}
       {data.sets.length === 0 ? (
         <p className="text-c2 text-sm">

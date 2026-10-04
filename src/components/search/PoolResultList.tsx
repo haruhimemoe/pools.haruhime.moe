@@ -5,11 +5,11 @@
  *       for a pool built here "Built by <owner>".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { formatRange, formatStars } from "@haruhimemoe/osu/format";
-import { TextLink } from "@haruhimemoe/ui";
+import { Text, TextLink } from "@haruhimemoe/ui";
 import type { PoolResult } from "@/schemas/search-response";
 import { badgedText, builtHeadline, poolHeadline } from "@/utils/pool-text";
 
@@ -40,8 +40,8 @@ export function PoolResultList({ results }: { results: readonly PoolResult[] }) 
             <TextLink href={`/pools/${pool.id}`} variant="plain">
               {pool.name}
             </TextLink>
-            {headlineOf(pool) ? <p className="text-c3 text-sm">{headlineOf(pool)}</p> : null}
-            <p className="text-c3 text-sm">
+            {headlineOf(pool) ? <Text tone="muted">{headlineOf(pool)}</Text> : null}
+            <Text tone="muted">
               {[
                 `${pool.stats.count} ${pool.stats.count === 1 ? "map" : "maps"}`,
                 pool.kind === "built" ? builtByText(pool.builtBy) : starsOf(pool.stats),
@@ -49,7 +49,7 @@ export function PoolResultList({ results }: { results: readonly PoolResult[] }) 
               ]
                 .filter(Boolean)
                 .join(" · ")}
-            </p>
+            </Text>
           </li>
         );
       })}

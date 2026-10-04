@@ -7,13 +7,13 @@
  *       once the download has had time to start). Nothing is fetched.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
-import { Button, CopyButton } from "@haruhimemoe/ui";
+import { Button, CopyButton, Text } from "@haruhimemoe/ui";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { csvFileName, csvOf, exportRows, idLines, mpLines } from "@/utils/pool-export";
 import type { SlotValueMap } from "@/utils/slot-values";
@@ -49,7 +49,7 @@ const download = (name: string, text: string) => {
  * @returns {JSX.Element} copy IDs, copy !mp lines and download a CSV, all made in the browser
  */
 export function ExportPanel({ pool, maps, values }: ExportPanelProps) {
-  if (pool.slots.length === 0) return <p className="text-c3 text-sm">Add maps to export them.</p>;
+  if (pool.slots.length === 0) return <Text tone="muted">Add maps to export them.</Text>;
   return (
     <div className="flex flex-col gap-3 text-sm">
       <p className="text-c3">

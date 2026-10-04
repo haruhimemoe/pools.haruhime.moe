@@ -16,10 +16,13 @@ import {
   Button,
   Card,
   CopyButton,
+  cx,
   InlineConfirm,
   Notice,
+  Text,
   TextInput,
   TextLink,
+  textClasses,
 } from "@haruhimemoe/ui";
 import { useEffect, useId, useRef, useState } from "react";
 import { API_DOCS_PATH } from "@/constants/api";
@@ -115,10 +118,10 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
 
   return (
     <Card title="API key">
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         Scripts and bots can use a key to call the pools API as you. Keep it secret.{" "}
         <TextLink href={API_DOCS_PATH}>Read the API docs</TextLink>
-      </p>
+      </Text>
       <div className="mt-3 flex flex-col gap-3">
         {revealed !== null ? (
           <>
@@ -182,7 +185,7 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
           </>
         )}
       </div>
-      <output aria-live="polite" className="mt-2 block text-c3 text-sm">
+      <output aria-live="polite" className={cx("mt-2 block", textClasses({ tone: "muted" }))}>
         {status}
       </output>
       {error ? (

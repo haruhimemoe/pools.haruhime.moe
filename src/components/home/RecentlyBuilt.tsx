@@ -4,10 +4,10 @@
  *       linking its page with its details, map count and who built it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
-import { Card, TextLink } from "@haruhimemoe/ui";
+import { Card, Text, TextLink } from "@haruhimemoe/ui";
 import type { ListedBuiltPool } from "@/services/built-listings";
 import { builtHeadline } from "@/utils/pool-text";
 
@@ -34,7 +34,7 @@ export function RecentlyBuilt({ pools }: { pools: readonly ListedBuiltPool[] }) 
             <TextLink href={`/pools/${pool.id}`} variant="plain">
               {pool.name}
             </TextLink>
-            <p className="text-c3 text-sm">{lineOf(pool)}</p>
+            <Text tone="muted">{lineOf(pool)}</Text>
           </li>
         ))}
       </ul>

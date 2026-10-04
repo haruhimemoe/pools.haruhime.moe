@@ -5,23 +5,24 @@
  *       pool usage linking the map's history. Scrolls sideways on phones.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { beatmapUrl } from "@haruhimemoe/osu/shapes";
-import { cx, Table, TBody, Td, THead, Th } from "@haruhimemoe/ui";
+import { Table, TBody, Td, type TextTone, THead, Th, textClasses } from "@haruhimemoe/ui";
 import Link from "next/link";
 import type { CheckResponse } from "@/schemas/compliance";
 import type { CheckRow } from "@/utils/check-input";
 import { noteParts, type RowTone, rowVerdict } from "@/utils/compliance-view";
 import { usageSummary } from "@/utils/usage";
 
-const TONE_CLASSES: Readonly<Record<RowTone, string>> = {
-  ok: "text-emerald-300",
-  potential: "text-amber-300",
-  missing: "text-amber-300",
-  disallowed: "text-rose-300",
-  unchecked: "text-c3",
+/** Each row's verdict tone (the check's verdict sits in a text-sm table). */
+const TONES: Readonly<Record<RowTone, TextTone>> = {
+  ok: "success",
+  potential: "warning",
+  missing: "warning",
+  disallowed: "error",
+  unchecked: "muted",
 };
 
 /**
@@ -67,7 +68,9 @@ export function CheckResults({
                 </a>
               </Td>
               <Td>
-                <span className={cx("font-bold", TONE_CLASSES[verdict.tone])}>{verdict.text}</span>
+                <span className={textClasses({ tone: TONES[verdict.tone], bold: true })}>
+                  {verdict.text}
+                </span>
                 {verdict.notes ? (
                   <p className="text-c3">
                     {noteParts(verdict.notes).map((part, j) =>

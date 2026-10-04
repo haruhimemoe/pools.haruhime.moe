@@ -12,7 +12,7 @@
 
 "use client";
 
-import { Button, Notice, PageHeader, Textarea } from "@haruhimemoe/ui";
+import { Button, Notice, PageHeader, Text, Textarea } from "@haruhimemoe/ui";
 import { type FormEvent, useMemo, useState } from "react";
 import { CheckResults } from "@/components/check/CheckResults";
 import { ComplianceSummary } from "@/components/check/ComplianceSummary";
@@ -60,9 +60,9 @@ export function CheckScreen({ rules }: { rules: Rules }) {
         </Notice>
       ))}
       {input?.kind === "key" && input.name ? (
-        <p className="text-c3 text-sm">Pack key: {input.name}</p>
+        <Text tone="muted">Pack key: {input.name}</Text>
       ) : null}
-      {check.status === "loading" ? <p className="text-c3 text-sm">Checking…</p> : null}
+      {check.status === "loading" ? <Text tone="muted">Checking…</Text> : null}
       {check.status === "error" ? (
         <>
           <Notice tone="error" live>
@@ -84,7 +84,7 @@ export function CheckScreen({ rules }: { rules: Rules }) {
           <CheckResults rows={input.rows} result={check.result} />
         </>
       ) : null}
-      <p className="text-c3 text-sm">
+      <Text tone="muted">
         This is a guide, not a ruling: the osu! Tournament Committee decides. It follows the osu!
         wiki's{" "}
         <a href={rules.contentUsage} className="underline">
@@ -99,7 +99,7 @@ export function CheckScreen({ rules }: { rules: Rules }) {
           osu! Mappool Compliance project
         </a>
         . Nothing here stops you from using a map.
-      </p>
+      </Text>
     </div>
   );
 }

@@ -12,8 +12,7 @@
  * @modified Sun Oct 4, 2026
  */
 
-import { Button, ButtonLink, Card, PageHeader, TextInput, TextLink } from "@haruhimemoe/ui";
-import Link from "next/link";
+import { Button, ButtonLink, Card, PageHeader, Text, TextInput, TextLink } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
 import { HomeAbout } from "@/components/home/HomeAbout";
 import { MapSearchForm } from "@/components/home/MapSearchForm";
@@ -30,9 +29,7 @@ const countsLine = ({ pools, maps }: HomeCounts): ReactNode =>
   ) : (
     <>
       {`${pools} pools · ${maps} maps · `}
-      <Link href="/data#pools" className="underline transition-colors hover:text-c1">
-        where they come from
-      </Link>
+      <TextLink href="/data#pools">where they come from</TextLink>
     </>
   );
 
@@ -65,7 +62,9 @@ export function HomeScreen({ counts, recent = [], built = [] }: HomeScreenProps)
           <MapSearchForm />
         </Card>
         <Card title="Search past pools">
-          <p className="mb-3 text-c3 text-sm">{countsLine(counts)}</p>
+          <Text tone="muted" className="mb-3">
+            {countsLine(counts)}
+          </Text>
           {/* biome-ignore lint/a11y/useSemanticElements: the form is the landmark (older screen readers don't map <search>) */}
           <form
             action="/search"
@@ -109,7 +108,7 @@ export function HomeScreen({ counts, recent = [], built = [] }: HomeScreenProps)
                     <TextLink href={`/pools/${pool._id}`} variant="plain">
                       {pool.name}
                     </TextLink>
-                    <p className="text-c3 text-sm">{poolHeadline(pool)}</p>
+                    <Text tone="muted">{poolHeadline(pool)}</Text>
                   </li>
                 ))}
               </ul>

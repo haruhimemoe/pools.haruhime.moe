@@ -8,7 +8,7 @@
  * @modified Sun Oct 4, 2026
  */
 
-import { ButtonLink, TextLink } from "@haruhimemoe/ui";
+import { ButtonLink, TextLink, textClasses } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { VISIBILITY_TEXT } from "@/constants/built-pools";
 import type { PoolListItem, YourPools as Pools } from "@/services/built-pools";
@@ -19,7 +19,7 @@ function PoolList({ title, pools }: { title: string; pools: PoolListItem[] }) {
   if (pools.length === 0) return null;
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="font-bold text-c3 text-sm">{title}</h3>
+      <h3 className={textClasses({ tone: "muted", bold: true })}>{title}</h3>
       <ul className="flex flex-col">
         {pools.map((pool) => (
           <li
