@@ -5,21 +5,12 @@
  *       for the test to run.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { stubOsuAppEnv } from "@haruhimemoe/next-kit/testing";
 import { beforeEach, inject, vi } from "vitest";
 import { clearAfterTasks } from "../helpers/after";
-
-// TEMP(next-kit link): next-kit is linked via file:../next-kit and carries its own vitest, so its
-// ProvidedContext augmentation lands on another module instance. Repeating it keeps
-// inject("mongoUri") typed. Drop once next-kit is a registry dependency again.
-declare module "vitest" {
-  interface ProvidedContext {
-    mongoUri: string;
-  }
-}
 
 stubOsuAppEnv({ MONGODB_URI: inject("mongoUri") });
 // CI sets SKIP_ENV_VALIDATION for the whole job (for `next build`); integration tests use a real

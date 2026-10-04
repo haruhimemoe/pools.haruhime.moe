@@ -5,7 +5,7 @@
  *       @haruhimemoe packages sit at the versions pools is built and tested against.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -18,7 +18,7 @@ const SHARED: Readonly<Record<string, string>> = {
   "@haruhimemoe/ui": "0.9.0",
   "@haruhimemoe/osu": "0.4.0",
   "@haruhimemoe/hinai": "0.3.1",
-  "@haruhimemoe/next-kit": "0.4.0",
+  "@haruhimemoe/next-kit": "0.5.0",
   "@haruhimemoe/pool": "0.2.0",
   "@haruhimemoe/compliance": "0.1.1",
   "@haruhimemoe/brand": "0.6.0",

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- API keys: make an `hpl_` key on your account page and call `/api/v1/me` with it. The [API docs](https://pools.haruhime.moe/docs/api) page lists the endpoints. Keys and the `/api/v1` guard come from `@haruhimemoe/next-kit` 0.5.0, shared with packs and bb.
+
 ### Changed
 
 - Depends on `@haruhimemoe/ui` 0.9.0: the legal pages' MDX elements (links, heading anchors, the table wrapper, GitHub-style callouts) now come from its shared `mdxComponents` and `@haruhimemoe/ui/remark` instead of a local override; `src/mdx-components.tsx` is a thin pass-through. The legal content has no fenced code, so no shiki highlighter is wired in.
