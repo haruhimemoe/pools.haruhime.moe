@@ -5,7 +5,7 @@
  *       holds and a link to its editor; "Make a pool" goes to /new. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { ButtonLink, TextLink } from "@haruhimemoe/ui";
@@ -55,11 +55,7 @@ function PoolList({ title, pools }: { title: string; pools: PoolListItem[] }) {
  * @returns {JSX.Element} Your pools: each pool with its page and editor links, and Make a pool
  */
 export function YourPools({ owned, editing }: Pools) {
-  const make = (
-    <ButtonLink href="/new" className="self-start">
-      Make a pool
-    </ButtonLink>
-  );
+  const make = <ButtonLink href="/new">Make a pool</ButtonLink>;
   if (owned.length === 0 && editing.length === 0) {
     return (
       <div className="flex flex-col gap-3">

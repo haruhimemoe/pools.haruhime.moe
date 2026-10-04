@@ -9,7 +9,7 @@
  *       search as it was. A failure says so with Retry.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -103,7 +103,7 @@ export function SimilarMaps(props: SimilarMapsProps) {
       {status === "error" ? (
         <div className="flex flex-col gap-2">
           <Notice tone="error">{similar.message}</Notice>
-          <Button variant="secondary" className="self-start" onClick={similar.retry}>
+          <Button variant="secondary" onClick={similar.retry}>
             Retry
           </Button>
         </div>

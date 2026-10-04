@@ -9,7 +9,7 @@
  *       didn't change keep what the admin typed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -162,7 +162,7 @@ export function PoolEditForm({ poolId, initial }: { poolId: string; initial: Fie
         <option value="yes">Badged</option>
         <option value="no">Not badged</option>
       </Select>
-      <Button type="submit" className="self-start" disabled={pending}>
+      <Button type="submit" disabled={pending}>
         Save
       </Button>
       <output className="text-c2 text-sm" aria-live="polite">

@@ -10,7 +10,7 @@
  *       field.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -184,7 +184,7 @@ export function AddPoolForm() {
         error={errors.maps ?? errors.form}
         onChange={(event) => setMaps(event.target.value)}
       />
-      <Button type="submit" className="self-start" disabled={pending}>
+      <Button type="submit" disabled={pending}>
         Add pool
       </Button>
       <output className="text-c2 text-sm" aria-live="polite">

@@ -6,7 +6,7 @@
  *       the revealed key or the next button, and the outcome is announced in a polite live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Oct 3, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -139,7 +139,7 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
               copiedMessage="Key copied."
               failedMessage="Couldn't copy. Select the key and copy it by hand."
             />
-            <Button variant="ghost" className="self-start" onClick={saved}>
+            <Button variant="ghost" onClick={saved}>
               I've saved it
             </Button>
           </>
@@ -147,7 +147,6 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
           <Button
             ref={createButtonRef}
             variant="secondary"
-            className="self-start"
             onClick={() => create().catch(() => undefined)}
             disabled={busy}
           >

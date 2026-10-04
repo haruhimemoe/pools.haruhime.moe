@@ -5,7 +5,7 @@
  *       doesn't know, a repeat, the owner or an 11th editor is said under the field.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -75,7 +75,7 @@ export function AddEditorForm({ pool, editor, fetcher, onDone }: AddEditorFormPr
         error={error ?? undefined}
         onChange={(event) => setName(event.target.value)}
       />
-      <Button type="submit" variant="secondary" className="self-start" disabled={full || pending}>
+      <Button type="submit" variant="secondary" disabled={full || pending}>
         {pending ? "Adding…" : "Add editor"}
       </Button>
     </form>

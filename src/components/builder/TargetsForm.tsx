@@ -7,7 +7,7 @@
  *       Lists the targets the pool has.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -109,7 +109,7 @@ export function TargetsForm({ pool, change }: TargetsFormProps) {
           onChange={(event) => set("max")(event.target.value)}
         />
       </div>
-      <Button type="submit" variant="secondary" className="self-start">
+      <Button type="submit" variant="secondary">
         Save target
       </Button>
       {listed.length > 0 ? (

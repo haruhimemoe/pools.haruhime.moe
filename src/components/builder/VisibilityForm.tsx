@@ -6,7 +6,7 @@
  *       with packs' notice when going private couldn't remove the pack there yet.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -60,12 +60,7 @@ export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityForm
         onChange={setPicked}
       />
       {picked !== "private" ? <p className="text-c3 text-sm">{PACK_NOTE}</p> : null}
-      <Button
-        type="submit"
-        variant="secondary"
-        className="self-start"
-        disabled={pending || picked === pool.visibility}
-      >
+      <Button type="submit" variant="secondary" disabled={pending || picked === pool.visibility}>
         Save who can see it
       </Button>
       <output aria-live="polite" className="text-c2 text-sm">

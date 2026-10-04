@@ -9,7 +9,7 @@
  *       going there at once.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -67,7 +67,7 @@ export function DeletePoolForm({
         <p role="status" className="text-c2 text-sm">
           {`The pool is deleted. ${done}`.trim()}
         </p>
-        <ButtonLink href="/account#pools" variant="secondary" className="self-start">
+        <ButtonLink href="/account#pools" variant="secondary">
           Back to your pools
         </ButtonLink>
       </div>

@@ -6,7 +6,7 @@
  *       that the check is a guide, not a ruling. Nothing here stops a map from being used.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -44,12 +44,7 @@ export function ContentRulesCheck({ slots, rules }: ContentRulesCheckProps) {
       <p className="text-c2">
         Checks each map against the content rules for officially supported tournaments.
       </p>
-      <Button
-        variant="secondary"
-        className="self-start"
-        disabled={slots.length === 0}
-        onClick={run}
-      >
+      <Button variant="secondary" disabled={slots.length === 0} onClick={run}>
         {asked ? "Check again" : "Check the maps"}
       </Button>
       <p role="status" className="text-c3">

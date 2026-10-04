@@ -11,7 +11,7 @@
  *       pool keeps that pool's targets instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -129,7 +129,7 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
           ))}
         </Select>
       )}
-      <Button type="submit" className="self-start" disabled={pending}>
+      <Button type="submit" disabled={pending}>
         {pending ? "Making it…" : "Make the pool"}
       </Button>
       {failure ? (

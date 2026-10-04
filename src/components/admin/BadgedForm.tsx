@@ -4,7 +4,7 @@
  *       no year, when this one has none) or every year's.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -75,9 +75,7 @@ export function BadgedForm({
         <option value="yes">Badged</option>
         <option value="no">Not badged</option>
       </Select>
-      <Button type="submit" className="self-start">
-        Set badged
-      </Button>
+      <Button type="submit">Set badged</Button>
       <output className="text-c2 text-sm" aria-live="polite">
         {message}
       </output>

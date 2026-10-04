@@ -7,7 +7,7 @@
  *       fixed. A paste that applies clears the box.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -59,7 +59,7 @@ export function PasteBox({ change, lines }: PasteBoxProps) {
         <option value="merge">Add to the pool (a slot already there takes the pasted map)</option>
         <option value="replace">Replace every map in the pool</option>
       </Select>
-      <Button type="submit" variant="secondary" className="self-start">
+      <Button type="submit" variant="secondary">
         Paste maps
       </Button>
       {lines && lines.length > 0 ? (

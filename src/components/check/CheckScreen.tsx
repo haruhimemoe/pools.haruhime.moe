@@ -7,7 +7,7 @@
  *       answer. Never blocks anything, and always says it's a guide, not a ruling.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -52,9 +52,7 @@ export function CheckScreen({ rules }: { rules: Rules }) {
           onChange={(event) => setText(event.target.value)}
           rows={8}
         />
-        <Button type="submit" className="self-start">
-          Check
-        </Button>
+        <Button type="submit">Check</Button>
       </form>
       {input?.problems.map((problem) => (
         <Notice key={problem} tone="warning">
@@ -70,7 +68,7 @@ export function CheckScreen({ rules }: { rules: Rules }) {
           <Notice tone="error" live>
             {check.message}
           </Notice>
-          <Button variant="secondary" className="self-start" onClick={retry}>
+          <Button variant="secondary" onClick={retry}>
             Check again
           </Button>
         </>
@@ -79,7 +77,7 @@ export function CheckScreen({ rules }: { rules: Rules }) {
         <>
           <ComplianceSummary summary={summarizeCheck(check.result, ids)} />
           {check.result.unchecked.length > 0 ? (
-            <Button variant="secondary" className="self-start" onClick={retry}>
+            <Button variant="secondary" onClick={retry}>
               Check again
             </Button>
           ) : null}

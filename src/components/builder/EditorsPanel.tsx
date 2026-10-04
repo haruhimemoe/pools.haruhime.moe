@@ -7,7 +7,7 @@
  *       announced.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -91,7 +91,6 @@ export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: Edit
       {pool.access.isEditor ? (
         <Button
           variant="secondary"
-          className="self-start"
           disabled={pending}
           onClick={() => remove({ osuId: me, username: "you" })}
         >

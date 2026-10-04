@@ -6,7 +6,7 @@
  *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { Button, Notice } from "@haruhimemoe/ui";
@@ -55,7 +55,7 @@ export function SaveState(props: SaveStateProps) {
         </Notice>
       ) : null}
       {conflict || failure ? (
-        <Button variant="ghost" className="self-start" onClick={onDismiss}>
+        <Button variant="ghost" onClick={onDismiss}>
           Dismiss
         </Button>
       ) : null}

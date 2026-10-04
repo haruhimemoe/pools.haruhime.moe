@@ -7,7 +7,7 @@
  *       and says which difficulty.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -64,7 +64,6 @@ export function AddAsCandidate(props: AddAsCandidateProps) {
       <Button
         ref={button}
         variant="ghost"
-        className="self-start"
         aria-label={`Add as candidate: ${version}`}
         aria-expanded={open}
         onClick={() => {

@@ -6,7 +6,7 @@
  *       under its field. An empty custom bucket is removed from its own section.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -100,7 +100,7 @@ export function CustomBucketForm({ pool, change }: CustomBucketFormProps) {
           ) : null}
         </div>
       ) : null}
-      <Button type="submit" variant="secondary" className="self-start">
+      <Button type="submit" variant="secondary">
         Add slot
       </Button>
     </form>

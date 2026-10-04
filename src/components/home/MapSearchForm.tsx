@@ -5,7 +5,7 @@
  *       submits to /search?tab=maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -45,9 +45,7 @@ export function MapSearchForm() {
         onChange={(event) => setQuery(event.target.value)}
         autoComplete="off"
       />
-      <Button type="submit" className="self-start">
-        Search maps
-      </Button>
+      <Button type="submit">Search maps</Button>
     </form>
   );
 }

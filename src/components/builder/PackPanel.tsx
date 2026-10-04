@@ -9,7 +9,7 @@
  *       taken as the new state and announced; a refusal is said.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -77,7 +77,7 @@ export function PackPanel({ pool, editor, fetcher = fetch }: PackPanelProps) {
         </a>
       ) : null}
       {canUpdate ? (
-        <Button variant="secondary" className="self-start" disabled={pending} onClick={update}>
+        <Button variant="secondary" disabled={pending} onClick={update}>
           {pending ? "Updating…" : "Update pack now"}
         </Button>
       ) : null}

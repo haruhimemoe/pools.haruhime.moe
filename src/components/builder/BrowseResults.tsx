@@ -8,7 +8,7 @@
  *       where mod values come from. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 "use client";
@@ -59,7 +59,7 @@ export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) 
     return (
       <div className="flex flex-col gap-2">
         <Notice tone="error">{error}</Notice>
-        <Button variant="secondary" className="self-start" onClick={browse.retry}>
+        <Button variant="secondary" onClick={browse.retry}>
           Retry
         </Button>
       </div>

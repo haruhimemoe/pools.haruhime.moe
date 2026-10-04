@@ -9,7 +9,7 @@
  *       there are none, and last What pools is and the questions (HomeAbout).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { Button, ButtonLink, Card, PageHeader, TextInput, TextLink } from "@haruhimemoe/ui";
@@ -81,7 +81,7 @@ export function HomeScreen({ counts, recent = [], built = [] }: HomeScreenProps)
               label="Tournament, round or pool name"
               autoComplete="off"
             />
-            <Button type="submit" variant="secondary" className="self-start">
+            <Button type="submit" variant="secondary">
               Search pools
             </Button>
           </form>
