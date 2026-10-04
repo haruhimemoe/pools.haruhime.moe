@@ -1,14 +1,17 @@
 /**
  * @file src/constants/llms.ts
- * @desc llms.txt copy: the notes a reader needs first, the site's pages with what each does,
+ * @desc llms.txt copy: the notes a reader needs first, the site's pages with what each does, the API
+ *       section's OpenAPI link,
  *       the About links (source, vulnerability reports, security.txt) and the other
  *       haruhime.moe tools, each with its own llms.txt.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
+import type { ContentApiLink } from "@haruhimemoe/next-kit/docs";
 import type { LlmsLink } from "@haruhimemoe/next-kit/seo";
+import { OPENAPI_PATH } from "@/constants/api";
 import { SITE } from "@/constants/site";
 
 const at = (path: string): string => `${SITE.url}${path}`;
@@ -24,14 +27,9 @@ export const LLMS_NOTES: readonly string[] = [
   "A small public API answers with an hpl_ key from the account page; see /docs/api. /llms-full.txt lists every current past pool, every public pool built here and the most used maps.",
 ];
 
-/** The public API's docs and OpenAPI document. */
-export const LLMS_API: readonly LlmsLink[] = [
-  {
-    title: "API docs",
-    url: at("/docs/api"),
-    note: "The public API: hpl_ keys from the account page, rate limits, and GET /api/v1/me.",
-  },
-  { title: "OpenAPI", url: at("/api/v1/openapi.json"), note: "the API as an OpenAPI 3.1 document" },
+/** The llms.txt API section: the OpenAPI document (the docs page is under Docs). */
+export const LLMS_API: readonly ContentApiLink[] = [
+  { title: "OpenAPI", url: at(OPENAPI_PATH), note: "the API as an OpenAPI 3.1 document" },
 ];
 
 /** The site's pages, with what each does. */

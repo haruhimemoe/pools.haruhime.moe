@@ -7,7 +7,7 @@
  *       short daily text route linking /llms-full.txt, which lists every pool and the maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -82,7 +82,10 @@ describe("sitemap.xml", () => {
       "https://pools.haruhime.moe/submit",
       "https://pools.haruhime.moe/data",
       "https://pools.haruhime.moe/credits",
+      "https://pools.haruhime.moe/brand",
+      "https://pools.haruhime.moe/docs",
       "https://pools.haruhime.moe/docs/api",
+      "https://pools.haruhime.moe/legal",
       "https://pools.haruhime.moe/legal/disclaimer",
       "https://pools.haruhime.moe/legal/privacy",
       "https://pools.haruhime.moe/legal/terms",
@@ -93,14 +96,15 @@ describe("sitemap.xml", () => {
   });
 
   it("gives lastmod only where there's a real date", async () => {
-    const { LEGAL_DOCS } = await import("@/constants/legal");
+    const { CONTENT } = await import("@/constants/content");
+    const terms = CONTENT.entries.legal.find((e) => e.slug === "terms");
     const entries = await (await import("@/app/sitemap")).default();
     const lastmod = Object.fromEntries(entries.map((entry) => [entry.url, entry.lastModified]));
     expect(lastmod["https://pools.haruhime.moe/"]).toBeUndefined();
     expect(lastmod["https://pools.haruhime.moe/maps/129891"]).toBeUndefined();
     expect(lastmod["https://pools.haruhime.moe/pools/otdb-657"]).toBe(DATE.toISOString());
     expect(lastmod["https://pools.haruhime.moe/legal/terms"]).toBe(
-      new Date(LEGAL_DOCS.terms.lastUpdated).toISOString(),
+      new Date(terms?.lastUpdated ?? "").toISOString(),
     );
   });
 });
@@ -122,8 +126,10 @@ describe("llms.txt", () => {
     const route = await import("@/app/llms-full.txt/route");
     expect(route.revalidate).toBe(86_400);
     const response = await route.GET();
-    expect(response.headers.get("content-type")).toBe("text/plain; charset=utf-8");
+    expect(response.headers.get("content-type")).toBe("text/markdown; charset=utf-8");
     const text = await response.text();
+    expect(text).toContain("# API\n\nSource: https://pools.haruhime.moe/docs/api");
+    expect(text).toContain("# Terms\n\nSource: https://pools.haruhime.moe/legal/terms");
     expect(text).toContain("https://pools.haruhime.moe/pools/otdb-657");
     expect(text).toContain("https://pools.haruhime.moe/maps/129891");
     expect(listListedMaps).toHaveBeenCalledWith(500);

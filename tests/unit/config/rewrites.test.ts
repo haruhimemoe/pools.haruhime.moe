@@ -8,9 +8,10 @@
  *       and the rewrite's source never matches the internal path, so there's no loop.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Sun Oct 4, 2026
  */
 
+import { contentRewrites } from "@haruhimemoe/next-kit/docs";
 import { getPathMatch } from "next/dist/shared/lib/router/utils/path-match";
 import { describe, expect, it } from "vitest";
 import nextConfig from "../../../next.config";
@@ -38,7 +39,7 @@ describe("rewrites", () => {
     const rewrites = await nextConfig.rewrites?.();
     expect(rewrites).toEqual({
       beforeFiles: [{ source: "/pools/:id(b-[^/]+)", destination: "/pools/built/:id" }],
-      afterFiles: [],
+      afterFiles: contentRewrites(),
       fallback: [],
     });
   });

@@ -1,0 +1,35 @@
+A small API for scripts and bots. Every call needs a key from your account page. It's JSON over HTTPS at `https://pools.haruhime.moe/api/v1`.
+
+## Authentication
+
+Make a key on your [account page](/account). It starts with `hpl_` and is shown once. Send it on every call:
+
+```
+Authorization: Bearer hpl_…
+```
+
+A missing, revoked or replaced key gets a 401. Regenerating a key stops the old one at once.
+
+## Limits
+
+- Requests: 60 a minute, per key owner.
+- Writes (`POST`, `PUT`, `PATCH`, `DELETE`): 10 a minute, per key owner.
+- Failed calls (missing or bad key): 20 a minute, per IP.
+
+Every answer carries `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset`. Over the limit you get a 429 with `Retry-After`.
+
+## GET /api/v1/me
+
+Who the key belongs to.
+
+```sh
+curl -H "Authorization: Bearer hpl_…" https://pools.haruhime.moe/api/v1/me
+```
+
+```json
+{ "user": { "id": "…", "osuId": 2, "username": "peppy" } }
+```
+
+## OpenAPI
+
+The same, as an OpenAPI 3.1 document: [/api/v1/openapi.json](/api/v1/openapi.json).

@@ -15,12 +15,16 @@
  *       deletion, dated 2026-09-27). No em dashes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { readFileSync } from "node:fs";
+import { findEntry } from "@haruhimemoe/next-kit/docs";
 import { describe, expect, it } from "vitest";
-import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
+import { CONTENT } from "@/constants/content";
+
+const LEGAL_SLUGS = CONTENT.entries.legal.map((e) => e.slug);
+const updated = (slug: string) => findEntry(CONTENT, "legal", slug)?.lastUpdated;
 
 const read = (slug: string) => readFileSync(`content/legal/${slug}.mdx`, "utf8");
 
@@ -98,9 +102,9 @@ describe("legal pages", () => {
   });
 
   it("dates the privacy page (editor v2.1), disclaimer (similar maps) and terms from their last change", () => {
-    expect(LEGAL_DOCS.privacy.lastUpdated).toBe("2026-09-28");
-    expect(LEGAL_DOCS.disclaimer.lastUpdated).toBe("2026-09-28");
-    expect(LEGAL_DOCS.terms.lastUpdated).toBe("2026-09-27");
+    expect(updated("privacy")).toBe("2026-09-28");
+    expect(updated("disclaimer")).toBe("2026-09-28");
+    expect(updated("terms")).toBe("2026-09-27");
   });
 
   it("says what similar maps are and that the mirror is asked for them", () => {

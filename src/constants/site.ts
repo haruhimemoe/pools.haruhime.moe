@@ -5,11 +5,12 @@
  *       haruhime tools), the home page's builder line, the affiliation notice, the User-Agent our server sends, and sign-in's marker and landing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
+import { contentPath } from "@haruhimemoe/next-kit/docs";
 import type { SiteFooterColumn } from "@haruhimemoe/ui";
-import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
+import { CONTENT } from "@/constants/content";
 
 /** The site's name, URL, description (the meta description, 160 characters at most) and links. */
 export const SITE = {
@@ -88,6 +89,9 @@ export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
   },
   {
     title: "Legal",
-    items: LEGAL_SLUGS.map((slug) => ({ href: `/legal/${slug}`, label: LEGAL_DOCS[slug].title })),
+    items: CONTENT.entries.legal.map(({ slug, title }) => ({
+      href: contentPath("legal", slug),
+      label: title,
+    })),
   },
 ];

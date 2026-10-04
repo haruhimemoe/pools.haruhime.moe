@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `/brand`: the pools name, logos, colors and type with the files to download, from `@haruhimemoe/brand` 0.7.0's `brandPageData("pools")` rendered by `@haruhimemoe/ui` 0.11.0's `BrandPage`.
+- `/docs` and `/legal` index pages with a section nav, and a Markdown copy of every docs and legal page at `<page>.md` (a "Copy as Markdown" button on each page).
+
+### Changed
+
+- Docs and legal pages share one content registry (`src/constants/content.ts`, `@haruhimemoe/next-kit` 0.6.1's `defineContent`), the same layout packs uses. The API docs moved from a TSX page to `content/docs/api.mdx`; `/docs/api` keeps its URL. Legal page titles now read "pools Terms" and so on.
+- `/llms.txt` lists Docs, API and Legal from the registry, each page linking its `.md` copy, before the pages and pools. `/llms-full.txt` is now Markdown with the text of every docs and legal page, then the full lists.
+- The sitemap adds `/brand`, `/docs` and `/legal`.
+
 ## [0.1.0] - 2026-10-04
 
 ### Added

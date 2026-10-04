@@ -9,7 +9,7 @@
  *       links /llms-full.txt and the other haruhime.moe tools, and lists no maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -54,8 +54,8 @@ describe("buildLlmsTxt", () => {
     expect(text).toContain(
       "- [xi - FREEDOM DiVE \\[FOUR DIMENSIONS\\]](https://pools.haruhime.moe/maps/129891): Used in 3 pools \\(latest 2023\\)",
     );
-    expect(text).toContain("- [Privacy](https://pools.haruhime.moe/legal/privacy)");
-    expect(text).toContain("- [Terms](https://pools.haruhime.moe/legal/terms)");
+    expect(text).toContain("- [Privacy](https://pools.haruhime.moe/legal/privacy.md)");
+    expect(text).toContain("- [Terms](https://pools.haruhime.moe/legal/terms.md)");
     expect(text).toContain(
       "- [Report a vulnerability](https://github.com/haruhimemoe/pools.haruhime.moe/security/advisories/new): ",
     );

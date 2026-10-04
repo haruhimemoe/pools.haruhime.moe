@@ -1,21 +1,23 @@
 /**
  * @file next.config.ts
- * @desc Next.js config: MDX page extensions (the legal pages), strict mode, unoptimized images
+ * @desc Next.js config: MDX page extensions (the docs and legal pages), strict mode, unoptimized images
  *       (every raster is an osu! CDN asset we never transform), security headers on every route
  *       (no framing, no MIME sniffing, a trimmed Referer, images only from here, data: URIs and
  *       osu!'s hosts, media only from osu!'s; a full CSP needs nonces and comes later), no X-Powered-By, and built pools' pages: /pools/<b- id> is served by
  *       /pools/built/[id], which reads the session, while past pools stay cookie-free ISR. The
  *       internal path itself redirects (308) to /pools/<id>: redirects match the incoming path
- *       before rewrites run, so only a direct request for it is sent back.
+ *       before rewrites run, so only a direct request for it is sent back. Each docs and legal
+ *       page's Markdown mirror is served at <path>.md (next-kit's contentRewrites).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
+import { contentRewrites } from "@haruhimemoe/next-kit/docs";
 import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
-// Turbopack only takes MDX plugins as module names, not imported functions. The legal pages
+// Turbopack only takes MDX plugins as module names, not imported functions. The content pages
 // have no pipe tables, so remark-gfm isn't pinned.
 const withMDX = createMDX({
   extension: /\.mdx?$/,
@@ -64,7 +66,9 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return {
       beforeFiles: [{ source: "/pools/:id(b-[^/]+)", destination: "/pools/built/:id" }],
-      afterFiles: [],
+      // A dynamic segment can't end in ".md", so each content page's Markdown route lives one
+      // level down (/docs/x.md and /legal/x.md to .../x/md).
+      afterFiles: [...contentRewrites()],
       fallback: [],
     };
   },

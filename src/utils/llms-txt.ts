@@ -4,8 +4,8 @@
  *       one-paragraph summary, the notes a reader needs first (building a pool first; past pools
  *       as reference, from otdb, tournament hosts and community members; star ratings with mods
  *       from the mirror; packs for past and built pools and no file hosting; every osu! map
- *       searchable; sending a pool; beta; the check is guidance; no API), then the pages (Make a
- *       pool among them). /llms.txt stays short: the latest LLMS_SHORT_POOLS past pools and
+ *       searchable; sending a pool; beta; the check is guidance; no API), then Docs, API and Legal
+ *       from the content registry, then the pages (Make a pool among them). /llms.txt stays short: the latest LLMS_SHORT_POOLS past pools and
  *       public built pools, a link to the full lists, the legal pages, the source, and the other
  *       haruhime.moe tools. /llms-full.txt lists every current past pool, every public built
  *       pool with who built it and the most used maps. Link notes come from sources and
@@ -13,12 +13,14 @@
  *       nothing in them are left out. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
+import { contentLlmsTxt } from "@haruhimemoe/next-kit/docs";
 import { llmsTxt } from "@haruhimemoe/next-kit/seo";
-import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
+import { CONTENT } from "@/constants/content";
 import { LLMS_ABOUT, LLMS_API, LLMS_NOTES, LLMS_PAGES, LLMS_TOOLS } from "@/constants/llms";
+import { SEO_SITE } from "@/constants/seo";
 import { SITE } from "@/constants/site";
 import { mapLabel } from "@/utils/map-record";
 import { builtHeadline, poolHeadline } from "@/utils/pool-text";
@@ -104,12 +106,6 @@ const builtLinks = (built: readonly LlmsBuiltPool[]): LlmsLink[] =>
     note: escapeLinkText(builtLine(pool)),
   }));
 
-const LEGAL_LINKS: readonly LlmsLink[] = LEGAL_SLUGS.map((slug) => ({
-  title: LEGAL_DOCS[slug].title,
-  url: at(`/legal/${slug}`),
-  note: LEGAL_DOCS[slug].description,
-}));
-
 /** What llms.txt is given: current past pools, public built pools and the most used maps. */
 export type LlmsData = {
   pools: readonly LlmsPool[];
@@ -121,7 +117,7 @@ export type LlmsData = {
  * @function llmsSections
  * @param data {LlmsData} current past pools (newest year first), public built pools (newest
  *        change first) and the most used maps
- * @returns {LlmsSection[]} the full lists: Pages, Pools, Built pools, Maps, Legal, About,
+ * @returns {LlmsSection[]} the full lists: Pages, Pools, Built pools, Maps, About,
  *          haruhime.moe tools
  */
 export const llmsSections = ({ pools, built = [], maps }: LlmsData): LlmsSection[] => [
@@ -136,8 +132,6 @@ export const llmsSections = ({ pools, built = [], maps }: LlmsData): LlmsSection
       note: escapeLinkText(usageSummary(map.usage)),
     })),
   },
-  { heading: "API", links: LLMS_API },
-  { heading: "Legal", links: LEGAL_LINKS },
   { heading: "About", links: LLMS_ABOUT },
   { heading: "haruhime.moe tools", links: LLMS_TOOLS },
 ];
@@ -146,7 +140,7 @@ export const llmsSections = ({ pools, built = [], maps }: LlmsData): LlmsSection
  * @function shortLlmsSections
  * @param data {Omit<LlmsData, "maps">} current past pools and public built pools
  * @returns {LlmsSection[]} the short index: Pages, the latest LLMS_SHORT_POOLS past and built
- *          pools, a link to /llms-full.txt, Legal, About, haruhime.moe tools
+ *          pools, a link to /llms-full.txt, About, haruhime.moe tools
  */
 export const shortLlmsSections = ({ pools, built = [] }: Omit<LlmsData, "maps">): LlmsSection[] => [
   { heading: "Pages", links: LLMS_PAGES },
@@ -163,20 +157,36 @@ export const shortLlmsSections = ({ pools, built = [] }: Omit<LlmsData, "maps">)
       { title: "Sitemap", url: at("/sitemap.xml"), note: "every indexed page" },
     ],
   },
-  { heading: "API", links: LLMS_API },
-  { heading: "Legal", links: LEGAL_LINKS },
   { heading: "About", links: LLMS_ABOUT },
   { heading: "haruhime.moe tools", links: LLMS_TOOLS },
 ];
 
 /**
- * @function buildLlmsTxt
+ * @function llmsSectionsMarkdown
  * @param sections {readonly LlmsSection[]} link sections
+ * @returns {string} just the sections, in llms.txt form (next-kit's llmsTxt escaping), each
+ *          after a blank line; empty sections left out, "" when all are
+ */
+export const llmsSectionsMarkdown = (sections: readonly LlmsSection[]): string =>
+  llmsTxt({ title: "-", summary: "-", sections }).split("\n").slice(3).join("\n");
+
+/**
+ * @function buildLlmsTxt
+ * @param sections {readonly LlmsSection[]} pools' own link sections, after the registry's
  * @param notes {readonly string[]} paragraphs between the summary and the sections
- * @returns {string} the llms.txt body (title, summary, notes, non-empty sections), ending in
- *          one newline
+ * @returns {string} the llms.txt body: title, summary and notes, then Docs, API and Legal from
+ *          the content registry (next-kit's contentLlmsTxt, each page linking its .md mirror),
+ *          then the non-empty sections given; ending in one newline
  */
 export const buildLlmsTxt = (
   sections: readonly LlmsSection[],
   notes: readonly string[] = LLMS_NOTES,
-): string => llmsTxt({ title: SITE.title, summary: SITE.description, notes, sections });
+): string =>
+  `${contentLlmsTxt({
+    site: SEO_SITE,
+    title: SITE.title,
+    summary: SITE.description,
+    notes,
+    content: CONTENT,
+    api: LLMS_API,
+  }).replace(/\n$/, "")}\n${llmsSectionsMarkdown(sections)}`;

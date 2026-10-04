@@ -7,7 +7,7 @@
  *       without a lookup.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -41,7 +41,9 @@ const PUBLIC_PAGES = [
   "src/app/credits/page.tsx",
   "src/app/data/page.tsx",
   "src/app/submit/page.tsx",
-  "src/app/legal/[doc]/page.tsx",
+  "src/app/legal/[slug]/page.tsx",
+  "src/app/docs/[slug]/page.tsx",
+  "src/app/brand/page.tsx",
   "src/app/search/page.tsx",
   "src/app/check/page.tsx",
 ];

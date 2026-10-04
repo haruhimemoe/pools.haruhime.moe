@@ -7,7 +7,7 @@
  *       /search default state's common starts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { HARUHIME_ORG, type Site } from "@haruhimemoe/next-kit/seo";
@@ -58,11 +58,6 @@ export const PAGE_SEO = {
     title: "Where pool and map data comes from",
     description:
       "Where the past pools and map details on pools come from, how star ratings with mods and the content rules check work, and how to send a correction.",
-  },
-  "/docs/api": {
-    title: "pools API",
-    description:
-      "The pools.haruhime.moe API for scripts and bots: hpl_ keys from your account page, the rate limits, GET /api/v1/me with a curl example and the OpenAPI document.",
   },
   "/credits": {
     title: "Credits",
