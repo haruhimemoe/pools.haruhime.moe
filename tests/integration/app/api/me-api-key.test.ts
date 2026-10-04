@@ -7,12 +7,20 @@
  * @modified Sat Oct 3, 2026
  */
 
-import { type ApiKeyCreated, hashApiKey } from "@haruhimemoe/next-kit/api-keys";
+import { API_SERVER_ERROR, type ApiKeyCreated, hashApiKey } from "@haruhimemoe/next-kit/api-keys";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DELETE, GET, POST } from "@/app/api/me/api-key/route";
 import { apiKeys } from "@/lib/api-keys";
 import { createTestUser } from "../../../helpers/auth";
 import { setupTestDb } from "../../../helpers/db";
+
+vi.mock("@/lib/api-keys", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api-keys")>();
+  return {
+    ...actual,
+    apiKeys: { ...actual.apiKeys, info: vi.fn(actual.apiKeys.info) },
+  };
+});
 
 setupTestDb();
 afterEach(() => vi.useRealTimers());
@@ -119,5 +127,34 @@ describe("/api/me/api-key", () => {
       }
     }
     expect(await owner(key)).toBe(user.id);
+  });
+
+  it("carries no-store on the 401, 403, and 404 answers", async () => {
+    const signedOut = await read();
+    expect(signedOut.status).toBe(401);
+    expect(signedOut.headers.get("Cache-Control")).toBe("no-store");
+
+    const user = await createTestUser(2);
+    const crossSite = await POST(request("POST", user.cookie, { origin: "https://evil.test" }));
+    expect(crossSite.status).toBe(403);
+    expect(crossSite.headers.get("Cache-Control")).toBe("no-store");
+
+    const notFound = await revoke(user.cookie);
+    expect(notFound.status).toBe(404);
+    expect(notFound.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("answers a JSON 500 with no-store when the store throws", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const user = await createTestUser(2);
+    vi.mocked(apiKeys.info).mockRejectedValueOnce(new Error("mongo down"));
+    const response = await read(user.cookie);
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: { code: "internal_error", message: API_SERVER_ERROR },
+    });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(consoleError).toHaveBeenCalledWith("api-key: request failed", expect.any(Error));
+    consoleError.mockRestore();
   });
 });
