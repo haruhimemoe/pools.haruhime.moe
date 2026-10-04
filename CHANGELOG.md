@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Depends on `@haruhimemoe/ui` 0.9.0: the legal pages' MDX elements (links, heading anchors, the table wrapper, GitHub-style callouts) now come from its shared `mdxComponents` and `@haruhimemoe/ui/remark` instead of a local override; `src/mdx-components.tsx` is a thin pass-through. The legal content has no fenced code, so no shiki highlighter is wired in.
 - `/data`'s first two sections are headed "Pool data" and "Map data", as the footer links read; a section named "Pools" doubled the footer's pools column for screen readers.
 - Depends on `@haruhimemoe/ui` 0.7.0, its accessibility release: one footer nav with headed columns, field errors read as polite status messages instead of alerts, a visible focus ring on fields, 24px slider thumbs and chips, lighter accent links, and beatmap stats that read their full names ("Circle size") to screen readers.
 

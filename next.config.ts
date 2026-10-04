@@ -9,13 +9,18 @@
  *       before rewrites run, so only a direct request for it is sent back.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
-const withMDX = createMDX({ extension: /\.mdx?$/ });
+// Turbopack only takes MDX plugins as module names, not imported functions. The legal pages
+// have no pipe tables, so remark-gfm isn't pinned.
+const withMDX = createMDX({
+  extension: /\.mdx?$/,
+  options: { remarkPlugins: ["@haruhimemoe/ui/remark"] },
+});
 
 /**
  * frame-ancestors (with X-Frame-Options for older browsers) stops clickjacking. Images load from

@@ -1,33 +1,22 @@
 /**
  * @file src/mdx-components.tsx
- * @desc Global MDX element overrides (required by @next/mdx in the App Router): internal links
- *       use next/link, external http(s) links open in a new tab without an opener.
+ * @desc Global MDX element overrides (required by @next/mdx in the App Router): the legal
+ *       pages' links, headings, tables and callouts come from @haruhimemoe/ui/mdx's shared
+ *       mdxComponents (internal links via next/link, external http(s) links in a new tab,
+ *       heading anchors, a focusable named table wrapper, GitHub-style callouts); content has
+ *       no fenced code, so no shiki highlighter is registered.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
+import { mdxComponents } from "@haruhimemoe/ui/mdx";
 import type { MDXComponents } from "mdx/types";
-import Link from "next/link";
-
-const components: MDXComponents = {
-  a: ({ href = "", children }) => {
-    if (href.startsWith("/")) return <Link href={href}>{children}</Link>;
-    if (href.startsWith("http")) {
-      return (
-        <a href={href} target="_blank" rel="noopener noreferrer">
-          {children}
-        </a>
-      );
-    }
-    return <a href={href}>{children}</a>;
-  },
-};
 
 /**
  * @function useMDXComponents
  * @returns {MDXComponents} the legal pages' elements, styled like the rest of the site
  */
 export function useMDXComponents(): MDXComponents {
-  return components;
+  return { ...mdxComponents };
 }
