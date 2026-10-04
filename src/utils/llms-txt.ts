@@ -13,12 +13,12 @@
  *       nothing in them are left out. Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { llmsTxt } from "@haruhimemoe/next-kit/seo";
 import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
-import { LLMS_ABOUT, LLMS_NOTES, LLMS_PAGES, LLMS_TOOLS } from "@/constants/llms";
+import { LLMS_ABOUT, LLMS_API, LLMS_NOTES, LLMS_PAGES, LLMS_TOOLS } from "@/constants/llms";
 import { SITE } from "@/constants/site";
 import { mapLabel } from "@/utils/map-record";
 import { builtHeadline, poolHeadline } from "@/utils/pool-text";
@@ -136,6 +136,7 @@ export const llmsSections = ({ pools, built = [], maps }: LlmsData): LlmsSection
       note: escapeLinkText(usageSummary(map.usage)),
     })),
   },
+  { heading: "API", links: LLMS_API },
   { heading: "Legal", links: LEGAL_LINKS },
   { heading: "About", links: LLMS_ABOUT },
   { heading: "haruhime.moe tools", links: LLMS_TOOLS },
@@ -162,6 +163,7 @@ export const shortLlmsSections = ({ pools, built = [] }: Omit<LlmsData, "maps">)
       { title: "Sitemap", url: at("/sitemap.xml"), note: "every indexed page" },
     ],
   },
+  { heading: "API", links: LLMS_API },
   { heading: "Legal", links: LEGAL_LINKS },
   { heading: "About", links: LLMS_ABOUT },
   { heading: "haruhime.moe tools", links: LLMS_TOOLS },

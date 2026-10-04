@@ -4,7 +4,7 @@
  *       shared path aliases, v8 coverage with a 90% floor on src/utils and src/schemas.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import path from "node:path";
@@ -16,6 +16,20 @@ const root = import.meta.dirname;
 export default defineConfig({
   plugins: [react()],
   resolve: {
+    // TEMP(next-kit link): file:../next-kit brings its own node_modules (React, Next, the MongoDB
+    // driver, Mongoose, better-auth, ui). One copy each, or hooks see a null dispatcher and
+    // ObjectIds fail instanceof checks. Drop once next-kit is a registry dependency again.
+    dedupe: [
+      "react",
+      "react-dom",
+      "next",
+      "mongodb",
+      "mongoose",
+      "bson",
+      "better-auth",
+      "@better-auth/mongo-adapter",
+      "@haruhimemoe/ui",
+    ],
     alias: {
       "@": path.resolve(root, "src"),
       "@content": path.resolve(root, "content"),

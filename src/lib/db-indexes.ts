@@ -5,16 +5,17 @@
  *       user per osu! id, one account per osu! link, one session per token, sessions by user,
  *       and the session TTL, so MongoDB deletes a sign-in session about a minute after it
  *       expires, as the privacy page says), the TTL on rate-limit counters, the 24-hour TTL on
- *       cached beatmapset facts and their difficulty-id index, and pack_cleanup's due time. A
- *       unique index over duplicate rows is skipped and logged (the duplicate osu! ids and links
+ *       cached beatmapset facts and their difficulty-id index, pack_cleanup's due time, and
+ *       api_keys' (next-kit's apiKeyIndexSpecs). A unique index over duplicate rows is skipped and logged (the duplicate osu! ids and links
  *       named, a session token never). Pool, map and import indexes live on their Mongoose
  *       schemas (src/models).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import "server-only";
+import { apiKeyIndexSpecs } from "@haruhimemoe/next-kit/api-keys";
 import { AUTH_INDEX_SPECS } from "@haruhimemoe/next-kit/auth";
 import {
   ensureIndexes as buildIndexes,
@@ -41,6 +42,7 @@ export const RAW_INDEXES: readonly IndexSpec[] = [
   ttlIndex(SET_FACTS_COLLECTION, "fetchedAt", SET_FACTS_TTL_SECONDS, SET_FACTS_TTL_INDEX),
   { collection: SET_FACTS_COLLECTION, key: { beatmapIds: 1 }, name: SET_FACTS_BEATMAPS_INDEX },
   { collection: PACK_CLEANUP_COLLECTION, key: { nextAt: 1 } },
+  ...apiKeyIndexSpecs(),
 ];
 
 /**

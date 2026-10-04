@@ -1,6 +1,7 @@
 /**
  * @file src/services/account.ts
- * @desc Deleting an account, which a packs outage never blocks. First the pools: each pool they
+ * @desc Deleting an account, which a packs outage never blocks. First the API key (so no API
+ *       call acts for the account meanwhile), then the pools: each pool they
  *       own goes, its pack on packs removed, or the removal queued when packs can't be asked
  *       (after the first failure the rest are queued without asking, so a packs outage can't
  *       hold the request past its time), then they're taken off every pool they edit (whose
@@ -10,15 +11,19 @@
  *       every session (so no cookie works again), every linked osu! account row, and the user
  *       last. A failure partway leaves a user row that the next osu! sign-in relinks
  *       (src/lib/auth.ts), so they can sign in and try again. Sessions, accounts and the user go
- *       through better-auth's own adapter, which knows how it stores ids.
+ *       through better-auth's own adapter, which knows how it stores ids. Last, the user's API
+ *       rate-limit counters (api, api-write, key-create).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import "server-only";
+import { RATE_LIMITS } from "@/constants/api";
+import { apiKeys } from "@/lib/api-keys";
 import { getAuth } from "@/lib/auth";
 import { connectDb } from "@/lib/db";
+import { limiter } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { SlotCandidates } from "@/schemas/built-candidates";
 import type { SessionUser } from "@/schemas/session-user";
@@ -110,10 +115,16 @@ export const deleteAccount = async (
   user: Pick<SessionUser, "id" | "osuId">,
 ): Promise<{ packRemovalsQueued: number }> => {
   await connectDb();
+  // The API key goes first, so no API call can act for the account while it is deleted.
+  await apiKeys.deleteFor(user.id);
   const pools = await removeUserFromBuiltPools(user);
   const { internalAdapter } = await getAuth().$context;
   await internalAdapter.deleteUserSessions(user.id);
   await internalAdapter.deleteAccounts(user.id);
   await internalAdapter.deleteUser(user.id);
+  await limiter.deleteSubject(
+    [RATE_LIMITS.api, RATE_LIMITS.apiWrite, RATE_LIMITS.keyCreate],
+    user.id,
+  );
   return pools;
 };

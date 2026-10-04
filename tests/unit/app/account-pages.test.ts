@@ -9,21 +9,25 @@
  *       when that pool is there to copy. None is indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getCurrentUser, requireUser, listBuiltPoolsFor, startPreview } = vi.hoisted(() => ({
-  getCurrentUser: vi.fn(),
-  requireUser: vi.fn(),
-  listBuiltPoolsFor: vi.fn(),
-  startPreview: vi.fn(),
-}));
+const { getCurrentUser, requireUser, listBuiltPoolsFor, startPreview, apiKeyInfo } = vi.hoisted(
+  () => ({
+    getCurrentUser: vi.fn(),
+    requireUser: vi.fn(),
+    listBuiltPoolsFor: vi.fn(),
+    startPreview: vi.fn(),
+    apiKeyInfo: vi.fn(async () => null),
+  }),
+);
 vi.mock("@/lib/auth-session", () => ({ getCurrentUser, requireUser }));
 vi.mock("@/services/built-pools", () => ({ listBuiltPoolsFor }));
 vi.mock("@/services/built-pool-create", () => ({ startPreview }));
+vi.mock("@/lib/api-keys", () => ({ apiKeys: { info: apiKeyInfo } }));
 vi.mock("@/lib/auth-client", () => ({ authClient: {} }));
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),

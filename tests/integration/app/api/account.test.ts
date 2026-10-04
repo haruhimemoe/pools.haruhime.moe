@@ -3,7 +3,7 @@
  * @desc DELETE /api/account: a visitor gets 401; a request from another site is refused; the body
  *       must be JSON, strict, and name the caller's own osu! username (the typed confirmation);
  *       then the user, every session and every linked account are gone, other people's rows
- *       stay, the old cookie reads as signed out, and the answer clears the signed-in marker.
+ *       stay, the API key and the user's API counters go, the old cookie reads as signed out, and the answer clears the signed-in marker.
  *       The cascade: every pool they own goes (its pack on packs deleted), and they're taken off
  *       every pool they edit; when packs can't remove a pack, the account and pools go anyway,
  *       the removals are queued (packs asked once, the rest queued without asking) and the
@@ -11,7 +11,7 @@
  *       are kept by osu! id, so deleting the account doesn't reset them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
@@ -20,8 +20,11 @@ import { HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DELETE } from "@/app/api/account/route";
 import { POST as createPool } from "@/app/api/pools/route";
+import { RATE_LIMITS } from "@/constants/api";
+import { apiKeys } from "@/lib/api-keys";
 import { getUserFromHeaders } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { limiter } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { packCleanupCollection } from "@/services/pack-cleanup";
 import { createTestUser } from "../../../helpers/auth";
@@ -88,6 +91,24 @@ describe("DELETE /api/account", () => {
     expect(await rowsOf(user.id)).toEqual({ users: 0, sessions: 0, accounts: 0 });
     expect(await rowsOf(other.id)).toEqual({ users: 1, sessions: 1, accounts: 1 });
     expect(await getUserFromHeaders(new Headers({ cookie: user.cookie }))).toBeNull();
+  });
+
+  it("deletes the API key and the user's API counters, and nobody else's", async () => {
+    const user = await createTestUser(2, "peppy");
+    const other = await createTestUser(3, "other");
+    const gone = await apiKeys.issue(user.id);
+    const kept = await apiKeys.issue(other.id);
+    await limiter.hit(RATE_LIMITS.api, user.id);
+    await limiter.hit(RATE_LIMITS.keyCreate, user.id);
+    await limiter.hit(RATE_LIMITS.api, other.id);
+    expect((await DELETE(request(user.cookie, { username: "peppy" }))).status).toBe(204);
+    expect(await apiKeys.authenticate(gone.key)).toBeNull();
+    expect((await apiKeys.authenticate(kept.key))?.userId).toBe(other.id);
+    const counters = await getDb()
+      .collection<{ _id: string }>("rate_limits")
+      .find({ _id: { $regex: /^(api|key-create):/ } })
+      .toArray();
+    expect(counters.map((doc) => doc._id.split(":")[1])).toEqual([other.id]);
   });
 });
 

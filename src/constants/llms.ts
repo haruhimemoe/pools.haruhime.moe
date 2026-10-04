@@ -5,7 +5,7 @@
  *       haruhime.moe tools, each with its own llms.txt.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import type { LlmsLink } from "@haruhimemoe/next-kit/seo";
@@ -21,7 +21,17 @@ export const LLMS_NOTES: readonly string[] = [
   "Search can cover past pools, public pools built here, and every osu! map, not only maps played in pools. Sets that can't be used in officially supported tournaments are left out, and graveyard and pending maps carry a warning.",
   `Tournament hosts and community members send past pools in the Discord server (${SITE.discordUrl}) or to ${SITE.contactEmail}. An admin checks each one by hand. The site is in beta.`,
   "The compliance check is guidance, not a ruling: the osu! Tournament Committee decides.",
-  "There is no public API. /llms-full.txt lists every current past pool, every public pool built here and the most used maps.",
+  "A small public API answers with an hpl_ key from the account page; see /docs/api. /llms-full.txt lists every current past pool, every public pool built here and the most used maps.",
+];
+
+/** The public API's docs and OpenAPI document. */
+export const LLMS_API: readonly LlmsLink[] = [
+  {
+    title: "API docs",
+    url: at("/docs/api"),
+    note: "The public API: hpl_ keys from the account page, rate limits, and GET /api/v1/me.",
+  },
+  { title: "OpenAPI", url: at("/api/v1/openapi.json"), note: "the API as an OpenAPI 3.1 document" },
 ];
 
 /** The site's pages, with what each does. */

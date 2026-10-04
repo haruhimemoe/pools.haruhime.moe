@@ -1,13 +1,13 @@
 /**
  * @file tests/unit/app/seo.test.ts
- * @desc robots.txt keeps every crawler, AI ones included, out of /api, /admin, /signin and
+ * @desc robots.txt keeps every crawler, AI ones included, out of /api (its OpenAPI document aside), /admin, /signin and
  *       /account; the sitemap lists the static pages (/submit and /data among them), the legal
  *       pages (with their last update), current pools and public built pools (their updatedAt)
  *       and maps in 2 or more pools (asked for as such), with no made-up lastmod; llms.txt is a
  *       short daily text route linking /llms-full.txt, which lists every pool and the maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -58,7 +58,7 @@ describe("robots.txt", () => {
     const groups = Array.isArray(rules) ? rules : [rules];
     expect(groups[0]).toEqual({
       userAgent: "*",
-      allow: ["/"],
+      allow: ["/", "/api/v1/openapi.json"],
       disallow: ["/api/", "/admin", "/signin", "/account"],
     });
     const named = groups.slice(1).flatMap((group) => [group.userAgent].flat());
@@ -82,6 +82,7 @@ describe("sitemap.xml", () => {
       "https://pools.haruhime.moe/submit",
       "https://pools.haruhime.moe/data",
       "https://pools.haruhime.moe/credits",
+      "https://pools.haruhime.moe/docs/api",
       "https://pools.haruhime.moe/legal/disclaimer",
       "https://pools.haruhime.moe/legal/privacy",
       "https://pools.haruhime.moe/legal/terms",

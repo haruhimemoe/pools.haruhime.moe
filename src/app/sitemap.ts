@@ -1,6 +1,6 @@
 /**
  * @file src/app/sitemap.ts
- * @desc sitemap.xml: the static pages (/submit and /data among them) and the legal pages (their
+ * @desc sitemap.xml: the static pages (/submit, /data and /docs/api among them) and the legal pages (their
  *       last update), every current pool, every public built pool that isn't hidden (private and
  *       unlisted ones stay out, and their pages are noindex), and every map 2 or more current
  *       pools use (the rest are noindex; hidden and superseded pools, and maps only they have,
@@ -11,11 +11,12 @@
  *       serving the last good sitemap.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import { sitemapEntries } from "@haruhimemoe/next-kit/seo";
 import type { MetadataRoute } from "next";
+import { API_DOCS_PATH } from "@/constants/api";
 import { LEGAL_DOCS, LEGAL_SLUGS } from "@/constants/legal";
 import { MAP_INDEX_MIN_POOLS, SEO_SITE } from "@/constants/seo";
 import { listPublicBuiltPools } from "@/services/built-listings";
@@ -25,7 +26,15 @@ import { listCurrentPools } from "@/services/pools";
 /** Rebuilt once a day, and on an admin's Refresh public pages. */
 export const revalidate = 86400;
 
-const STATIC_PATHS = ["/", "/search", "/check", "/submit", "/data", "/credits"] as const;
+const STATIC_PATHS = [
+  "/",
+  "/search",
+  "/check",
+  "/submit",
+  "/data",
+  "/credits",
+  API_DOCS_PATH,
+] as const;
 
 /**
  * @function sitemap
