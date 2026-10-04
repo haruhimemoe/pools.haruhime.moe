@@ -104,9 +104,7 @@ describe("/api/me/api-key", () => {
     }
     const refused = await create(user.cookie);
     expect(refused.status).toBe(429);
-    // pools' limiter keeps the real clock, so the wait is only checked for range.
-    expect(Number(refused.headers.get("Retry-After"))).toBeGreaterThan(0);
-    expect(Number(refused.headers.get("Retry-After"))).toBeLessThanOrEqual(3600);
+    expect(refused.headers.get("Retry-After")).toBe("3590");
     expect(await refused.json()).toMatchObject({ error: { code: "rate_limited" } });
     expect(await owner(last)).toBe(user.id);
   });

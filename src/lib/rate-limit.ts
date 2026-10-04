@@ -8,7 +8,7 @@
  *       Counting fails open: if the write fails, the request is allowed and the error logged.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sat Oct 3, 2026
  */
 
 import "server-only";
@@ -16,10 +16,14 @@ import { createRateLimiter, type RateLimiter } from "@haruhimemoe/next-kit/serve
 import { RATE_LIMITS_COLLECTION } from "@/constants/db";
 import { connectedDb } from "@/lib/db";
 
-/** The process-wide limiter on rate_limits. */
+/**
+ * The process-wide limiter on rate_limits. The clock is read on each call (not captured at
+ * import), so tests with fake timers count in their own minute.
+ */
 export const limiter: RateLimiter = createRateLimiter({
   db: connectedDb,
   collection: RATE_LIMITS_COLLECTION,
+  now: () => Date.now(),
 });
 
 /**

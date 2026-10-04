@@ -44,8 +44,7 @@ describe("GET /api/v1/me", () => {
     });
     expect(response.headers.get("RateLimit-Limit")).toBe("60");
     expect(response.headers.get("RateLimit-Remaining")).toBe("59");
-    // pools' limiter keeps the real clock, so the reset is only checked for shape.
-    expect(Number(response.headers.get("RateLimit-Reset"))).toBeLessThanOrEqual(60);
+    expect(response.headers.get("RateLimit-Reset")).toBe("50");
     expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
 
