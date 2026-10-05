@@ -6,7 +6,7 @@
  *       message outlives its row, and focus lands on it after a delete.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
@@ -33,7 +33,13 @@ export function BuiltModerationArea({ children }: { children: ReactNode }) {
   }, []);
   return (
     <ModerationNotice value={say}>
-      <output ref={region} tabIndex={-1} aria-live="polite" className="block text-c2 text-sm">
+      <output
+        ref={region}
+        tabIndex={-1}
+        aria-live="polite"
+        data-moderation-region=""
+        className="block text-c2 text-sm"
+      >
         {text}
       </output>
       {children}

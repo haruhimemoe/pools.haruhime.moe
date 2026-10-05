@@ -1,20 +1,20 @@
 /**
  * @file src/components/builder/EditorsPanel.tsx
  * @desc Who edits the pool: the owner and each editor, linking their osu! profiles. The owner
- *       adds an editor by osu! username (someone who never signed in gets access when they do)
- *       and removes one; an editor can leave. Requests take turns with the editor's changes; a
- *       removal answers without the pool, so the pool is read again after it. Results are
- *       announced.
+ *       adds an editor by osu! username (someone who never signed in gets access when they do),
+ *       the owner's Remove asks first (ui's InlineConfirm); an editor can leave. Requests take
+ *       turns with the editor's changes; a removal answers without the pool, so the pool is read
+ *       again after it. Results are announced.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
-import { Button, TextLink } from "@haruhimemoe/ui";
-import { useState } from "react";
+import { Button, InlineConfirm, TextLink } from "@haruhimemoe/ui";
+import { useRef, useState } from "react";
 import { AddEditorForm } from "@/components/builder/AddEditorForm";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientPool, PoolPerson } from "@/schemas/built-pool-view";
@@ -47,7 +47,8 @@ function Person({ person }: { person: PoolPerson }) {
 export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: EditorsPanelProps) {
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
-  const remove = async (person: PoolPerson) => {
+  const said = useRef<HTMLOutputElement>(null);
+  const remove = async (person: PoolPerson): Promise<boolean> => {
     setPending(true);
     const self = person.osuId === me;
     const answer = await editor.exclusive(async () => {
@@ -57,8 +58,14 @@ export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: Edit
       return done;
     });
     setPending(false);
-    if (answer.ok && self) onLeft();
-    else setMessage(answer.ok ? `${person.username} no longer edits this pool.` : answer.message);
+    if (answer.ok && self) {
+      onLeft();
+      return true;
+    }
+    setMessage(answer.ok ? `${person.username} no longer edits this pool.` : answer.message);
+    // Their row (and the confirm in it) is gone: focus goes to what was said.
+    if (answer.ok) said.current?.focus();
+    return answer.ok;
   };
   return (
     <div className="flex flex-col gap-3 text-sm">
@@ -72,14 +79,22 @@ export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: Edit
           <li key={person.osuId} className="flex flex-wrap items-center gap-2">
             <Person person={person} /> <span className="text-c3">editor</span>
             {pool.access.canManage ? (
-              <Button
-                variant="ghost"
-                disabled={pending}
-                aria-label={`Remove ${person.username} as an editor`}
-                onClick={() => remove(person)}
-              >
-                Remove
-              </Button>
+              <InlineConfirm
+                trigger="Remove"
+                triggerProps={{
+                  variant: "ghost",
+                  disabled: pending,
+                  "aria-label": `Remove ${person.username} as an editor`,
+                }}
+                question={`Remove ${person.username} as an editor?`}
+                confirmLabel="Remove"
+                confirmVariant="danger"
+                pendingLabel="Removing…"
+                onConfirm={async () => {
+                  // Throwing keeps the confirm open; the reason shows below the list.
+                  if (!(await remove(person))) throw new Error("not removed");
+                }}
+              />
             ) : null}
           </li>
         ))}
@@ -92,12 +107,14 @@ export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: Edit
         <Button
           variant="secondary"
           disabled={pending}
-          onClick={() => remove({ osuId: me, username: "you" })}
+          onClick={() => {
+            remove({ osuId: me, username: "you" });
+          }}
         >
           Leave this pool
         </Button>
       ) : null}
-      <output aria-live="polite" className="text-c2">
+      <output ref={said} tabIndex={-1} aria-live="polite" className="text-c2 outline-none">
         {message}
       </output>
     </div>

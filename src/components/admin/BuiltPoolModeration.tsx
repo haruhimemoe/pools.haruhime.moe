@@ -1,20 +1,20 @@
 /**
  * @file src/components/admin/BuiltPoolModeration.tsx
  * @desc One built pool's moderation buttons on /admin: Hide or Unhide (PATCH
- *       /api/admin/built-pools/<id>), and Delete, confirmed in the page with ui's InlineConfirm
- *       (no confirm() dialog): the first click asks "Delete <name> for good?" with focus on
- *       Cancel, which puts focus back on Delete; "Delete for good" deletes. The page refreshes
+ *       /api/admin/built-pools/<id>), and Delete, confirmed in a dialog with ui's ConfirmDialog
+ *       (no confirm()): "Delete <name> for good?" with focus on Cancel. The page refreshes
  *       after each change; what happened (a failure, or a pack removal packs will do later,
- *       included) is said in the table's live region (BuiltModerationArea), which keeps it and,
- *       once a pool is deleted, takes focus while its row goes.
+ *       included) is said in the table's live region (BuiltModerationArea). A failed delete is
+ *       said in the dialog; once a pool is deleted, the buttons go and focus lands on the
+ *       table's live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
-import { Button, InlineConfirm } from "@haruhimemoe/ui";
+import { Button, ConfirmDialog } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { ModerationNotice } from "@/components/admin/BuiltModerationArea";
@@ -31,7 +31,8 @@ export function BuiltPoolModeration({ id, name, hidden }: Props) {
   const say = useContext(ModerationNotice);
   const [pending, setPending] = useState(false);
   const [deleted, setDeleted] = useState(false);
-  const send = async (method: "PATCH" | "DELETE") => {
+  // Resolves to what went wrong, or null.
+  const send = async (method: "PATCH" | "DELETE"): Promise<string | null> => {
     setPending(true);
     say("");
     try {
@@ -40,24 +41,32 @@ export function BuiltPoolModeration({ id, name, hidden }: Props) {
         headers: { "Content-Type": "application/json" },
         ...(method === "PATCH" ? { body: JSON.stringify({ hidden: !hidden }) } : {}),
       });
-      if (!response.ok) {
-        say(`That didn't work for ${name} (${response.status}).`);
-      } else if (method === "PATCH") {
+      const failure = response.ok ? null : `That didn't work for ${name} (${response.status}).`;
+      if (!failure && method === "PATCH") {
         say(hidden ? `${name} shows again.` : `${name} is hidden.`);
-      } else {
+      } else if (!failure) {
         const body =
           response.status === 200 ? ((await response.json()) as { notice?: string }) : {};
-        // The buttons go at once (so focus can't return to them) and the refresh drops the row:
-        // the message and focus go to the table's live region.
+        // The buttons go at once and the refresh drops the row: the dialog hands focus to the
+        // table's live region, which keeps the message.
         setDeleted(true);
-        say(`${name} is deleted. ${body.notice ?? ""}`.trim(), true);
+        say(`${name} is deleted. ${body.notice ?? ""}`.trim());
       }
       router.refresh();
+      return failure;
     } catch {
-      say("That didn't reach the server.");
+      return "That didn't reach the server.";
     } finally {
       setPending(false);
     }
+  };
+  const toggleHidden = async () => {
+    const failure = await send("PATCH");
+    if (failure) say(failure);
+  };
+  const remove = async () => {
+    const failure = await send("DELETE");
+    if (failure) throw new Error(failure);
   };
   if (deleted) return null;
   return (
@@ -65,18 +74,22 @@ export function BuiltPoolModeration({ id, name, hidden }: Props) {
       <Button
         variant="secondary"
         disabled={pending}
-        onClick={() => send("PATCH")}
+        onClick={toggleHidden}
         aria-label={`${hidden ? "Unhide" : "Hide"} ${name}`}
       >
         {hidden ? "Unhide" : "Hide"}
       </Button>
-      <InlineConfirm
+      <ConfirmDialog
         trigger="Delete"
         triggerProps={{ "aria-label": `Delete ${name}`, disabled: pending }}
-        question={`Delete ${name} for good?`}
+        title={`Delete ${name} for good?`}
+        description="It goes for its owner and editors too, with its pack on packs. This can't be undone."
+        tone="destructive"
         confirmLabel="Delete for good"
         pendingLabel="Deleting…"
-        onConfirm={() => send("DELETE")}
+        failedMessage={(error) => (error as Error).message}
+        returnFocus={() => document.querySelector<HTMLElement>("[data-moderation-region]")}
+        onConfirm={remove}
       />
     </div>
   );

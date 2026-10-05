@@ -162,6 +162,7 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
                 question="Your current key stops working right away."
                 cancelLabel="Keep it"
                 confirmLabel="Yes, regenerate"
+                confirmVariant="danger"
                 onConfirm={create}
               />
               <InlineConfirm
@@ -170,6 +171,7 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
                 question="Revoke this key? Anything using it stops working right away."
                 cancelLabel="Keep it"
                 confirmLabel="Yes, revoke"
+                confirmVariant="danger"
                 onConfirm={revoke}
               />
             </div>

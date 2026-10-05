@@ -1,13 +1,13 @@
 /**
  * @file tests/components/admin/BuiltPoolModeration.test.tsx
  * @desc An admin's buttons on a built pool: Hide sends hidden true (Unhide false), refreshes
- *       the page and says so; Delete asks in the page first (focus on Cancel), Cancel
+ *       the page and says so; Delete asks in a dialog first (focus on Cancel), Cancel
  *       backs out (focus back on Delete), "Delete for good" deletes and says when packs will
  *       remove the pack later, in the table's live region, which keeps the message and focus
- *       once the refreshed page drops the row; a failure is said.
+ *       once the refreshed page drops the row; a failed delete is said in the dialog.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen, waitFor, within } from "@testing-library/react";
@@ -58,7 +58,7 @@ describe("BuiltPoolModeration", () => {
   it("asks before deleting, with focus on the question's buttons", async () => {
     const { user, calls } = setup(() => new Response(null, { status: 204 }));
     await user.click(screen.getByRole("button", { name: "Delete Rude Cup" }));
-    const question = screen.getByRole("group", { name: "Delete Rude Cup for good?" });
+    const question = screen.getByRole("alertdialog", { name: "Delete Rude Cup for good?" });
     expect(within(question).getByRole("button", { name: "Cancel" })).toHaveFocus();
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(calls()).toEqual([]);
@@ -83,5 +83,14 @@ describe("BuiltPoolModeration", () => {
     const { user } = setup(() => new Response(null, { status: 500 }));
     await user.click(screen.getByRole("button", { name: "Hide Rude Cup" }));
     expect(await screen.findByText("That didn't work for Rude Cup (500).")).toBeInTheDocument();
+  });
+
+  it("keeps the dialog open with why when a delete fails", async () => {
+    const { user } = setup(() => new Response(null, { status: 500 }));
+    await user.click(screen.getByRole("button", { name: "Delete Rude Cup" }));
+    await user.click(screen.getByRole("button", { name: "Delete for good" }));
+    expect(await within(screen.getByRole("alertdialog")).findByRole("alert")).toHaveTextContent(
+      "That didn't work for Rude Cup (500).",
+    );
   });
 });
