@@ -97,6 +97,34 @@ describe("poolChangeLines", () => {
     ]);
   });
 
+  it("reports a note's text changed", () => {
+    const before = snap({
+      slots: [{ mod: "NM", index: 1, beatmapId: 1001 }],
+      slotNotes: { "1001": "no DT" },
+    });
+    const after = snap({
+      slots: [{ mod: "NM", index: 1, beatmapId: 1001 }],
+      slotNotes: { "1001": "no HD" },
+    });
+    expect(linesFor(before, after)).toEqual([
+      { kind: "changed", text: "Changed the note on 1001", beatmapId: 1001 },
+    ]);
+  });
+
+  it("reports a bucket's target changed", () => {
+    const before = snap({ targets: { NM: { count: 4 } } });
+    const after = snap({ targets: { NM: { count: 6 } } });
+    expect(linesFor(before, after)).toEqual([
+      { kind: "changed", text: "Changed the target for NM" },
+    ]);
+  });
+
+  it("reports the pool's notes changed", () => {
+    const before = snap({ notes: "Line one" });
+    const after = snap({ notes: "Line one\nLine two" });
+    expect(linesFor(before, after)).toEqual([{ kind: "changed", text: "Changed the notes" }]);
+  });
+
   it("reports a detail renamed", () => {
     const before = snap();
     const after = snap({ name: "Summer Cup Finals" });
