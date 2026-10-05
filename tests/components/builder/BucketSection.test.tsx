@@ -6,7 +6,8 @@
  * @modified Mon Oct 5, 2026
  */
 
-import { render, screen } from "@testing-library/react";
+import { useSortable } from "@haruhimemoe/ui";
+import { render, renderHook, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BucketSection } from "@/components/builder/BucketSection";
 import type { SlotGroup } from "@/utils/built-editor";
@@ -21,6 +22,7 @@ const GROUP: SlotGroup = {
 
 describe("BucketSection", () => {
   it("shows the missing-slots placeholder as an EmptyState, not a p box", () => {
+    const { result } = renderHook(() => useSortable({ onMove: () => false }));
     render(
       <BucketSection
         group={GROUP}
@@ -29,10 +31,9 @@ describe("BucketSection", () => {
         targets={[]}
         plan={{ count: 2 }}
         notes={{}}
+        sortable={result.current}
         onFind={noop}
         onRemoveBucket={noop}
-        onMove={noop}
-        onMoveTo={noop}
         onRemove={noop}
         onNote={noop}
       />,

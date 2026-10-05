@@ -62,7 +62,7 @@ describe("PoolEditor: moving maps", () => {
     await user.keyboard("{Enter}");
     expect(order()).toEqual([10, 20]);
     expect(order("HD")).toEqual([30]);
-    expect(screen.getByRole("combobox", { name: "Move HD1 to" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Reorder HD1" })).toHaveFocus();
     await saved();
     button("Remove NM1").focus();
     await user.keyboard("{Enter}");

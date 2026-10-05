@@ -6,20 +6,22 @@
  *       packs): only picks do. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
-import { cx, ModBadge, Text } from "@haruhimemoe/ui";
+import { cx, ModBadge, SORTABLE_ITEM, type Sortable, Text } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
-import type { SlotDrag } from "@/hooks/useSlotDrag";
+import { bucketListId, emptySlotId } from "@/utils/sortable-ids";
 
 type EmptySlotRowProps = {
   place: { bucket: string; index: number };
   /** Its label ("NM4"). */
   label: string;
-  drag?: SlotDrag | undefined;
+  /** Its place in the bucket's list, for dragging (a drop target only, never lifted). */
+  position: number;
+  sortable: Sortable;
   /** Its candidate list. */
   children: ReactNode;
 };
@@ -29,24 +31,21 @@ type EmptySlotRowProps = {
  * @param props {EmptySlotRowProps} the slot, its label, dragging and its candidate list
  * @returns {JSX.Element} the slot as a list item, as a drop target
  */
-export function EmptySlotRow({ place, label, drag, children }: EmptySlotRowProps) {
-  const over =
-    drag?.over?.bucket === place.bucket &&
-    drag.over.index === place.index &&
-    drag.over.zone === undefined;
+export function EmptySlotRow({ place, label, position, sortable, children }: EmptySlotRowProps) {
+  const id = emptySlotId(place);
   return (
     <li
       data-empty-slot={label}
-      data-drop-bucket={place.bucket}
-      data-drop-index={place.index}
-      {...drag?.target()}
-      className={cx(
-        "flex flex-col gap-2 border-t py-3",
-        over ? "border-h1 border-t-2" : "border-b3",
-      )}
+      {...sortable.item(id, {
+        container: bucketListId(place.bucket),
+        index: position,
+        label,
+        draggable: false,
+      })}
+      className={cx("flex flex-col gap-2 border-b3 border-t py-3", SORTABLE_ITEM)}
     >
       <div className="flex items-center gap-3">
-        <span className="w-5 shrink-0" />
+        <span className="coarse:w-11 w-6 shrink-0" />
         <span className="w-14 shrink-0">
           <ModBadge mod={label} />
         </span>

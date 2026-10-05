@@ -1,29 +1,29 @@
 /**
  * @file src/components/builder/CandidateRow.tsx
- * @desc One candidate under a slot in the editor: a drag handle (hidden from screen readers; the
- *       buttons do the same), its cover and preview clip, its map with stars under the slot's
+ * @desc One candidate under a slot in the editor: a drag handle (a button named for the candidate),
+ *       its cover and preview clip, its map with stars under the slot's
  *       mods, who added it, its note, its votes ("2 of 3 editors") with the viewer's own vote as
  *       a toggle, Promote and Remove. Every control names the map and slot. Presentational. Find similar opens the
  *       map browser on maps like it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
-import { Button, cx } from "@haruhimemoe/ui";
+import { Button, cx, SORTABLE_ITEM, type Sortable, SortableHandle } from "@haruhimemoe/ui";
 import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
 import { MapPreview } from "@/components/builder/MapPreview";
 import { SlotMapText } from "@/components/builder/SlotMapText";
 import { SlotNote } from "@/components/builder/SlotNote";
-import type { SlotDrag } from "@/hooks/useSlotDrag";
 import type { Candidate } from "@/schemas/built-candidates";
 import type { BuiltMap } from "@/schemas/built-pool-view";
 import type { CandidateActions } from "@/schemas/candidate-editor";
 import { songOf } from "@/utils/map-preview";
 import { mapLabel } from "@/utils/map-record";
 import type { SlotValueAnswer } from "@/utils/slot-values";
+import { candidateId, candidateListId } from "@/utils/sortable-ids";
 
 type CandidateRowProps = CandidateActions & {
   entry: Candidate;
@@ -40,7 +40,9 @@ type CandidateRowProps = CandidateActions & {
   votes: string;
   /** The viewer voted for it. */
   voted: boolean;
-  drag?: SlotDrag | undefined;
+  /** Its place in the candidate list, for dragging. */
+  position: number;
+  sortable: Sortable;
 };
 
 /**
@@ -50,32 +52,18 @@ type CandidateRowProps = CandidateActions & {
  * @returns {JSX.Element} one candidate as a list item
  */
 export function CandidateRow(props: CandidateRowProps) {
-  const { entry, label, place, map, values, addedBy, votes, voted, drag, ...on } = props;
+  const { entry, label, place, map, values, addedBy, votes, voted, position, sortable, ...on } =
+    props;
   const name = `${mapLabel(map, entry.beatmapId)} (${label} candidate)`;
-  const item = {
-    mod: place.bucket,
-    index: place.index,
-    beatmapId: entry.beatmapId,
-    candidate: true as const,
-  };
-  const dragged = drag?.dragging === entry.beatmapId;
+  const id = candidateId(place, entry.beatmapId);
   return (
     <li
       data-candidate={entry.beatmapId}
-      className={cx("flex flex-col gap-2 border-b3 border-t py-2", dragged && "opacity-50")}
+      {...sortable.item(id, { container: candidateListId(place), index: position, label: name })}
+      className={cx("flex flex-col gap-2 border-b3 border-t py-2", SORTABLE_ITEM)}
     >
       <div className="flex min-w-0 gap-3">
-        {drag ? (
-          <span
-            data-drag-handle
-            aria-hidden="true"
-            title="Drag to promote or move"
-            {...drag.handle(item)}
-            className="flex h-6 w-5 shrink-0 cursor-grab touch-none select-none items-center justify-center self-start text-c3 hover:text-c1 active:cursor-grabbing"
-          >
-            ⋮⋮
-          </span>
-        ) : null}
+        <SortableHandle sortable={sortable} id={id} className="self-start" />
         <MapPreview
           setId={entry.beatmapsetId ?? map?.setId ?? null}
           song={songOf(map, entry.beatmapId)}

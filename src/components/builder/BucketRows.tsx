@@ -5,17 +5,17 @@
  *       number falls. The maps with no slot have no candidates. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
 import { type PoolSlot, slotLabel } from "@haruhimemoe/pool";
+import type { Sortable } from "@haruhimemoe/ui";
 import { useState } from "react";
 import { CandidateList } from "@/components/builder/CandidateList";
 import { EmptySlotRow } from "@/components/builder/EmptySlotRow";
 import { type MoveTarget, SlotRow } from "@/components/builder/SlotRow";
-import type { SlotDrag } from "@/hooks/useSlotDrag";
 import type { Candidate } from "@/schemas/built-candidates";
 import type { SlotNotes } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
@@ -23,10 +23,8 @@ import type { CandidateContext } from "@/schemas/candidate-editor";
 import { candidatesAt, emptyRows } from "@/utils/candidate-view";
 import { type SlotValueMap, slotValueKey } from "@/utils/slot-values";
 
-/** What a slot row can do: move, remove, note and drag. */
+/** What a slot row can do: remove and note (moving goes through the sortable hook). */
 export type SlotActions = {
-  onMove: (slot: PoolSlot, direction: "up" | "down") => void;
-  onMoveTo: (slot: PoolSlot, bucket: string) => void;
   onRemove: (slot: PoolSlot) => void;
   onNote: (slot: PoolSlot, note: string) => void;
 };
@@ -41,7 +39,7 @@ type BucketRowsProps = SlotActions & {
   targets: readonly MoveTarget[];
   notes: SlotNotes;
   badgeOf: (slot: PoolSlot) => string | null;
-  drag?: SlotDrag | undefined;
+  sortable: Sortable;
   candidates?: CandidateContext | undefined;
 };
 
@@ -53,7 +51,7 @@ type Row = { index: number; pick: PoolSlot | null };
  * @returns {JSX.Element} the bucket's rows in slot order
  */
 export function BucketRows(props: BucketRowsProps) {
-  const { code, slots, combo, maps, values, targets, notes, badgeOf, drag, candidates, ...on } =
+  const { code, slots, combo, maps, values, targets, notes, badgeOf, sortable, candidates, ...on } =
     props;
   // Kept here, by slot number, so a list stays open when its slot's pick changes.
   const [opened, setOpened] = useState<ReadonlyMap<number, boolean>>(new Map());
@@ -79,7 +77,7 @@ export function BucketRows(props: BucketRowsProps) {
         me={candidates.me}
         open={opened.get(index) ?? open}
         onOpenChange={(next) => setOpened((was) => new Map(was).set(index, next))}
-        drag={drag}
+        sortable={sortable}
         onPromote={(entry) => candidates.onPromote(place, entry)}
         onRemove={(entry) => candidates.onRemove(place, entry)}
         onVote={(entry, vote) => candidates.onVote(place, entry, vote)}
@@ -89,7 +87,7 @@ export function BucketRows(props: BucketRowsProps) {
   };
   return (
     <ol className="flex flex-col">
-      {rows.map(({ index, pick }) => {
+      {rows.map(({ index, pick }, position) => {
         if (!pick) {
           const label = slotLabel({ mod: code, index });
           return (
@@ -97,13 +95,13 @@ export function BucketRows(props: BucketRowsProps) {
               key={`empty-${index}`}
               place={{ bucket: code ?? "", index }}
               label={label}
-              drag={drag}
+              position={position}
+              sortable={sortable}
             >
               {listFor(index, true)}
             </EmptySlotRow>
           );
         }
-        const at = slots.indexOf(pick);
         return (
           <SlotRow
             key={pick.beatmapId}
@@ -112,13 +110,10 @@ export function BucketRows(props: BucketRowsProps) {
             values={values[slotValueKey(pick.beatmapId, combo(pick))]}
             badge={badgeOf(pick)}
             note={notes[String(pick.beatmapId)]}
-            drag={drag}
+            position={position}
+            sortable={sortable}
             onNote={(note) => on.onNote(pick, note)}
-            first={at === 0}
-            last={at === slots.length - 1}
             targets={targets}
-            onMove={(direction) => on.onMove(pick, direction)}
-            onMoveTo={(bucket) => on.onMoveTo(pick, bucket)}
             onRemove={() => on.onRemove(pick)}
             onDemote={code !== null && candidates ? () => candidates.onDemote(pick) : undefined}
           >

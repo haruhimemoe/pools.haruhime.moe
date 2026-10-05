@@ -3,17 +3,18 @@
  * @desc Candidates in the editor: each slot's collapsible list (stars under the slot's mods, who
  *       added it, its note, "N of M editors"), Promote (carrying the old pick's set), the
  *       viewer's own vote as a toggle, Remove, Demote on a pick (the slot stays, with
- *       no pick), and drag and drop between a pick and the candidates and between slots of a
- *       bucket. The pool's page never shows them.
+ *       no pick), and drag and drop by keyboard between a pick and the candidates and between
+ *       slots of a bucket. The pool's page never shows them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BuiltSlotList } from "@/components/builder/BuiltSlotList";
 import { candidate } from "../../helpers/candidates";
+import { keyboardDrag, live } from "../../helpers/keyboard-drag";
 import { clientPool, mapsFor } from "../../helpers/pool-editor";
 import { renderEditor } from "../../helpers/render-editor";
 
@@ -38,15 +39,8 @@ const opsOf = (calls: { path: string; body: unknown }[]) =>
     .map((call) => (call.body as { ops: unknown[] }).ops);
 const candidateRow = (id: number) =>
   document.querySelector(`li[data-candidate="${id}"]`) as HTMLElement;
-const transfer = () => ({ setData: vi.fn(), effectAllowed: "", dropEffect: "" });
-const drag = (from: HTMLElement, onto: HTMLElement) => {
-  const dataTransfer = transfer();
-  const handle = from.querySelector("[data-drag-handle]") as HTMLElement;
-  fireEvent.dragStart(handle, { dataTransfer });
-  fireEvent.dragOver(onto, { dataTransfer });
-  fireEvent.drop(onto, { dataTransfer });
-  fireEvent.dragEnd(handle, { dataTransfer });
-};
+const candidateGrip = (id: number) =>
+  within(candidateRow(id)).getByRole("button", { name: /^Reorder / });
 
 describe("a slot's candidates", () => {
   it("opens the list with stars under the slot's mods, adder, note and votes", async () => {
@@ -106,11 +100,10 @@ describe("dragging candidates", () => {
   it("promotes a candidate dropped on a pick, and demotes a pick dropped on a list", async () => {
     const { api, user, order, saved } = renderEditor(withCandidates());
     await user.click(screen.getByRole("button", { name: /^2 candidates\s*for NM1$/ }));
-    drag(candidateRow(12), document.querySelector('li[data-map="10"]') as HTMLElement);
+    await keyboardDrag(user, candidateGrip(12), ": onto NM1.");
     expect(order()).toEqual([12, 20, 30]);
     await saved();
-    const list = document.querySelector('[data-drop-zone="candidates"][data-drop-index="5"]');
-    drag(document.querySelector('li[data-map="30"]') as HTMLElement, list as HTMLElement);
+    await keyboardDrag(user, "Reorder NM3", "NM3: end of NM5 candidates.");
     await saved();
     expect(opsOf(api.calls)).toEqual([
       [{ type: "promoteCandidate", slot: NM1, beatmapId: 12, pickSetId: 100 }],
@@ -124,12 +117,21 @@ describe("dragging candidates", () => {
   it("moves a candidate to another slot of the bucket", async () => {
     const { api, user, saved } = renderEditor(withCandidates());
     await user.click(screen.getByRole("button", { name: /^2 candidates\s*for NM1$/ }));
-    const list = document.querySelector('[data-drop-zone="candidates"][data-drop-index="5"]');
-    drag(candidateRow(11), list as HTMLElement);
+    await keyboardDrag(user, candidateGrip(11), ": end of NM5 candidates.");
     await saved();
     expect(opsOf(api.calls)).toEqual([
       [{ type: "moveCandidate", slot: NM1, beatmapId: 11, to: 5 }],
     ]);
+  });
+
+  it("refuses a candidate in another bucket and says why", async () => {
+    const { user } = renderEditor(withCandidates());
+    await user.click(screen.getByRole("button", { name: /^2 candidates\s*for NM1$/ }));
+    candidateGrip(11).focus();
+    await user.keyboard(" ");
+    for (let i = 0; i < 12; i++) await user.keyboard("{PageDown}");
+    expect(live()).toHaveTextContent("Can't go there: A candidate stays in its bucket.");
+    await user.keyboard("{Escape}");
   });
 });
 

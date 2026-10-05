@@ -14,11 +14,10 @@
 "use client";
 
 import { isCustomBucket } from "@haruhimemoe/pool";
-import { Button, cx, EmptyState, Text } from "@haruhimemoe/ui";
+import { Button, cx, EmptyState, SORTABLE_CONTAINER, type Sortable, Text } from "@haruhimemoe/ui";
 import { useId } from "react";
 import { BucketRows, type SlotActions } from "@/components/builder/BucketRows";
 import type { MoveTarget } from "@/components/builder/SlotRow";
-import type { SlotDrag } from "@/hooks/useSlotDrag";
 import type { BucketTarget, SlotNotes } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import type { CandidateContext } from "@/schemas/candidate-editor";
@@ -26,8 +25,9 @@ import { placeholderText, rangeBadgeText, rangeSide } from "@/utils/bucket-targe
 import { groupHeading, type SlotGroup } from "@/utils/built-editor";
 import { starsUnderMods } from "@/utils/built-summary";
 import { groupSlotCode, type SlotValueMap } from "@/utils/slot-values";
+import { bucketListId } from "@/utils/sortable-ids";
 
-type BucketSectionProps = SlotActions & {
+type BucketSectionProps = Pick<SlotActions, "onNote" | "onRemove"> & {
   group: SlotGroup;
   maps: BuiltMaps;
   /** Values under each slot's mods, as far as they're known. */
@@ -38,8 +38,8 @@ type BucketSectionProps = SlotActions & {
   plan?: BucketTarget | undefined;
   /** Each slot's note by beatmap id. */
   notes: SlotNotes;
-  /** Dragging slots between rows and buckets. */
-  drag?: SlotDrag | undefined;
+  /** Dragging slots between rows and buckets (mouse, touch or keyboard). */
+  sortable: Sortable;
   /** The slots' candidates and their actions (the editor only). */
   candidates?: CandidateContext | undefined;
   onFind: (code: string) => void;
@@ -52,11 +52,10 @@ type BucketSectionProps = SlotActions & {
  * @returns {JSX.Element} one bucket's heading, target, Find maps and rows, as a drop target
  */
 export function BucketSection(props: BucketSectionProps) {
-  const { group, maps, values, targets, plan, notes, drag, candidates, ...on } = props;
+  const { group, maps, values, targets, plan, notes, sortable, candidates, ...on } = props;
   const headingId = useId();
   const { title, detail } = groupHeading(group.entry);
   const { code, entry, slots } = group;
-  const over = drag?.over?.bucket === code && drag.over.index === null;
   const others = targets.filter((target) => target.code !== code);
   const missing = code === null ? 0 : (plan?.count ?? 0) - slots.length;
   const hasCandidates =
@@ -70,12 +69,8 @@ export function BucketSection(props: BucketSectionProps) {
     <section
       aria-labelledby={headingId}
       data-bucket={code ?? ""}
-      data-drop-bucket={code ?? ""}
-      {...drag?.target()}
-      className={cx(
-        "flex flex-col rounded-lg",
-        over && "outline-dashed outline-2 outline-h1 outline-offset-4",
-      )}
+      {...sortable.container(bucketListId(code), { label: title, mode: "onto" })}
+      className={cx("flex flex-col rounded-lg", SORTABLE_CONTAINER)}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 id={headingId} tabIndex={-1} className="font-bold text-c1">
@@ -123,11 +118,9 @@ export function BucketSection(props: BucketSectionProps) {
           targets={others}
           notes={notes}
           badgeOf={badgeOf}
-          drag={drag}
+          sortable={sortable}
           candidates={candidates}
           onNote={on.onNote}
-          onMove={on.onMove}
-          onMoveTo={on.onMoveTo}
           onRemove={on.onRemove}
         />
       )}
