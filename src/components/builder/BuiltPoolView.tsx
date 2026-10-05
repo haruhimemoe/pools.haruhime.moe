@@ -10,7 +10,7 @@
  *       the visitor.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
@@ -31,14 +31,17 @@ type BuiltPoolViewProps = {
   /** Values under each slot's mods. */
   values: SlotValueMap;
   rules: CheckRules;
+  /** /pools/<id>/history when the caller may read it, else null. */
+  historyHref?: string | null;
 };
 
 /**
  * @function BuiltPoolView
- * @param props {BuiltPoolViewProps} the pool, its maps, values and the content rules
+ * @param props {BuiltPoolViewProps} the pool, its maps, values, the content rules and a history
+ *        link for whoever may read it
  * @returns {JSX.Element} a built pool's page: header, maps, notes, summary, check and export
  */
-export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps) {
+export function BuiltPoolView({ pool, maps, values, rules, historyHref }: BuiltPoolViewProps) {
   const count = `${pool.slots.length} ${pool.slots.length === 1 ? "map" : "maps"}`;
   const people = [
     ...(pool.owner ? [{ ...pool.owner, role: "owner" }] : []),
@@ -54,6 +57,11 @@ export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps)
       Edit
     </ButtonLink>
   ) : null;
+  const history = historyHref ? (
+    <ButtonLink key="history" href={historyHref} variant="secondary">
+      History
+    </ButtonLink>
+  ) : null;
   return (
     <article className="flex flex-col gap-6">
       <PageHeader
@@ -63,6 +71,7 @@ export function BuiltPoolView({ pool, maps, values, rules }: BuiltPoolViewProps)
         actions={[
           download,
           edit,
+          history,
           <ButtonLink key="start" href={startFromHref(pool.id)} variant="secondary">
             Start from this pool
           </ButtonLink>,

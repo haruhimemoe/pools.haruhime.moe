@@ -3,15 +3,16 @@
  * @desc "Recent changes" in the editor: the pool's last 20 changes from its activity log (who,
  *       what, and when), asked for when the editor opens and again whenever the pool's version
  *       moves (a save, or someone else's change coming in). Only the owner and editors get it.
- *       A failed ask keeps the list it had and says so.
+ *       A failed ask keeps the list it had and says so. A "Full history" link goes to the pool's
+ *       version history page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
-import { Text } from "@haruhimemoe/ui";
+import { LinkRow, Text } from "@haruhimemoe/ui";
 import { useEffect, useState } from "react";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientActivity } from "@/schemas/activity";
@@ -64,6 +65,7 @@ export function RecentChanges({ poolId, version, fetcher }: RecentChangesProps) 
           ))}
         </ol>
       )}
+      <LinkRow items={[{ href: `/pools/${poolId}/history`, label: "Full history" }]} />
     </div>
   );
 }

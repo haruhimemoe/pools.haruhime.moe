@@ -68,6 +68,8 @@ export type ClientPool = {
   me?: number;
   /** The revision the content matches; present for the owner and editors alone. */
   head?: RevisionRef | null;
+  /** Who may read the pool's history; present for the owner alone. */
+  historyPublic?: boolean;
   version: number;
   pack: ClientPack;
   access: ClientAccess;
@@ -130,6 +132,7 @@ export const clientPoolOf = (view: ClientPool): ClientPool => ({
   ...(view.candidates ? { candidates: view.candidates } : {}),
   ...(view.me === undefined ? {} : { me: view.me }),
   ...(view.head === undefined ? {} : { head: view.head }),
+  ...(view.historyPublic === undefined ? {} : { historyPublic: view.historyPublic }),
   version: view.version,
   pack: view.pack,
   access: view.access,

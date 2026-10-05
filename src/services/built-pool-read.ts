@@ -158,6 +158,7 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     slotNotes: canEdit ? (pool.slotNotes ?? {}) : passingNotes(pool.slotNotes ?? {}),
     ...candidates,
     ...(canEdit ? { head: pool.head ?? null } : {}),
+    ...(canManage ? { historyPublic: pool.historyPublic === true } : {}),
     version: pool.version,
     // packs' reasons are for the people who fix the pool.
     pack: clientPackOf(pool, { withError: canEdit }),

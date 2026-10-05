@@ -10,7 +10,7 @@
  *       A pack still waiting to sync to packs syncs after the page is sent.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -25,7 +25,9 @@ import { SEO_SITE } from "@/constants/seo";
 import { getCurrentUser } from "@/lib/auth-session";
 import { schedulePackSync } from "@/lib/pack-sync-after";
 import { loadBuiltPoolFor } from "@/services/built-pool-maps";
+import { findBuiltPool } from "@/services/built-pool-read";
 import { builtSlotValues } from "@/services/slot-values";
+import { historyAccessOf } from "@/utils/built-history-access";
 import { packWaiting } from "@/utils/built-pack";
 import { poolCard, poolCardImage } from "@/utils/pool-card";
 import { builtHeadline } from "@/utils/pool-text";
@@ -74,6 +76,8 @@ export default async function BuiltPoolPage({ params }: PageProps<"/pools/built/
   if (packWaiting(loaded.pool.pack)) schedulePackSync(loaded.pool.id);
   const { values } = await builtSlotValues(loaded.pool, loaded.maps);
   const { pool } = loaded;
+  const stored = await findBuiltPool(id);
+  const canReadHistory = stored ? historyAccessOf(stored, await getCurrentUser()).canRead : false;
   return (
     <>
       {isListed(pool) ? (
@@ -95,6 +99,7 @@ export default async function BuiltPoolPage({ params }: PageProps<"/pools/built/
           officialSupport: RULE_LINKS.officialSupport,
           project: UPSTREAM.repo,
         }}
+        historyHref={canReadHistory ? `/pools/${pool.id}/history` : null}
       />
     </>
   );

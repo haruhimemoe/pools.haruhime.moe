@@ -75,6 +75,8 @@ export type BuiltPoolView = {
   me?: number;
   /** The revision the content matches; sent only to the owner and editors (src/services/built-pool-history.ts). */
   head?: RevisionRef | null;
+  /** Who may read the pool's history; sent to the owner alone (they're the only one who toggles it). */
+  historyPublic?: boolean;
   version: number;
   pack: ClientPack;
   startedFrom: string | null;
