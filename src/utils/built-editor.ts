@@ -2,12 +2,12 @@
  * @file src/utils/built-editor.ts
  * @desc The builder's pure helpers: a change applied to the browser's copy of a pool (the
  *       server's own src/utils/built-ops.ts, so both agree on what a change does), the slots
- *       grouped by bucket in the pool's order (maps with no slot first), the ops behind move up,
- *       move down and move to, and what the summary says (star ranges per bucket, sets in the
- *       pool twice, maps played in past pools). Safe in the browser.
+ *       grouped by bucket in the pool's order (maps with no slot first), removal and the check's
+ *       ids and rows, and what the summary says (star ranges per bucket, sets in the pool twice,
+ *       maps played in past pools). Safe in the browser.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import {
@@ -77,35 +77,6 @@ export const groupHeading = (
 };
 
 const ref = (slot: PoolSlot) => ({ bucket: slot.mod, index: slot.index });
-
-/**
- * @function moveWithinOp
- * @param group {readonly PoolSlot[]} the slot's bucket, by number
- * @param slot {PoolSlot} the slot to move
- * @param direction {"up" | "down"} which way
- * @returns {PoolOp | null} the move, or null at the top or bottom. The target is the neighbor's
- *          number: moving removes the slot first (later numbers close up), so this swaps the
- *          two even when the numbers have gaps.
- */
-export const moveWithinOp = (
-  group: readonly PoolSlot[],
-  slot: PoolSlot,
-  direction: "up" | "down",
-): PoolOp | null => {
-  const at = group.findIndex((s) => s.mod === slot.mod && s.index === slot.index);
-  const neighbor = at === -1 ? undefined : group[direction === "up" ? at - 1 : at + 1];
-  if (!neighbor) return null;
-  return { type: "moveMap", slot: ref(slot), bucket: slot.mod, index: neighbor.index };
-};
-
-/**
- * @function moveToOp
- * @param slot {PoolSlot} the slot to move
- * @param bucket {string | null} another bucket (null: no slot)
- * @returns {PoolOp | null} the move to the end of that bucket, or null for its own bucket
- */
-export const moveToOp = (slot: PoolSlot, bucket: string | null): PoolOp | null =>
-  slot.mod === bucket ? null : { type: "moveMap", slot: ref(slot), bucket };
 
 /**
  * @function removeOp

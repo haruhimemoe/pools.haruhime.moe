@@ -2,14 +2,13 @@
  * @file tests/unit/utils/built-editor.test.ts
  * @desc The builder's helpers: a change applied to the browser's copy (a full bucket list back,
  *       the server's refusals), slots grouped in the pool's order with no-slot maps first,
- *       headings, the move ops (a swap even with gaps in the numbers), and the ids for the map
- *       details and the check.
+ *       headings, removal, and the ids for the map details and the check.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
-import { type PoolSlot, sortSlots } from "@haruhimemoe/pool";
+import type { PoolSlot } from "@haruhimemoe/pool";
 import { describe, expect, it } from "vitest";
 import type { ClientPool } from "@/schemas/built-pool-view";
 import {
@@ -18,8 +17,6 @@ import {
   checkRowsOf,
   groupHeading,
   groupSlots,
-  moveToOp,
-  moveWithinOp,
   removeOp,
   unknownMapIds,
 } from "@/utils/built-editor";
@@ -100,42 +97,8 @@ describe("groupSlots and groupHeading", () => {
   });
 });
 
-describe("move ops", () => {
-  const moved = (slots: PoolSlot[], op: ReturnType<typeof moveWithinOp>) => {
-    const result = op ? applyLocal(pool(slots), [op]) : null;
-    return result?.ok ? result.pool.slots.map((s) => `${s.mod}${s.index}:${s.beatmapId}`) : null;
-  };
-
-  it("swaps a slot with its neighbor, and does nothing at the ends", () => {
-    const slots = [nm(1, 10), nm(2, 20), nm(3, 30)];
-    const second = slots[1] as PoolSlot;
-    expect(moved(slots, moveWithinOp(slots, second, "up"))).toEqual(["NM1:20", "NM2:10", "NM3:30"]);
-    expect(moved(slots, moveWithinOp(slots, second, "down"))).toEqual([
-      "NM1:10",
-      "NM2:30",
-      "NM3:20",
-    ]);
-    expect(moveWithinOp(slots, slots[0] as PoolSlot, "up")).toBeNull();
-    expect(moveWithinOp(slots, slots[2] as PoolSlot, "down")).toBeNull();
-    expect(moveWithinOp(slots, nm(9, 99), "up")).toBeNull();
-  });
-
-  it("swaps across a gap in the numbers", () => {
-    const slots = [nm(1, 10), nm(3, 30)];
-    const up = moved(slots, moveWithinOp(slots, slots[1] as PoolSlot, "up"));
-    expect(up).toEqual(["NM1:30", "NM2:10"]);
-    const down = moved(slots, moveWithinOp(slots, slots[0] as PoolSlot, "down"));
-    expect(down).toEqual(["NM2:30", "NM3:10"]);
-  });
-
-  it("moves to the end of another bucket, and removes", () => {
-    const slots = sortSlots([nm(1, 10), { mod: "HD", index: 1, beatmapId: 40 }]);
-    expect(moveToOp(slots[0] as PoolSlot, "HD")).toEqual({
-      type: "moveMap",
-      slot: { bucket: "NM", index: 1 },
-      bucket: "HD",
-    });
-    expect(moveToOp(slots[0] as PoolSlot, "NM")).toBeNull();
+describe("removeOp", () => {
+  it("empties a slot", () => {
     expect(removeOp(nm(2, 5))).toEqual({ type: "removeMap", slot: { bucket: "NM", index: 2 } });
   });
 });
