@@ -8,13 +8,13 @@
  *       NM maps"). Its rows, candidates included, are BucketRows. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
 
 import { isCustomBucket } from "@haruhimemoe/pool";
-import { Button, cx, Text } from "@haruhimemoe/ui";
+import { Button, cx, EmptyState, Text } from "@haruhimemoe/ui";
 import { useId } from "react";
 import { BucketRows, type SlotActions } from "@/components/builder/BucketRows";
 import type { MoveTarget } from "@/components/builder/SlotRow";
@@ -132,13 +132,9 @@ export function BucketSection(props: BucketSectionProps) {
         />
       )}
       {missing > 0 && code !== null ? (
-        <Text
-          data-placeholder
-          tone="muted"
-          className="mt-2 rounded-lg border border-b1 border-dashed px-3 py-2"
-        >
+        <EmptyState data-placeholder size="sm" className="mt-2">
           {placeholderText(code, missing)}
-        </Text>
+        </EmptyState>
       ) : null}
     </section>
   );
