@@ -5,16 +5,13 @@
  *       for graveyard, pending and WIP sets, and "Check first" with the reason for sets that
  *       need a closer look), each osu!standard difficulty with its no-mod stars, length and BPM
  *       and how many pools played it (a link to its map page when some did), and a link to the
- *       set on osu!.
+ *       set on osu!. The set and its difficulties are @haruhimemoe/ui's shared MapSetCard.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
-import { formatBpm, formatDuration } from "@haruhimemoe/osu/format";
-import { Badge, Text, TextLink } from "@haruhimemoe/ui";
-import { StarsUnder } from "@/components/maps/StarsUnder";
-import { SET_STATUS_LABELS } from "@/constants/search";
+import { Badge, MapSetCard, type MapSetDifficulty, TextLink } from "@haruhimemoe/ui";
 import type { AllMapDifficulty, AllMapSet } from "@/schemas/search-response";
 
 const playedText = (map: AllMapDifficulty) => {
@@ -36,33 +33,32 @@ export function AllMapResultList({ results }: { results: readonly AllMapSet[] })
   return (
     <ul className="flex flex-col gap-3">
       {results.map((set) => (
-        <li key={set.setId} className="rounded-lg bg-b4 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <TextLink
-              href={`https://osu.ppy.sh/beatmapsets/${set.setId}`}
-              rel="noreferrer"
-              variant="plain"
-            >
-              {`${set.artist} - ${set.title}`}
-            </TextLink>
-            <Badge>{SET_STATUS_LABELS[set.status] ?? set.status}</Badge>
-            {set.unranked ? <Badge tone="warning">Unranked</Badge> : null}
-            {set.check ? <Badge tone="warning">Check first</Badge> : null}
-          </div>
-          <Text tone="muted">Mapped by {set.creator}</Text>
-          {set.check ? <Text tone="warning">{set.check.text}</Text> : null}
-          <ul className="mt-2 flex flex-col gap-1 text-sm">
-            {set.maps.map((map) => (
-              <li key={map.id} className="flex flex-wrap gap-x-2 text-c2">
-                <span className="font-bold">{map.version}</span>
-                <StarsUnder stars={map.stars} under="(no mod)" />
-                <span>{`${formatDuration(map.length)} · ${formatBpm(map.bpm)} BPM`}</span>
-                <span className="text-c3">·</span>
-                {playedText(map)}
-              </li>
-            ))}
-          </ul>
-        </li>
+        <MapSetCard
+          as="li"
+          key={set.setId}
+          beatmapsetId={set.setId}
+          artist={set.artist}
+          title={set.title}
+          creator={set.creator}
+          status={set.status}
+          badges={
+            <>
+              {set.unranked ? <Badge tone="warning">Unranked</Badge> : null}
+              {set.check ? <Badge tone="warning">Check first</Badge> : null}
+            </>
+          }
+          note={set.check?.text}
+          difficulties={set.maps.map(
+            (map): MapSetDifficulty => ({
+              beatmapId: map.id,
+              version: map.version,
+              stars: map.stars,
+              starsNote: "no mod",
+              stats: { bpm: map.bpm, lengthSeconds: map.length },
+              details: playedText(map),
+            }),
+          )}
+        />
       ))}
     </ul>
   );

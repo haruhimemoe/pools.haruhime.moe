@@ -1,6 +1,6 @@
 /**
  * @file tests/components/builder/BucketSection.test.tsx
- * @desc A bucket short of its target shows the EmptyState placeholder, not the old dashed box.
+ * @desc A bucket short of its target shows @haruhimemoe/ui's MapGroup summary placeholder row.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
  * @modified Mon Oct 5, 2026
@@ -21,7 +21,7 @@ const GROUP: SlotGroup = {
 };
 
 describe("BucketSection", () => {
-  it("shows the missing-slots placeholder as an EmptyState, not a p box", () => {
+  it("shows the missing-slots placeholder as MapGroup's dashed summary row", () => {
     const { result } = renderHook(() => useSortable({ onMove: () => false }));
     render(
       <BucketSection
@@ -39,12 +39,11 @@ describe("BucketSection", () => {
       />,
     );
     const placeholder = screen.getByText("2 more NM maps");
-    expect(placeholder.tagName).toBe("DIV");
+    expect(placeholder.tagName).toBe("LI");
     expect(placeholder.className).toContain("rounded-[10px]");
     expect(placeholder.className).toContain("border-dashed");
-    expect(placeholder.className).toContain("border-b2");
+    expect(placeholder.className).toContain("border-b1");
     expect(placeholder.className).toContain("px-3");
     expect(placeholder.className).toContain("py-2");
-    expect(placeholder.className).toContain("mt-2");
   });
 });

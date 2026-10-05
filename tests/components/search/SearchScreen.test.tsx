@@ -13,7 +13,7 @@
  *       search drops the stale sets and their lines.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen, waitFor, within } from "@testing-library/react";
@@ -211,9 +211,11 @@ describe("SearchScreen", () => {
       }),
     );
     render(<SearchScreen />);
-    expect(
-      await screen.findByRole("link", { name: "xi - FREEDOM DiVE [FOUR DIMENSIONS]" }),
-    ).toHaveAttribute("href", "/maps/129891");
+    expect(await screen.findByRole("link", { name: "xi - FREEDOM DiVE" })).toHaveAttribute(
+      "href",
+      "/maps/129891",
+    );
+    expect(screen.getByText("· [FOUR DIMENSIONS] set host Nakagawa-Kanon")).toBeInTheDocument();
     expect(screen.getByText(/Used in 3 pools \(latest 2023\)/)).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Played as" })).toBeInTheDocument();
     expect(screen.getByText("1 map")).toBeInTheDocument();

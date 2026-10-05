@@ -10,7 +10,7 @@
  *       addMap, and a 409 takes the server's pool with the notice.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import type { BucketEntry } from "@haruhimemoe/pool";
@@ -125,7 +125,7 @@ describe("Add", () => {
     await screen.findByRole("button", { name: "Add to NM: Diff 11" });
     const buttons = screen
       .getAllByRole("button")
-      .filter((button) => button.closest("[data-diff]") !== null);
+      .filter((button) => button.closest("[data-beatmap-id]") !== null);
     expect(buttons.length).toBeGreaterThan(2);
     for (const button of buttons) {
       const name = button.getAttribute("aria-label") ?? button.textContent ?? "";

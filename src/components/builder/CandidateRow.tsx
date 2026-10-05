@@ -12,14 +12,22 @@
 
 "use client";
 
-import { Button, cx, SORTABLE_ITEM, type Sortable, SortableHandle } from "@haruhimemoe/ui";
+import {
+  Button,
+  cx,
+  MapCard,
+  MapPreviewButton,
+  SORTABLE_ITEM,
+  type Sortable,
+  SortableHandle,
+  Text,
+} from "@haruhimemoe/ui";
 import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
-import { MapPreview } from "@/components/builder/MapPreview";
-import { SlotMapText } from "@/components/builder/SlotMapText";
 import { SlotNote } from "@/components/builder/SlotNote";
 import type { Candidate } from "@/schemas/built-candidates";
 import type { BuiltMap } from "@/schemas/built-pool-view";
 import type { CandidateActions } from "@/schemas/candidate-editor";
+import { slotFacts, toMapData } from "@/utils/map-card";
 import { songOf } from "@/utils/map-preview";
 import { mapLabel } from "@/utils/map-record";
 import type { SlotValueAnswer } from "@/utils/slot-values";
@@ -56,56 +64,73 @@ export function CandidateRow(props: CandidateRowProps) {
     props;
   const name = `${mapLabel(map, entry.beatmapId)} (${label} candidate)`;
   const id = candidateId(place, entry.beatmapId);
+  const facts = slotFacts(values, map);
+  const setId = entry.beatmapsetId ?? map?.setId;
   return (
-    <li
+    <MapCard
+      as="li"
       data-candidate={entry.beatmapId}
       {...sortable.item(id, { container: candidateListId(place), index: position, label: name })}
-      className={cx("flex flex-col gap-2 border-b3 border-t py-2", SORTABLE_ITEM)}
-    >
-      <div className="flex min-w-0 gap-3">
-        <SortableHandle sortable={sortable} id={id} className="self-start" />
-        <MapPreview
-          setId={entry.beatmapsetId ?? map?.setId ?? null}
-          song={songOf(map, entry.beatmapId)}
-        />
-        <div className="flex min-w-0 flex-col items-start gap-1">
-          <SlotMapText beatmapId={entry.beatmapId} map={map} values={values} />
-          <p className="text-c3 text-xs">{addedBy}</p>
+      className={cx("rounded-none border-b3 border-t bg-transparent px-0 py-2", SORTABLE_ITEM)}
+      beatmapId={entry.beatmapId}
+      map={toMapData(map)}
+      href={null}
+      leading={<SortableHandle sortable={sortable} id={id} className="self-start" />}
+      preview={
+        setId ? (
+          <MapPreviewButton beatmapsetId={setId} song={songOf(map, entry.beatmapId)} />
+        ) : undefined
+      }
+      stars={facts.stars}
+      starsNote={facts.starsNote}
+      stats={facts.stats}
+      details={
+        <>
+          {facts.note ? (
+            <Text as="span" size="xs" tone="muted">
+              {facts.note}
+            </Text>
+          ) : null}
+          <Text as="span" size="xs" tone="muted">
+            {addedBy}
+          </Text>
           <SlotNote
             beatmapId={entry.beatmapId}
             label={name}
             note={entry.note || undefined}
             onSave={(note) => on.onNote(entry, note)}
           />
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 @lg:pl-8">
-        <Button
-          variant={voted ? "primary" : "secondary"}
-          aria-pressed={voted}
-          aria-label={`${voted ? "Take back your vote for" : "Vote for"} ${name}: ${votes}`}
-          onClick={() => on.onVote(entry, !voted)}
-        >
-          {voted ? "Voted" : "Vote"} · {votes}
-        </Button>
-        <Button
-          variant="secondary"
-          data-control="promote"
-          aria-label={`Promote ${name} to pick`}
-          onClick={() => on.onPromote(entry)}
-        >
-          Promote
-        </Button>
-        <FindSimilarButton beatmapId={entry.beatmapId} label={mapLabel(map, entry.beatmapId)} />
-        <Button
-          variant="ghost"
-          data-control="remove-candidate"
-          aria-label={`Remove ${name}`}
-          onClick={() => on.onRemove(entry)}
-        >
-          Remove
-        </Button>
-      </div>
-    </li>
+        </>
+      }
+      actions={
+        <>
+          <Button
+            variant={voted ? "primary" : "secondary"}
+            aria-pressed={voted}
+            aria-label={`${voted ? "Take back your vote for" : "Vote for"} ${name}: ${votes}`}
+            onClick={() => on.onVote(entry, !voted)}
+          >
+            {voted ? "Voted" : "Vote"} · {votes}
+          </Button>
+          <Button
+            variant="secondary"
+            data-control="promote"
+            aria-label={`Promote ${name} to pick`}
+            onClick={() => on.onPromote(entry)}
+          >
+            Promote
+          </Button>
+          <FindSimilarButton beatmapId={entry.beatmapId} label={mapLabel(map, entry.beatmapId)} />
+          <Button
+            variant="ghost"
+            data-control="remove-candidate"
+            aria-label={`Remove ${name}`}
+            onClick={() => on.onRemove(entry)}
+          >
+            Remove
+          </Button>
+        </>
+      }
+    />
   );
 }

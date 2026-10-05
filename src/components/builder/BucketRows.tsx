@@ -86,7 +86,7 @@ export function BucketRows(props: BucketRowsProps) {
     );
   };
   return (
-    <ol className="flex flex-col">
+    <>
       {rows.map(({ index, pick }, position) => {
         if (!pick) {
           const label = slotLabel({ mod: code, index });
@@ -121,6 +121,6 @@ export function BucketRows(props: BucketRowsProps) {
           </SlotRow>
         );
       })}
-    </ol>
+    </>
   );
 }

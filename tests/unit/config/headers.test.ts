@@ -5,11 +5,10 @@
  *       X-Powered-By.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { describe, expect, it } from "vitest";
-import { previewClipUrl, previewCoverUrl } from "@/utils/map-preview";
 import nextConfig from "../../../next.config";
 
 const catchAll = async () => {
@@ -37,8 +36,8 @@ describe("security headers", () => {
         .map((part) => part.trim().split(" "))
         .find(([key]) => key === name)
         ?.slice(1) ?? [];
-    expect(directive("img-src")).toContain(new URL(previewCoverUrl(1)).origin);
-    expect(directive("media-src")).toEqual([new URL(previewClipUrl(1)).origin]);
+    expect(directive("img-src")).toContain("https://assets.ppy.sh");
+    expect(directive("media-src")).toContain("https://b.ppy.sh");
   });
 
   it("doesn't advertise Next.js", () => {

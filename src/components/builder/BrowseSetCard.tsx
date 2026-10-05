@@ -8,20 +8,24 @@
  *       the mirror had no values for, so they're worked out), how many past pools played it (a
  *       link to its map page), and Add (which says "In this pool" for a map the pool has). In
  *       the "Similar to" source each difficulty also says how similar it is, and every row can
- *       Find similar. Presentational.
+ *       Find similar. The set and its difficulties are @haruhimemoe/ui's shared MapSetCard.
+ *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import type { BucketEntry } from "@haruhimemoe/pool";
-import { Badge, BeatmapStats, Text, TextLink } from "@haruhimemoe/ui";
+import {
+  Badge,
+  MapPreviewButton,
+  MapSetCard,
+  type MapSetDifficulty,
+  TextLink,
+} from "@haruhimemoe/ui";
 import { AddAsCandidate } from "@/components/builder/AddAsCandidate";
 import { AddToPool } from "@/components/builder/AddToPool";
 import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
-import { MapPreview } from "@/components/builder/MapPreview";
-import { StarsUnder } from "@/components/maps/StarsUnder";
-import { SET_STATUS_LABELS } from "@/constants/search";
 import type { CandidateAdder } from "@/schemas/candidate-editor";
 import type { BrowseDiff, BrowseSet } from "@/utils/browse-params";
 import { mapLabel } from "@/utils/map-record";
@@ -62,58 +66,53 @@ const played = ({ id, playedIn }: BrowseDiff) => {
 export function BrowseSetCard(props: BrowseSetCardProps) {
   const { set, lens, buckets, defaultBucket, poolIds, onAdd, candidate } = props;
   return (
-    <li className="rounded-lg bg-b4 p-3">
-      <div className="flex gap-3">
-        <MapPreview setId={set.setId} song={`${set.artist} - ${set.title}`} />
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <TextLink
-              href={`https://osu.ppy.sh/beatmapsets/${set.setId}`}
-              rel="noreferrer"
-              variant="plain"
-            >
-              {`${set.artist} - ${set.title}`}
-            </TextLink>
-            <Badge>{SET_STATUS_LABELS[set.status] ?? set.status}</Badge>
-            {set.unranked ? <Badge tone="warning">Unranked</Badge> : null}
-            {set.check ? <Badge tone="warning">Check first</Badge> : null}
-          </div>
-          <Text tone="muted">Mapped by {set.creator}</Text>
-        </div>
-      </div>
-      {set.check ? <Text tone="warning">{set.check.text}</Text> : null}
-      <ul className="mt-2 flex flex-col gap-3 text-sm">
-        {set.diffs.map((diff: BrowseDiff) => (
-          <li key={diff.id} data-diff={diff.id} className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-baseline gap-x-2 text-c2">
-              {similarityOf(diff) === null ? null : (
-                <Badge tone="accent">{`${similarityOf(diff)}% similar`}</Badge>
-              )}
-              <span className="font-bold text-c1">{diff.version}</span>
-              <StarsUnder
-                stars={diff.stars}
-                under={
-                  diff.starsNoMod !== diff.stars
-                    ? `${lens} (${starsText(diff.starsNoMod)} no mod)`
-                    : lens === "NM"
-                      ? "no mod"
-                      : lens
-                }
-              />
-              <BeatmapStats
-                cs={diff.cs}
-                ar={diff.ar}
-                od={diff.od}
-                bpm={diff.bpm}
-                lengthSeconds={diff.length}
-                className="text-sm"
-              />
+    <MapSetCard
+      as="li"
+      beatmapsetId={set.setId}
+      artist={set.artist}
+      title={set.title}
+      creator={set.creator}
+      status={set.status}
+      badges={
+        <>
+          {set.unranked ? <Badge tone="warning">Unranked</Badge> : null}
+          {set.check ? <Badge tone="warning">Check first</Badge> : null}
+        </>
+      }
+      note={set.check?.text}
+      preview={<MapPreviewButton beatmapsetId={set.setId} song={`${set.artist} - ${set.title}`} />}
+      difficulties={set.diffs.map(
+        (diff: BrowseDiff): MapSetDifficulty => ({
+          beatmapId: diff.id,
+          version: diff.version,
+          stars: diff.stars,
+          starsNote:
+            diff.starsNoMod !== diff.stars
+              ? `${lens} (${starsText(diff.starsNoMod)} no mod)`
+              : lens === "NM"
+                ? "no mod"
+                : lens,
+          stats: {
+            cs: diff.cs,
+            ar: diff.ar,
+            od: diff.od,
+            bpm: diff.bpm,
+            lengthSeconds: diff.length,
+          },
+          badges:
+            similarityOf(diff) === null ? undefined : (
+              <Badge tone="accent">{`${similarityOf(diff)}% similar`}</Badge>
+            ),
+          details: (
+            <>
               {diff.source === "math" && lens !== "NM" ? (
-                <span className="text-c3 text-xs">(no mod data)</span>
+                <span className="text-xs">(no mod data) </span>
               ) : null}
-            </div>
-            <div className="text-c3">{played(diff)}</div>
-            <div className="flex flex-wrap items-start gap-2">
+              {played(diff)}
+            </>
+          ),
+          actions: (
+            <>
               <AddToPool
                 beatmapId={diff.id}
                 version={diff.version}
@@ -135,10 +134,10 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
                 beatmapId={diff.id}
                 label={mapLabel({ ...set, version: diff.version }, diff.id)}
               />
-            </div>
-          </li>
-        ))}
-      </ul>
-    </li>
+            </>
+          ),
+        }),
+      )}
+    />
   );
 }

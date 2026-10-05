@@ -49,7 +49,8 @@ describe("a slot's candidates", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
     const row = within(candidateRow(11));
-    expect(row.getByText(/5\.00★ no mod/)).toBeInTheDocument();
+    expect(candidateRow(11)).toHaveTextContent("5.00");
+    expect(row.getByText("no mod")).toBeInTheDocument();
     expect(row.getByText("added by editor")).toBeInTheDocument();
     expect(row.getByText("safer pick")).toBeInTheDocument();
     expect(row.getByRole("button", { name: /^Vote for .*: 1 of 2 editors$/ })).toHaveAttribute(

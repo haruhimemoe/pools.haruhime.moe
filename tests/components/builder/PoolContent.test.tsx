@@ -6,7 +6,7 @@
  *       added with forced mods and removed, and "Find maps" focusing the map browser pane.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { screen } from "@testing-library/react";
@@ -67,7 +67,8 @@ describe("PoolEditor: pasting", () => {
     await user.click(screen.getByRole("button", { name: "Paste maps" }));
     expect(order()).toEqual([10, 20, 30, 40]);
     expect(pasteBox()).toHaveValue("");
-    expect(await screen.findByText("xi - Fresh Song [Hard]")).toBeInTheDocument();
+    expect(await screen.findByText("xi - Fresh Song")).toBeInTheDocument();
+    expect(screen.getByText("[Hard] mapped by Newcomer")).toBeInTheDocument();
     await saved();
     const paths = api.calls.map((call) => `${call.method} ${call.path}`);
     expect(paths).toContain("GET /api/pools/b-a0000001/maps");

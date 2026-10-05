@@ -215,13 +215,17 @@ describe("PoolEditor: values under each slot's mods", () => {
     });
     api.values = () => ({ ...values, "20:DT": value(7.2, "DT", "mirror") });
     const row = (id: number) => document.querySelector(`li[data-map="${id}"]`);
-    expect(row(10)).toHaveTextContent("5.00★ no mod · AR 9 · OD 8 · 2:00 · 180 BPM");
+    expect(row(10)).toHaveTextContent(
+      "5.005.00 starsno modCSCircle size4ARApproach rate9ODOverall difficulty8BPMBeats per minute180Length2:00",
+    );
     expect(api.valueCalls).toEqual([]);
     await user.selectOptions(screen.getByRole("combobox", { name: "Move NM2 to" }), "DT");
     await user.click(button("Move NM2 to DT"));
     await saved();
     await waitFor(() =>
-      expect(row(20)).toHaveTextContent("7.20★ DT · AR 9 · OD 8 · 1:20 · 270 BPM"),
+      expect(row(20)).toHaveTextContent(
+        "7.207.20 starsDTCSCircle size4ARApproach rate9ODOverall difficulty8BPMBeats per minute270Length1:20",
+      ),
     );
     expect(api.valueCalls).toEqual(["/api/pools/b-a0000001/values"]);
     const summary = screen.getByText("Star range per slot (with its mods)").closest("section");
@@ -234,7 +238,7 @@ describe("PoolEditor: values under each slot's mods", () => {
     const pool = clientPool({ slots: [{ mod: "HR", index: 1, beatmapId: 10 }] });
     const { api } = renderEditor(pool, { values: { "10:HR": value(5, "HR", "math") } });
     expect(document.querySelector('li[data-map="10"]')).toHaveTextContent(
-      "5.00★ no mod · AR 9 · OD 8 · 2:00 · 180 BPM · no mod data",
+      "5.005.00 starsno modCSCircle size4ARApproach rate9ODOverall difficulty8BPMBeats per minute180Length2:00no mod data",
     );
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(api.valueCalls).toEqual([]);

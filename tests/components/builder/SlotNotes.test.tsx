@@ -2,10 +2,10 @@
  * @file tests/components/builder/SlotNotes.test.tsx
  * @desc Notes on slots: added in the editor as setNote (Enter or Save), edited and cleared, a
  *       note the checks refuse said under its field with nothing sent, Escape leaving it as it
- *       was, and the pool's page showing each note under its map.
+ *       was, the pool's page showing each note under its map, and Copy ID per map.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -66,5 +66,12 @@ describe("notes on the pool's page", () => {
     render(<BuiltSlotList pool={pool} maps={mapsFor([10, 20, 30])} values={{}} />);
     const row = screen.getByText("tiebreaker backup").closest("li");
     expect(row).toHaveTextContent("NM3");
+  });
+
+  it("offers Copy ID for every built map, one Copied. at a time per bucket", async () => {
+    const pool = clientPool();
+    render(<BuiltSlotList pool={pool} maps={mapsFor([10, 20, 30])} values={{}} />);
+    const buttons = screen.getAllByRole("button", { name: /^Copy ID \d+$/ });
+    expect(buttons.length).toBeGreaterThanOrEqual(2);
   });
 });

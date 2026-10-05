@@ -12,7 +12,7 @@
  *       either page loads.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
@@ -182,11 +182,27 @@ describe("values under each slot's mods", () => {
     server.use(ppBatchHandler(() => ppValues({ stars: 7.25, ar: 10.33, od: 9.78 })));
     as(cast, "other");
     const { html } = await builtPage();
-    expect(html).toContain("5.50★ no mod · AR 9 · OD 8 · 2:00 · 180 BPM");
-    expect(html).toContain("7.25★ DT · AR 10.3 · OD 9.8 · 1:20 · 270 BPM");
+    // @haruhimemoe/ui's MapCard renders the star pill, its note and the stats as markup (no
+    // joined string), so each slot's values are checked as separate fragments.
+    expect(html).toMatch(
+      /aria-hidden="true">5\.50<\/span><span class="sr-only">5\.50 stars<\/span><\/span><span class="text-c3 text-xs">no mod/,
+    );
+    expect(html).toMatch(
+      /aria-hidden="true">7\.25<\/span><span class="sr-only">7\.25 stars<\/span><\/span><span class="text-c3 text-xs">DT/,
+    );
+    expect(html).toMatch(/title="Approach rate">[\s\S]*?<\/abbr><\/dt><dd[^>]*>9</);
+    expect(html).toMatch(/title="Approach rate">[\s\S]*?<\/abbr><\/dt><dd[^>]*>10\.3</);
+    expect(html).toMatch(/title="Overall difficulty">[\s\S]*?<\/abbr><\/dt><dd[^>]*>8</);
+    expect(html).toMatch(/title="Overall difficulty">[\s\S]*?<\/abbr><\/dt><dd[^>]*>9\.8</);
+    expect(html).toMatch(/title="Beats per minute">[\s\S]*?<\/abbr><\/dt><dd[^>]*>180</);
+    expect(html).toMatch(/title="Beats per minute">[\s\S]*?<\/abbr><\/dt><dd[^>]*>270</);
+    expect(html).toMatch(/>Length<\/dt><dd[^>]*>2:00</);
+    expect(html).toMatch(/>Length<\/dt><dd[^>]*>1:20</);
     expect(html).toMatch(/DT<\/dt><dd[^>]*>7\.25★/);
     as(cast, "owner");
-    expect(await editPage()).toContain("7.25★ DT");
+    expect(await editPage()).toMatch(
+      /aria-hidden="true">7\.25<\/span><span class="sr-only">7\.25 stars<\/span><\/span><span class="text-c3 text-xs">DT/,
+    );
   });
 
   it("asks the mirror once, not on every load, for a map it can't rate", async () => {

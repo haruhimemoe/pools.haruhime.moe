@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Depends on `@haruhimemoe/ui` 0.16.0: map rows in the editor, search and built pools use the shared map cards (cover, stars under the slot's mods, stats), the built pool page has a Copy ID button per map instead of the ID as text, map sets in the browser and all-maps search share one set card, and the map page's banner is the kit's cover.
 - `@haruhimemoe/next-kit` 0.7.0 and `@haruhimemoe/vcs` 0.1.0 for pool history.
 - Two editors saving at once no longer lose a change: saves merge, and only real conflicts reload the editor.
 - Docs and legal pages share one content registry (`src/constants/content.ts`, `@haruhimemoe/next-kit` 0.6.1's `defineContent`), the same layout packs uses. The API docs moved from a TSX page to `content/docs/api.mdx`; `/docs/api` keeps its URL. Legal page titles now read "pools Terms" and so on.

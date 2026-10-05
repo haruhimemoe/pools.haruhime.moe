@@ -243,10 +243,10 @@ describe("editor layout", () => {
     const panes = container.querySelector("[data-panes]");
     expect(panes).toHaveClass("grid", "grid-cols-1");
     expect(panes?.className).toMatch(/\blg:grid-cols-\[/);
-    // A slot's text and controls sit side by side only when the maps card itself is wide
-    // (48rem): the pool's column is 38.5rem on any desktop, too narrow for both.
+    // A slot's text and controls sit side by side only when the maps card itself is wide:
+    // @haruhimemoe/ui's MapCard is its own size container, wrapping under its @2xl.
     const row = container.querySelector("li[data-map] > div");
-    expect(row).toHaveClass("flex-col", "@3xl:flex-row");
+    expect(row).toHaveClass("flex-wrap", "@2xl:flex-nowrap");
     expect(row?.className).not.toMatch(/\blg:flex-row/);
     expect(row?.closest(".\\@container")).not.toBeNull();
     const wide = [...container.querySelectorAll("*")].filter((node) =>

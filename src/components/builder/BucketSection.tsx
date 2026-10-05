@@ -14,8 +14,7 @@
 "use client";
 
 import { isCustomBucket } from "@haruhimemoe/pool";
-import { Button, cx, EmptyState, SORTABLE_CONTAINER, type Sortable, Text } from "@haruhimemoe/ui";
-import { useId } from "react";
+import { Button, cx, MapGroup, SORTABLE_CONTAINER, type Sortable } from "@haruhimemoe/ui";
 import { BucketRows, type SlotActions } from "@/components/builder/BucketRows";
 import type { MoveTarget } from "@/components/builder/SlotRow";
 import type { BucketTarget, SlotNotes } from "@/schemas/built-plan";
@@ -53,7 +52,6 @@ type BucketSectionProps = Pick<SlotActions, "onNote" | "onRemove"> & {
  */
 export function BucketSection(props: BucketSectionProps) {
   const { group, maps, values, targets, plan, notes, sortable, candidates, ...on } = props;
-  const headingId = useId();
   const { title, detail } = groupHeading(group.entry);
   const { code, entry, slots } = group;
   const others = targets.filter((target) => target.code !== code);
@@ -66,24 +64,16 @@ export function BucketSection(props: BucketSectionProps) {
     return side && plan?.sr ? rangeBadgeText(side, plan.sr) : null;
   };
   return (
-    <section
-      aria-labelledby={headingId}
+    <MapGroup
+      title={title}
+      detail={detail}
+      headingProps={{ tabIndex: -1 }}
       data-bucket={code ?? ""}
       {...sortable.container(bucketListId(code), { label: title, mode: "onto" })}
-      className={cx("flex flex-col rounded-lg", SORTABLE_CONTAINER)}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 id={headingId} tabIndex={-1} className="font-bold text-c1">
-          {title}
-          {detail ? (
-            <Text as="span" tone="muted">
-              {" "}
-              {detail}
-            </Text>
-          ) : null}
-        </h3>
-        {code !== null ? (
-          <div className="flex gap-2">
+      className={cx("rounded-lg", SORTABLE_CONTAINER)}
+      actions={
+        code !== null ? (
+          <>
             {entry && isCustomBucket(entry) && slots.length === 0 ? (
               <Button
                 variant="ghost"
@@ -101,14 +91,15 @@ export function BucketSection(props: BucketSectionProps) {
             >
               Find maps
             </Button>
-          </div>
-        ) : null}
-      </div>
-      {slots.length === 0 && missing <= 0 && !hasCandidates ? (
-        <Text tone="muted" className="py-2">
-          No maps yet.
-        </Text>
-      ) : (
+          </>
+        ) : undefined
+      }
+      emptySlots={missing > 0 && code !== null ? missing : 0}
+      emptySlotsAs="summary"
+      emptySlotText={() => (code === null ? null : placeholderText(code, missing))}
+      copyScope={false}
+    >
+      {slots.length === 0 && missing <= 0 && !hasCandidates ? null : (
         <BucketRows
           code={code}
           slots={slots}
@@ -124,11 +115,6 @@ export function BucketSection(props: BucketSectionProps) {
           onRemove={on.onRemove}
         />
       )}
-      {missing > 0 && code !== null ? (
-        <EmptyState data-placeholder size="sm" className="mt-2">
-          {placeholderText(code, missing)}
-        </EmptyState>
-      ) : null}
-    </section>
+    </MapGroup>
   );
 }

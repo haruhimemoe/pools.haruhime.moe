@@ -11,7 +11,7 @@
  *       MapBrowserAdd.test.tsx. A fake fetch answers; nothing reaches the network.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { screen, within } from "@testing-library/react";
@@ -51,7 +51,7 @@ describe("MapBrowserPane results", () => {
     const card = first.closest("li") as HTMLElement;
     expect(within(card).getByText("Ranked")).toBeInTheDocument();
     expect(within(card).getByText("Mapped by Mapper")).toBeInTheDocument();
-    const row = card.querySelector('[data-diff="11"]') as HTMLElement;
+    const row = card.querySelector('[data-beatmap-id="11"]') as HTMLElement;
     expect(row).toHaveTextContent("6.42 starsHR (5.80★ no mod)");
     // Each stat reads its short form to sighted users and its full name to screen readers.
     expect(row).toHaveTextContent(
@@ -60,7 +60,7 @@ describe("MapBrowserPane results", () => {
     expect(row).toHaveTextContent("Not played in a past pool");
     const link = within(card).getByRole("link", { name: "Played in 2 past pools" });
     expect(link).toHaveAttribute("href", "/maps/12");
-    expect(card.querySelector('[data-diff="12"]')).not.toHaveTextContent("no mod");
+    expect(card.querySelector('[data-beatmap-id="12"]')).not.toHaveTextContent("no mod");
     const other = screen.getByText("xi - Song 2").closest("li") as HTMLElement;
     expect(within(other).getByText("Unranked")).toBeInTheDocument();
     expect(within(other).getByText("Check first")).toBeInTheDocument();
@@ -82,7 +82,9 @@ describe("MapBrowserPane results", () => {
       answer: (url) => Response.json(browsePage({ lens: lensAsked(url), sets })),
     });
     const row = async (id: number) =>
-      (await screen.findByText("xi - Song 1")).closest("li")?.querySelector(`[data-diff="${id}"]`);
+      (await screen.findByText("xi - Song 1"))
+        .closest("li")
+        ?.querySelector(`[data-beatmap-id="${id}"]`);
     expect(await row(11)).not.toHaveTextContent("no mod data");
     await user.selectOptions(screen.getByRole("combobox", { name: /Values under/ }), "HR");
     await screen.findByRole("group", { name: "Stars (HR)" });

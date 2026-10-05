@@ -6,10 +6,9 @@
  *       candidate list under it, a badge when its stars sit outside the bucket's target, and its note. A handle (a button,
  *       "Reorder NM2") drags it by mouse, touch or keyboard onto another row or bucket; Up, Down and Move do the same in one
  *       press.
- *       Every control names its slot for screen readers. Its map and
- *       controls sit side by side only once the maps card (a size container) is 48rem wide;
- *       narrower, on phones and in the desktop editor's pool column, they stack. The editor
- *       decides what each button does and where focus goes after.
+ *       Every control names its slot for screen readers. @haruhimemoe/ui's MapCard (a size
+ *       container) decides when its map and controls stack instead of sitting side by side. The
+ *       editor decides what each button does and where focus goes after.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
  * @modified Mon Oct 5, 2026
@@ -23,18 +22,19 @@ import {
   Button,
   cx,
   fieldClasses,
-  ModBadge,
+  MapCard,
+  MapPreviewButton,
   SORTABLE_ITEM,
   type Sortable,
   SortableHandle,
   SortableMoveButtons,
+  Text,
 } from "@haruhimemoe/ui";
 import { type ReactNode, useState } from "react";
 import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
-import { MapPreview } from "@/components/builder/MapPreview";
-import { SlotMapText } from "@/components/builder/SlotMapText";
 import { SlotNote } from "@/components/builder/SlotNote";
 import type { BuiltMap } from "@/schemas/built-pool-view";
+import { slotFacts, toMapData } from "@/utils/map-card";
 import { songOf } from "@/utils/map-preview";
 import { mapLabel } from "@/utils/map-record";
 import type { SlotValueAnswer } from "@/utils/slot-values";
@@ -77,26 +77,37 @@ export function SlotRow(props: SlotRowProps) {
   const label = slotLabel(slot);
   const chosen = targets.find((option) => option.code === target);
   const id = pickId(slot.beatmapId);
+  const facts = slotFacts(values, map);
+  const song = songOf(map, slot.beatmapId);
   return (
-    <li
+    <MapCard
+      as="li"
       data-map={slot.beatmapId}
       {...sortable.item(id, { container: bucketListId(slot.mod), index: position, label })}
-      className={cx("flex flex-col gap-2 border-b3 border-t py-3", SORTABLE_ITEM)}
-    >
-      <div className="flex @3xl:flex-row flex-col @3xl:items-center gap-2">
-        <div className="flex min-w-0 flex-1 gap-3">
-          <SortableHandle sortable={sortable} id={id} className="self-start" />
-          <span className="w-14 shrink-0">
-            <ModBadge mod={label} />
-          </span>
-          <MapPreview setId={map?.setId ?? null} song={songOf(map, slot.beatmapId)} />
-          <div className="flex min-w-0 flex-col items-start gap-1">
-            <SlotMapText beatmapId={slot.beatmapId} map={map} values={values} />
-            {badge ? <Badge tone="warning">{badge}</Badge> : null}
-            <SlotNote beatmapId={slot.beatmapId} label={label} note={note} onSave={on.onNote} />
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+      className={cx("rounded-none border-b3 border-t bg-transparent px-0 py-3", SORTABLE_ITEM)}
+      beatmapId={slot.beatmapId}
+      map={toMapData(map)}
+      href={null}
+      slot={{ label }}
+      leading={<SortableHandle sortable={sortable} id={id} className="self-start" />}
+      preview={map?.setId ? <MapPreviewButton beatmapsetId={map.setId} song={song} /> : undefined}
+      stars={facts.stars}
+      starsNote={facts.starsNote}
+      stats={facts.stats}
+      badges={badge ? <Badge tone="warning">{badge}</Badge> : undefined}
+      details={
+        <>
+          {facts.note ? (
+            <Text as="span" size="xs" tone="muted">
+              {facts.note}
+            </Text>
+          ) : null}
+          <SlotNote beatmapId={slot.beatmapId} label={label} note={note} onSave={on.onNote} />
+          {children}
+        </>
+      }
+      actions={
+        <>
           <SortableMoveButtons sortable={sortable} id={id} label={label} variant="secondary" />
           {targets.length > 0 ? (
             <>
@@ -151,9 +162,8 @@ export function SlotRow(props: SlotRowProps) {
           >
             Remove
           </Button>
-        </div>
-      </div>
-      {children}
-    </li>
+        </>
+      }
+    />
   );
 }
