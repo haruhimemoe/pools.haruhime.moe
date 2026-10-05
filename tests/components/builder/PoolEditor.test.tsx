@@ -9,7 +9,7 @@
  *       fake pool API applies the ops with the builder's own rules.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { cleanup, screen, waitFor, within } from "@testing-library/react";
@@ -154,6 +154,29 @@ describe("PoolEditor: saving", () => {
     const asked = api.calls.length;
     await new Promise((resolve) => setTimeout(resolve, 80));
     expect(api.calls).toHaveLength(asked);
+  });
+});
+
+describe("PoolEditor: merged saves", () => {
+  it("posts the revision it saw as base, and shows the merged notice on a clean merge", async () => {
+    const head = { id: "r1", seq: 1 };
+    const { api, user, saved } = setup(clientPool({ head }));
+    api.next(() => {
+      const merged = { ...api.pool, version: api.pool.version + 1, slots: [nm(1, 10)] };
+      api.pool = merged;
+      return Response.json({ pool: merged, merged: true });
+    });
+    await user.click(button("Remove NM2"));
+    await saved();
+    expect(api.calls.at(0)?.body).toMatchObject({ baseVersion: 1, base: head });
+    expect(await screen.findByText(/Someone else changed this pool too/)).toBeInTheDocument();
+  });
+
+  it("sends no base when the view has none (an old-shaped pool)", async () => {
+    const { api, user, saved } = setup();
+    await user.click(button("Remove NM1"));
+    await saved();
+    expect(api.calls.at(0)?.body).not.toHaveProperty("base");
   });
 });
 

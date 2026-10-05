@@ -8,7 +8,7 @@
  *       over, and how the editor backs off asking for slot values.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 export { MAX_CUSTOM_BUCKETS, MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
@@ -106,3 +106,6 @@ export const VALUES_RETRY_MAX_MS = 60_000;
 /** Said when no editor has signed in to take the pool over. */
 export const NO_HANDOVER =
   "Only an editor who has signed in to pools can take the pool over. Add one above first.";
+
+/** Said after a stale save lands cleanly onto a change someone else made meanwhile. */
+export const MERGED_NOTICE = "Saved. Someone else changed this pool too; both changes are in.";

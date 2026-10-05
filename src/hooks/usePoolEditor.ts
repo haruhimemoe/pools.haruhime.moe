@@ -18,7 +18,7 @@
  *       sent after it could undo their work instead.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
@@ -36,7 +36,7 @@ import type { EditorFailure, PoolEditor } from "@/schemas/pool-editor";
 import { applyLocal } from "@/utils/built-editor";
 import { sameContent } from "@/utils/undo";
 
-type PoolBody = { pool: ClientPool };
+type PoolBody = { pool: ClientPool; merged?: boolean };
 
 const samePack = (a: ClientPack, b: ClientPack): boolean =>
   a.state === b.state && a.href === b.href && a.error === b.error && a.gone === b.gone;
@@ -55,6 +55,7 @@ export const usePoolEditor = (
   const [saving, setSaving] = useState(false);
   const [failure, setFailure] = useState<EditorFailure | null>(null);
   const [conflict, setConflict] = useState(false);
+  const [merged, setMerged] = useState(false);
   const [gone, setGone] = useState(false);
   const saved = useRef(initial);
   const view = useRef(initial);
@@ -88,6 +89,7 @@ export const usePoolEditor = (
     (next: ClientPool, why: EditorFailure | "conflict") => {
       dropQueue();
       rebase(next);
+      setMerged(false);
       if (why === "conflict") setConflict(true);
       else setFailure(why);
     },
@@ -102,10 +104,12 @@ export const usePoolEditor = (
       return;
     }
     const path = `/api/pools/${saved.current.id}/ops`;
-    const body = { baseVersion: saved.current.version, ops };
+    const { head } = saved.current;
+    const body = { baseVersion: saved.current.version, ...(head ? { base: head } : {}), ops };
     const answer = await callPools<PoolBody>(fetcher, path, { method: "POST", body });
     if (answer.ok) {
       steps.saved(sent.steps);
+      setMerged(answer.body.merged === true);
       rebase(clientPoolOf(answer.body.pool));
     } else if (answer.status === 409 && answer.pool) {
       steps.clear();
@@ -132,6 +136,7 @@ export const usePoolEditor = (
       }
       setFailure(null);
       setConflict(false);
+      setMerged(false);
       steps.queued(before, ops, undo);
       queue.current.push(...ops);
       show(local.pool);
@@ -184,6 +189,7 @@ export const usePoolEditor = (
   const dismiss = useCallback(() => {
     setFailure(null);
     setConflict(false);
+    setMerged(false);
   }, []);
 
   return {
@@ -191,6 +197,7 @@ export const usePoolEditor = (
     saving,
     failure,
     conflict,
+    merged,
     gone,
     change,
     undoSteps: steps.count,

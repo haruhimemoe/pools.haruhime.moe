@@ -9,10 +9,11 @@
  *       answer give the same shape.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
+import type { RevisionRef } from "@haruhimemoe/vcs";
 import type { BuiltPackState, Visibility } from "@/constants/built-pools";
 import type { SlotCandidates } from "@/schemas/built-candidates";
 import type { BucketTargets, SlotNotes } from "@/schemas/built-plan";
@@ -65,6 +66,8 @@ export type ClientPool = {
   candidates?: SlotCandidates;
   /** The caller's osu! id, sent with the candidates (their own votes). */
   me?: number;
+  /** The revision the content matches; present for the owner and editors alone. */
+  head?: RevisionRef | null;
   version: number;
   pack: ClientPack;
   access: ClientAccess;
@@ -126,6 +129,7 @@ export const clientPoolOf = (view: ClientPool): ClientPool => ({
   slotNotes: view.slotNotes,
   ...(view.candidates ? { candidates: view.candidates } : {}),
   ...(view.me === undefined ? {} : { me: view.me }),
+  ...(view.head === undefined ? {} : { head: view.head }),
   version: view.version,
   pack: view.pack,
   access: view.access,

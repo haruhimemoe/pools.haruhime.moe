@@ -5,7 +5,7 @@
  *       calls. Types only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import type { SlotLineError } from "@haruhimemoe/pool";
@@ -22,6 +22,8 @@ export type PoolEditor = {
   saving: boolean;
   failure: EditorFailure | null;
   conflict: boolean;
+  /** The last save merged cleanly onto someone else's change (both are in). */
+  merged: boolean;
   gone: boolean;
   /** Applies a change and queues it; false (with `failure` set) when it can't apply. */
   change: (ops: PoolOp[]) => boolean;

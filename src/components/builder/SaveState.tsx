@@ -11,6 +11,7 @@
 
 import { Button, Notice, Text } from "@haruhimemoe/ui";
 import type { ReactNode } from "react";
+import { MERGED_NOTICE } from "@/constants/built-pools";
 import { CONFLICT, GONE } from "@/constants/editor";
 import type { EditorFailure } from "@/schemas/pool-editor";
 
@@ -18,6 +19,8 @@ type SaveStateProps = {
   saving: boolean;
   failure: EditorFailure | null;
   conflict: boolean;
+  /** The last save merged cleanly onto someone else's change (both are in). */
+  merged: boolean;
   gone: boolean;
   onDismiss: () => void;
   /** Buttons beside the status (Undo). */
@@ -30,7 +33,7 @@ type SaveStateProps = {
  * @returns {JSX.Element} what's happening to the changes, with Dismiss
  */
 export function SaveState(props: SaveStateProps) {
-  const { saving, failure, conflict, gone, onDismiss, actions } = props;
+  const { saving, failure, conflict, merged, gone, onDismiss, actions } = props;
   return (
     <div className="sticky top-0 z-10 flex flex-col gap-2 rounded-lg bg-b5 px-4 py-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -47,6 +50,11 @@ export function SaveState(props: SaveStateProps) {
       {conflict ? (
         <Notice tone="warning" live>
           {CONFLICT}
+        </Notice>
+      ) : null}
+      {merged ? (
+        <Notice tone="info" live>
+          {MERGED_NOTICE}
         </Notice>
       ) : null}
       {failure ? (

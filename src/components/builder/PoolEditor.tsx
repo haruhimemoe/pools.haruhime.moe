@@ -123,6 +123,7 @@ export function PoolEditor({
         saving={editor.saving}
         failure={editor.failure}
         conflict={editor.conflict}
+        merged={editor.merged}
         gone={editor.gone}
         onDismiss={editor.dismiss}
         actions={<UndoButton steps={editor.undoSteps} onUndo={editor.undo} />}

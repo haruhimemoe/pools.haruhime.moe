@@ -10,7 +10,7 @@
  *       must be allowed something.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import "server-only";
@@ -157,6 +157,7 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     // Everyone else sees only notes a write would take today; editors see theirs to fix them.
     slotNotes: canEdit ? (pool.slotNotes ?? {}) : passingNotes(pool.slotNotes ?? {}),
     ...candidates,
+    ...(canEdit ? { head: pool.head ?? null } : {}),
     version: pool.version,
     // packs' reasons are for the people who fix the pool.
     pack: clientPackOf(pool, { withError: canEdit }),

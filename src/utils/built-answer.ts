@@ -5,10 +5,11 @@
  *       (a 409); and BuiltPoolView, the pool as the API sends it. Pure, types and one helper.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
+import type { RevisionRef } from "@haruhimemoe/vcs";
 import type { Visibility } from "@/constants/built-pools";
 import type { SlotCandidates } from "@/schemas/built-candidates";
 import type { BucketTargets, SlotNotes } from "@/schemas/built-plan";
@@ -72,6 +73,8 @@ export type BuiltPoolView = {
   candidates?: SlotCandidates;
   /** The caller's osu! id, sent with the candidates. */
   me?: number;
+  /** The revision the content matches; sent only to the owner and editors (src/services/built-pool-history.ts). */
+  head?: RevisionRef | null;
   version: number;
   pack: ClientPack;
   startedFrom: string | null;
