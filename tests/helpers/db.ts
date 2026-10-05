@@ -5,7 +5,7 @@
  *       the client closes after the file.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { BETTER_AUTH_COLLECTIONS, setupTestDb as setupKitDb } from "@haruhimemoe/next-kit/testing";
@@ -20,6 +20,7 @@ const COLLECTIONS = [
   "rate_limits",
   "built_pools",
   "built_pool_ids",
+  "pool_revisions",
   "mod_values",
   "pack_cleanup",
   "built_pool_activity",

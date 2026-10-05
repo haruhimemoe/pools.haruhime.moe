@@ -6,7 +6,7 @@
  *       index names are next-kit's AUTH_INDEXES.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 /** Past pool records. */
@@ -31,6 +31,8 @@ export const MOD_VALUES_COLLECTION = "mod_values";
 export const SIMILAR_MAPS_COLLECTION = "similar_maps";
 /** Who changed what on built pools (src/services/built-pool-activity.ts). */
 export const BUILT_POOL_ACTIVITY_COLLECTION = "built_pool_activity";
+/** Built pools' version history (src/lib/pool-revisions.ts). */
+export const POOL_REVISIONS_COLLECTION = "pool_revisions";
 
 /** maxTimeMS on every public read. */
 export const QUERY_TIME_MS = 2000;

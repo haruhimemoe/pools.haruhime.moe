@@ -11,7 +11,7 @@
  *       to start from (startPreview).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import "server-only";
@@ -28,6 +28,7 @@ import type { CreatePoolBody } from "@/schemas/built-pool-ops";
 import type { StartFrom } from "@/schemas/built-pool-view";
 import { poolIdSchema } from "@/schemas/pool";
 import type { SessionUser } from "@/schemas/session-user";
+import { authorOf, ensureHistory } from "@/services/built-pool-history";
 import { findBuiltPool, toStored, viewOf } from "@/services/built-pool-read";
 import { getPublicPool } from "@/services/pools";
 import { templateTargets } from "@/utils/bucket-targets";
@@ -165,5 +166,6 @@ export const createBuiltPool = async (
     await pools.deleteOne({ _id: pool._id });
     return full();
   }
+  await ensureHistory(pool, authorOf(caller), null);
   return { ok: true, value: await viewOf(pool, caller) };
 };

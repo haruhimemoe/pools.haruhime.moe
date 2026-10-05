@@ -11,7 +11,7 @@
  *       reused. Registered lazily on the shared connection.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Sep 27, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import "server-only";
@@ -44,6 +44,8 @@ const builtPoolSchema = new Schema(
     pack: { type: Schema.Types.Mixed, required: true },
     hidden: { type: Boolean, default: false },
     startedFrom: { type: String, default: null },
+    head: { type: Schema.Types.Mixed, default: undefined },
+    historyPublic: { type: Boolean, default: undefined },
     // Search fields, rewritten with the content (src/utils/built-record.ts).
     searchText: { type: String },
     sortName: { type: String },

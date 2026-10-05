@@ -18,7 +18,7 @@
  *       still reads (and can be seen, renamed and deleted).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import {
@@ -167,6 +167,10 @@ const builtPoolRest = {
   slotNotes: slotNotesSchema.optional(),
   /** Each slot's candidates by slot key (src/schemas/built-candidates.ts); left out when none. */
   candidates: slotCandidatesSchema.optional(),
+  /** The history revision the content matches (src/services/built-pool-history.ts). */
+  head: z.strictObject({ id: z.string().min(1), seq: z.number().int().nonnegative() }).optional(),
+  /** Anyone who can see the pool may read its history; off (absent) means owner and editors. */
+  historyPublic: z.boolean().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 };

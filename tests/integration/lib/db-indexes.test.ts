@@ -13,6 +13,7 @@
 import { AUTH_INDEXES } from "@haruhimemoe/next-kit/auth";
 import { ObjectId } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { POOL_REVISIONS_COLLECTION } from "@/constants/db";
 import { getDb } from "@/lib/db";
 import { ensureIndexes } from "@/lib/db-indexes";
 import { createTestUser } from "../../helpers/auth";
@@ -63,6 +64,16 @@ describe("auth indexes", () => {
     await expect(
       db.collection("session").insertOne({ token: session?.token, userId: new ObjectId() }),
     ).rejects.toMatchObject({ code: 11000 });
+  });
+});
+
+describe("pool_revisions indexes", () => {
+  it("builds the unique docId+seq index on connect", async () => {
+    const index = await getDb()
+      .collection(POOL_REVISIONS_COLLECTION)
+      .indexes()
+      .then((indexes) => indexes.find((entry) => entry.key.docId === 1 && entry.key.seq === -1));
+    expect(index).toMatchObject({ key: { docId: 1, seq: -1 }, unique: true });
   });
 });
 

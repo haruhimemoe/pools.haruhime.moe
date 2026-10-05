@@ -6,12 +6,14 @@
  *       and the session TTL, so MongoDB deletes a sign-in session about a minute after it
  *       expires, as the privacy page says), the TTL on rate-limit counters, the 24-hour TTL on
  *       cached beatmapset facts and their difficulty-id index, pack_cleanup's due time, and
- *       api_keys' (next-kit's apiKeyIndexSpecs). A unique index over duplicate rows is skipped and logged (the duplicate osu! ids and links
+ *       api_keys' (next-kit's apiKeyIndexSpecs), and pool_revisions' (next-kit's
+ *       revisionIndexSpecs: unique docId+seq, authorId, docId+kind+createdAt). A unique index
+ *       over duplicate rows is skipped and logged (the duplicate osu! ids and links
  *       named, a session token never). Pool, map and import indexes live on their Mongoose
  *       schemas (src/models).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import "server-only";
@@ -23,6 +25,7 @@ import {
   ttlIndex,
 } from "@haruhimemoe/next-kit/mongo";
 import { counterTtlIndex } from "@haruhimemoe/next-kit/server";
+import { revisionIndexSpecs } from "@haruhimemoe/next-kit/vcs";
 import type { Db } from "mongodb";
 import {
   SET_FACTS_BEATMAPS_INDEX,
@@ -31,6 +34,7 @@ import {
 } from "@/constants/compliance";
 import {
   PACK_CLEANUP_COLLECTION,
+  POOL_REVISIONS_COLLECTION,
   RATE_LIMITS_COLLECTION,
   SET_FACTS_COLLECTION,
 } from "@/constants/db";
@@ -43,6 +47,7 @@ export const RAW_INDEXES: readonly IndexSpec[] = [
   { collection: SET_FACTS_COLLECTION, key: { beatmapIds: 1 }, name: SET_FACTS_BEATMAPS_INDEX },
   { collection: PACK_CLEANUP_COLLECTION, key: { nextAt: 1 } },
   ...apiKeyIndexSpecs(),
+  ...revisionIndexSpecs(POOL_REVISIONS_COLLECTION),
 ];
 
 /**

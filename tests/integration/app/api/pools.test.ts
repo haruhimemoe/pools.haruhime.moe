@@ -55,6 +55,7 @@ describe("POST /api/pools", () => {
       access: { isOwner: true, canManage: true },
     });
     expect(await findBuiltPool(id)).toMatchObject({ ownerId: owner.id, hidden: false });
+    expect(await findBuiltPool(id)).toMatchObject({ head: { seq: 0 } });
     await (await builtPoolsCollection()).deleteOne({ _id: id });
     expect(await (await builtPoolIdsCollection()).countDocuments({ _id: id })).toBe(1);
   });
