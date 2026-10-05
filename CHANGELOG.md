@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Depends on `@haruhimemoe/ui` 0.13.0: pool search results, the docs and legal index cards and the empty-slot hint in the builder have rounder corners, and map detail labels are smaller and lighter, like packs and haruhime.moe.
 - Depends on `@haruhimemoe/ui` 0.14.0 and `@haruhimemoe/next-kit` 0.8.0: deleting a pool, handing it to an editor and deleting your account each open a dialog where you type the name, removing an editor asks first, admins confirm deleting a built pool in a dialog, and the regenerate and revoke buttons for API keys are red.
 - Depends on `@haruhimemoe/ui` 0.15.0: in the pool editor the drag handle is a button you can reach with Tab and pick up with Space, maps and candidates move by mouse, touch or keyboard with each step read out, a dashed outline marks where a drop lands and says why a candidate can't go somewhere, and the dragged row keeps its full brightness.
+- Depends on `@haruhimemoe/ui` 0.17.0: dates on docs and legal pages read like Oct 4, 2026, and legal text is a size smaller.
 
 ## [0.1.0] - 2026-10-04
 
