@@ -35,7 +35,7 @@ export const CONTENT = defineContent({
       title: "Privacy",
       description:
         "What pools.haruhime.moe stores when you visit, sign in with osu! and make pools, why, and for how long. No analytics, and no cookies unless you sign in.",
-      lastUpdated: "2026-09-28",
+      lastUpdated: "2026-10-05",
     },
     {
       slug: "terms",

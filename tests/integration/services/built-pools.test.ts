@@ -15,7 +15,9 @@ import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { linkNewEditor } from "@/lib/auth";
+import { poolRevisions } from "@/lib/pool-revisions";
 import { builtPoolsCollection } from "@/models/BuiltPool";
+import { ensureHistory } from "@/services/built-pool-history";
 import { applyBuiltPoolOps } from "@/services/built-pool-ops";
 import { findBuiltPool, getBuiltPoolFor } from "@/services/built-pool-read";
 import { deleteBuiltPool, listBuiltPoolsFor, setBuiltPoolVisibility } from "@/services/built-pools";
@@ -102,6 +104,17 @@ describe("findBuiltPool and listBuiltPoolsFor", () => {
 });
 
 describe("deleteBuiltPool", () => {
+  it("deletes its revisions along with the pool", async () => {
+    const cast = await createCast();
+    await insertPool(cast, { _id: "b-a0000001" });
+    const pool = await findBuiltPool("b-a0000001");
+    if (!pool) throw new Error("expected the pool");
+    const root = await ensureHistory(pool);
+    const owner = { ...cast.owner, isAdmin: false };
+    expect(await deleteBuiltPool("b-a0000001", owner)).toMatchObject({ ok: true });
+    expect(await poolRevisions.get("b-a0000001", root.id)).toBeNull();
+  });
+
   it("deletes the pool even when packs can't remove its pack, queueing the removal", async () => {
     withPacks();
     server.use(packsDeleteHandler(() => HttpResponse.json({}, { status: 500 })));

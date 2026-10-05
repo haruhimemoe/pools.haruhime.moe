@@ -7,22 +7,25 @@
  *       hold the request past its time), then they're taken off every pool they edit (whose
  *       packs are marked pending, since their name leaves the description, and whose candidates
  *       lose their votes and "added by"), then a pool handed
- *       to them meanwhile goes too, so no pool is left owned by a deleted account. Then
- *       every session (so no cookie works again), every linked osu! account row, and the user
- *       last. A failure partway leaves a user row that the next osu! sign-in relinks
- *       (src/lib/auth.ts), so they can sign in and try again. Sessions, accounts and the user go
- *       through better-auth's own adapter, which knows how it stores ids. Last, the user's API
- *       rate-limit counters (api, api-write, key-create).
+ *       to them meanwhile goes too, so no pool is left owned by a deleted account. A pool they
+ *       owned has its history deleted with it; one they only edited keeps its history, with
+ *       their saves renamed to "deleted user". Then every session (so no cookie works again),
+ *       every linked osu! account row, and the user last. A failure partway leaves a user row
+ *       that the next osu! sign-in relinks (src/lib/auth.ts), so they can sign in and try again.
+ *       Sessions, accounts and the user go through better-auth's own adapter, which knows how it
+ *       stores ids. Last, the user's API rate-limit counters (api, api-write, key-create).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import "server-only";
+import { DELETED_USER } from "@/constants/activity";
 import { RATE_LIMITS } from "@/constants/api";
 import { apiKeys } from "@/lib/api-keys";
 import { getAuth } from "@/lib/auth";
 import { connectDb } from "@/lib/db";
+import { poolRevisions } from "@/lib/pool-revisions";
 import { limiter } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { SlotCandidates } from "@/schemas/built-candidates";
@@ -77,6 +80,7 @@ export const removeUserFromBuiltPools = async (
       if ((await removePackOrQueue(pool, now, skip)) === "queued") packRemovalsQueued += 1;
       await pools.deleteOne({ _id: pool._id });
       await deleteActivityOf([pool._id]);
+      await poolRevisions.removeDoc(pool._id);
     }
   };
   await removeOwned();
@@ -101,6 +105,8 @@ export const removeUserFromBuiltPools = async (
   }
   // Their entries on other pools' activity logs lose their name.
   await forgetActivityBy(user.osuId);
+  // Their saves on pools they edit, not owned, show "deleted user" in that pool's history.
+  await poolRevisions.renameAuthor(user.id, DELETED_USER);
   return { packRemovalsQueued };
 };
 

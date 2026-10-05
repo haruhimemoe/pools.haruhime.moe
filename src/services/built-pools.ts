@@ -4,16 +4,18 @@
  *       (WANTS_PACK_SYNC), changing who sees a pool, and deleting one. A pool with a pack on
  *       packs loses the pack (going private, being deleted); when packs can't be asked, the
  *       change goes ahead and the removal is queued (src/services/pack-cleanup.ts), and the
- *       answer says so. Lists a user's pools for their account page. Reading a pool is
- *       src/services/built-pool-read.ts; answers are src/utils/built-answer.ts.
+ *       answer says so. Deleting a pool deletes its activity and its history. Lists a user's
+ *       pools for their account page. Reading a pool is src/services/built-pool-read.ts; answers
+ *       are src/utils/built-answer.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import "server-only";
 import type { Filter } from "mongodb";
 import { MAX_POOLS_PER_OWNER, type Visibility } from "@/constants/built-pools";
+import { poolRevisions } from "@/lib/pool-revisions";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import type { StoredBuiltPool } from "@/schemas/built-pool";
 import type { SessionUser } from "@/schemas/session-user";
@@ -69,6 +71,7 @@ export const deleteBuiltPool = async (
   const packRemoval = await removePackOrQueue(loaded.value.pool);
   await (await builtPoolsCollection()).deleteOne({ _id: id });
   await deleteActivityOf([id]);
+  await poolRevisions.removeDoc(id);
   return { ok: true, value: { packRemoval } };
 };
 

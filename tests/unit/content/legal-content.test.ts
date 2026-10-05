@@ -101,8 +101,8 @@ describe("legal pages", () => {
     expect(read("privacy")).toContain("straight from osu!'s servers (assets.ppy.sh and b.ppy.sh)");
   });
 
-  it("dates the privacy page (editor v2.1), disclaimer (similar maps) and terms from their last change", () => {
-    expect(updated("privacy")).toBe("2026-09-28");
+  it("dates the privacy page (pool history), disclaimer (similar maps) and terms from their last change", () => {
+    expect(updated("privacy")).toBe("2026-10-05");
     expect(updated("disclaimer")).toBe("2026-09-28");
     expect(updated("terms")).toBe("2026-09-27");
   });
