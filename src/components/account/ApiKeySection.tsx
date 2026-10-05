@@ -6,7 +6,7 @@
  *       the revealed key or the next button, and the outcome is announced in a polite live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Oct 3, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 "use client";
@@ -15,12 +15,11 @@ import type { ApiKeyCreated, ApiKeyInfo } from "@haruhimemoe/next-kit/api-keys";
 import {
   Button,
   Card,
-  CopyButton,
+  CopyField,
   cx,
   InlineConfirm,
   Notice,
   Text,
-  TextInput,
   TextLink,
   textClasses,
 } from "@haruhimemoe/ui";
@@ -126,19 +125,11 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
         {revealed !== null ? (
           <>
             <p className="font-bold text-c1 text-sm">Copy your key now. You won't see it again.</p>
-            <TextInput
+            <CopyField
               id={keyFieldId}
               ref={revealedInputRef}
               label="Your new API key"
-              wrapperClassName="gap-2"
-              readOnly
               value={revealed}
-              onFocus={(event) => event.currentTarget.select()}
-              className="font-mono"
-            />
-            <CopyButton
-              text={revealed}
-              label="Copy"
               copiedMessage="Key copied."
               failedMessage="Couldn't copy. Select the key and copy it by hand."
             />
