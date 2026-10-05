@@ -66,16 +66,19 @@ describe("findBuiltPool and listBuiltPoolsFor", () => {
     expect((await listBuiltPoolsFor(owner)).owned.map((pool) => pool.id)).toEqual(["b-a0000001"]);
     expect(await getBuiltPoolFor("b-a0000001", owner)).toMatchObject({ ok: true });
     const add = { type: "addMap", beatmapId: 5, bucket: "NM" } as const;
-    expect(await applyBuiltPoolOps("b-a0000001", owner, 1, [add])).toMatchObject({
+    expect(await applyBuiltPoolOps("b-a0000001", owner, { baseVersion: 1 }, [add])).toMatchObject({
       ok: false,
       status: 400,
       code: "content_filter",
     });
-    const renamed = await applyBuiltPoolOps("b-a0000001", owner, 1, [
+    const renamed = await applyBuiltPoolOps("b-a0000001", owner, { baseVersion: 1 }, [
       { type: "setDetails", name: "Spring Cup" },
       add,
     ]);
-    expect(renamed).toMatchObject({ ok: true, value: { name: "Spring Cup", version: 2 } });
+    expect(renamed).toMatchObject({
+      ok: true,
+      value: { pool: { name: "Spring Cup", version: 2 } },
+    });
     await (await builtPoolsCollection()).updateOne(
       { _id: "b-a0000001" },
       { $set: { name: "retard cup" } },

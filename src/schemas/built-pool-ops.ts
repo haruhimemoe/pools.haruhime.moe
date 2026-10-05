@@ -13,7 +13,7 @@
  *       src/utils/built-ops.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import {
@@ -150,9 +150,13 @@ export const opSchema = z.union([
 /** One editor op. */
 export type PoolOp = z.infer<typeof opSchema>;
 
-/** POST /api/pools/<id>/ops: the version it builds on and 1 to 20 ops. */
+/** POST /api/pools/<id>/ops: the version it builds on, the revision it last saw, and 1 to 20 ops. */
 export const opsBodySchema = z.strictObject({
   baseVersion: z.number().int().positive(),
+  /** The revision the client's copy matched, so a stale save can merge instead of reloading. */
+  base: z
+    .strictObject({ id: z.string().min(1).max(64), seq: z.number().int().nonnegative() })
+    .optional(),
   ops: z
     .array(opSchema)
     .min(1, "Send at least one change.")
