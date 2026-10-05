@@ -6,12 +6,20 @@
  *       last. The cover's alt names the song. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { setDownloadUrl } from "@haruhimemoe/hinai";
 import { beatmapUrl, coverUrl } from "@haruhimemoe/osu/shapes";
-import { BeatmapStats, ButtonLink, Card, PageHeader, StarRating, Text } from "@haruhimemoe/ui";
+import {
+  BeatmapStats,
+  ButtonLink,
+  Card,
+  PageHeader,
+  StarRating,
+  StatList,
+  Text,
+} from "@haruhimemoe/ui";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { MapHistoryTable } from "@/components/maps/MapHistoryTable";
@@ -68,14 +76,11 @@ export function MapView({
         }
       />
       <Card title="Details">
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-4">
-          {details.map(([term, value]) => (
-            <div key={term}>
-              <dt className="text-c3">{term}</dt>
-              <dd className="font-bold text-c1 tabular-nums">{value}</dd>
-            </div>
-          ))}
-        </dl>
+        <StatList
+          variant="grid"
+          items={details.map(([label, value]) => ({ label, value }))}
+          className="text-sm"
+        />
         <BeatmapStats
           cs={map.cs}
           ar={map.ar}

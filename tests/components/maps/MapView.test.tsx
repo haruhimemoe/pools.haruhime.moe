@@ -5,7 +5,7 @@
  *       knows it, and "no current pools" when there are none.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Thu Sep 24, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -61,6 +61,17 @@ describe("MapView", () => {
     expect(
       screen.getByRole("link", { name: "Download from the mirror" }).getAttribute("href"),
     ).toContain("mirror.hinamizawa.ai");
+  });
+
+  it("renders details on a StatList grid with c4/xs labels", () => {
+    render(<MapView map={MAP} history={ROWS} />);
+    const dl = screen.getByText("Set host").closest("dl");
+    expect(dl).not.toBeNull();
+    expect(dl?.className).toContain("grid");
+    expect(dl?.className).toContain("sm:grid-cols-4");
+    const term = screen.getByText("Set host");
+    expect(term.className).toContain("text-c4");
+    expect(term.className).toContain("text-xs");
   });
 
   it("lists history newest first with year unknown last, without a badged column nobody knows", () => {
