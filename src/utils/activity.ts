@@ -9,7 +9,7 @@
  *       account's name can be taken out of them). Pure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { slotLabel } from "@haruhimemoe/pool";
@@ -145,6 +145,26 @@ export const editorActivity = (
         summary: `${change === "added" ? "Added" : "Removed"} ${editor.username} as an editor`,
         subject: { osuId: editor.osuId, username: editor.username },
       };
+
+/**
+ * @function historyActivity
+ * @param historyPublic {boolean} who sees the history now
+ * @returns {ActivityNote} the entry
+ */
+export const historyActivity = (historyPublic: boolean): ActivityNote => ({
+  kind: "history",
+  summary: `Made the history ${historyPublic ? "public" : "private"}`,
+});
+
+/**
+ * @function revertActivity
+ * @param when {string} the restored revision's ISO date
+ * @returns {ActivityNote} the entry
+ */
+export const revertActivity = (when: string): ActivityNote => ({
+  kind: "revert",
+  summary: `Restored the version from ${formatShortDate(when)}`,
+});
 
 /**
  * @function ownerActivity

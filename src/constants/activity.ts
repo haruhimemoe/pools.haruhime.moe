@@ -6,7 +6,7 @@
  *       the name that replaces a deleted account's.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 /** What an activity entry records: the first op of an ops call, or a setting (a vote is never logged). */
@@ -27,6 +27,8 @@ export const ACTIVITY_KINDS = [
   "candidate-demote",
   "candidate-move",
   "candidate-note",
+  "history",
+  "revert",
 ] as const;
 /** One of ACTIVITY_KINDS. */
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];

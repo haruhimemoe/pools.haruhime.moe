@@ -109,3 +109,8 @@ export const NO_HANDOVER =
 
 /** Said after a stale save lands cleanly onto a change someone else made meanwhile. */
 export const MERGED_NOTICE = "Saved. Someone else changed this pool too; both changes are in.";
+
+/** The 403 when a caller can see the pool but not its history. */
+export const HISTORY_PRIVATE = "This pool's history is private.";
+/** The 404 for a revision that isn't on this pool. */
+export const REVISION_NOT_FOUND = "That version isn't here any more.";
