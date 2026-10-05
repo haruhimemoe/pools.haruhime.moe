@@ -6,7 +6,7 @@
  *       a credit line for each source with a fixed author (otdb by Sheppsu).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 4, 2026
  */
 
 import { TextLink } from "@haruhimemoe/ui";
@@ -82,9 +82,9 @@ export function PoolSources({
       {otdb ? (
         <p className="text-c3">
           Pool data from{" "}
-          <a href={credit.url} rel="noreferrer" className="underline hover:text-c1">
+          <TextLink href={credit.url} rel="noreferrer">
             {credit.label}
-          </a>{" "}
+          </TextLink>{" "}
           by {credit.author}.
         </p>
       ) : null}
