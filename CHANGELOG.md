@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `@haruhimemoe/ui` 0.11.1: decorative alt on brand page previews.
 - `@haruhimemoe/ui` 0.11.2: Copy as Markdown works on Safari and iOS.
 - Depends on `@haruhimemoe/ui` 0.12.0: buttons and form fields are 44px tall on touch screens, motion stops when your system asks for reduced motion, colors get stronger when it asks for more contrast, warnings use the same amber as the notices, your pools' names are white, and the links on the home, sign-in and pool source pages use the accent color.
+- Depends on `@haruhimemoe/ui` 0.13.0: pool search results, the docs and legal index cards and the empty-slot hint in the builder have rounder corners, and map detail labels are smaller and lighter, like packs and haruhime.moe.
 
 ## [0.1.0] - 2026-10-04
 
