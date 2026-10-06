@@ -3,7 +3,7 @@
  * @desc /legal: every legal page with its description, from the registry. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
@@ -17,7 +17,8 @@ import { toNavItem } from "@/utils/content-nav";
 export const metadata: Metadata = pageMetadata(SEO_SITE, {
   path: "/legal",
   title: "pools legal pages",
-  description: "The pools.haruhime.moe terms, privacy policy and disclaimer.",
+  description:
+    "The pools.haruhime.moe terms, privacy policy, privacy rights, copyright notice and disclaimers.",
 });
 
 const ITEMS = CONTENT.entries.legal.map(toNavItem("legal"));

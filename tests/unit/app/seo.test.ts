@@ -7,7 +7,7 @@
  *       short daily text route linking /llms-full.txt, which lists every pool and the maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -86,9 +86,11 @@ describe("sitemap.xml", () => {
       "https://pools.haruhime.moe/docs",
       "https://pools.haruhime.moe/docs/api",
       "https://pools.haruhime.moe/legal",
-      "https://pools.haruhime.moe/legal/disclaimer",
-      "https://pools.haruhime.moe/legal/privacy",
       "https://pools.haruhime.moe/legal/terms",
+      "https://pools.haruhime.moe/legal/privacy",
+      "https://pools.haruhime.moe/legal/your-privacy-rights",
+      "https://pools.haruhime.moe/legal/copyright",
+      "https://pools.haruhime.moe/legal/disclaimers",
       "https://pools.haruhime.moe/pools/otdb-657",
       "https://pools.haruhime.moe/pools/b-a0000001",
       "https://pools.haruhime.moe/maps/129891",

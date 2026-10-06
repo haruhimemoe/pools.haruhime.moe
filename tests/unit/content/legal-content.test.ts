@@ -4,18 +4,19 @@
  *       affiliated with ppy or the Tournament Committee, guidance not rulings, where star ratings with mods come from, the
  *       otdb credit beside the pools hosts and community members send (whose links are theirs,
  *       not ours), and the User-Agent
- *       (disclaimer); no visitor cookies, per-IP counters, the 24-hour cache, what signing in
+ *       (disclaimers); no visitor cookies, per-IP counters, the 24-hour cache, what signing in
  *       stores (osu! id, username, avatar, country, sessions, the pools you make, never osu!
  *       tokens), the readable signed-in cookie, who sees public, unlisted and private pools,
  *       moderation and deletion, and what the all-maps search sends the hinai mirror (privacy,
- *       dated 2026-09-27), per-account counters, the editor lookup, the cascade on deleting and
+ *       dated 2026-10-05), per-account counters, the editor lookup, the cascade on deleting and
  *       built pools' packs on packs;
- *       the disclaimer's osu! and packs requests for built pools (2026-09-27); the terms (anyone
- *       with osu! can sign in, what's allowed, shared pools published on packs, moderation,
- *       deletion, dated 2026-09-27). No em dashes.
+ *       the disclaimers page's osu! and packs requests for built pools (dated 2026-10-05); the
+ *       terms (anyone with osu! can sign in, what's allowed, shared pools published on packs,
+ *       moderation, deletion, dated 2026-10-05); the your-privacy-rights page (GDPR and CCPA
+ *       rights) and the copyright page (DMCA notice, sources, no hosted files). No em dashes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -45,8 +46,8 @@ describe("legal pages", () => {
     "to look up a pool editor by username",
     "to remove a pack when its pool goes private or is deleted",
     "trying again later when packs doesn't answer",
-  ])("the disclaimer says %j", (clause) => {
-    expect(read("disclaimer")).toContain(clause);
+  ])("the disclaimers page says %j", (clause) => {
+    expect(read("disclaimers")).toContain(clause);
   });
 
   it.each([
@@ -101,16 +102,30 @@ describe("legal pages", () => {
     expect(read("privacy")).toContain("straight from osu!'s servers (assets.ppy.sh and b.ppy.sh)");
   });
 
-  it("dates the privacy page (pool history), disclaimer (similar maps) and terms from their last change", () => {
+  it("dates the privacy page, disclaimers page and terms from their last change", () => {
     expect(updated("privacy")).toBe("2026-10-05");
-    expect(updated("disclaimer")).toBe("2026-09-28");
-    expect(updated("terms")).toBe("2026-09-27");
+    expect(updated("disclaimers")).toBe("2026-10-05");
+    expect(updated("terms")).toBe("2026-10-05");
   });
 
   it("says what similar maps are and that the mirror is asked for them", () => {
-    const disclaimer = read("disclaimer");
-    expect(disclaimer).toContain("Similar maps are a guide.");
-    expect(disclaimer).toContain("for map details when someone asks for similar maps");
+    const disclaimers = read("disclaimers");
+    expect(disclaimers).toContain("Similar maps are a guide.");
+    expect(disclaimers).toContain("for map details when someone asks for similar maps");
+  });
+
+  it("the your-privacy-rights page names the GDPR and CCPA and points back to privacy", () => {
+    const rights = read("your-privacy-rights");
+    expect(rights).toContain("GDPR");
+    expect(rights).toContain("CCPA");
+    expect(rights).toContain("/legal/privacy");
+  });
+
+  it("the copyright page covers the DMCA, pool sources, and that pools never hosts beatmap files", () => {
+    const copyright = read("copyright");
+    expect(copyright).toContain("pools never hosts beatmap files");
+    expect(copyright).toContain("otdb");
+    expect(copyright).toContain("mirror.hinamizawa.ai");
   });
 
   it.each(LEGAL_SLUGS)("%s has no em dash", (slug) => {

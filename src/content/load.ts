@@ -5,7 +5,7 @@
  *       (tests/unit/content/registry.test.ts holds it to the registry and the files on disk).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import type { ContentSection } from "@haruhimemoe/next-kit/docs";
@@ -17,8 +17,10 @@ type Loader = () => Promise<{ default: ComponentType }>;
 export const LOADERS: Partial<Record<ContentSection, Record<string, Loader>>> = {
   docs: { api: () => import("@content/docs/api.mdx") },
   legal: {
-    disclaimer: () => import("@content/legal/disclaimer.mdx"),
-    privacy: () => import("@content/legal/privacy.mdx"),
     terms: () => import("@content/legal/terms.mdx"),
+    privacy: () => import("@content/legal/privacy.mdx"),
+    "your-privacy-rights": () => import("@content/legal/your-privacy-rights.mdx"),
+    copyright: () => import("@content/legal/copyright.mdx"),
+    disclaimers: () => import("@content/legal/disclaimers.mdx"),
   },
 };
