@@ -18,7 +18,7 @@ const SHARED: Readonly<Record<string, string>> = {
   "@haruhimemoe/ui": "0.18.0",
   "@haruhimemoe/osu": "0.4.0",
   "@haruhimemoe/hinai": "0.3.1",
-  "@haruhimemoe/next-kit": "0.10.0",
+  "@haruhimemoe/next-kit": "0.11.0",
   "@haruhimemoe/pool": "0.2.0",
   "@haruhimemoe/compliance": "0.1.1",
   "@haruhimemoe/brand": "0.7.0",

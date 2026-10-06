@@ -6,7 +6,7 @@
  *       rewrite maps each .md URL to its route.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { type ContentSection, contentRewrites } from "@haruhimemoe/next-kit/docs";
@@ -52,6 +52,18 @@ describe.each(SECTIONS)("/%s", (section) => {
       expect(body.startsWith(`# ${title}\n\n`)).toBe(true);
     },
   );
+
+  if (section === "legal") {
+    it("keeps the legal block tags' words in the .md mirror", async () => {
+      const response = await md.GET(
+        new Request("https://pools.haruhime.moe/legal/your-privacy-rights.md"),
+        params("your-privacy-rights"),
+      );
+      const body = await response.text();
+      expect(body).toContain("Your rights under the GDPR");
+      expect(body).not.toMatch(/<YourRights|<DataWeKeep|<Changes|<LegalContact/);
+    });
+  }
 
   it.each(["__proto__", "nope"])("404s %j", async (slug) => {
     const response = await md.GET(new Request("https://pools.haruhime.moe/"), params(slug));

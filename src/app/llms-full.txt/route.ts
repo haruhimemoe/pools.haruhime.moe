@@ -21,7 +21,7 @@ import { SITE } from "@/constants/site";
 import { listPublicBuiltPools } from "@/services/built-listings";
 import { listListedMaps } from "@/services/maps";
 import { listCurrentPools } from "@/services/pools";
-import { CONTENT_MARKDOWN } from "@/utils/content-markdown";
+import { CONTENT_MARKDOWN, LEGAL_CONTENT_MARKDOWN } from "@/utils/content-markdown";
 import { LLMS_MAP_LIMIT, llmsSections, llmsSectionsMarkdown } from "@/utils/llms-txt";
 
 /** Rebuilt once a day, and on an admin's Refresh public pages. */
@@ -43,7 +43,13 @@ export async function GET() {
     title: `${SITE.title} docs, legal pages, pools and maps`,
     summary: SITE.description,
     content: CONTENT,
-    read: (s, slug) => readContentMarkdown(CONTENT, s, slug, CONTENT_MARKDOWN).then((m) => m ?? ""),
+    read: (s, slug) =>
+      readContentMarkdown(
+        CONTENT,
+        s,
+        slug,
+        s === "legal" ? LEGAL_CONTENT_MARKDOWN : CONTENT_MARKDOWN,
+      ).then((m) => m ?? ""),
     before: [{ title: "About pools", markdown: LLMS_NOTES.join("\n\n") }],
     after: [
       {

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- The legal pages' `.md` mirrors and `/llms-full.txt` kept dropping the legal block tags (`<YourRights />`, `<Processors />`, and the rest) instead of rendering their text. Depends on `@haruhimemoe/next-kit` 0.11.0's `legalMarkdownTransform`.
+
 ### Added
 
 - `/brand`: the pools name, logos, colors and type with the files to download, from `@haruhimemoe/brand` 0.7.0's `brandPageData("pools")` rendered by `@haruhimemoe/ui` 0.11.0's `BrandPage`.

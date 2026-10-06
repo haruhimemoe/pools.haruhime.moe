@@ -135,5 +135,8 @@ describe("llms.txt", () => {
     expect(text).toContain("https://pools.haruhime.moe/pools/otdb-657");
     expect(text).toContain("https://pools.haruhime.moe/maps/129891");
     expect(listListedMaps).toHaveBeenCalledWith(500);
+    // Legal block tags render into their words here too, not dropped like unknown JSX.
+    expect(text).toContain("## Service providers");
+    expect(text).not.toMatch(/<Processors|<LegalContact/);
   });
 });
