@@ -4,7 +4,7 @@
 
 Build an osu! tournament mappool at **https://pools.haruhime.moe**. Search every osu! map under a mod and see its star rating, AR and OD with it, check the pool against the content rules for officially supported tournaments, see where each map was played before, build it with co-editors, and download it on packs. Past tournament pools are there as reference: search them, see every tournament a map was played in, and start a pool from one.
 
-pools is in beta: things can move around, and some past pools are still missing. Tell us what's wrong in the [Discord server](https://discord.gg/bKy9kjMV4y) or at contact@haruhime.moe.
+pools is in beta: things can move around, and some past pools are still missing. Tell us what's wrong in the [Discord server](https://haruhime.moe/discord) or at haruhime@haruhime.moe.
 
 The site never hosts beatmap files. "Download on packs" and "Open in packs" open the pool on [packs.haruhime.moe](https://packs.haruhime.moe), which downloads each map from the beatmap mirror straight to your browser.
 

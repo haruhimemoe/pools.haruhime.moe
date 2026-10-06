@@ -10,7 +10,7 @@
  *       mocked for this static render.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { within } from "@testing-library/react";
@@ -74,7 +74,7 @@ describe("RootLayout header and footer", () => {
     );
     expect(within(footer).getByRole("link", { name: "Discord" })).toHaveAttribute(
       "href",
-      "https://discord.gg/bKy9kjMV4y",
+      "https://haruhime.moe/discord",
     );
     expect(footer).toHaveTextContent("Star ratings with mods come from the hinai mirror");
     expect(footer).not.toHaveTextContent("otdb");

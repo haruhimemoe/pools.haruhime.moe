@@ -1,12 +1,12 @@
 /**
  * @file tests/components/app/SubmitPage.test.tsx
  * @desc /submit: text, not a form (pools has no public writes). Hosts and community members
- *       post in the Discord server or email contact@haruhime.moe with the tournament, round,
+ *       post in the Discord server or email haruhime@haruhime.moe with the tournament, round,
  *       year, a forum or sheet link and the maps (a packs link is easiest); an admin checks
  *       every pool by hand before it appears.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -24,12 +24,14 @@ describe("/submit", () => {
     const { container } = render(<SubmitPage />);
     expect(container).toHaveTextContent(/tournament hosts and community members/i);
     expect(screen.getAllByRole("link", { name: "Discord server" }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("link", { name: "contact@haruhime.moe" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "haruhime@haruhime.moe" }).length).toBeGreaterThan(
+      0,
+    );
     for (const link of screen.getAllByRole("link", { name: "Discord server" })) {
-      expect(link).toHaveAttribute("href", "https://discord.gg/bKy9kjMV4y");
+      expect(link).toHaveAttribute("href", "https://haruhime.moe/discord");
     }
-    for (const link of screen.getAllByRole("link", { name: "contact@haruhime.moe" })) {
-      expect(link).toHaveAttribute("href", "mailto:contact@haruhime.moe");
+    for (const link of screen.getAllByRole("link", { name: "haruhime@haruhime.moe" })) {
+      expect(link).toHaveAttribute("href", "mailto:haruhime@haruhime.moe");
     }
   });
 

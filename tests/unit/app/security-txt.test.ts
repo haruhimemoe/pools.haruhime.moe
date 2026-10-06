@@ -4,7 +4,7 @@
  *       contacts; pools' canonical URL and policy; and an Expires under a year out.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { describe, expect, it } from "vitest";
@@ -17,7 +17,7 @@ describe("GET /.well-known/security.txt", () => {
     const body = await response.text();
     expect(body.split("\n").slice(0, 2)).toEqual([
       "Contact: https://github.com/haruhimemoe/pools.haruhime.moe/security/advisories/new",
-      "Contact: mailto:contact@haruhime.moe",
+      "Contact: mailto:haruhime@haruhime.moe",
     ]);
     expect(body).toContain("Canonical: https://pools.haruhime.moe/.well-known/security.txt\n");
     expect(body).toContain(

@@ -8,7 +8,7 @@
  *       here would cycle back to it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import type { LegalSite } from "@haruhimemoe/next-kit/legal";
@@ -17,7 +17,7 @@ import type { LegalSite } from "@haruhimemoe/next-kit/legal";
 export const LEGAL_SITE: LegalSite = {
   siteName: "pools.haruhime.moe",
   operator: "haruhime.moe",
-  contactEmail: "contact@haruhime.moe",
+  contactEmail: "haruhime@haruhime.moe",
   effectiveDate: "2026-10-05",
   stores: [
     {

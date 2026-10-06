@@ -5,7 +5,7 @@
  *       haruhime tools), the home page's builder line, the affiliation notice, the User-Agent our server sends, and sign-in's marker and landing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { contentPath } from "@haruhimemoe/next-kit/docs";
@@ -19,9 +19,9 @@ export const SITE = {
   url: "https://pools.haruhime.moe",
   description:
     "Build an osu! tournament mappool: search every osu! map under a mod, check the content rules and download it as a pack, with past tournament pools as reference.",
-  contactEmail: "contact@haruhime.moe",
+  contactEmail: "haruhime@haruhime.moe",
   /** The haruhime.moe Discord server: pool submissions, corrections, the footer's Discord icon. */
-  discordUrl: "https://discord.gg/bKy9kjMV4y",
+  discordUrl: "https://haruhime.moe/discord",
   /** Public source repository, linked from the footer. */
   repoUrl: "https://github.com/haruhimemoe/pools.haruhime.moe",
   /** GitHub private vulnerability reporting, the first way to report one (SECURITY.md). */

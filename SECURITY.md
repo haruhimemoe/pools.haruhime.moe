@@ -3,7 +3,7 @@
 Please report vulnerabilities privately, not in an issue or the Discord server:
 
 1. **GitHub private vulnerability reporting** (preferred): [report a vulnerability](https://github.com/haruhimemoe/pools.haruhime.moe/security/advisories/new) on this repository.
-2. **Email**: contact@haruhime.moe, if you can't use GitHub.
+2. **Email**: haruhime@haruhime.moe, if you can't use GitHub.
 
 Include steps to reproduce and the impact you expect. You'll get a reply within 7 days.
 

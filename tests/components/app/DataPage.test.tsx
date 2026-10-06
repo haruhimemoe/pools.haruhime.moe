@@ -9,7 +9,7 @@
  *       takedowns on ranked and loved maps; corrections go to Discord or email.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -106,12 +106,11 @@ describe("/data", () => {
     const corrections = section("Corrections");
     expect(within(corrections).getByRole("link", { name: "Discord server" })).toHaveAttribute(
       "href",
-      "https://discord.gg/bKy9kjMV4y",
+      "https://haruhime.moe/discord",
     );
-    expect(within(corrections).getByRole("link", { name: "contact@haruhime.moe" })).toHaveAttribute(
-      "href",
-      "mailto:contact@haruhime.moe",
-    );
+    expect(
+      within(corrections).getByRole("link", { name: "haruhime@haruhime.moe" }),
+    ).toHaveAttribute("href", "mailto:haruhime@haruhime.moe");
   });
 
   it("has a title and a description that don't pin every pool on otdb", () => {

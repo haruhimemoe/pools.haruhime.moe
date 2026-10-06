@@ -8,7 +8,7 @@
  *       credit it).
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { render, screen, within } from "@testing-library/react";
@@ -45,7 +45,7 @@ const EXPECTED: [string, [string, string][]][] = [
     "About",
     [
       ["Source on GitHub", "https://github.com/haruhimemoe/pools.haruhime.moe"],
-      ["contact@haruhime.moe", "mailto:contact@haruhime.moe"],
+      ["haruhime@haruhime.moe", "mailto:haruhime@haruhime.moe"],
     ],
   ],
   [
@@ -91,7 +91,7 @@ describe("Footer", () => {
   it("links the Discord server with the Discord icon, before the GitHub icon", () => {
     render(<Footer />);
     const discord = screen.getByRole("link", { name: "Discord" });
-    expect(discord).toHaveAttribute("href", "https://discord.gg/bKy9kjMV4y");
+    expect(discord).toHaveAttribute("href", "https://haruhime.moe/discord");
     expect(discord.querySelector("svg")).not.toBeNull();
     const github = screen.getByRole("link", { name: "haruhimemoe on GitHub" });
     expect(github).toHaveAttribute("href", SITE.githubOrg);
