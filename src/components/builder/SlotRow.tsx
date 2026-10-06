@@ -108,7 +108,13 @@ export function SlotRow(props: SlotRowProps) {
       }
       actions={
         <>
-          <SortableMoveButtons sortable={sortable} id={id} label={label} variant="secondary" />
+          <SortableMoveButtons
+            sortable={sortable}
+            id={id}
+            label={label}
+            variant="secondary"
+            orientation="vertical"
+          />
           {targets.length > 0 ? (
             <>
               <div className="w-36">
