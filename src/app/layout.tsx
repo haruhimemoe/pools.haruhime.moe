@@ -4,10 +4,11 @@
  *       tournament mappool builder · pools.haruhime.moe" by default, "%s · pools.haruhime.moe"
  *       for pages, the static link preview; no canonical, which each page sets), dark osu!-web
  *       body, and the library PageShell frame around the pools header and footer. A beta build (NEXT_PUBLIC_POOLS_BETA)
- *       gets the header's beta tag; the title template and robots stay the same.
+ *       gets the header's beta tag; the title template and robots stay the same. AppPalette
+ *       mounts the site's one command palette here, so Ctrl K (Cmd K) works from every page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { siteMetadata } from "@haruhimemoe/next-kit/seo";
@@ -15,6 +16,7 @@ import { PageShell } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import type { ReactNode } from "react";
+import { AppPalette } from "@/components/layout/AppPalette";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SEO_SITE } from "@/constants/seo";
@@ -36,6 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={nunito.variable}>
       <body className="bg-b5 font-sans text-c2 antialiased">
+        <AppPalette />
         <PageShell header={<Header beta={isBeta()} />} footer={<Footer />}>
           {children}
         </PageShell>

@@ -5,10 +5,12 @@
  *       (links, legal pages, the Discord link, no-mod stars, no otdb line; the Footer test has the
  *       rest). NEXT_PUBLIC_POOLS_BETA=true adds a "beta" tag beside
  *       the wordmark (text, read once, outside the link, whose name stays "pools"); the page
- *       title template and robots don't change.
+ *       title template and robots don't change. AppPalette (ui's CommandPalette) is mounted here
+ *       too; it renders nothing until opened, but still calls useRouter, so next/navigation is
+ *       mocked for this static render.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import { within } from "@testing-library/react";
@@ -16,6 +18,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/font/google", () => ({ Nunito: () => ({ variable: "font-nunito" }) }));
+const navigationMock = { useRouter: () => ({ push: vi.fn() }), usePathname: () => "/" };
+vi.mock("next/navigation", () => navigationMock);
+vi.mock("next/navigation.js", () => navigationMock);
 
 const { default: RootLayout } = await import("@/app/layout");
 

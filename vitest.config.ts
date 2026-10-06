@@ -4,7 +4,7 @@
  *       shared path aliases, v8 coverage with a 90% floor on src/utils and src/schemas.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Mon Oct 5, 2026
  */
 
 import path from "node:path";
@@ -24,8 +24,8 @@ export default defineConfig({
     },
   },
   test: {
-    // next-kit's browser half imports next/navigation.js: inlined, tests' mocks of it apply.
-    server: { deps: { inline: ["@haruhimemoe/next-kit"] } },
+    // next-kit's and ui's browser halves import next/navigation.js: inlined, tests' mocks apply.
+    server: { deps: { inline: ["@haruhimemoe/next-kit", "@haruhimemoe/ui"] } },
     coverage: {
       provider: "v8",
       include: ["src/**"],
