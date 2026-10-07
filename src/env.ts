@@ -24,6 +24,7 @@ import {
   osuAppEnvSchema,
   readFlag,
   readIdSet,
+  readOptional,
   readOrigin,
 } from "@haruhimemoe/next-kit/env";
 import type { z } from "zod";
@@ -55,6 +56,8 @@ export const POOLS_SERVICE_TOKEN_KEY = "POOLS_SERVICE_TOKEN";
 export const POOLS_ALLOW_SHARED_DB_USER_KEY = "POOLS_ALLOW_SHARED_DB_USER";
 /** The haruhime.moe hub's origin: sign-in, the account page and session refreshes live there. */
 export const HUB_URL_KEY = "HUB_URL";
+/** The hub's account fan-out secret for this app (its ACCOUNT_SECRET_<APP>). */
+export const ACCOUNT_FANOUT_SECRET_KEY = "ACCOUNT_FANOUT_SECRET";
 /** The variables read on every call, for .env.example's test. */
 export const OPTIONAL_ENV_KEYS = [
   ADMIN_OSU_IDS_KEY,
@@ -62,6 +65,7 @@ export const OPTIONAL_ENV_KEYS = [
   POOLS_SERVICE_TOKEN_KEY,
   POOLS_ALLOW_SHARED_DB_USER_KEY,
   HUB_URL_KEY,
+  ACCOUNT_FANOUT_SECRET_KEY,
 ] as const;
 
 /** packs' origin when PACKS_URL isn't set. */
@@ -128,3 +132,11 @@ export const getPacksService = (): PacksService | null => {
  *          the start-up check then allows a database user that reaches other databases too
  */
 export const getAllowSharedDbUser = (): boolean => readFlag(POOLS_ALLOW_SHARED_DB_USER_KEY);
+
+/**
+ * @function getAccountFanoutSecret
+ * @returns {string | undefined} ACCOUNT_FANOUT_SECRET read now; undefined when unset (the
+ *          /api/internal/account routes then answer 503 to every call)
+ */
+export const getAccountFanoutSecret = (): string | undefined =>
+  readOptional(ACCOUNT_FANOUT_SECRET_KEY);

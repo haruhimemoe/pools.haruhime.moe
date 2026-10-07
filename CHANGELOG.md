@@ -16,12 +16,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `POST /api/internal/account/export` and `/delete` for the haruhime.moe hub's account export and delete (next-kit's `createAccountHandlers`), behind `ACCOUNT_FANOUT_SECRET` (the hub's `ACCOUNT_SECRET_POOLS`). Unset, both answer 503.
 - `/brand`: the pools name, logos, colors and type with the files to download, from `@haruhimemoe/brand` 0.7.0's `brandPageData("pools")` rendered by `@haruhimemoe/ui` 0.11.0's `BrandPage`.
 - `/docs` and `/legal` index pages with a section nav, and a Markdown copy of every docs and legal page at `<page>.md` (a "Copy as Markdown" button on each page).
 - Version history: every save of a built pool is kept; restore any version from `/pools/<id>/history`, which lists each one's changes; the owner can make the history public.
 
 ### Changed
 
+- API keys carry scopes: `read` for GET, `write` for POST, PUT and DELETE on `/api/v1`. A key without the scope gets 403 `insufficient_scope`. Every existing and new key has `["*"]`, so nothing changes for callers yet. @haruhimemoe/next-kit 0.15.0.
 - The hinai client now comes from `@haruhimemoe/mirror` 0.1.0 (`/hinai` and `/testing`) instead of `@haruhimemoe/hinai`, which is deprecated. No change in behavior.
 - Sign-in moves to the shared haruhime.moe account. pools no longer runs better-auth or its own osu! sign-in: it reads the hub's session (on `.haruhime.moe`) from the `identity` database with `@haruhimemoe/next-kit` 0.12.1's `createSessionReader`, read-only. `/signin` sends you to haruhime.moe's osu! sign-in (`/api/signin/osu`) and back. Banned haruhime accounts read as signed out, and their API keys stop working.
 - Sign out stays on pools: the new `POST /api/signout` ends the session on haruhime.moe and clears its cookies, and the page refreshes signed out.

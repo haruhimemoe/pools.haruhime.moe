@@ -8,8 +8,12 @@
 
 import "server-only";
 import { createApiKeyStore } from "@haruhimemoe/next-kit/api-keys";
-import { API_KEY_PREFIX } from "@/constants/api";
+import { API_KEY_PREFIX, API_KEY_SCOPES } from "@/constants/api";
 import { connectedDb } from "@/lib/db";
 
 /** issue, info, revoke, authenticate and deleteFor over api_keys, for hpl_ keys. */
-export const apiKeys = createApiKeyStore({ prefix: API_KEY_PREFIX, db: connectedDb });
+export const apiKeys = createApiKeyStore({
+  prefix: API_KEY_PREFIX,
+  db: connectedDb,
+  scopes: API_KEY_SCOPES,
+});
