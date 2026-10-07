@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Removed
+
+- `/api/auth/*`, pools' own `user`, `account` and `session` collections and their indexes (the identity migration moved their rows to the hub), the first-sign-in hook that linked editors, and `/signin`'s error page.
+
 ### Fixed
 
 - The legal pages' `.md` mirrors and `/llms-full.txt` kept dropping the legal block tags (`<YourRights />`, `<Processors />`, and the rest) instead of rendering their text. Depends on `@haruhimemoe/next-kit` 0.11.0's `legalMarkdownTransform`.
@@ -18,6 +22,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Sign-in moves to the shared haruhime.moe account. pools no longer runs better-auth or its own osu! sign-in: it reads the hub's session (on `.haruhime.moe`) from the `identity` database with `@haruhimemoe/next-kit` 0.12.1's `createSessionReader`, read-only. `/signin` sends you to haruhime.moe's osu! sign-in (`/api/signin/osu`) and back. Banned haruhime accounts read as signed out, and their API keys stop working.
+- Sign out stays on pools: the new `POST /api/signout` ends the session on haruhime.moe and clears its cookies, and the page refreshes signed out.
+- `/account` is now "pools settings": your pools, the API key, Sign out, one link to haruhime.moe/account, and "Delete my pools data" (your API key, the pools you own and their packs, your place on pools you edit). It no longer deletes the account itself, and you stay signed in.
+- Editors added before they ever signed in are found in `identity` by osu! ID, so they can be handed a pool once they sign in on haruhime.moe. Owner names and API key owners are read from `identity` too.
+- The signed-in marker is the shared `haruhime-signed-in` cookie, set by the hub. `pools-signed-in` is gone.
+- The start-up privilege check allows read-only access to `identity` and still refuses any write there.
+- `USER_ID_REFERENCES` (`src/constants/db.ts`) lists the fields holding identity user ids, for `migrateIdentity`.
+- Env: `BETTER_AUTH_SECRET` is now the hub's (shared), `BETTER_AUTH_URL` is gone, and `HUB_URL` (default `https://www.haruhime.moe`) is new. `OSU_CLIENT_ID` and `OSU_CLIENT_SECRET` stay, for osu! lookups. The database user needs read on `identity`.
+- `@haruhimemoe/next-kit` 0.12.1.
 - Depends on `@haruhimemoe/ui` 0.16.0: map rows in the editor, search and built pools use the shared map cards (cover, stars under the slot's mods, stats), the built pool page has a Copy ID button per map instead of the ID as text, map sets in the browser and all-maps search share one set card, and the map page's banner is the kit's cover.
 - `@haruhimemoe/next-kit` 0.7.0 and `@haruhimemoe/vcs` 0.1.0 for pool history.
 - Two editors saving at once no longer lose a change: saves merge, and only real conflicts reload the editor.

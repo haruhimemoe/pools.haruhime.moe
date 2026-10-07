@@ -14,27 +14,27 @@ The check keeps what the osu! API says about each beatmapset it looked up (statu
 
 ## If you sign in
 
-Anyone with an osu! account can sign in, to make pools. For you we store the osu! user ID, username, avatar URL and country osu! sends, a record linking the account to osu! (never osu! tokens), session records that keep you signed in, with the IP address and browser User-Agent each session started from, and the pools you make.
+Anyone with an osu! account can sign in, to make pools. Sign-in happens on [haruhime.moe](https://www.haruhime.moe), the account every haruhime tool shares: it stores your osu! user ID, username, avatar URL and country, the link to osu! (never osu! tokens) and your sessions, and its own privacy page covers them. pools only reads that account and session to know who you are, and writes nothing to it. pools itself stores your haruhime account's user ID next to the pools you make, and your API key, if you make one.
 
-When you're signed in, we also count, per account, how many pool changes, new pools, editor changes, pack updates and account deletions you make, in counters that are deleted automatically within about two hours. These counters use your osu! user ID, so deleting your account and signing in again doesn't reset them.
+When you're signed in, we also count, per account, how many pool changes, new pools, editor changes, pack updates and pools data deletions you make, in counters that are deleted automatically within about two hours. These counters use your osu! user ID, so deleting your pools data doesn't reset them.
 
-Signing in sets a session cookie, a short-lived one while sign-in runs, and `pools-signed-in`, which pages can read. It only says "this browser may be signed in", so pages ask who you are only when it's there. A session lasts until 7 days after you last use the site, and expired ones are deleted automatically.
+haruhime.moe sets the session cookie on `.haruhime.moe`, so pools can read it, along with `haruhime-signed-in`, which pages can read. It only says "this browser may be signed in", so pages ask who you are only when it's there. pools sets neither cookie; Sign out on pools asks haruhime.moe to end the session and clears both. How long a session lasts is up to haruhime.moe.
 
 ## Pools you make
 
 A pool keeps its name, details, notes and maps, who owns it, the editors the owner adds, and when it changed. To add an editor, the owner types their osu! username and we look it up on the osu! API; we keep their osu! ID and username, even before they ever sign in. Public and unlisted pools can be seen by anyone with the link, and public ones are listed in search. A shared pool's page shows the osu! usernames and IDs of its owner and editors. Private pools are seen only by you and the editors you add. Admins can hide or delete any pool that breaks the [terms](/legal/terms).
 
-A pool's candidates (maps a slot is still considering) keep who added each one and who voted for it, by osu! ID. Only the pool's owner and editors see them; the pool's page, its export and its pack never show them. They go with the pool, and deleting your account removes your votes and your name from the candidates in pools you edit.
+A pool's candidates (maps a slot is still considering) keep who added each one and who voted for it, by osu! ID. Only the pool's owner and editors see them; the pool's page, its export and its pack never show them. They go with the pool, and deleting your pools data removes your votes and your name from the candidates in pools you edit.
 
-Each change to a pool goes in its activity log: who made it (osu! ID and username), when, and what changed. Only the pool's owner and editors see it. A pool keeps its last 200 changes, each for at most 180 days. Deleting the pool deletes its log; deleting your account replaces your name in other pools' logs with "deleted user" and removes your osu! ID from them.
+Each change to a pool goes in its activity log: who made it (osu! ID and username), when, and what changed. Only the pool's owner and editors see it. A pool keeps its last 200 changes, each for at most 180 days. Deleting the pool deletes its log; deleting your pools data replaces your name in other pools' logs with "deleted user" and removes your osu! ID from them.
 
-pools also keeps every saved version of a built pool (its details, maps, slots, targets and notes, with who saved it and when) until the pool is deleted. The owner and editors always see a pool's history; anyone who can see the pool can too, once its owner makes the history public. Deleting a pool deletes its history with it; deleting your account deletes the history of the pools you owned and shows "deleted user" on your saves in pools you only edit.
+pools also keeps every saved version of a built pool (its details, maps, slots, targets and notes, with who saved it and when) until the pool is deleted. The owner and editors always see a pool's history; anyone who can see the pool can too, once its owner makes the history public. Deleting a pool deletes its history with it; deleting your pools data deletes the history of the pools you owned and shows "deleted user" on your saves in pools you only edit.
 
 Unlisted and public pools with maps also get a pack on packs.haruhime.moe, for downloads: we send packs the pool's name, its maps, and a line crediting its owner and editors by osu! username with a link back here, again after each change. packs lists the pack only while the pool is public and not hidden. Making a pool private or deleting it removes its pack there.
 
 ## Deleting
 
-"Delete my account" on your account page deletes your account, every session, the link to osu!, every pool you own (and its pack on packs.haruhime.moe) at once, and takes you off the pools you edit. Deleting a pool removes it for good. If packs.haruhime.moe doesn't answer, your account and pools are still deleted, and we keep only each pool's ID and why the removal failed until its pack is gone there, trying again from time to time.
+"Delete my pools data" on your [pools settings page](/account) deletes your API key and every pool you own (and its pack on packs.haruhime.moe) at once, and takes you off the pools you edit. Deleting a pool removes it for good. If packs.haruhime.moe doesn't answer, your pools data is still deleted, and we keep only each pool's ID and why the removal failed until its pack is gone there, trying again from time to time. Your haruhime account itself (the osu! link and sessions) is deleted on [haruhime.moe/account](https://www.haruhime.moe/account); delete your pools data first if you want it gone too.
 
 ## What we never do
 
