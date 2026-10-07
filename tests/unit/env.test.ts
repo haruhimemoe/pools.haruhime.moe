@@ -4,10 +4,12 @@
  *       SKIP_ENV_VALIDATION escape hatch and its production guard (VERCEL_ENV decides on Vercel).
  *       The optional variables are read on every call by their own getters: ADMIN_OSU_IDS (the
  *       admins), PACKS_URL and POOLS_SERVICE_TOKEN (the packs service), and a bad value only
- *       breaks what uses it. POOLS_ALLOW_SHARED_DB_USER is on only for "true".
+ *       breaks what uses it. POOLS_ALLOW_SHARED_DB_USER is on only for "true". BETTER_AUTH_URL is
+ *       gone (pools runs no better-auth: the hub's session is read), and HUB_URL defaults to
+ *       www.haruhime.moe.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { EnvError } from "@haruhimemoe/next-kit/env";
@@ -15,15 +17,20 @@ import { TEST_OSU_APP_ENV } from "@haruhimemoe/next-kit/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   assertNoPlaceholderSecrets,
+  DEFAULT_HUB_URL,
   DEFAULT_PACKS_URL,
   getAdminOsuIds,
   getAllowSharedDbUser,
   getDatabaseUri,
+  getHubUrl,
   getPacksService,
   OPTIONAL_ENV_KEYS,
   parseServerEnv,
   SERVER_ENV_KEYS,
 } from "@/env";
+
+/** next-kit's test env without BETTER_AUTH_URL, which pools doesn't read. */
+const { BETTER_AUTH_URL: _, ...POOLS_ENV } = TEST_OSU_APP_ENV;
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -43,7 +50,8 @@ const invalid = (key: string) =>
 
 describe("parseServerEnv", () => {
   it("returns exactly the server variables", () => {
-    expect(parseServerEnv({ ...TEST_OSU_APP_ENV, UNRELATED: "x" })).toEqual(TEST_OSU_APP_ENV);
+    expect(parseServerEnv({ ...TEST_OSU_APP_ENV, UNRELATED: "x" })).toEqual(POOLS_ENV);
+    expect(SERVER_ENV_KEYS).not.toContain("BETTER_AUTH_URL");
   });
 
   it("names every missing variable, in schema order", () => {
@@ -79,7 +87,7 @@ describe("parseServerEnv", () => {
     for (const key of OPTIONAL_ENV_KEYS) expect(SERVER_ENV_KEYS).not.toContain(key);
     expect(
       parseServerEnv({ ...TEST_OSU_APP_ENV, ADMIN_OSU_IDS: "nope", POOLS_SERVICE_TOKEN: "short" }),
-    ).toEqual(TEST_OSU_APP_ENV);
+    ).toEqual(POOLS_ENV);
   });
 
   it("fills placeholders under SKIP_ENV_VALIDATION but keeps real values", () => {
@@ -134,7 +142,7 @@ describe("SKIP_ENV_VALIDATION on a production server", () => {
   });
 
   it("allows it with every real secret set", () => {
-    const real = { ...TEST_OSU_APP_ENV, MONGODB_URI: "mongodb://db.example:27017" };
+    const real = { ...POOLS_ENV, MONGODB_URI: "mongodb://db.example:27017" };
     expect(parseServerEnv({ ...real, ...SKIP_IN_PROD })).toEqual(real);
   });
 });
@@ -219,5 +227,16 @@ describe("getAllowSharedDbUser", () => {
   it.each(["TRUE", "True", "1", "yes", "on", "false", "truee"])("is off for %j", (value) => {
     vi.stubEnv("POOLS_ALLOW_SHARED_DB_USER", value);
     expect(getAllowSharedDbUser()).toBe(false);
+  });
+});
+
+describe("getHubUrl", () => {
+  it("defaults to www.haruhime.moe and reads HUB_URL as an origin", () => {
+    vi.stubEnv("HUB_URL", undefined);
+    expect(getHubUrl()).toBe(DEFAULT_HUB_URL);
+    vi.stubEnv("HUB_URL", "https://hub.example.com/");
+    expect(getHubUrl()).toBe("https://hub.example.com");
+    vi.stubEnv("HUB_URL", "http://evil.example.com");
+    expect(() => getHubUrl()).toThrow("HUB_URL");
   });
 });

@@ -4,11 +4,12 @@
  *       buttons, how many pack removals wait for packs and "Retry pack cleanup", the newest 50
  *       unlisted and public built pools with hide, unhide and delete (what happened said in one
  *       live region that outlives a deleted row), the public pages refresh (for after an
- *       import), and links to add a pool and to every pool. Admins only (sign-in otherwise);
+ *       import), links to add a pool and to every pool, and sign out (in place, through
+ *       POST /api/signout). Admins only (sign-in otherwise);
  *       never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";

@@ -7,7 +7,7 @@
  *       overrides. Bump an entry's lastUpdated in the same commit as its text.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { defineContent } from "@haruhimemoe/next-kit/docs";
@@ -30,25 +30,25 @@ export const CONTENT = defineContent({
       title: "Disclaimers",
       description:
         "Who pools isn't affiliated with, where its pool data and star ratings come from, what the content rules check means, and how its requests identify themselves.",
-      lastUpdated: "2026-10-05",
+      lastUpdated: "2026-10-06",
     },
     privacy: {
       title: "Privacy",
       description:
         "What pools.haruhime.moe stores when you visit, sign in with osu! and make pools, why, and for how long. No analytics, and no cookies unless you sign in.",
-      lastUpdated: "2026-10-05",
+      lastUpdated: "2026-10-06",
     },
     terms: {
       title: "Terms",
       description:
-        "The rules for signing in with osu! and making pools on pools.haruhime.moe: what you're responsible for, what gets moderated, and deleting a pool or account.",
-      lastUpdated: "2026-10-05",
+        "The rules for signing in with osu! and making pools on pools.haruhime.moe: what you're responsible for, what gets moderated, and deleting your pools.",
+      lastUpdated: "2026-10-06",
     },
     "your-privacy-rights": {
       title: "GDPR & CCPA",
       description:
         "Your rights over your data under the GDPR and the CCPA, what pools stores and why, and how to use these rights.",
-      lastUpdated: "2026-10-05",
+      lastUpdated: "2026-10-06",
     },
     copyright: {
       title: "Copyright & Takedown",

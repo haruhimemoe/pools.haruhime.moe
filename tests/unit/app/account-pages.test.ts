@@ -1,34 +1,33 @@
 /**
  * @file tests/unit/app/account-pages.test.ts
- * @desc /signin says signing in is for making pools (anyone with an osu! account), explains an
- *       error code, and sends a signed-in visitor on to `next` through the browser; /account
+ * @desc /signin redirects to the hub's osu! sign-in with `next`; /account ("pools settings")
  *       asks for sign-in, then shows the osu! name and avatar, how many pools they own and edit
  *       with each one listed under Your pools (#pools, each linking its page and editor, and
- *       Make a pool), and the delete form; /new asks a visitor to sign in and come back (with
+ *       Make a pool), Sign out, one link to haruhime.moe/account, and the delete-my-pools-data
+ *       form; /new asks a visitor to sign in and come back (with
  *       the pool to start from), shows a signed-in user the form, filled in from ?from=<id>
  *       when that pool is there to copy. None is indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getCurrentUser, requireUser, listBuiltPoolsFor, startPreview, apiKeyInfo } = vi.hoisted(
-  () => ({
+const { getCurrentUser, requireUser, listBuiltPoolsFor, startPreview, apiKeyInfo, hubSignInHref } =
+  vi.hoisted(() => ({
     getCurrentUser: vi.fn(),
     requireUser: vi.fn(),
     listBuiltPoolsFor: vi.fn(),
     startPreview: vi.fn(),
     apiKeyInfo: vi.fn(async () => null),
-  }),
-);
-vi.mock("@/lib/auth-session", () => ({ getCurrentUser, requireUser }));
+    hubSignInHref: vi.fn((next: string | null) => `https://hub.test/api/signin/osu?next=${next}`),
+  }));
+vi.mock("@/lib/auth-session", () => ({ getCurrentUser, requireUser, hubSignInHref }));
 vi.mock("@/services/built-pools", () => ({ listBuiltPoolsFor }));
 vi.mock("@/services/built-pool-create", () => ({ startPreview }));
 vi.mock("@/lib/api-keys", () => ({ apiKeys: { info: apiKeyInfo } }));
-vi.mock("@/lib/auth-client", () => ({ authClient: {} }));
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }),
@@ -42,12 +41,11 @@ const USER = {
   isAdmin: false,
 };
 
-const signInHtml = async (params: Record<string, string>) => {
+const signIn = async (params: Record<string, string>) => {
   const page = await import("@/app/signin/page");
-  const element = await page.default({
+  return page.default({
     searchParams: Promise.resolve(params),
   } as unknown as PageProps<"/signin">);
-  return renderToStaticMarkup(element);
 };
 
 beforeEach(() => {
@@ -57,28 +55,18 @@ beforeEach(() => {
 });
 
 describe("/signin", () => {
-  it("says signing in is for making pools, and isn't indexed", async () => {
-    getCurrentUser.mockResolvedValue(null);
-    const html = await signInHtml({ next: "/account" });
-    expect(html).toContain("Sign in with your osu! account to make pools.");
-    expect(html).toContain("Sign in with osu!");
-    expect(html).not.toContain("admin");
+  it("redirects to the hub's osu! sign-in with next, and isn't indexed", async () => {
+    await expect(signIn({ next: "/account" })).rejects.toMatchObject({
+      digest: expect.stringContaining("https://hub.test/api/signin/osu?next=/account"),
+    });
+    expect(hubSignInHref).toHaveBeenCalledWith("/account");
+    await expect(signIn({})).rejects.toMatchObject({
+      digest: expect.stringContaining("next=null"),
+    });
     expect((await import("@/app/signin/page")).metadata.robots).toEqual({
       index: false,
       follow: true,
     });
-  });
-
-  it("explains an error code", async () => {
-    getCurrentUser.mockResolvedValue(null);
-    expect(await signInHtml({ error: "access_denied" })).toContain(
-      "Sign-in was cancelled on osu!. Try again when you&#x27;re ready.",
-    );
-  });
-
-  it("sends a signed-in visitor on through the browser", async () => {
-    getCurrentUser.mockResolvedValue(USER);
-    expect(await signInHtml({ next: "/account" })).toContain("Signing you in…");
   });
 });
 
@@ -91,7 +79,9 @@ describe("/account", () => {
     expect(requireUser).toHaveBeenCalledWith("/account");
     expect(html).toContain("peppy");
     expect(html).toMatch(/src="[^"]*a\.ppy\.sh(%2F|\/)2/);
-    expect(html).toContain("Delete my account");
+    expect(html).toContain("Delete my pools data");
+    expect(html).toContain("Sign out");
+    expect(html.match(/href="https:\/\/www\.haruhime\.moe\/account"/g)).toHaveLength(1);
     expect(page.metadata.robots).toEqual({ index: false, follow: true });
     expect(html).toContain('id="pools"');
     expect(html).toContain("You haven&#x27;t made a pool yet.");
@@ -150,9 +140,11 @@ describe("/new", () => {
     expect(html).toContain("Sign in first");
     expect(html).toContain("Sign in with osu!");
     expect(html).not.toContain("Make the pool");
-    expect(findProps(element, (props) => props.next === "/new")).toBeDefined();
+    expect(findProps(element, (props) => props.href === "/signin?next=%2Fnew")).toBeDefined();
     const from = await newPage({ from: "otdb-9" });
-    expect(findProps(from, (props) => props.next === "/new?from=otdb-9")).toBeDefined();
+    expect(
+      findProps(from, (props) => props.href === "/signin?next=%2Fnew%3Ffrom%3Dotdb-9"),
+    ).toBeDefined();
     expect(startPreview).not.toHaveBeenCalled();
     expect((await import("@/app/new/page")).metadata.robots).toEqual({
       index: false,

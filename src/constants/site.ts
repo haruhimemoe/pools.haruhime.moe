@@ -2,12 +2,14 @@
  * @file src/constants/site.ts
  * @desc Site identity, the contact email and Discord server, the source repo, the parent brand
  *       and GitHub org, navigation and the footer's own columns (ui's SiteFooter adds the other
- *       haruhime tools), the home page's builder line, the affiliation notice, the User-Agent our server sends, and sign-in's marker and landing.
+ *       haruhime tools), the home page's builder line, the affiliation notice, the User-Agent our server sends, the haruhime.moe hub's account page and cookie domain, the
+ *       shared signed-in marker and sign-in's landing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
  * @modified Tue Oct 6, 2026
  */
 
+import { SHARED_MARKER_COOKIE } from "@haruhimemoe/next-kit/auth-react";
 import { contentPath } from "@haruhimemoe/next-kit/docs";
 import type { SiteFooterColumn } from "@haruhimemoe/ui";
 import { CONTENT } from "@/constants/content";
@@ -37,11 +39,21 @@ export const SITE = {
 /** Sent as User-Agent on every request our server makes (osu!, the mirror, otdb, packs). */
 export const SERVER_USER_AGENT = `${SITE.title} (+${SITE.url}; ${SITE.contactEmail})`;
 
-/** Where /signin goes after sign-in when `next` is missing or not a safe path. */
+/** Where sign-in comes back to when `next` is missing or not a safe path. */
 export const DEFAULT_AFTER_SIGN_IN = "/account";
 
-/** The readable "signed in" marker cookie: pages ask for the session only when it's there. */
-export const SIGNED_IN_COOKIE = "pools-signed-in";
+/** The haruhime.moe account page: the osu! account, sessions, sign-out and deleting the account. */
+export const HUB_ACCOUNT_URL = "https://www.haruhime.moe/account";
+
+/** The hub's sign-in route that goes straight to osu!, with `next` the absolute pools URL. */
+export const HUB_SIGN_IN_PATH = "/api/signin/osu";
+
+/** The hub's cookie domain: its session cookie and the marker live on every haruhime.moe host. */
+export const HUB_COOKIE_DOMAIN = ".haruhime.moe";
+
+/** The readable "signed in" marker the hub sets on .haruhime.moe: pages ask for the session only
+ * when it's there. pools only reads it. */
+export const SIGNED_IN_COOKIE = SHARED_MARKER_COOKIE;
 
 /** The header's links. */
 export const NAV_LINKS: readonly { href: string; label: string }[] = [
@@ -55,7 +67,7 @@ export const NAV_LINKS: readonly { href: string; label: string }[] = [
 export const ACCOUNT_MENU_ITEMS: readonly { href: string; label: string }[] = [
   { href: "/new", label: "Make a pool" },
   { href: "/account#pools", label: "Your pools" },
-  { href: "/account", label: "Account" },
+  { href: "/account", label: "pools settings" },
 ];
 
 /** What the builder does, in one line. */

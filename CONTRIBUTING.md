@@ -14,7 +14,7 @@ cp .env.example .env.local
 bun run dev
 ```
 
-The dev server runs on http://localhost:3000. The site needs a MongoDB database: set `MONGODB_URI` in `.env.local` (a local `mongod` works). Sign-in and the check also need an osu! OAuth app: fill in the first five variables (each one has a comment in `.env.example`).
+The dev server runs on http://localhost:3000. The site needs a MongoDB database: set `MONGODB_URI` in `.env.local` (a local `mongod` works). Sign-in runs on the haruhime.moe hub, not here: pools reads the hub's session from the `identity` database with the hub's `BETTER_AUTH_SECRET`, so signing in locally means running the hub too (both under `*.localhost` hosts, see next-kit's README, Identity, Local dev) and pointing `HUB_URL` at it. The check and editor lookups need an osu! OAuth app's client credentials: fill in the first four variables (each one has a comment in `.env.example`).
 
 To fill a local database, run the importer against a copy of otdb's export without touching packs:
 

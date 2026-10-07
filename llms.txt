@@ -18,7 +18,7 @@
 ## Source
 
 - [src/utils/](https://github.com/haruhimemoe/pools.haruhime.moe/tree/main/src/utils): the pure code: name parsing, source labels, fingerprints, import planning, usage, the pack input, search params, filters and queries
-- [src/lib/](https://github.com/haruhimemoe/pools.haruhime.moe/tree/main/src/lib) and [src/env.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/env.ts): pools' wiring of @haruhimemoe/next-kit (route helpers, rate limits and the osu! budget, env, MongoDB, osu! sign-in and the account store) and the mirror, osu! and packs clients
+- [src/lib/](https://github.com/haruhimemoe/pools.haruhime.moe/tree/main/src/lib) and [src/env.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/env.ts): pools' wiring of @haruhimemoe/next-kit (route helpers, rate limits and the osu! budget, env, MongoDB, the haruhime.moe session reader and the account store) and the mirror, osu! and packs clients
 - [src/lib/import-runner.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/lib/import-runner.ts): the import run
 - [src/services/add-pool.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/add-pool.ts): an admin adding a host or community pool through the importer's planner
 - [src/lib/map-search.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/lib/map-search.ts) and [src/services/all-maps.ts](https://github.com/haruhimemoe/pools.haruhime.moe/blob/main/src/services/all-maps.ts): searching every osu! map and judging each set

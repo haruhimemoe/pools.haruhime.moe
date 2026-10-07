@@ -1,11 +1,12 @@
 /**
  * @file tests/components/layout/AppPalette.test.tsx
  * @desc AppPalette: opens on Ctrl K with the site's "Go to" rows and pools' own extras (New
- *       pool, Search maps), My pools and Sign out appear only once signed in, and the pools
- *       provider searches GET /api/search as the query changes.
+ *       pool, Search maps), My pools and Sign out appear only once signed in, Sign out signs out
+ *       in place (signOutHere, then the store and home), and the pools provider searches
+ *       GET /api/search as the query changes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { render, screen } from "@testing-library/react";
@@ -18,15 +19,16 @@ const navigationMock = { useRouter: () => ({ push }), usePathname: () => "/" };
 vi.mock("next/navigation", () => navigationMock);
 vi.mock("next/navigation.js", () => navigationMock);
 
-const { useAccountMock, signOut } = vi.hoisted(() => ({
+const { useAccountMock, signOutHere, markSignedOut } = vi.hoisted(() => ({
   useAccountMock: vi.fn<() => Account>(() => ({ status: "signed-out" })),
-  signOut: vi.fn().mockResolvedValue(undefined),
+  signOutHere: vi.fn().mockResolvedValue(undefined),
+  markSignedOut: vi.fn(),
 }));
 vi.mock("@/lib/account", () => ({
   useAccount: useAccountMock,
-  markSignedOut: vi.fn(),
+  signOutHere,
+  accountStore: { markSignedOut },
 }));
-vi.mock("@/lib/auth-client", () => ({ authClient: { signOut } }));
 
 const fetchMock = vi.fn<(input: string) => Promise<Response>>();
 
@@ -80,6 +82,18 @@ describe("AppPalette", () => {
     expect(await screen.findByText("My pools")).toBeInTheDocument();
     expect(screen.getByText("Sign out")).toBeInTheDocument();
     expect(screen.queryByText("Sign in")).toBeNull();
+  });
+
+  it("signs out in place, tells the store and goes home", async () => {
+    useAccountMock.mockReturnValue({
+      status: "signed-in",
+      user: { id: "1", username: "peppy", avatarUrl: null },
+    });
+    await openWithHotkey();
+    await userEvent.click(await screen.findByText("Sign out"));
+    await vi.waitFor(() => expect(push).toHaveBeenCalledWith("/"));
+    expect(signOutHere).toHaveBeenCalledTimes(1);
+    expect(markSignedOut).toHaveBeenCalledTimes(1);
   });
 
   it("searches public pools as the query changes", async () => {

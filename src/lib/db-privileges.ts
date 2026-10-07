@@ -2,7 +2,9 @@
  * @file src/lib/db-privileges.ts
  * @desc The start-up privilege check: pools reads its database user's privileges
  *       (connectionStatus with showPrivileges) and refuses to run when they reach any database
- *       but its own. Cluster-level resources (like listDatabases) aren't a database and don't
+ *       but its own, except read-only access to the databases it's told it may read (the
+ *       haruhime.moe hub's "identity": sessions and users). Any write action there counts as
+ *       reaching it. Cluster-level resources (like listDatabases) aren't a database and don't
  *       count; an empty db name and anyResource mean every database. A local server without
  *       access control (no user signed in) reports no privileges and passes. It fails closed: an
  *       answer that doesn't say who is signed in, or a signed-in user with no privileges listed,
@@ -12,7 +14,7 @@
  *       can't read and write every collection in pools.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -42,16 +44,42 @@ export class DatabasePrivilegeError extends Error {
 
 const EVERY_DATABASE = "*";
 
+/** Actions that only read, so a read-only database may grant them without counting. */
+const READ_ACTIONS: ReadonlySet<string> = new Set([
+  "find",
+  "listCollections",
+  "listIndexes",
+  "listSearchIndexes",
+  "collStats",
+  "dbStats",
+  "dbHash",
+  "killCursors",
+  "changeStream",
+  "planCacheRead",
+]);
+
+/** True when a privilege only reads one of the databases pools may read. */
+const readsOnly = ({ resource, actions }: Privilege, readOnly: readonly string[]): boolean =>
+  typeof resource?.db === "string" &&
+  readOnly.includes(resource.db) &&
+  (actions ?? []).every((action) => READ_ACTIONS.has(action));
+
 /**
  * @function otherDatabases
  * @param status {ConnectionStatus} what the server said
  * @param dbName {string} the one database the user may reach
+ * @param readOnly {readonly string[]} databases the user may also read, never write
  * @returns {string[]} every other database its privileges reach, sorted ("*" for every database)
  */
-export const otherDatabases = (status: ConnectionStatus, dbName: string): string[] => {
+export const otherDatabases = (
+  status: ConnectionStatus,
+  dbName: string,
+  readOnly: readonly string[] = [],
+): string[] => {
   const found = new Set<string>();
-  for (const { resource } of status.authInfo?.authenticatedUserPrivileges ?? []) {
-    if (!resource) continue;
+  for (const privilege of status.authInfo?.authenticatedUserPrivileges ?? []) {
+    const { resource } = privilege;
+    if (!resource || readsOnly(privilege, readOnly)) continue;
     if (resource.anyResource === true) found.add(EVERY_DATABASE);
     else if (typeof resource.db === "string" && resource.db !== dbName) {
       found.add(resource.db === "" ? EVERY_DATABASE : resource.db);
@@ -86,14 +114,20 @@ const assertReadable = (status: ConnectionStatus, ask: string, fix: string): voi
  * @function assertOnlyDatabase
  * @param status {ConnectionStatus} what the server said
  * @param dbName {string} the one database the user may reach
+ * @param readOnly {readonly string[]} databases the user may also read, never write
  * @returns {void} nothing when the user reaches no other database
  * @throws {DatabasePrivilegeError} naming each other database it reaches, or when the answer
  *         doesn't say who is signed in or lists no privileges for a signed-in user
  */
-export const assertOnlyDatabase = (status: ConnectionStatus, dbName: string): void => {
-  const fix = `Give it readWrite on "${dbName}" only.`;
+export const assertOnlyDatabase = (
+  status: ConnectionStatus,
+  dbName: string,
+  readOnly: readonly string[] = [],
+): void => {
+  const reads = readOnly.map((name) => ` and read on "${name}"`).join("");
+  const fix = `Give it readWrite on "${dbName}"${reads} only.`;
   assertReadable(status, `whether it reaches only "${dbName}"`, fix);
-  const others = otherDatabases(status, dbName);
+  const others = otherDatabases(status, dbName, readOnly);
   if (others.length === 0) return;
   throw new DatabasePrivilegeError(
     `The database user can reach ${describeDatabases(others)}, not only "${dbName}". ${fix}`,
@@ -129,6 +163,8 @@ export const canWriteDatabase = (status: ConnectionStatus, dbName: string): bool
  * @param dbName {string} the database pools uses
  * @param shared {boolean} POOLS_ALLOW_SHARED_DB_USER: false (the default) refuses any other
  *        database; true allows them but still needs readWrite on dbName
+ * @param readOnly {readonly string[]} databases the user may also read (never write) in either
+ *        mode without counting as another database
  * @returns {void} nothing when the user passes; in shared mode it logs one console.warn naming
  *          the other databases the user reaches (names only), when there are any
  * @throws {DatabasePrivilegeError} when the user fails the check for its mode, or the answer
@@ -138,9 +174,10 @@ export const checkDatabasePrivileges = (
   status: ConnectionStatus,
   dbName: string,
   shared: boolean,
+  readOnly: readonly string[] = [],
 ): void => {
   if (!shared) {
-    assertOnlyDatabase(status, dbName);
+    assertOnlyDatabase(status, dbName, readOnly);
     return;
   }
   const fix = `Give it readWrite on "${dbName}".`;
@@ -151,7 +188,7 @@ export const checkDatabasePrivileges = (
       `The database user can't read and write every collection in "${dbName}". ${fix}`,
     );
   }
-  const others = otherDatabases(status, dbName);
+  const others = otherDatabases(status, dbName, readOnly);
   if (others.length === 0) return;
   console.warn(
     `POOLS_ALLOW_SHARED_DB_USER is on, so pools runs on a database user that can also reach ${describeDatabases(others)}. A bug in pools or a leaked credential could change data there.`,

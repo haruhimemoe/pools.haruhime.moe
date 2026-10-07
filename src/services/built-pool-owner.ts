@@ -1,7 +1,8 @@
 /**
  * @file src/services/built-pool-owner.ts
  * @desc Handing a built pool to one of its editors. Only the owner can, typing the pool's name
- *       exactly; the editor must have signed in (so they have a user id to own it with) and own
+ *       exactly; the editor must have signed in (a haruhime account in identity, read now by
+ *       osu! id, so they have a user id to own it with) and own
  *       fewer than 50 pools. The editor becomes the owner, the old owner stays on as an editor,
  *       and the version goes up, in one write guarded by the version read (a change in between
  *       is a 409 with the pool as it is now, or a 404 for an old owner who can't see it any
@@ -12,7 +13,7 @@
  *       description credits the owner first.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -23,6 +24,7 @@ import type { SessionUser } from "@/schemas/session-user";
 import { recordFor } from "@/services/built-pool-activity";
 import { findBuiltPool, loadFor, readBuiltPool, viewOf } from "@/services/built-pool-read";
 import { markPackPending } from "@/services/built-pools";
+import { userIdFor } from "@/services/identity-users";
 import { ownerActivity } from "@/utils/activity";
 import { accessOf } from "@/utils/built-access";
 import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
@@ -112,7 +114,9 @@ export const transferBuiltPool = async (
   }
   const target = pool.editors.find((editor) => editor.osuId === osuId);
   if (!target) return refuse(400, "not_editor", "They don't edit this pool.");
-  const { userId, username } = target;
+  const { username } = target;
+  // Their account may be newer than their place on the pool: identity has the current id.
+  const userId = await userIdFor(osuId);
   if (userId === null) {
     return refuse(400, "not_signed_in", `${username} hasn't signed in to pools yet.`);
   }

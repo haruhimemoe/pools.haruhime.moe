@@ -7,7 +7,7 @@ Please report vulnerabilities privately, not in an issue or the Discord server:
 
 Include steps to reproduce and the impact you expect. You'll get a reply within 7 days.
 
-In scope: this repository and the live site at https://pools.haruhime.moe (in beta), its JSON routes (`/api/search`, including the all-maps search it passes to the mirror, and `/api/check`), its osu! sign-in, account deletion (`/api/account`), the pool builder routes (`/api/pools`) and admin routes (including adding a pool at `/api/admin/pools`). Pool credit links are typed by admins and open with `rel="nofollow ugc noopener"`; report one that could harm visitors the same way. Only the current `main` branch and the live site are supported.
+In scope: this repository and the live site at https://pools.haruhime.moe (in beta), its JSON routes (`/api/search`, including the all-maps search it passes to the mirror, and `/api/check`), how it reads the haruhime.moe session and signs out of it (`/api/session`, `/api/signout`, `src/lib/auth.ts`; sign-in itself is the hub's), pools data deletion (`/api/account`), the pool builder routes (`/api/pools`) and admin routes (including adding a pool at `/api/admin/pools`). Pool credit links are typed by admins and open with `rel="nofollow ugc noopener"`; report one that could harm visitors the same way. Only the current `main` branch and the live site are supported.
 
 The `@haruhimemoe` packages pools uses have their own repositories and SECURITY.md files; report problems with them there. Report problems in third-party services (osu!, the beatmap mirror, otdb) to those services.
 

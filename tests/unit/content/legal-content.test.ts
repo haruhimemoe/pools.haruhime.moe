@@ -5,18 +5,18 @@
  *       otdb credit beside the pools hosts and community members send (whose links are theirs,
  *       not ours), and the User-Agent
  *       (disclaimers); no visitor cookies, per-IP counters, the 24-hour cache, what signing in
- *       stores (osu! id, username, avatar, country, sessions, the pools you make, never osu!
- *       tokens), the readable signed-in cookie, who sees public, unlisted and private pools,
+ *       on haruhime.moe stores (osu! id, username, avatar, country, never osu! tokens) and that
+ *       pools only reads it, the shared readable signed-in cookie, who sees public, unlisted and private pools,
  *       moderation and deletion, and what the all-maps search sends the hinai mirror (privacy,
- *       dated 2026-10-05), per-account counters, the editor lookup, the cascade on deleting and
+ *       dated 2026-10-06), per-account counters, the editor lookup, the cascade on deleting and
  *       built pools' packs on packs;
- *       the disclaimers page's osu! and packs requests for built pools (dated 2026-10-05); the
+ *       the disclaimers page's osu! and packs requests for built pools and the hub sign-out (dated 2026-10-06); the
  *       terms (anyone with osu! can sign in, what's allowed, shared pools published on packs,
- *       moderation, deletion, dated 2026-10-05); the your-privacy-rights page (GDPR and CCPA
+ *       moderation, deletion, dated 2026-10-06); the your-privacy-rights page (GDPR and CCPA
  *       rights) and the copyright page (DMCA notice, sources, no hosted files). No em dashes.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { readFileSync } from "node:fs";
@@ -54,24 +54,23 @@ describe("legal pages", () => {
     "no cookies",
     "IP address",
     "24 hours",
-    "7 days",
     "never osu! tokens",
     "sent to the hinai mirror (mirror.hinamizawa.ai)",
     "Anyone with an osu! account can sign in",
     "osu! user ID, username, avatar URL and country",
+    "writes nothing to it",
     "the pools you make",
-    "pools-signed-in",
+    "haruhime-signed-in",
     "Public and unlisted pools can be seen by anyone with the link",
     "Private pools are seen only by you and the editors you add",
     "Admins can hide or delete",
-    "Delete my account",
+    "Delete my pools data",
     "per account",
     "look it up on the osu! API",
     "every pool you own",
-    "7 days after you last use the site",
     "osu! usernames and IDs of its owner and editors",
-    "use your osu! user ID, so deleting your account and signing in again doesn't reset them",
-    "your account and pools are still deleted",
+    "use your osu! user ID, so deleting your pools data doesn't reset them",
+    "your pools data is still deleted",
     "pack updates",
     "Unlisted and public pools with maps also get a pack on packs.haruhime.moe",
     "Making a pool private or deleting it removes its pack",
@@ -83,7 +82,7 @@ describe("legal pages", () => {
     "Anyone with an osu! account can sign in",
     "content filter",
     "Admins can hide or delete",
-    "Delete my account",
+    "Delete my pools data",
     "can't be undone",
     "isn't affiliated with or endorsed by ppy Pty Ltd",
     "published as a pack on packs.haruhime.moe",
@@ -103,9 +102,9 @@ describe("legal pages", () => {
   });
 
   it("dates the privacy page, disclaimers page and terms from their last change", () => {
-    expect(updated("privacy")).toBe("2026-10-05");
-    expect(updated("disclaimers")).toBe("2026-10-05");
-    expect(updated("terms")).toBe("2026-10-05");
+    expect(updated("privacy")).toBe("2026-10-06");
+    expect(updated("disclaimers")).toBe("2026-10-06");
+    expect(updated("terms")).toBe("2026-10-06");
   });
 
   it("says what similar maps are and that the mirror is asked for them", () => {
