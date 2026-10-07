@@ -4,11 +4,11 @@
  *       who can see one, the pack states, and the limits (maps and custom buckets come from
  *       @haruhimemoe/pool; editors, pools per owner, ops per call, the JSON body cap, text and
  *       paste lengths), how the builder names each visibility, what it says about the pool's pack
- *       on packs, what it says when a pack removal is queued, when no editor can take the pool
+ *       on packs, what it says when a pack removal is queued, the "Delete my pools data" warning, when no editor can take the pool
  *       over, and how the editor backs off asking for slot values.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 export { MAX_CUSTOM_BUCKETS, MAX_NAME_LENGTH, MAX_SLOTS } from "@haruhimemoe/pool";
@@ -65,6 +65,10 @@ export const HIDDEN_BY_MODERATION: Record<Visibility, string> = {
 /** Said when a pack removal couldn't reach packs and waits in pack_cleanup. */
 export const PACK_REMOVAL_QUEUED =
   "packs.haruhime.moe didn't answer, so the pack will be removed there as soon as it does.";
+
+/** The "Delete my pools data" warning: what goes, and that the haruhime account stays. */
+export const DELETES_POOLS_DATA =
+  "This deletes every pool you own (with its pack on packs), takes you off the pools you edit, and deletes your API key. Your haruhime account stays. It can't be undone.";
 
 /**
  * @function packRemovalsQueuedText

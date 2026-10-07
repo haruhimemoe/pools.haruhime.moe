@@ -6,7 +6,7 @@
  *       neither does its description.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
@@ -28,7 +28,6 @@ vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn(), replace: vi.fn() }),
 }));
-vi.mock("@/lib/auth-client", () => ({ authClient: {} }));
 
 setupTestDb();
 setupMsw();

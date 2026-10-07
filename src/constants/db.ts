@@ -2,11 +2,11 @@
  * @file src/constants/db.ts
  * @desc Collection names in the pools database (built pools and their id claims included), how
  *       long a public read and a batch read (importer, admin) may run (the cluster is a shared
- *       free M0), the similar_maps table, and the index names searches hint (and the mod_values TTL index). better-auth's
- *       index names are next-kit's AUTH_INDEXES.
+ *       free M0), the similar_maps table, the index names searches hint (and the mod_values TTL
+ *       index), and every field holding an identity user id (for the hub's identity migration).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 /** Past pool records. */
@@ -33,6 +33,27 @@ export const SIMILAR_MAPS_COLLECTION = "similar_maps";
 export const BUILT_POOL_ACTIVITY_COLLECTION = "built_pool_activity";
 /** Built pools' version history (src/lib/pool-revisions.ts). */
 export const POOL_REVISIONS_COLLECTION = "pool_revisions";
+
+/** API keys (next-kit's api-keys store), one per user, keyed by the identity user id. */
+export const API_KEYS_COLLECTION = "api_keys";
+
+/**
+ * Every pools field holding an identity user id, as next-kit's migrateIdentity takes them:
+ * built_pools.ownerId (a hex string), api_keys.userId (an ObjectId) and pool_revisions.authorId
+ * (a hex string; "pools" for revisions made before history, which no user id matches). Not
+ * listed: built_pools.editors[].userId, an array field migrateIdentity's `$set` can't rewrite;
+ * pools no longer reads it (an editor's account is looked up in identity by osu! id,
+ * src/services/identity-users.ts), so a stale value there is harmless. built_pool_activity,
+ * and candidates key people by osu! id, which the migration doesn't change, and pack_cleanup
+ * holds no person at all.
+ * rate_limits' api, api-write and key-create counters embed the user id in their _id; they
+ * expire within the hour, so they aren't listed either.
+ */
+export const USER_ID_REFERENCES: readonly { collection: string; field: string }[] = [
+  { collection: BUILT_POOLS_COLLECTION, field: "ownerId" },
+  { collection: API_KEYS_COLLECTION, field: "userId" },
+  { collection: POOL_REVISIONS_COLLECTION, field: "authorId" },
+];
 
 /** maxTimeMS on every public read. */
 export const QUERY_TIME_MS = 2000;

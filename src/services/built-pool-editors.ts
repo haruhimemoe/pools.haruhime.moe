@@ -3,13 +3,13 @@
  * @desc A built pool's co-editors. The owner adds one by osu! username: osu! is asked (pools'
  *       own app, inside the osu! budget, the owner's share counted as "osu:<osuId>"), so someone
  *       who never signed in can be added; access follows their osu! id, and their user id is
- *       filled in when they first sign in (linkEditorAccount, from the auth hook). At most 10,
+ *       looked up in the hub's identity database when it's needed (src/services/identity-users.ts). At most 10,
  *       never the owner, never twice. The owner removes any editor; an editor can remove
  *       themselves. Each change is a new version, and marks a shared pool's pack pending (its
  *       description names the editors).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -24,6 +24,7 @@ import type { SessionUser } from "@/schemas/session-user";
 import { recordFor } from "@/services/built-pool-activity";
 import { loadFor, readBuiltPool, viewOf } from "@/services/built-pool-read";
 import { markPackPending } from "@/services/built-pools";
+import { userIdFor } from "@/services/identity-users";
 import { editorActivity } from "@/utils/activity";
 import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
 
@@ -32,14 +33,6 @@ export type LookupUser = (
   username: string,
   options: { beforeCall: () => Promise<boolean> },
 ) => Promise<OsuUserLookup>;
-
-/** The user id of whoever signed in with this osu! id, or null when nobody has yet. */
-const userIdFor = async (osuId: number): Promise<string | null> => {
-  const user = await (await connectedDb())
-    .collection("user")
-    .findOne({ osuId }, { projection: { _id: 1 } });
-  return user ? String(user._id) : null;
-};
 
 const lookupRefusal = (lookup: OsuUserLookup, username: string) => {
   if (lookup.kind === "missing") {
@@ -129,18 +122,4 @@ export const removeBuiltPoolEditor = async (
   await markPackPending(id);
   await recordFor(caller, id, editorActivity(self ? "left" : "removed", leaving));
   return { ok: true, value: null };
-};
-
-/**
- * @function linkEditorAccount
- * @param osuId {number} the osu! id someone just signed in with for the first time
- * @param userId {string} their new user id
- * @returns {Promise<void>} fills in their user id on every pool that lists them as an editor
- */
-export const linkEditorAccount = async (osuId: number, userId: string): Promise<void> => {
-  await (await builtPoolsCollection()).updateMany(
-    { "editors.osuId": osuId },
-    { $set: { "editors.$[editor].userId": userId } },
-    { arrayFilters: [{ "editor.osuId": osuId }] },
-  );
 };

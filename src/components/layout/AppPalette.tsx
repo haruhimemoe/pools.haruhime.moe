@@ -6,12 +6,12 @@
  *       cookie-free). Account commands read `useAccount` client-side instead of a server prop:
  *       the root layout renders no session today, and a layout that read it would make every page
  *       dynamic, so sign-in state is read the same way the header's AccountMenu already reads it.
- *       Sign-out has no navigable route here (better-auth's client ends the session, not a GET
- *       page), so it runs the same signOut-then-markSignedOut pools' SignOutButton uses, instead
- *       of siteCommands' href-based default.
+ *       Sign out runs the same POST /api/signout the header's menu uses (signOutHere,
+ *       src/lib/account.ts: the hub session ends for every tool, without leaving pools), tells the
+ *       store, then goes home.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 "use client";
@@ -20,8 +20,7 @@ import type { Command, Provider } from "@haruhimemoe/ui";
 import { CommandPalette, siteCommands } from "@haruhimemoe/ui";
 import { useMemo } from "react";
 import { NAV_LINKS, SITE } from "@/constants/site";
-import { markSignedOut, useAccount } from "@/lib/account";
-import { authClient } from "@/lib/auth-client";
+import { accountStore, signOutHere, useAccount } from "@/lib/account";
 import type { SearchResponse } from "@/schemas/search-response";
 
 /** At most this many pools from a provider search. */
@@ -87,8 +86,8 @@ export function AppPalette() {
         group: "Account",
         when: () => signedIn,
         run: async (ctx) => {
-          await authClient.signOut();
-          markSignedOut();
+          await signOutHere();
+          accountStore.markSignedOut();
           ctx.navigate("/");
         },
       },

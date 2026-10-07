@@ -1,87 +1,63 @@
 /**
  * @file src/lib/auth.ts
- * @desc better-auth for every osu! user, built on first use by @haruhimemoe/next-kit/auth's
- *       createOsuAuth (MongoDB on the shared client, osu! OAuth with PKCE, osu! trusted for
- *       account linking, no osu! tokens kept, errors to /signin?error=<code>, and the readable
- *       SIGNED_IN_COOKIE marker following the session). Anyone with an osu! account can sign in
- *       (to make pools); admin rights come only from ADMIN_OSU_IDS, read on every request by
- *       getUserFromHeaders and getAdminFromHeaders, so a removed id stops being an admin at
- *       once. A first sign-in links the new user to the pools that already list their osu! id
- *       as an editor.
+ * @desc Who a request comes from, read from the haruhime.moe hub's session. The hub is the only
+ *       app that runs osu! sign-in; pools reads its `better-auth.session_token` cookie (on
+ *       .haruhime.moe) with next-kit's createSessionReader: the signature checked against the
+ *       shared BETTER_AUTH_SECRET, then the session and user read from the identity database,
+ *       with zero writes (pools' Atlas user can only read identity). An old session pings the hub
+ *       to refresh it there. A banned user reads as signed out (requireSession). Anyone with an
+ *       osu! account can make pools; admin rights come only from ADMIN_OSU_IDS, read on every
+ *       request, so a removed id stops being an admin at once. Editors added before they ever
+ *       signed in are found by osu! id in identity when they're needed (built-pool-editors.ts),
+ *       so there's no first-sign-in hook to run here.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
-import { createOsuAuth, getOsuUser } from "@haruhimemoe/next-kit/auth";
-import { SIGNED_IN_COOKIE } from "@/constants/site";
-import { getServerEnv } from "@/env";
+import {
+  createSessionReader,
+  requireSession,
+  type SessionReaderInstance,
+} from "@haruhimemoe/next-kit/auth";
+import { getHubUrl, getServerEnv } from "@/env";
 import { isAdminOsuId } from "@/lib/admin";
-import { connectDb, getDb, getMongoClient } from "@/lib/db";
+import { connectDb, getIdentityDb } from "@/lib/db";
 import type { AdminUser, SessionUser } from "@/schemas/session-user";
-import { linkEditorAccount } from "@/services/built-pool-editors";
+
+let reader: SessionReaderInstance | null = null;
 
 /**
- * @function linkNewEditor
- * @param user {Record<string, unknown>} the user row better-auth just wrote
- * @returns {Promise<void>} links it to the pools that list its osu! id as an editor; a failure
- *          is logged and never fails the sign-in
+ * @function getSessionReader
+ * @returns {SessionReaderInstance} the process-wide reader of the hub's session, built on first
+ *          use (not at import, so builds need no env)
  */
-export const linkNewEditor = async (user: Record<string, unknown>): Promise<void> => {
-  if (typeof user.osuId !== "number" || typeof user.id !== "string") return;
-  try {
-    await linkEditorAccount(user.osuId, user.id);
-  } catch (error) {
-    console.error("[auth] couldn't link a new user to the pools they edit", error);
-  }
-};
-
-const createAuth = () => {
-  const env = getServerEnv();
-  return createOsuAuth({
-    clientId: env.OSU_CLIENT_ID,
-    clientSecret: env.OSU_CLIENT_SECRET,
-    baseURL: env.BETTER_AUTH_URL,
-    secret: env.BETTER_AUTH_SECRET,
-    db: getDb(),
-    client: getMongoClient(),
-    markerCookie: SIGNED_IN_COOKIE,
-    // An owner may have added this osu! id as an editor before its first sign-in.
-    hooks: { afterUserCreate: linkNewEditor },
+export const getSessionReader = (): SessionReaderInstance => {
+  reader ??= createSessionReader({
+    identityDb: getIdentityDb(),
+    secret: getServerEnv().BETTER_AUTH_SECRET,
+    hubUrl: getHubUrl(),
   });
-};
-
-/** The better-auth instance's type, for the client's inferAdditionalFields. */
-export type Auth = ReturnType<typeof createAuth>;
-
-let instance: Auth | null = null;
-
-/**
- * @function getAuth
- * @returns {Auth} the process-wide better-auth instance, built on first use
- */
-export const getAuth = (): Auth => {
-  instance ??= createAuth();
-  return instance;
+  return reader;
 };
 
 /**
  * @function getUserFromHeaders
- * @param headers {Headers} request headers (the session cookie)
- * @returns {Promise<SessionUser | null>} the signed-in user, or null
+ * @param headers {Headers} request headers (the hub's session cookie)
+ * @returns {Promise<SessionUser | null>} the signed-in, unbanned user, or null
  */
 export const getUserFromHeaders = async (headers: Headers): Promise<SessionUser | null> => {
   await connectDb();
-  const user = await getOsuUser(getAuth(), headers);
+  const user = await requireSession(getSessionReader(), headers);
   return user ? { ...user, isAdmin: isAdminOsuId(user.osuId) } : null;
 };
 
 /**
  * @function getAdminFromHeaders
  * @param headers {Headers} request headers
- * @returns {Promise<AdminUser | null>} the signed-in admin, or null (signed out, or signed in
- *          without an id in ADMIN_OSU_IDS)
+ * @returns {Promise<AdminUser | null>} the signed-in admin, or null (signed out, banned, or
+ *          signed in without an id in ADMIN_OSU_IDS)
  */
 export const getAdminFromHeaders = async (headers: Headers): Promise<AdminUser | null> => {
   const user = await getUserFromHeaders(headers);

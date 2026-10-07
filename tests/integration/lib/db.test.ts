@@ -1,21 +1,21 @@
 /**
  * @file tests/integration/lib/db.test.ts
  * @desc connectDb against the in-memory server: the "pools" database whatever the URI says, the
- *       TTL indexes for sessions and rate-limit counters, the setFacts TTL and difficulty-id
+ *       hub's "identity" database on the same client, the TTL index for rate-limit counters, the setFacts TTL and difficulty-id
  *       indexes, and the privilege check refusing a user that can reach another database (a
- *       failure isn't cached: the next call tries again). POOLS_ALLOW_SHARED_DB_USER=true lets
+ *       failure isn't cached: the next call tries again), except read-only access to identity,
+ *       which the session reader needs; a write privilege on identity is still refused. POOLS_ALLOW_SHARED_DB_USER=true lets
  *       that user through with one warning naming the databases (never the URI), but still
  *       refuses one that can't write to "pools".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
-import { AUTH_INDEXES } from "@haruhimemoe/next-kit/auth";
 import { Db, type Document } from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RATE_LIMITS_COLLECTION } from "@/constants/db";
-import { closeDb, connectDb, getDb } from "@/lib/db";
+import { closeDb, connectDb, getDb, getIdentityDb } from "@/lib/db";
 import { type ConnectionStatus, DatabasePrivilegeError } from "@/lib/db-privileges";
 
 afterEach(async () => {
@@ -49,18 +49,14 @@ const SHARED_WITH_PACKS: ConnectionStatus["authInfo"] = {
 };
 
 describe("connectDb", () => {
-  it("uses the pools database", async () => {
+  it("uses the pools database, and identity on the same client", async () => {
     await connectDb();
     expect(getDb().databaseName).toBe("pools");
+    expect(getIdentityDb().databaseName).toBe("identity");
   });
 
-  it("creates the TTL indexes for sessions and rate-limit counters", async () => {
+  it("creates the TTL index for rate-limit counters", async () => {
     await connectDb();
-    const session = await getDb().collection("session").indexes();
-    expect(session.find((index) => index.name === AUTH_INDEXES.sessionTtl)).toMatchObject({
-      key: { expiresAt: 1 },
-      expireAfterSeconds: 0,
-    });
     const counters = await getDb().collection(RATE_LIMITS_COLLECTION).indexes();
     expect(counters.find((index) => index.key.expiresAt === 1)).toMatchObject({
       expireAfterSeconds: 0,
@@ -97,6 +93,26 @@ describe("connectDb", () => {
     await expect(connectDb()).rejects.toThrow('"packs"');
     vi.restoreAllMocks();
     await expect(connectDb()).resolves.toBeUndefined();
+  });
+});
+
+describe("connectDb and the identity database", () => {
+  const withIdentity = (actions: string[]): ConnectionStatus["authInfo"] => ({
+    authenticatedUsers: [{ user: "pools-app", db: "admin" }],
+    authenticatedUserPrivileges: [
+      { resource: { db: "pools", collection: "" }, actions: READ_WRITE },
+      { resource: { db: "identity", collection: "" }, actions },
+    ],
+  });
+
+  it("connects a user with only read on identity", async () => {
+    answerConnectionStatus(withIdentity(["find", "listCollections", "listIndexes"]));
+    await expect(connectDb()).resolves.toBeUndefined();
+  });
+
+  it("refuses a user that can write to identity", async () => {
+    answerConnectionStatus(withIdentity(READ_WRITE));
+    await expect(connectDb()).rejects.toThrow('"identity"');
   });
 });
 

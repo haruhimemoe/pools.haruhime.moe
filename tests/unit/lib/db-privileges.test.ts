@@ -4,14 +4,15 @@
  *       with readWrite on "pools" passes (cluster-level and system collection resources don't
  *       count as another database); any other database, "any database" and anyResource are
  *       refused by name; an unauthenticated local server passes; a signed-in user whose
- *       privileges aren't listed, and an answer that doesn't say who is signed in, are refused.
+ *       privileges aren't listed, and an answer that doesn't say who is signed in, are refused; a
+ *       read-only database (identity) passes while it only reads.
  *       checkDatabasePrivileges adds the shared mode (POOLS_ALLOW_SHARED_DB_USER): other
  *       databases are allowed with one warning that names them (never a URI), but the user must
  *       still read and write every collection in "pools", and the answers strict mode can't read
  *       are still refused. Strict stays the default.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Fri Sep 25, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -67,6 +68,26 @@ describe("otherDatabases", () => {
     expect(
       otherDatabases(atlasUser([{ resource: { anyResource: true }, actions: ["find"] }]), "pools"),
     ).toEqual(["*"]);
+  });
+
+  it("lets a read-only database through, and names it once it can write", () => {
+    const reads = [
+      { resource: { db: "identity", collection: "" }, actions: ["find", "listIndexes"] },
+    ];
+    expect(otherDatabases(atlasUser(reads), "pools", ["identity"])).toEqual([]);
+    expect(otherDatabases(atlasUser(reads), "pools")).toEqual(["identity"]);
+    const writes = [{ resource: { db: "identity", collection: "" }, actions: ["find", "insert"] }];
+    expect(otherDatabases(atlasUser(writes), "pools", ["identity"])).toEqual(["identity"]);
+  });
+
+  it("names the read-only database in the strict fix", () => {
+    expect(() =>
+      assertOnlyDatabase(
+        atlasUser([{ resource: { db: "packs", collection: "" }, actions: ["find"] }]),
+        "pools",
+        ["identity"],
+      ),
+    ).toThrow('Give it readWrite on "pools" and read on "identity" only.');
   });
 
   it("passes a local server without access control", () => {

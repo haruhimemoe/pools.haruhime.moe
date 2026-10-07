@@ -3,14 +3,15 @@
  * @desc pools' MongoDB, from next-kit's createMongo: one MongoClient per process, built on first
  *       use (never at import, so builds and pages without a database need no env), Mongoose on
  *       the same client, state on globalThis so dev reloads don't leak clients, and a failed
- *       connect never cached. The database is always "pools", whatever the URI says. The first
- *       connect then checks the user's privileges (src/lib/db-privileges.ts) and refuses to go
- *       on when they reach another database (unless POOLS_ALLOW_SHARED_DB_USER=true, which still
+ *       connect never cached. The database is always "pools", whatever the URI says; the hub's
+ *       "identity" database (users and sessions) sits on the same client, read-only for pools'
+ *       Atlas user, so pools never builds an index or writes there. The first connect then checks the user's privileges (src/lib/db-privileges.ts) and refuses to go
+ *       on when they reach another database, read on identity aside (unless POOLS_ALLOW_SHARED_DB_USER=true, which still
  *       needs readWrite on pools and warns), creates the raw indexes and fills in built pools'
  *       missing search fields (src/lib/built-backfill.ts).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -23,12 +24,19 @@ import { checkDatabasePrivileges, readConnectionStatus } from "@/lib/db-privileg
 /** The one database pools uses. */
 export const DB_NAME = "pools";
 
+/** The hub's identity database: pools reads sessions and users there, never writes. */
+export const IDENTITY_DB_NAME = "identity";
+
 const mongo = createMongo({
   dbName: DB_NAME,
+  identityDbName: IDENTITY_DB_NAME,
   globalKey: "__poolsMongo",
   uri: getDatabaseUri,
-  onConnect: async (db, client) => {
-    checkDatabasePrivileges(await readConnectionStatus(client), DB_NAME, getAllowSharedDbUser());
+  // pools' own work only: pools' Atlas user can't write identity, the hub owns its indexes.
+  onConnect: async ({ db, client }) => {
+    checkDatabasePrivileges(await readConnectionStatus(client), DB_NAME, getAllowSharedDbUser(), [
+      IDENTITY_DB_NAME,
+    ]);
     await ensureIndexes(db);
     await backfillBuiltSearchFields(db);
   },
@@ -39,6 +47,9 @@ export const getMongoClient = mongo.getMongoClient;
 
 /** The pools database on the shared client. */
 export const getDb = mongo.getDb;
+
+/** The hub's identity database on the shared client (read-only). */
+export const getIdentityDb = mongo.getIdentityDb;
 
 /** The Mongoose connection models register on (usable after connectDb). */
 export const getModelConnection = mongo.getModelConnection;

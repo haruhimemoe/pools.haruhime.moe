@@ -8,13 +8,12 @@
  *       sign-in with a bad user shape links nothing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { linkNewEditor } from "@/lib/auth";
 import { poolRevisions } from "@/lib/pool-revisions";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { ensureHistory } from "@/services/built-pool-history";
@@ -230,14 +229,5 @@ describe("setBuiltPoolVisibility", () => {
       ok: true,
       value: { pool: { version: 1 }, packRemoval: "none" },
     });
-  });
-});
-
-describe("linkNewEditor", () => {
-  it("links nothing for a user without an osu! id", async () => {
-    const cast = await createCast();
-    await insertPool(cast, { _id: "b-a0000001" });
-    await linkNewEditor({ id: "x" });
-    expect((await findBuiltPool("b-a0000001"))?.editors[0]?.userId).toBe(cast.editor.id);
   });
 });

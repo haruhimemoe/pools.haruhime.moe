@@ -5,20 +5,21 @@
  *       past or built pool's page) fills the form in from that pool and copies its maps into
  *       the new, private pool; a pool that isn't there to copy (unknown, hidden, or not the
  *       user's to see) is said, and the plain form shows. Nothing is made until the form is
- *       sent. Signed out, a sign-in prompt that comes back here, `from` included. Reads the
+ *       sent. Signed out, a sign-in prompt (through /signin to the haruhime.moe hub) that
+ *       comes back here, `from` included. Reads the
  *       session, so it's rendered per request; never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
-import { Card, Notice, PageHeader } from "@haruhimemoe/ui";
+import { signInHref } from "@haruhimemoe/next-kit/server";
+import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { NewPoolForm } from "@/components/builder/NewPoolForm";
 import { MAX_POOLS_PER_OWNER } from "@/constants/built-pools";
 import { SEO_SITE } from "@/constants/seo";
-import { SignInWithOsu } from "@/lib/account";
 import { getCurrentUser } from "@/lib/auth-session";
 import { startPreview } from "@/services/built-pool-create";
 import { startFromHref } from "@/utils/pool-links";
@@ -63,7 +64,9 @@ export default async function NewPoolPage({ searchParams }: PageProps<"/new">) {
           <p className="text-c2 text-sm">
             Making a pool needs your osu! account. You'll come back here after signing in.
           </p>
-          <SignInWithOsu next={from ? startFromHref(from) : "/new"} />
+          <ButtonLink href={signInHref(from ? startFromHref(from) : "/new")}>
+            Sign in with osu!
+          </ButtonLink>
         </Card>
       )}
     </div>

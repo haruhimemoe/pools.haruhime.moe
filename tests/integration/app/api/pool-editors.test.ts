@@ -2,14 +2,14 @@
  * @file tests/integration/app/api/pool-editors.test.ts
  * @desc Co-editors end to end, osu! stubbed with msw: the owner adds someone by osu! username
  *       before they ever signed in (stored by osu! id, no user id yet), and once they sign in
- *       their user id is filled in and they can open and edit the private pool; someone who
+ *       on the hub they can open and edit the private pool, matched by osu! id; someone who
  *       already has an account gets their user id at once. Refused: a name osu! doesn't know,
  *       osu! down (503), the owner, a repeat, an 11th editor. The owner removes an editor, an
  *       editor removes themselves but nobody else; 30 editor changes an hour per user, counted
  *       (like the lookups' share of the osu! budget) by osu! id, so a new account can't reset it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
@@ -68,8 +68,8 @@ describe("adding an editor", () => {
     expect(pool.version).toBe(2);
     expect(pool.editors).toContainEqual(expect.objectContaining({ osuId: 50, username: "Newbie" }));
     expect((await findBuiltPool(ID))?.editors.find((e) => e.osuId === 50)?.userId).toBeNull();
+    // Signing in happens on the hub: pools links nothing, access follows the osu! id.
     const newbie = await createTestUser(50, "newbie");
-    expect((await findBuiltPool(ID))?.editors.find((e) => e.osuId === 50)?.userId).toBe(newbie.id);
     expect((await GET(poolRequest("GET", `/api/pools/${ID}`, newbie.cookie), at)).status).toBe(200);
     const ops = { baseVersion: 2, ops: [{ type: "addMap", beatmapId: 9, bucket: "NM" }] };
     const edit = await postOps(poolRequest("POST", `/api/pools/${ID}/ops`, newbie.cookie, ops), at);

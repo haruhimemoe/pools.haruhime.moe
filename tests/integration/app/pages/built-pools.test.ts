@@ -12,7 +12,7 @@
  *       either page loads.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
@@ -37,7 +37,6 @@ vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn(), replace: vi.fn() }),
 }));
-vi.mock("@/lib/auth-client", () => ({ authClient: {} }));
 
 setupTestDb();
 const server = setupMsw();
@@ -109,7 +108,9 @@ describe("/pools/<id>/edit", () => {
     expect(await thrown(() => editPage("b-zzzzzzzz"))).toBe("404");
     expect(await thrown(() => editPage("otdb-1"))).toBe("404");
     as(cast, "visitor");
-    expect(await thrown(() => editPage())).toBe("/signin?next=%2Fpools%2Fb-a0000001%2Fedit");
+    expect(await thrown(() => editPage())).toBe(
+      `https://www.haruhime.moe/api/signin/osu?next=${encodeURIComponent("https://pools.haruhime.moe/pools/b-a0000001/edit")}`,
+    );
   });
 });
 

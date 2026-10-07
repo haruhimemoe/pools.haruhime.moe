@@ -1,6 +1,7 @@
 /**
  * @file tests/integration/app/api/pool-owner.test.ts
- * @desc POST /api/pools/<id>/owner: the owner hands the pool to an editor who has signed in and
+ * @desc POST /api/pools/<id>/owner: the owner hands the pool to an editor who has signed in (a
+ *       haruhime account in identity, found by osu! id even when they signed in after being added) and
  *       owns fewer than 50 pools, typing the pool's name exactly. The old owner stays on as an
  *       editor (and loses the owner's rights), the version goes up, and a shared pool's pack is
  *       marked pending so its credit line follows. Refused: a name that isn't exactly the pool's,
@@ -10,7 +11,7 @@
  *       pool-permissions.test.ts.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { userSubject } from "@haruhimemoe/next-kit/server";
@@ -23,6 +24,7 @@ import { refuseOverLimit } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { findBuiltPool } from "@/services/built-pool-read";
 import { afterTaskCount } from "../../../helpers/after";
+import { createTestUser } from "../../../helpers/auth";
 import { makeBuiltPool } from "../../../helpers/built-pools";
 import { setupTestDb } from "../../../helpers/db";
 import {
@@ -107,6 +109,16 @@ describe("handing a pool to an editor", () => {
     expect(notYet.status).toBe(400);
     expect(await codeOf(notYet)).toBe("not_signed_in");
     expect((await findBuiltPool(ID))?.version).toBe(1);
+  });
+
+  it("hands it to an editor added before they signed in, once they have on the hub", async () => {
+    const cast = await createCast();
+    const later = { userId: null, osuId: 50, username: "later", addedAt: new Date() };
+    await insertPool(cast, { _id: ID, editors: [later] });
+    const account = await createTestUser(50, "later");
+    const response = await handOver(cast.owner.cookie, { osuId: 50, confirmName: NAME });
+    expect(response.status).toBe(200);
+    expect((await findBuiltPool(ID))?.ownerId).toBe(account.id);
   });
 
   it("refuses an editor who already owns 50 pools", async () => {

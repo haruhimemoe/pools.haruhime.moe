@@ -2,16 +2,17 @@
  * @file tests/integration/app/api/account.test.ts
  * @desc DELETE /api/account: a visitor gets 401; a request from another site is refused; the body
  *       must be JSON, strict, and name the caller's own osu! username (the typed confirmation);
- *       then the user, every session and every linked account are gone, other people's rows
- *       stay, the API key and the user's API counters go, the old cookie reads as signed out, and the answer clears the signed-in marker.
+ *       then the pools data goes: the API key and the user's API counters (other people's stay),
+ *       while the haruhime account in identity is never touched (pools can't write it) and the
+ *       caller stays signed in, with no cookie cleared.
  *       The cascade: every pool they own goes (its pack on packs deleted), and they're taken off
- *       every pool they edit; when packs can't remove a pack, the account and pools go anyway,
+ *       every pool they edit; when packs can't remove a pack, the pools go anyway,
  *       the removals are queued (packs asked once, the rest queued without asking) and the
  *       answer says how many. At most 3 deletions an hour per osu! account, and the per-account limits
- *       are kept by osu! id, so deleting the account doesn't reset them.
+ *       are kept by osu! id, so deleting the pools data doesn't reset them.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
@@ -23,7 +24,7 @@ import { POST as createPool } from "@/app/api/pools/route";
 import { RATE_LIMITS } from "@/constants/api";
 import { apiKeys } from "@/lib/api-keys";
 import { getUserFromHeaders } from "@/lib/auth";
-import { getDb } from "@/lib/db";
+import { getDb, getIdentityDb } from "@/lib/db";
 import { limiter } from "@/lib/rate-limit";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { packCleanupCollection } from "@/services/pack-cleanup";
@@ -51,15 +52,17 @@ const request = (cookie: string | null, body: unknown, headers: Record<string, s
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 
+/** The caller's haruhime account rows, which pools only ever reads. */
 const rowsOf = async (userId: string) => {
-  const db = getDb();
+  const identity = getIdentityDb();
   const id = new ObjectId(userId);
   return {
-    users: await db.collection("user").countDocuments({ _id: id }),
-    sessions: await db.collection("session").countDocuments({ userId: id }),
-    accounts: await db.collection("account").countDocuments({ userId: id }),
+    users: await identity.collection("user").countDocuments({ _id: id }),
+    sessions: await identity.collection("session").countDocuments({ userId: id }),
   };
 };
+
+const KEPT = { users: 1, sessions: 1 };
 
 describe("DELETE /api/account", () => {
   it("wants a signed-in caller, from this site", async () => {
@@ -67,7 +70,7 @@ describe("DELETE /api/account", () => {
     const user = await createTestUser(2, "peppy");
     const crossSite = request(user.cookie, { username: "peppy" }, { origin: "https://evil.test" });
     expect((await DELETE(crossSite)).status).toBe(403);
-    expect(await rowsOf(user.id)).toEqual({ users: 1, sessions: 1, accounts: 1 });
+    expect(await rowsOf(user.id)).toEqual(KEPT);
   });
 
   it.each([
@@ -78,19 +81,19 @@ describe("DELETE /api/account", () => {
   ])("refuses %s and deletes nothing", async (_case, body, status) => {
     const user = await createTestUser(2, "peppy");
     expect((await DELETE(request(user.cookie, body))).status).toBe(status);
-    expect(await rowsOf(user.id)).toEqual({ users: 1, sessions: 1, accounts: 1 });
+    expect(await rowsOf(user.id)).toEqual(KEPT);
   });
 
-  it("deletes the user, their sessions and accounts, and nobody else's", async () => {
+  it("keeps the haruhime account and session, and the caller signed in", async () => {
     const user = await createTestUser(2, "peppy");
-    const other = await createTestUser(3, "other");
     const response = await DELETE(request(user.cookie, { username: " peppy " }));
     expect(response.status).toBe(204);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(response.headers.getSetCookie().join("\n")).toMatch(/pools-signed-in=;.*Max-Age=0/);
-    expect(await rowsOf(user.id)).toEqual({ users: 0, sessions: 0, accounts: 0 });
-    expect(await rowsOf(other.id)).toEqual({ users: 1, sessions: 1, accounts: 1 });
-    expect(await getUserFromHeaders(new Headers({ cookie: user.cookie }))).toBeNull();
+    expect(response.headers.getSetCookie()).toEqual([]);
+    expect(await rowsOf(user.id)).toEqual(KEPT);
+    expect(await getUserFromHeaders(new Headers({ cookie: user.cookie }))).toMatchObject({
+      id: user.id,
+    });
   });
 
   it("deletes the API key and the user's API counters, and nobody else's", async () => {
@@ -123,12 +126,12 @@ describe("DELETE /api/account limits", () => {
     const over = await DELETE(request(user.cookie, { username: "peppy" }));
     expect(over.status).toBe(429);
     expect(over.headers.get("cache-control")).toBe("no-store");
-    expect(await rowsOf(user.id)).toEqual({ users: 1, sessions: 1, accounts: 1 });
+    expect(await rowsOf(user.id)).toEqual(KEPT);
     const other = await createTestUser(3, "other");
     expect((await DELETE(request(other.cookie, { username: "other" }))).status).toBe(204);
   });
 
-  it("keeps the per-account limits when the account is deleted and made again", async () => {
+  it("keeps the per-account limits when the pools data is deleted", async () => {
     earlyInTheHour();
     const first = await createTestUser(2, "peppy");
     const make = (cookie: string, name: string) =>
@@ -173,7 +176,7 @@ describe("DELETE /api/account and pools", () => {
     const pools = await builtPoolsCollection();
     expect(await pools.countDocuments({ ownerId: cast.owner.id })).toBe(0);
     expect(await pools.findOne({ _id: "b-a0000003" })).toMatchObject({ editors: [], version: 2 });
-    expect(await rowsOf(cast.owner.id)).toEqual({ users: 0, sessions: 0, accounts: 0 });
+    expect(await rowsOf(cast.owner.id)).toEqual(KEPT);
   });
 
   it("deletes everything anyway when packs is down, queues the removals and says so", async () => {
@@ -188,9 +191,8 @@ describe("DELETE /api/account and pools", () => {
       notice:
         "packs.haruhime.moe didn't answer, so 2 packs will be removed there as soon as it does.",
     });
-    expect(response.headers.getSetCookie().join("\n")).toMatch(/pools-signed-in=;.*Max-Age=0/);
     expect(calls).toHaveLength(1);
-    expect(await rowsOf(cast.owner.id)).toEqual({ users: 0, sessions: 0, accounts: 0 });
+    expect(await rowsOf(cast.owner.id)).toEqual(KEPT);
     expect(await (await builtPoolsCollection()).countDocuments({ ownerId: cast.owner.id })).toBe(0);
     const queued = await (await packCleanupCollection()).find().sort({ _id: 1 }).toArray();
     expect(queued.map((entry) => entry.ref)).toEqual(["b-a0000001", "b-a0000004"]);

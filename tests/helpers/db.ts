@@ -1,15 +1,17 @@
 /**
  * @file tests/helpers/db.ts
  * @desc setupTestDb(): next-kit's per-file database hooks with pools' connect, database and
- *       collections (ours plus better-auth's): each test starts with every collection empty, and
- *       the client closes after the file.
+ *       collections: each test starts with every pools collection empty, and the client closes
+ *       after the file. The hub's identity users and sessions (which tests/helpers/auth.ts
+ *       writes, standing in for the hub) are emptied too.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
-import { BETTER_AUTH_COLLECTIONS, setupTestDb as setupKitDb } from "@haruhimemoe/next-kit/testing";
-import { closeDb, connectDb, getDb } from "@/lib/db";
+import { setupTestDb as setupKitDb } from "@haruhimemoe/next-kit/testing";
+import { beforeEach } from "vitest";
+import { closeDb, connectDb, getDb, getIdentityDb } from "@/lib/db";
 
 /** Every collection pools writes. */
 const COLLECTIONS = [
@@ -26,12 +28,19 @@ const COLLECTIONS = [
   "built_pool_activity",
   "api_keys",
   "similar_maps",
-  ...BETTER_AUTH_COLLECTIONS,
 ];
+
+/** The identity collections the session reader reads. */
+const IDENTITY_COLLECTIONS = ["user", "session"];
 
 /**
  * @function setupTestDb
  * @returns {void} registers beforeEach (connect, then clear) and afterAll (close) hooks
  */
-export const setupTestDb = (): void =>
+export const setupTestDb = (): void => {
   setupKitDb({ connect: connectDb, db: getDb, close: closeDb, collections: COLLECTIONS });
+  beforeEach(async () => {
+    const identity = getIdentityDb();
+    await Promise.all(IDENTITY_COLLECTIONS.map((name) => identity.collection(name).deleteMany({})));
+  });
+};

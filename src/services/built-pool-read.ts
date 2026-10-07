@@ -3,14 +3,14 @@
  * @desc Reading built pools: one row by shape only (builtPoolReadSchema, so a pool a newer
  *       content filter or limit would refuse still reads and can be fixed or deleted; a row of
  *       the wrong shape is left out, never shown half-broken), the stored form with its search
- *       fields, owners' current osu! names, what a caller sees of a pool (every bucket, and for
- *       the owner which editors have signed in, its targets and slot notes, with notes today's
+ *       fields, owners' current osu! names (from the hub's identity database), what a caller sees of a pool (every bucket, and for
+ *       the owner which editors have a haruhime account, looked up by osu! id, its targets and slot notes, with notes today's
  *       filter refuses left out for anyone who can't edit, and its candidates for the owner and
  *       editors alone), and loading one for a caller who
  *       must be allowed something.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Tue Oct 6, 2026
  */
 
 import "server-only";
@@ -18,7 +18,7 @@ import { bucketsOf } from "@haruhimemoe/pool";
 import { ObjectId } from "mongodb";
 import { BUILT_POOL_ID_PATTERN } from "@/constants/built-pools";
 import { QUERY_TIME_MS } from "@/constants/db";
-import { getDb } from "@/lib/db";
+import { getIdentityDb } from "@/lib/db";
 import { builtPoolsCollection } from "@/models/BuiltPool";
 import { passingNotes } from "@/schemas/built-plan";
 import {
@@ -26,6 +26,7 @@ import {
   type StoredBuiltPool,
   storedBuiltPoolSchema,
 } from "@/schemas/built-pool";
+import { userIdsFor } from "@/services/identity-users";
 import { type Access, accessOf, type Caller } from "@/utils/built-access";
 import { type Answer, type BuiltPoolView, NOT_FOUND, refuse } from "@/utils/built-answer";
 import { clientPackOf } from "@/utils/built-pack";
@@ -88,7 +89,7 @@ export const toStored = (pool: StoredBuiltPool): StoredBuiltPool & BuiltSearchFi
  */
 export const ownerOf = async (ownerId: string): Promise<BuiltPoolView["owner"]> => {
   if (!ObjectId.isValid(ownerId)) return null;
-  const user = await getDb()
+  const user = await getIdentityDb()
     .collection("user")
     .findOne({ _id: new ObjectId(ownerId) }, { projection: { osuId: 1, username: 1 } });
   return typeof user?.osuId === "number" && typeof user.username === "string"
@@ -105,7 +106,7 @@ export const ownerOf = async (ownerId: string): Promise<BuiltPoolView["owner"]> 
 export const ownerNamesOf = async (ownerIds: readonly string[]): Promise<Map<string, string>> => {
   const ids = [...new Set(ownerIds)].filter((id) => ObjectId.isValid(id));
   if (ids.length === 0) return new Map();
-  const users = await getDb()
+  const users = await getIdentityDb()
     .collection("user")
     .find(
       { _id: { $in: ids.map((id) => new ObjectId(id)) } },
@@ -129,6 +130,10 @@ export const ownerNamesOf = async (ownerIds: readonly string[]): Promise<Map<str
 export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<BuiltPoolView> => {
   const { isOwner, isEditor, canEdit, canManage, canDelete } = accessOf(pool, caller);
   const owner = await ownerOf(pool.ownerId);
+  // Only the owner and admins see who has signed in, read from identity by osu! id.
+  const accounts = canManage
+    ? await userIdsFor(pool.editors.map((editor) => editor.osuId))
+    : new Map<number, string>();
   const members = membersOf({ owner, editors: pool.editors });
   // Candidates are the owner's and editors' alone, with only current members' votes.
   const candidates =
@@ -145,11 +150,11 @@ export const viewOf = async (pool: StoredBuiltPool, caller: Caller): Promise<Bui
     visibility: pool.visibility,
     hidden: pool.hidden,
     owner,
-    editors: pool.editors.map(({ userId, osuId, username, addedAt }) => ({
+    editors: pool.editors.map(({ osuId, username, addedAt }) => ({
       osuId,
       username,
       addedAt,
-      ...(canManage ? { signedIn: userId !== null } : {}),
+      ...(canManage ? { signedIn: accounts.has(osuId) } : {}),
     })),
     buckets: bucketsOf(pool).map((entry) => ({ ...entry })),
     slots: pool.slots,
