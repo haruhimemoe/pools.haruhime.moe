@@ -37,7 +37,7 @@
 
 - [@haruhimemoe/pool](https://github.com/haruhimemoe/pool): the mappool shape, mod rules, the pack key codec, the content filter and the packs service contract
 - [@haruhimemoe/osu](https://github.com/haruhimemoe/osu): osu! API v2 shapes, the server client and text formatting
-- [@haruhimemoe/hinai](https://github.com/haruhimemoe/hinai): the client for the hinai beatmap mirror, and msw handlers for tests
+- [@haruhimemoe/mirror](https://github.com/haruhimemoe/mirror): the client for the hinai beatmap mirror, and msw handlers for tests
 - [@haruhimemoe/next-kit](https://github.com/haruhimemoe/next-kit): the Next.js server plumbing packs and pools share
 - [@haruhimemoe/compliance](https://github.com/haruhimemoe/compliance): the content rules for officially supported tournaments
 - [@haruhimemoe/ui](https://github.com/haruhimemoe/ui): the React components and theme the site is built from

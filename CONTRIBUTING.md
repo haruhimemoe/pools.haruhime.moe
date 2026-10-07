@@ -51,7 +51,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:
 - `tests/components/`: React components in jsdom.
 - `tests/integration/`: route handlers, services and the importer against an in-memory MongoDB (next-kit's `startMemoryMongo`, mongodb-memory-server). The first run downloads the MongoDB binary.
 
-Tests never reach osu!, the mirror (its batch lookup and its search), otdb or packs: msw stands in for them (`setupMsw` from `@haruhimemoe/next-kit/testing`, `tests/helpers/*-server.ts`, `tests/helpers/mirror-search.ts`, and `@haruhimemoe/hinai/testing`'s answers recorded from the mirror), with recorded fixtures in `tests/fixtures/`.
+Tests never reach osu!, the mirror (its batch lookup and its search), otdb or packs: msw stands in for them (`setupMsw` from `@haruhimemoe/next-kit/testing`, `tests/helpers/*-server.ts`, `tests/helpers/mirror-search.ts`, and `@haruhimemoe/mirror/testing`'s answers recorded from the mirror), with recorded fixtures in `tests/fixtures/`.
 
 `tests/unit/tooling/` checks the repo itself: pinned dependencies and actions, file headers and a doc comment on every export, client imports, and the docs that list the packages.
 

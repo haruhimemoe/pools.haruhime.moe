@@ -17,7 +17,7 @@
  * @modified Sat Sep 26, 2026
  */
 
-import { HINAI_BATCH_URL } from "@haruhimemoe/hinai/testing";
+import { HINAI_BATCH_URL } from "@haruhimemoe/mirror/testing";
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import { encodePackKey } from "@haruhimemoe/pool";
 import { revalidatePath } from "next/cache";

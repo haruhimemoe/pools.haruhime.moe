@@ -17,7 +17,7 @@ const EXACT = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
 const SHARED: Readonly<Record<string, string>> = {
   "@haruhimemoe/ui": "0.19.0",
   "@haruhimemoe/osu": "0.4.0",
-  "@haruhimemoe/hinai": "0.3.1",
+  "@haruhimemoe/mirror": "0.1.0",
   "@haruhimemoe/next-kit": "0.12.1",
   "@haruhimemoe/pool": "0.2.0",
   "@haruhimemoe/compliance": "0.1.1",

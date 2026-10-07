@@ -10,7 +10,7 @@
  * @modified Mon Oct 5, 2026
  */
 
-import { setDownloadUrl } from "@haruhimemoe/hinai";
+import { setDownloadUrl } from "@haruhimemoe/mirror/hinai";
 import { beatmapUrl } from "@haruhimemoe/osu/shapes";
 import {
   BeatmapStats,

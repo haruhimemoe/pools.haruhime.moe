@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- The hinai client now comes from `@haruhimemoe/mirror` 0.1.0 (`/hinai` and `/testing`) instead of `@haruhimemoe/hinai`, which is deprecated. No change in behavior.
 - Sign-in moves to the shared haruhime.moe account. pools no longer runs better-auth or its own osu! sign-in: it reads the hub's session (on `.haruhime.moe`) from the `identity` database with `@haruhimemoe/next-kit` 0.12.1's `createSessionReader`, read-only. `/signin` sends you to haruhime.moe's osu! sign-in (`/api/signin/osu`) and back. Banned haruhime accounts read as signed out, and their API keys stop working.
 - Sign out stays on pools: the new `POST /api/signout` ends the session on haruhime.moe and clears its cookies, and the page refreshes signed out.
 - `/account` is now "pools settings": your pools, the API key, Sign out, one link to haruhime.moe/account, and "Delete my pools data" (your API key, the pools you own and their packs, your place on pools you edit). It no longer deletes the account itself, and you stay signed in.

@@ -12,14 +12,14 @@
  *       long (at most a minute) and fail at once meanwhile; the map browser's mirror calls
  *       share that cool-down (isMirrorCooling, noteMirrorRetryAfter), and a pp/batch call that
  *       times out starts it for 30 s (noteMirrorTimeout). Lives here, not in
- *       @haruhimemoe/hinai, until a second app needs it.
+ *       @haruhimemoe/mirror/hinai, until a second app needs it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
  * @modified Sun Sep 27, 2026
  */
 
 import "server-only";
-import { parseRetryAfter } from "@haruhimemoe/hinai";
+import { parseRetryAfter } from "@haruhimemoe/mirror/hinai";
 import { z } from "zod";
 import {
   BPM_RANGE,

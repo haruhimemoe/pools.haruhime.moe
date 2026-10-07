@@ -9,7 +9,7 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { HINAI_BATCH_URL } from "@haruhimemoe/hinai/testing";
+import { HINAI_BATCH_URL } from "@haruhimemoe/mirror/testing";
 import { HttpResponse, http } from "msw";
 import type { MapSeed } from "@/utils/map-record";
 

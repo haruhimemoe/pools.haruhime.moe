@@ -1,13 +1,13 @@
 /**
  * @file tests/unit/constants/site.test.ts
  * @desc The server's User-Agent is a header both clients take: @haruhimemoe/osu 0.3 refuses one
- *       that isn't printable ASCII, and @haruhimemoe/hinai 0.3 one that isn't a header value.
+ *       that isn't printable ASCII, and @haruhimemoe/mirror/hinai one that isn't a header value.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
  * @modified Mon Sep 28, 2026
  */
 
-import { createHinaiClient } from "@haruhimemoe/hinai";
+import { createHinaiClient } from "@haruhimemoe/mirror/hinai";
 import { createOsuClient } from "@haruhimemoe/osu";
 import { describe, expect, it } from "vitest";
 import { SERVER_USER_AGENT } from "@/constants/site";

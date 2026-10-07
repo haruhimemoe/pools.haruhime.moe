@@ -13,7 +13,7 @@
  */
 
 import "server-only";
-import { backoffDelayMs, HINAI_BATCH_LIMIT, HinaiError } from "@haruhimemoe/hinai";
+import { backoffDelayMs, HINAI_BATCH_LIMIT, HinaiError } from "@haruhimemoe/mirror/hinai";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import type { AnyBulkWriteOperation } from "mongodb";
 import { BATCH_QUERY_MS } from "@/constants/db";

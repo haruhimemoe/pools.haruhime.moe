@@ -19,7 +19,7 @@
  */
 
 import "server-only";
-import { parseRetryAfter } from "@haruhimemoe/hinai";
+import { parseRetryAfter } from "@haruhimemoe/mirror/hinai";
 import { poolsStatsAnswerSchema, poolsSyncAnswerSchema } from "@haruhimemoe/pool/service";
 import { z } from "zod";
 import { SERVER_USER_AGENT } from "@/constants/site";

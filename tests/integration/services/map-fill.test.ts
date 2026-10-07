@@ -10,8 +10,8 @@
  * @modified Mon Sep 28, 2026
  */
 
-import { HinaiError } from "@haruhimemoe/hinai";
-import { hinaiBatchHandler, recordedBeatmaps } from "@haruhimemoe/hinai/testing";
+import { HinaiError } from "@haruhimemoe/mirror/hinai";
+import { hinaiBatchHandler, recordedBeatmaps } from "@haruhimemoe/mirror/testing";
 import { setupMsw } from "@haruhimemoe/next-kit/testing";
 import type { BeatmapMeta } from "@haruhimemoe/osu/shapes";
 import { describe, expect, it, vi } from "vitest";
