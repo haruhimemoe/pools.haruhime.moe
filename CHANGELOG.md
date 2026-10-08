@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `GET /api/internal/pools/[id]` for tourney.haruhime.moe to read a pool a host linked to a round, whatever its visibility, as a visitor sees a public pool. Behind `TOURNEY_SERVICE_SECRET`; unset, it answers 503.
 - `POST /api/internal/account/export` and `/delete` for the haruhime.moe hub's account export and delete (next-kit's `createAccountHandlers`), behind `ACCOUNT_FANOUT_SECRET` (the hub's `ACCOUNT_SECRET_POOLS`). Unset, both answer 503.
 - `/brand`: the pools name, logos, colors and type with the files to download, from `@haruhimemoe/brand` 0.7.0's `brandPageData("pools")` rendered by `@haruhimemoe/ui` 0.11.0's `BrandPage`.
 - `/docs` and `/legal` index pages with a section nav, and a Markdown copy of every docs and legal page at `<page>.md` (a "Copy as Markdown" button on each page).
