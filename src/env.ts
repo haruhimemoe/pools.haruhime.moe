@@ -58,6 +58,8 @@ export const POOLS_ALLOW_SHARED_DB_USER_KEY = "POOLS_ALLOW_SHARED_DB_USER";
 export const HUB_URL_KEY = "HUB_URL";
 /** The hub's account fan-out secret for this app (its ACCOUNT_SECRET_<APP>). */
 export const ACCOUNT_FANOUT_SECRET_KEY = "ACCOUNT_FANOUT_SECRET";
+/** harumin's bearer secret for the similar-maps route /practice calls. */
+export const HARUMIN_SERVICE_SECRET_KEY = "HARUMIN_SERVICE_SECRET";
 /** The variables read on every call, for .env.example's test. */
 export const OPTIONAL_ENV_KEYS = [
   ADMIN_OSU_IDS_KEY,
@@ -66,6 +68,7 @@ export const OPTIONAL_ENV_KEYS = [
   POOLS_ALLOW_SHARED_DB_USER_KEY,
   HUB_URL_KEY,
   ACCOUNT_FANOUT_SECRET_KEY,
+  HARUMIN_SERVICE_SECRET_KEY,
 ] as const;
 
 /** packs' origin when PACKS_URL isn't set. */
@@ -140,3 +143,11 @@ export const getAllowSharedDbUser = (): boolean => readFlag(POOLS_ALLOW_SHARED_D
  */
 export const getAccountFanoutSecret = (): string | undefined =>
   readOptional(ACCOUNT_FANOUT_SECRET_KEY);
+
+/**
+ * @function getHaruminServiceSecret
+ * @returns {string | undefined} HARUMIN_SERVICE_SECRET read now; undefined when unset (the
+ *          /api/internal/similar route then answers 503 to every call)
+ */
+export const getHaruminServiceSecret = (): string | undefined =>
+  readOptional(HARUMIN_SERVICE_SECRET_KEY);
