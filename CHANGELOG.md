@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Markdown pipe tables, task lists and strikethrough in the site's MDX pages render as HTML instead of plain text (`remark-gfm` runs before ui's remark plugin).
 - The legal pages' `.md` mirrors and `/llms-full.txt` kept dropping the legal block tags (`<YourRights />`, `<Processors />`, and the rest) instead of rendering their text. Depends on `@haruhimemoe/next-kit` 0.11.0's `legalMarkdownTransform`.
 
 ### Added

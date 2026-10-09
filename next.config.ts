@@ -17,11 +17,11 @@ import { contentRewrites } from "@haruhimemoe/next-kit/docs";
 import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
-// Turbopack only takes MDX plugins as module names, not imported functions. The content pages
-// have no pipe tables, so remark-gfm isn't pinned.
+// Turbopack only takes MDX plugins as module names, not imported functions. remark-gfm adds pipe
+// tables, task lists and strikethrough.
 const withMDX = createMDX({
   extension: /\.mdx?$/,
-  options: { remarkPlugins: ["@haruhimemoe/ui/remark"] },
+  options: { remarkPlugins: ["remark-gfm", "@haruhimemoe/ui/remark"] },
 });
 
 /**
