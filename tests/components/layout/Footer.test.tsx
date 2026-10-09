@@ -20,9 +20,9 @@ const EXPECTED: [string, [string, string][]][] = [
   [
     "pools",
     [
-      ["Search", "/search"],
-      ["Check a pool", "/check"],
       ["Submit a pool", "/submit"],
+      ["Check a pool", "/check"],
+      ["Search", "/search"],
     ],
   ],
   [
@@ -36,6 +36,8 @@ const EXPECTED: [string, [string, string][]][] = [
   [
     "haruhime tools",
     [
+      ["tourney: osu! tournament runner", "https://tourney.haruhime.moe"],
+      ["harumin: osu! Discord bot", "https://harumin.haruhime.moe"],
       ["packs: mappool downloads", "https://packs.haruhime.moe"],
       ["bb: osu! BBCode editor", "https://bb.haruhime.moe"],
       ["All tools", "https://www.haruhime.moe"],
@@ -44,18 +46,18 @@ const EXPECTED: [string, [string, string][]][] = [
   [
     "About",
     [
-      ["Source on GitHub", "https://github.com/haruhimemoe/pools.haruhime.moe"],
       ["haruhime@haruhime.moe", "mailto:haruhime@haruhime.moe"],
+      ["Source on GitHub", "https://github.com/haruhimemoe/pools.haruhime.moe"],
     ],
   ],
   [
     "Legal",
     [
-      ["Terms", "/legal/terms"],
-      ["Privacy", "/legal/privacy"],
-      ["GDPR & CCPA", "/legal/your-privacy-rights"],
       ["Copyright & Takedown", "/legal/copyright"],
+      ["GDPR & CCPA", "/legal/your-privacy-rights"],
       ["Disclaimers", "/legal/disclaimers"],
+      ["Privacy", "/legal/privacy"],
+      ["Terms", "/legal/terms"],
     ],
   ],
 ];
@@ -78,7 +80,7 @@ describe("Footer", () => {
     expect(names).toEqual(EXPECTED.map(([title]) => title));
   });
 
-  it.each(EXPECTED)("links the %s column's pages in order", (title, links) => {
+  it.each(EXPECTED)("links the %s column's pages, longest label first", (title, links) => {
     render(<Footer />);
     const nav = screen.getByRole("region", { name: title });
     expect(

@@ -15,7 +15,7 @@ const EXACT = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
 
 /** The shared packages and the versions pools uses (hinai 0.3 needs osu 0.3, one copy). */
 const SHARED: Readonly<Record<string, string>> = {
-  "@haruhimemoe/ui": "0.19.0",
+  "@haruhimemoe/ui": "0.23.0",
   "@haruhimemoe/osu": "0.4.0",
   "@haruhimemoe/mirror": "0.1.0",
   "@haruhimemoe/next-kit": "0.15.0",
