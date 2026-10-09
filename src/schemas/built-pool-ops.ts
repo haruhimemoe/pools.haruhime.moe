@@ -175,10 +175,17 @@ export const createPoolBodySchema = z
     startedFrom: poolIdSchema.optional(),
     /** A template's targets (counts only; never maps). */
     template: z.enum(TEMPLATE_IDS).optional(),
+    /** A pack key (/new#<key>, from harumin's /pool fromtop): its maps become the pool's. */
+    draftKey: z.string().min(1).max(8000).optional(),
   })
   .refine(
-    (body) => body.name !== undefined || body.startedFrom !== undefined,
+    (body) =>
+      body.name !== undefined || body.startedFrom !== undefined || body.draftKey !== undefined,
     "Give the pool a name.",
+  )
+  .refine(
+    (body) => body.startedFrom === undefined || body.draftKey === undefined,
+    "Start from a pool or a draft, not both.",
   );
 
 /** A new pool's request. */

@@ -8,22 +8,25 @@
  *       startedFrom, so the new pool copies its maps and buckets. Every detail is sent, an
  *       empty one as "" (a null year), so one cleared from the source pool stays cleared. A new
  *       pool can take a template (its slot counts as targets, never maps); one started from a
- *       pool keeps that pool's targets instead.
+ *       pool keeps that pool's targets instead. Opened as /new#<pack key> (a draft from harumin's /pool fromtop), it
+ *       fills in the draft's name, says its maps come along and sends draftKey; a key kept
+ *       before sign-in counts too, and one that doesn't read is said over the plain form.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Thu Oct 8, 2026
  */
 
 "use client";
 
 import { Button, Select, Text, TextInput } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { POOL_TEMPLATES, type TemplateId } from "@/constants/targets";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import { builtDetailsFields } from "@/schemas/built-pool";
 import type { StartFrom } from "@/schemas/built-pool-view";
 import { templateLabel } from "@/utils/bucket-targets";
+import { type Draft, draftFromHash, takeDraftHash } from "@/utils/draft-key";
 
 type Field = "name" | "tournament" | "round" | "year";
 
@@ -57,6 +60,20 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [failure, setFailure] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [badDraft, setBadDraft] = useState(false);
+  useEffect(() => {
+    if (startFrom) return;
+    const raw = takeDraftHash();
+    if (!raw) return;
+    const read = draftFromHash(raw);
+    if (!read) {
+      setBadDraft(true);
+      return;
+    }
+    setDraft(read);
+    setValues((was) => (was.name ? was : { ...was, name: read.name }));
+  }, [startFrom]);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const body: Record<string, unknown> = {};
@@ -80,7 +97,8 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
       return;
     }
     if (startFrom) body.startedFrom = startFrom.id;
-    else if (template !== "blank") body.template = template;
+    else if (draft) body.draftKey = draft.key;
+    if (!startFrom && template !== "blank") body.template = template;
     setPending(true);
     setFailure(null);
     const answer = await callPools<{ id: string }>(fetcher, "/api/pools", { method: "POST", body });
@@ -98,6 +116,17 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
           It starts with the {startFrom.maps === 1 ? "1 map" : `${startFrom.maps} maps`} of{" "}
           {startFrom.name}.
         </p>
+      ) : null}
+      {draft ? (
+        <p className="text-c2 text-sm">
+          It starts with the {draft.slots.length === 1 ? "1 map" : `${draft.slots.length} maps`} of
+          the draft.
+        </p>
+      ) : null}
+      {badDraft ? (
+        <Text role="status" tone="error">
+          That draft link didn't open.
+        </Text>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         {FIELDS.map(({ key, label, hint }) => (

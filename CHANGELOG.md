@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `/new#<pack key>`: a draft pool (from harumin's `/pool fromtop`) opens the form filled in, and `POST /api/pools` takes it as `draftKey`, making the pool with the key's maps. A key kept in sessionStorage survives sign-in.
 - `GET /api/internal/similar/<id>` for harumin's `/practice`: the public similar-maps body behind `HARUMIN_SERVICE_SECRET`, outside the per-IP limit, never cached. Unset, it answers 503.
 - `POST /api/internal/account/export` and `/delete` for the haruhime.moe hub's account export and delete (next-kit's `createAccountHandlers`), behind `ACCOUNT_FANOUT_SECRET` (the hub's `ACCOUNT_SECRET_POOLS`). Unset, both answer 503.
 - `/brand`: the pools name, logos, colors and type with the files to download, from `@haruhimemoe/brand` 0.7.0's `brandPageData("pools")` rendered by `@haruhimemoe/ui` 0.11.0's `BrandPage`.

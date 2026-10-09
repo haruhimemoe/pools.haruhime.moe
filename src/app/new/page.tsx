@@ -6,17 +6,19 @@
  *       the new, private pool; a pool that isn't there to copy (unknown, hidden, or not the
  *       user's to see) is said, and the plain form shows. Nothing is made until the form is
  *       sent. Signed out, a sign-in prompt (through /signin to the haruhime.moe hub) that
- *       comes back here, `from` included. Reads the
+ *       comes back here, `from` included. A /new#<pack key> draft (harumin's /pool fromtop) is read in the
+ *       browser; signed out, its key is kept in sessionStorage across sign-in. Reads the
  *       session, so it's rendered per request; never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Thu Oct 8, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { signInHref } from "@haruhimemoe/next-kit/server";
 import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
+import { KeepDraftHash } from "@/components/builder/KeepDraftHash";
 import { NewPoolForm } from "@/components/builder/NewPoolForm";
 import { MAX_POOLS_PER_OWNER } from "@/constants/built-pools";
 import { SEO_SITE } from "@/constants/seo";
@@ -61,6 +63,7 @@ export default async function NewPoolPage({ searchParams }: PageProps<"/new">) {
         </Card>
       ) : (
         <Card title="Sign in first" className="flex flex-col items-center gap-4 text-center">
+          <KeepDraftHash />
           <p className="text-c2 text-sm">
             Making a pool needs your osu! account. You'll come back here after signing in.
           </p>

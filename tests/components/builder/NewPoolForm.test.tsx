@@ -10,10 +10,12 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { encodePackKey } from "@haruhimemoe/pool";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NewPoolForm } from "@/components/builder/NewPoolForm";
+import { DRAFT_STORAGE_KEY } from "@/utils/draft-key";
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh: vi.fn() }) }));
@@ -138,5 +140,42 @@ describe("NewPoolForm", () => {
       year: null,
       startedFrom: "otdb-9",
     });
+  });
+});
+
+describe("NewPoolForm from a draft link (/new#<key>)", () => {
+  const slots = [
+    { mod: "NM", index: 1, beatmapId: 129891 },
+    { mod: "TB", index: 1, beatmapId: 75 },
+  ];
+  const key = encodePackKey({ name: "peppy's draft pool", slots });
+  afterEach(() => {
+    window.history.replaceState(null, "", "/new");
+    sessionStorage.clear();
+  });
+
+  it("fills in the draft's name, says its maps come along, and sends the key", async () => {
+    window.history.replaceState(null, "", `/new#${key}`);
+    const { fetcher, field, make } = setup(() =>
+      Response.json({ id: "b-a0000001" }, { status: 201 }),
+    );
+    await waitFor(() => expect(field("Name")).toHaveValue("peppy's draft pool"));
+    expect(screen.getByText("It starts with the 2 maps of the draft.")).toBeInTheDocument();
+    await make();
+    const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
+    expect(body).toMatchObject({ name: "peppy's draft pool", draftKey: key });
+  });
+
+  it("picks the draft back up after sign-in", async () => {
+    sessionStorage.setItem(DRAFT_STORAGE_KEY, key);
+    const { field } = setup(() => Response.json({}));
+    await waitFor(() => expect(field("Name")).toHaveValue("peppy's draft pool"));
+  });
+
+  it("says a draft link that doesn't read, and shows the plain form", async () => {
+    window.history.replaceState(null, "", "/new#pk1.nope");
+    const { field } = setup(() => Response.json({}));
+    expect(await screen.findByText("That draft link didn't open.")).toBeInTheDocument();
+    expect(field("Name")).toHaveValue("");
   });
 });

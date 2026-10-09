@@ -8,10 +8,11 @@
  *       copies its maps, buckets and details: a past pool that isn't hidden, or a built pool the
  *       caller can see (its targets and slot notes too). A template sets targets only, never maps. Anything sent wins over what's copied, an empty tournament or round and
  *       a null year included (cleared on purpose). /new?from=<id> previews the pool
- *       to start from (startPreview).
+ *       to start from (startPreview). A draft key (/new#<key>) makes a pool of its maps and name; one that doesn't
+ *       read, or repeats a map, is refused.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Thu Oct 8, 2026
  */
 
 import "server-only";
@@ -23,7 +24,7 @@ import {
 } from "@/constants/built-pools";
 import { builtPoolIdsCollection, builtPoolsCollection } from "@/models/BuiltPool";
 import { passingNotes } from "@/schemas/built-plan";
-import type { StoredBuiltPool } from "@/schemas/built-pool";
+import { hasDuplicateMaps, type StoredBuiltPool } from "@/schemas/built-pool";
 import type { CreatePoolBody } from "@/schemas/built-pool-ops";
 import type { StartFrom } from "@/schemas/built-pool-view";
 import { poolIdSchema } from "@/schemas/pool";
@@ -36,6 +37,7 @@ import { accessOf } from "@/utils/built-access";
 import { type Answer, type BuiltPoolView, refuse } from "@/utils/built-answer";
 import { EMPTY_BUILT_PACK } from "@/utils/built-pack";
 import type { BuiltSearchFields } from "@/utils/built-record";
+import { draftFromHash } from "@/utils/draft-key";
 import { newSourceId, type RandomBytes } from "@/utils/source-ids";
 
 const MAX_CLAIM_TRIES = 5;
@@ -127,9 +129,23 @@ export const createBuiltPool = async (
       `You can own at most ${MAX_POOLS_PER_OWNER} pools. Delete one to make another.`,
     );
   if ((await owned()) >= MAX_POOLS_PER_OWNER) return full();
-  const start = body.startedFrom ? await startingPoint(body.startedFrom, caller) : null;
+  let start = body.startedFrom ? await startingPoint(body.startedFrom, caller) : null;
   if (body.startedFrom && !start) {
     return refuse(404, "not_found", "That pool isn't there to start from.");
+  }
+  if (body.draftKey !== undefined) {
+    const fromKey = draftFromHash(body.draftKey);
+    if (!fromKey || hasDuplicateMaps(fromKey.slots)) {
+      return refuse(400, "bad_draft", "That draft link didn't open.");
+    }
+    start = {
+      name: fromKey.name.slice(0, MAX_NAME_LENGTH).trim(),
+      tournament: "",
+      round: "",
+      year: null,
+      slots: fromKey.slots,
+      ...(fromKey.buckets ? { buckets: fromKey.buckets } : {}),
+    };
   }
   const draft: StoredBuiltPool = {
     _id: "b-a0000000",

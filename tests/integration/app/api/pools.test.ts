@@ -10,6 +10,7 @@
  * @modified Mon Sep 28, 2026
  */
 
+import { encodePackKey } from "@haruhimemoe/pool";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/pools/route";
 import { builtPoolIdsCollection, builtPoolsCollection } from "@/models/BuiltPool";
@@ -129,6 +130,36 @@ describe("starting from a pool", () => {
       slots: [{ mod: "NM", index: 1, beatmapId: 5 }],
       owner: { username: "editor" },
     });
+  });
+});
+
+describe("starting from a draft key", () => {
+  const slots = [
+    { mod: "NM", index: 1, beatmapId: 2001 },
+    { mod: "HD", index: 1, beatmapId: 2002 },
+  ];
+
+  it("makes a private pool holding the key's maps", async () => {
+    const { owner } = await createCast();
+    const draftKey = encodePackKey({ name: "peppy's draft pool", slots });
+    const response = await create(owner.cookie, { draftKey });
+    expect(response.status).toBe(201);
+    const { pool } = (await response.json()) as Created;
+    expect(pool).toMatchObject({ name: "peppy's draft pool", visibility: "private", slots });
+    const named = await create(owner.cookie, { draftKey, name: "Mine" });
+    expect(((await named.json()) as Created).pool).toMatchObject({ name: "Mine", slots });
+  });
+
+  it("refuses a key that doesn't read, a repeated map, or a key with a pool to copy", async () => {
+    const { owner } = await createCast();
+    expect((await create(owner.cookie, { draftKey: "pk1.nope" })).status).toBe(400);
+    const twice = encodePackKey({
+      name: "Twice",
+      slots: [slots[0] as (typeof slots)[number], { mod: "HD", index: 1, beatmapId: 2001 }],
+    });
+    expect((await create(owner.cookie, { draftKey: twice })).status).toBe(400);
+    const both = { draftKey: encodePackKey({ name: "x", slots }), startedFrom: "otdb-9" };
+    expect((await create(owner.cookie, both)).status).toBe(400);
   });
 });
 
