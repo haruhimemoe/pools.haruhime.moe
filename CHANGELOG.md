@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Installs to a phone's home screen: a web app manifest, the page color as the browser's theme color, home-screen icons, and an offline page when a page can't load (a service worker that caches only the site's build files). The pool table no longer makes a phone open the page zoomed out.
+
 ### Removed
 
 - `/api/auth/*`, pools' own `user`, `account` and `session` collections and their indexes (the identity migration moved their rows to the hub), the first-sign-in hook that linked editors, and `/signin`'s error page.

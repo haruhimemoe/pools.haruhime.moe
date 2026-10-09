@@ -11,14 +11,16 @@
  * @modified Mon Oct 5, 2026
  */
 
+import { pwaMetadata, pwaViewport, ServiceWorkerRegister } from "@haruhimemoe/next-kit/pwa";
 import { siteMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageShell } from "@haruhimemoe/ui";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 import type { ReactNode } from "react";
 import { AppPalette } from "@/components/layout/AppPalette";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { PWA } from "@/constants/pwa";
 import { SEO_SITE } from "@/constants/seo";
 import { isBeta } from "@/lib/beta";
 import "./globals.css";
@@ -26,7 +28,10 @@ import "./globals.css";
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", display: "swap" });
 
 /** The site's default title and template, description, link preview and twitter card. */
-export const metadata: Metadata = siteMetadata(SEO_SITE);
+export const metadata: Metadata = { ...siteMetadata(SEO_SITE), ...pwaMetadata(PWA) };
+
+/** The page color as the browser's theme color, the app's color scheme, zoom left on. */
+export const viewport: Viewport = pwaViewport(PWA);
 
 /**
  * @function RootLayout
@@ -42,6 +47,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <PageShell header={<Header beta={isBeta()} />} footer={<Footer />}>
           {children}
         </PageShell>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
