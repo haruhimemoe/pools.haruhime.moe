@@ -19,7 +19,7 @@ describe("workflows", () => {
       readFileSync(path.join(WORKFLOWS, file), "utf8")
         .split("\n")
         .filter((line) => /^\s*(?:-\s+)?uses:/.test(line))
-        .filter((line) => !/uses: [\w.-]+\/[\w.-]+@[0-9a-f]{40} # v\d/.test(line))
+        .filter((line) => !/uses: [\w.-]+\/[\w.-]+(?:\/[\w.-]+)*@[0-9a-f]{40} # v\d/.test(line))
         .map((line) => `${file}: ${line.trim()}`),
     );
     expect(loose).toEqual([]);

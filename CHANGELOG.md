@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- CI runs CodeQL and a gitleaks scan of the full git history, and Dependabot covers dependencies and pinned actions. Dependencies are on their latest versions.
 - API keys carry scopes: `read` for GET, `write` for POST, PUT and DELETE on `/api/v1`. A key without the scope gets 403 `insufficient_scope`. Every existing and new key has `["*"]`, so nothing changes for callers yet. @haruhimemoe/next-kit 0.15.0.
 - The hinai client now comes from `@haruhimemoe/mirror` 0.1.0 (`/hinai` and `/testing`) instead of `@haruhimemoe/hinai`, which is deprecated. No change in behavior.
 - Sign-in moves to the shared haruhime.moe account. pools no longer runs better-auth or its own osu! sign-in: it reads the hub's session (on `.haruhime.moe`) from the `identity` database with `@haruhimemoe/next-kit` 0.12.1's `createSessionReader`, read-only. `/signin` sends you to haruhime.moe's osu! sign-in (`/api/signin/osu`) and back. Banned haruhime accounts read as signed out, and their API keys stop working.
