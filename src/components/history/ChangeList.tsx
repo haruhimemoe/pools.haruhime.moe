@@ -6,11 +6,12 @@
  *       Server-safe.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { EmptyState, SectionHeading, Surface, TextLink } from "@haruhimemoe/ui";
 import type { RevisionMeta } from "@haruhimemoe/vcs";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { formatShortDate } from "@/utils/date";
 import type { ChangeLine } from "@/utils/pool-changes";
@@ -29,15 +30,16 @@ type ChangeListProps = {
  * @returns {JSX.Element} the heading and the lines, or an empty note
  */
 export function ChangeList({ revision, lines, action }: ChangeListProps) {
+  const t = useTranslations("pools.changeList");
   return (
     <Surface padding="md" className="flex flex-col gap-3">
       <SectionHeading level={3} detail={formatShortDate(revision.createdAt)} actions={action}>
-        Changes in this version
+        {t("changesInThisVersion")}
       </SectionHeading>
       {lines === null ? (
-        <p className="text-c2 text-sm">The first saved version.</p>
+        <p className="text-c2 text-sm">{t("theFirstSavedVersion")}</p>
       ) : lines.length === 0 ? (
-        <EmptyState size="sm">Nothing a person would see changed.</EmptyState>
+        <EmptyState size="sm">{t("nothingAPersonWould")}</EmptyState>
       ) : (
         <ul className="flex flex-col gap-1 text-sm">
           {lines.map((line, index) => (

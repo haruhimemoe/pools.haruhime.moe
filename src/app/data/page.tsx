@@ -8,7 +8,7 @@
  *       (Discord or email). Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sat Oct 3, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -16,6 +16,7 @@ import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PACKS_SITE_URL, SOURCE_CREDITS } from "@/constants/pools";
 import { PAGE_SEO, SEO_SITE } from "@/constants/seo";
 import { SITE } from "@/constants/site";
@@ -30,44 +31,33 @@ const otdb = SOURCE_CREDITS.otdb;
  * @returns {JSX.Element} where pools, maps and values come from, and the check's rules
  */
 export default function DataPage() {
+  const t = useTranslations("pools.pages.data");
   return (
     <article>
-      <PageHeader
-        title="Data"
-        lead="Where the pools and map details on this site come from, and how to fix them when they're wrong."
-      />
+      <PageHeader title={t("data")} lead={t("whereThePoolsAnd")} />
       <Prose className="mt-6 [&>:first-child>:first-child]:mt-0">
         <section id="pools" aria-labelledby="pools-title">
           {/* "Pool data", as the footer link says: a region named "Pools" would double the footer's
             pools column (axe landmark-unique). */}
-          <h2 id="pools-title">Pool data</h2>
-          <p>Pools on this site come from a few places:</p>
+          <h2 id="pools-title">{t("poolData")}</h2>
+          <p>{t("poolsOnThisSite")}</p>
           <ul>
             <li>
               Some past pools come from the public export of <a href={otdb.url}>otdb</a>, by{" "}
               {otdb.author}, used with his permission.
             </li>
-            <li>Tournament hosts send their own pools.</li>
-            <li>Community members send pools they played in or found.</li>
+            <li>{t("tournamentHostsSendTheir")}</li>
+            <li>{t("communityMembersSendPools")}</li>
           </ul>
-          <p>
-            More partners may join later. When two sources have the same maps, pools keeps one pool
-            with both of them. Each pool page names its sources.
-          </p>
+          <p>{t("morePartnersMayJoin")}</p>
           <p>
             We read a pool's tournament, round and year from its name, so some are wrong. Admins fix
             what they find. Have a pool we're missing? <Link href="/submit">Submit a pool</Link>.
           </p>
-          <p>
-            Pools built here are different: people make them with the builder, and they aren't past
-            tournament pools. A built pool that's unlisted or public and has maps gets a pack on
-            packs, under packs' haruhime pools account, crediting its owner and editors and kept in
-            step with the pool; the pack goes when the pool goes private or is deleted. Built pools
-            never count toward where a map was played before.
-          </p>
+          <p>{t("poolsBuiltHereAre")}</p>
         </section>
         <section id="maps" aria-labelledby="maps-title">
-          <h2 id="maps-title">Map data</h2>
+          <h2 id="maps-title">{t("mapData")}</h2>
           <p>
             Map details (artist, title, difficulty, length, BPM, AR, OD, CS and star rating) come
             from the <a href="https://mirror.hinamizawa.ai">hinai mirror</a>, which serves osu! API
@@ -76,27 +66,12 @@ export default function DataPage() {
             takes you to <a href={PACKS_SITE_URL}>packs.haruhime.moe</a>, which downloads each map
             from the mirror straight to your browser.
           </p>
-          <p>
-            A pool's slots show star rating, AR, OD, BPM and length under the slot's mods (HD, HR,
-            DT, EZ, HT, FL and forced custom mods; NM, FM and TB slots show no-mod values). Star
-            ratings, AR, OD and CS with mods come from the hinai mirror's precomputed values and can
-            differ slightly from osu!'s; BPM and length are worked out from the mod. A map the
-            mirror has no mod data for shows its no-mod rating, marked "no mod data". The map
-            browser shows the mirror's rating under the lens, marks AR, OD and CS it had to work out
-            "no mod data", and searches Qualified and Pending maps without mods.
-          </p>
-          <p>
-            Where a map was played before comes from the pools on this site, so it only knows the
-            pools we have.
-          </p>
-          <p>
-            Map covers and preview clips load in your browser straight from osu!'s servers; pools
-            never passes them through its own. A slot's star range badge uses the same values as the
-            slot, so a map without mod data counts as unknown there.
-          </p>
+          <p>{t("aPoolSSlots")}</p>
+          <p>{t("whereAMapWas")}</p>
+          <p>{t("mapCoversAndPreview")}</p>
         </section>
         <section id="rules" aria-labelledby="rules-title">
-          <h2 id="rules-title">Content rules</h2>
+          <h2 id="rules-title">{t("contentRules")}</h2>
           <p>
             The check follows the content rules for officially supported tournaments, from the osu!
             wiki's <a href={RULE_LINKS.contentUsage}>content usage permissions</a> and{" "}
@@ -110,13 +85,10 @@ export default function DataPage() {
             loved maps, that search can't see takedown notices, so it may show one that has been
             taken down. <Link href="/check">Check a pool</Link> runs the full check.
           </p>
-          <p>
-            The check can be wrong. Its results are guidance, not rulings: the osu! Tournament
-            Committee decides. A map it couldn't read is marked as such, never passed.
-          </p>
+          <p>{t("theCheckCanBe")}</p>
         </section>
         <section id="corrections" aria-labelledby="corrections-title">
-          <h2 id="corrections-title">Corrections</h2>
+          <h2 id="corrections-title">{t("corrections")}</h2>
           <p>
             Found a wrong year, a missing map or a pool that shouldn't be here? Tell us in the{" "}
             <a href={SITE.discordUrl}>Discord server</a> or write to{" "}

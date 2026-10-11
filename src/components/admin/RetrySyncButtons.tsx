@@ -5,13 +5,14 @@
  *       while one runs the other is off, so two runs never send the same pools twice.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { AsyncButton } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { SYNC_STATES } from "@/schemas/pool";
 import type { SyncSummary } from "@/utils/sync";
@@ -33,6 +34,7 @@ const summaryText = (summary: SyncSummary): string => {
  *          page refreshes
  */
 export function RetrySyncButtons() {
+  const t = useTranslations("pools.retrySyncButtons");
   const router = useRouter();
   // Which retry is running (the one with rejected pools, or not), so the other stays off.
   const [running, setRunning] = useState<boolean | null>(null);
@@ -59,19 +61,19 @@ export function RetrySyncButtons() {
       <AsyncButton
         action={retry(false)}
         disabled={running === true}
-        pendingLabel="Retrying…"
+        pendingLabel={t("retrying")}
         failedMessage={failed}
       >
-        Retry failed syncs
+        {t("retryFailedSyncs")}
       </AsyncButton>
       <AsyncButton
         variant="secondary"
         action={retry(true)}
         disabled={running === false}
-        pendingLabel="Retrying…"
+        pendingLabel={t("retrying")}
         failedMessage={failed}
       >
-        Retry failed and rejected
+        {t("retryFailedAndRejected")}
       </AsyncButton>
     </div>
   );

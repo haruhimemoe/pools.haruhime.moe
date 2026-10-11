@@ -11,7 +11,7 @@
  *       so instead of "Loading…"; with no total the count says the page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -19,6 +19,7 @@
 import { LinkTabs, Notice, PageHeader, Pagination, Text } from "@haruhimemoe/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AllMapFilterPanel } from "@/components/search/AllMapFilterPanel";
 import { AllMapResultList } from "@/components/search/AllMapResultList";
@@ -45,9 +46,12 @@ import {
 import { scopeHref } from "@/utils/search-links";
 import { parseSearchState, searchHref, serializeSearchState } from "@/utils/search-params";
 
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
 /** Pools, maps played in pools, or beatmapsets (all maps; with no total, the page). */
-const countText = (total: number | null, page: number, state: SearchState): string => {
-  if (total === null) return `Page ${page}`;
+const countText = (t: T, total: number | null, page: number, state: SearchState): string => {
+  if (total === null) return t("pagePage", { page });
   const noun = state.tab === "pools" ? "pool" : state.scope === "all" ? "set" : "map";
   return `${total} ${total === 1 ? noun : `${noun}s`}`;
 };
@@ -61,6 +65,7 @@ const kindOf = (value: { tab: string; scope?: string }): string =>
  * @returns {JSX.Element} the search page: tabs, filters, results and paging, all in the URL
  */
 export function SearchScreen() {
+  const t = useTranslations("pools.searchScreen");
   const router = useRouter();
   const params = useSearchParams();
   const fromUrl = useMemo(() => parseSearchState(params.toString()), [params]);
@@ -106,8 +111,8 @@ export function SearchScreen() {
   const count = failed
     ? SEARCH_FAILED_COUNT
     : data
-      ? countText(data.total, data.page, state)
-      : "Loading…";
+      ? countText(t, data.total, data.page, state)
+      : t("loading");
   const hiddenText =
     data && "hidden" in data && data.hidden > 0 ? hiddenSetsText(data.hidden) : null;
   const unranked = data && "hidden" in data && data.results.some((set) => set.unranked);
@@ -127,7 +132,7 @@ export function SearchScreen() {
     <div className="flex flex-col gap-6">
       <PageHeader title={SEARCH_HEADING} lead={SEARCH_LEAD} />
       <LinkTabs
-        label="What to search"
+        label={t("whatToSearch")}
         items={(["pools", "maps"] as const).map((tab) => ({
           href: searchHref(
             tab === "pools"
@@ -176,7 +181,7 @@ export function SearchScreen() {
             <>
               {" "}
               <Link href={scopeHref("played", state.filters)} className="underline">
-                Search maps played in pools
+                {t("searchMapsPlayedIn")}
               </Link>
             </>
           ) : null}
@@ -195,7 +200,7 @@ export function SearchScreen() {
         <AllMapResultList results={data.results} />
       ) : null}
       {data && data.results.length === 0 && !("hidden" in data && data.hidden > 0) ? (
-        <p className="text-c3">Nothing matches. Try fewer filters.</p>
+        <p className="text-c3">{t("nothingMatchesTryFewer")}</p>
       ) : null}
       {data ? (
         <Pagination

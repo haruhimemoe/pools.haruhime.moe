@@ -5,7 +5,7 @@
  *       number falls. The maps with no slot have no candidates. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";

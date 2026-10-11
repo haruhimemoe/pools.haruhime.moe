@@ -13,13 +13,14 @@
  *       there, and takes focus from the settings that went.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { type CheckRules, ContentRulesCheck } from "@/components/builder/ContentRulesCheck";
 import { CustomBucketForm } from "@/components/builder/CustomBucketForm";
@@ -80,6 +81,7 @@ export function PoolEditor({
   fetcher = fetch,
   pollMs,
 }: PoolEditorProps) {
+  const t = useTranslations("pools.poolEditor");
   const router = useRouter();
   const editor = usePoolEditor(initial, { fetcher, ...(pollMs ? { pollMs } : {}) });
   const { pool, change } = editor;
@@ -106,7 +108,7 @@ export function PoolEditor({
   const [similar, setSimilar] = useState<{ target: SimilarTarget; count: number }>();
   const onFindSimilar = (target: SimilarTarget) =>
     setSimilar((was) => ({ target, count: (was?.count ?? 0) + 1 }));
-  const role = pool.access.isOwner ? "You own this pool." : "You edit this pool.";
+  const role = pool.access.isOwner ? t("youOwnThisPool") : t("youEditThisPool");
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -115,7 +117,7 @@ export function PoolEditor({
         meta={VISIBILITY_TEXT[pool.visibility].label}
         actions={
           <ButtonLink href={`/pools/${pool.id}`} variant="secondary">
-            View the pool's page
+            {t("viewThePoolS")}
           </ButtonLink>
         }
       />
@@ -144,10 +146,10 @@ export function PoolEditor({
         className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]"
       >
         <div className="flex min-w-0 flex-col gap-6">
-          <Card title="Details">
+          <Card title={t("details")}>
             <DetailsForm pool={pool} change={change} />
           </Card>
-          <Card title="Maps">
+          <Card title={t("maps")}>
             <FindSimilarContext value={onFindSimilar}>
               <PoolMaps pool={pool} maps={maps} values={values} change={change} onFind={onFind} />
             </FindSimilarContext>
@@ -161,29 +163,29 @@ export function PoolEditor({
             similar={similar}
             fetcher={fetcher}
           />
-          <Card title="Paste a pool">
+          <Card title={t("pasteAPool")}>
             <PasteBox change={change} lines={editor.failure?.lines} />
           </Card>
-          <Card title="Targets">
+          <Card title={t("targets")}>
             <TargetsForm pool={pool} change={change} />
           </Card>
-          <Card title="Custom slots">
+          <Card title={t("customSlots")}>
             <CustomBucketForm pool={pool} change={change} />
           </Card>
         </div>
         <div className="flex min-w-0 flex-col gap-6">
-          <Card title="Summary">
+          <Card title={t("summary")}>
             <PoolSummary pool={pool} maps={maps} values={values} />
-            <h3 className="mt-4 mb-2 font-bold text-c1">Check against the content rules</h3>
+            <h3 className="mt-4 mb-2 font-bold text-c1">{t("checkAgainstTheContent")}</h3>
             <ContentRulesCheck slots={pool.slots} rules={rules} />
           </Card>
-          <Card title="Recent changes">
+          <Card title={t("recentChanges")}>
             <RecentChanges poolId={pool.id} version={pool.version} fetcher={fetcher} />
           </Card>
-          <Card title="Export">
+          <Card title={t("export")}>
             <ExportPanel pool={pool} maps={maps} values={values} />
           </Card>
-          <Card title="Editors">
+          <Card title={t("editors")}>
             <EditorsPanel
               pool={pool}
               editor={editor}
@@ -192,7 +194,7 @@ export function PoolEditor({
               onLeft={() => router.push(YOUR_POOLS)}
             />
           </Card>
-          <Card title="Pack on packs">
+          <Card title={t("packOnPacks")}>
             <PackPanel pool={pool} editor={editor} fetcher={fetcher} />
           </Card>
           {pool.access.isOwner ? (

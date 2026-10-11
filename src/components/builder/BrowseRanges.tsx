@@ -5,13 +5,14 @@
  *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { formatDuration, formatStars } from "@haruhimemoe/osu/format";
 import { FilterRow, RangeSlider } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import {
   AR_RANGE,
   BPM_RANGE,
@@ -59,10 +60,11 @@ type BrowseRangesProps = {
  * @returns {JSX.Element} the star, BPM, length, AR and OD range sliders
  */
 export function BrowseRanges({ state, lens, onChange }: BrowseRangesProps) {
+  const t = useTranslations("pools.browseRanges");
   return RANGES.map(({ key, name, bounds, format, parse }) => (
     <FilterRow key={key} label={`${name} (${lens})`}>
       <RangeSlider
-        label={`${name} under ${lens}`}
+        label={t("nameUnderLens", { name, lens })}
         hideLabel
         min={bounds.min}
         max={bounds.max}

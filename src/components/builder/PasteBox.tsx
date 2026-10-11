@@ -7,13 +7,14 @@
  *       fixed. A paste that applies clears the box.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import type { SlotLineError } from "@haruhimemoe/pool";
 import { Button, Select, Text, Textarea } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { MAX_PASTE_LENGTH } from "@/constants/built-pools";
 import type { PoolOp } from "@/schemas/built-pool-ops";
@@ -32,6 +33,7 @@ type PasteBoxProps = {
  * @returns {JSX.Element} the paste box for IDs, links and slot lines
  */
 export function PasteBox({ change, lines }: PasteBoxProps) {
+  const t = useTranslations("pools.pasteBox");
   const [text, setText] = useState("");
   const [mode, setMode] = useState<Mode>("merge");
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -43,8 +45,8 @@ export function PasteBox({ change, lines }: PasteBoxProps) {
     <form onSubmit={submit} className="flex flex-col gap-3">
       <Textarea
         id="paste-maps"
-        label="Paste maps"
-        hint="Slot lines like NM1 129891, or beatmap IDs and links. Lines starting with # are skipped."
+        label={t("pasteMaps")}
+        hint={t("slotLinesLikeNm1")}
         rows={5}
         maxLength={MAX_PASTE_LENGTH}
         value={text}
@@ -52,20 +54,20 @@ export function PasteBox({ change, lines }: PasteBoxProps) {
       />
       <Select
         id="paste-mode"
-        label="What the paste does"
+        label={t("whatThePasteDoes")}
         value={mode}
         onChange={(event) => setMode(event.target.value as Mode)}
       >
-        <option value="merge">Add to the pool (a slot already there takes the pasted map)</option>
-        <option value="replace">Replace every map in the pool</option>
+        <option value="merge">{t("addToThePool")}</option>
+        <option value="replace">{t("replaceEveryMapIn")}</option>
       </Select>
       <Button type="submit" variant="secondary">
-        Paste maps
+        {t("pasteMaps")}
       </Button>
       {lines && lines.length > 0 ? (
         <div className="flex flex-col gap-1">
           <Text tone="error" bold>
-            These lines couldn't be read:
+            {t("theseLinesCouldnT")}
           </Text>
           <ul className="flex flex-col gap-1 text-sm">
             {lines.map((line) => (

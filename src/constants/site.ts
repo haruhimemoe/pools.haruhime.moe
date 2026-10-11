@@ -6,7 +6,7 @@
  *       shared signed-in marker and sign-in's landing.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { SHARED_MARKER_COOKIE } from "@haruhimemoe/next-kit/auth-react";
@@ -55,52 +55,69 @@ export const HUB_COOKIE_DOMAIN = ".haruhime.moe";
  * when it's there. pools only reads it. */
 export const SIGNED_IN_COOKIE = SHARED_MARKER_COOKIE;
 
-/** The header's links. */
-export const NAV_LINKS: readonly { href: string; label: string }[] = [
-  { href: "/", label: "Home" },
-  { href: "/search", label: "Search" },
-  { href: "/check", label: "Check a pool" },
-  { href: "/submit", label: "Submit a pool" },
+/** A translator: next-intl's t for "pools" or "common". */
+type T = (key: string) => string;
+
+/**
+ * @function navLinks
+ * @param t {T} the "pools" translator
+ * @returns {{ href: string; label: string }[]} the header's links
+ */
+export const navLinks = (t: T): { href: string; label: string }[] => [
+  { href: "/", label: t("nav.home") },
+  { href: "/search", label: t("nav.search") },
+  { href: "/check", label: t("nav.check") },
+  { href: "/submit", label: t("nav.submit") },
 ];
 
-/** The header's account menu links, above Sign out. */
-export const ACCOUNT_MENU_ITEMS: readonly { href: string; label: string }[] = [
-  { href: "/new", label: "Make a pool" },
-  { href: "/account#pools", label: "Your pools" },
-  { href: "/account", label: "pools settings" },
+/**
+ * @function accountMenuItems
+ * @param t {T} the "pools" translator
+ * @returns {{ href: string; label: string }[]} the header's account menu links, above Sign out
+ */
+export const accountMenuItems = (t: T): { href: string; label: string }[] => [
+  { href: "/new", label: t("nav.make") },
+  { href: "/account#pools", label: t("nav.yours") },
+  { href: "/account", label: t("nav.settings") },
 ];
 
 /** What the builder does, in one line. */
 export const BUILDER_LINE =
   "Search every osu! map under a mod and see its star rating, AR and OD with it, check the pool against the content rules for officially supported tournaments, see where each map was played before, work on it with co-editors, and download it on packs.";
 
-/** The footer's own link columns: pools, Data, About and Legal (ui adds "haruhime tools"). */
-export const FOOTER_COLUMNS: readonly SiteFooterColumn[] = [
+/**
+ * @function footerColumns
+ * @param t {T} the "pools" translator
+ * @param common {T} the "common" translator
+ * @returns {SiteFooterColumn[]} the footer's own link columns: pools, Data, About and Legal (ui
+ *          adds "haruhime tools"). Legal page titles stay English, like the pages.
+ */
+export const footerColumns = (t: T, common: T): SiteFooterColumn[] => [
   {
     title: "pools",
     items: [
-      { href: "/search", label: "Search" },
-      { href: "/check", label: "Check a pool" },
-      { href: "/submit", label: "Submit a pool" },
+      { href: "/search", label: t("nav.search") },
+      { href: "/check", label: t("nav.check") },
+      { href: "/submit", label: t("nav.submit") },
     ],
   },
   {
-    title: "Data",
+    title: t("nav.data"),
     items: [
-      { href: "/data#pools", label: "Pool data" },
-      { href: "/data#maps", label: "Map data" },
-      { href: "/credits", label: "Credits" },
+      { href: "/data#pools", label: t("nav.poolData") },
+      { href: "/data#maps", label: t("nav.mapData") },
+      { href: "/credits", label: t("nav.credits") },
     ],
   },
   {
-    title: "About",
+    title: common("footer.about"),
     items: [
-      { href: SITE.repoUrl, label: "Source on GitHub" },
+      { href: SITE.repoUrl, label: common("footer.source") },
       { href: `mailto:${SITE.contactEmail}`, label: SITE.contactEmail },
     ],
   },
   {
-    title: "Legal",
+    title: common("footer.legal"),
     items: CONTENT.entries.legal.map(({ slug, title }) => ({
       href: contentPath("legal", slug),
       label: title,

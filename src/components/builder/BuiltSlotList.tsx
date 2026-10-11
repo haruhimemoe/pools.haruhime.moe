@@ -6,11 +6,12 @@
  *       Read only.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { type BucketEntry, type PoolSlot, slotLabel } from "@haruhimemoe/pool";
 import { MapCard, MapGroup, MapPreviewButton, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { SlotNotes } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { groupHeading, groupSlots } from "@/utils/built-editor";
@@ -31,8 +32,9 @@ type BuiltSlotListProps = {
  * @returns {JSX.Element} the pool's slots by bucket with each map's values and note
  */
 export function BuiltSlotList({ pool, maps, values }: BuiltSlotListProps) {
+  const t = useTranslations("pools.builtSlotList");
   const groups = groupSlots(pool).filter((group) => group.slots.length > 0);
-  if (groups.length === 0) return <Text tone="muted">No maps yet.</Text>;
+  if (groups.length === 0) return <Text tone="muted">{t("noMapsYet")}</Text>;
   return (
     <div className="flex flex-col gap-5">
       {groups.map((group) => {

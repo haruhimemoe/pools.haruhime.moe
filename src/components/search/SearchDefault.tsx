@@ -6,10 +6,11 @@
  *       still get a real page. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Card, PageHeader, Text, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { SEARCH_HEADING, SEARCH_LEAD } from "@/constants/search";
 import { SEARCH_INTRO, SEARCH_STARTS } from "@/constants/seo";
 import type { RecentPool } from "@/services/pools";
@@ -21,12 +22,13 @@ import { poolHeadline } from "@/utils/pool-text";
  * @returns {JSX.Element} the heading, the intro, common starts and the latest pools
  */
 export function SearchDefault({ latest }: { latest: readonly RecentPool[] }) {
+  const t = useTranslations("pools.searchDefault");
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={SEARCH_HEADING} lead={SEARCH_LEAD} />
       <p className="max-w-3xl text-c2">{SEARCH_INTRO}</p>
       <div className="grid gap-6 md:grid-cols-2">
-        <Card title="Common searches">
+        <Card title={t("commonSearches")}>
           <ul className="flex flex-col gap-2">
             {SEARCH_STARTS.map(({ label, href }) => (
               <li key={href}>
@@ -38,7 +40,7 @@ export function SearchDefault({ latest }: { latest: readonly RecentPool[] }) {
           </ul>
         </Card>
         {latest.length > 0 ? (
-          <Card title="Latest past pools">
+          <Card title={t("latestPastPools")}>
             <ul className="flex flex-col gap-2">
               {latest.map((pool) => (
                 <li key={pool._id}>

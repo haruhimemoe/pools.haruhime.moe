@@ -3,12 +3,13 @@
  * @desc /legal: every legal page with its description, from the registry. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Oct 4, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { ContentIndex, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
+import { useTranslations } from "next-intl";
 import { CONTENT } from "@/constants/content";
 import { SEO_SITE } from "@/constants/seo";
 import { toNavItem } from "@/utils/content-nav";
@@ -28,9 +29,10 @@ const ITEMS = CONTENT.entries.legal.map(toNavItem("legal"));
  * @returns {JSX.Element} the section's header and its pages
  */
 export default function LegalIndexPage() {
+  const t = useTranslations("pools.pages.legal");
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Legal" lead="The terms, how we handle your data, and what pools is not." />
+      <PageHeader title={t("legal")} lead={t("theTermsHowWe")} />
       <ContentIndex items={ITEMS} />
     </div>
   );

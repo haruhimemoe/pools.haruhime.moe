@@ -7,11 +7,13 @@
  *       brand, the Discord server and the haruhimemoe GitHub org.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
-import { SiteFooter } from "@haruhimemoe/ui";
-import { FOOTER_COLUMNS, SITE } from "@/constants/site";
+import { LOCALES } from "@haruhimemoe/messages";
+import { LocaleSelect, SiteFooter } from "@haruhimemoe/ui";
+import { useLocale, useTranslations } from "next-intl";
+import { footerColumns, SITE } from "@/constants/site";
 
 /**
  * @function Footer
@@ -19,16 +21,29 @@ import { FOOTER_COLUMNS, SITE } from "@/constants/site";
  *          trademark notice
  */
 export function Footer() {
+  const t = useTranslations("pools");
+  const common = useTranslations("common");
+  const ui = useTranslations("ui");
+  const locale = useLocale();
   return (
     <SiteFooter
-      columns={FOOTER_COLUMNS}
-      tools={{ current: "pools", position: 2 }}
-      finePrint={
-        <>
-          Star ratings with mods come from the hinai mirror and can differ slightly from osu!'s.{" "}
-          {SITE.trademarkNotice}
-        </>
+      columns={footerColumns(t, common)}
+      navLabel={ui("shell.footerNav")}
+      tools={{
+        current: "pools",
+        position: 2,
+        title: ui("shell.tools"),
+        allLabel: ui("shell.allTools"),
+      }}
+      extra={
+        <LocaleSelect
+          locales={LOCALES}
+          value={locale}
+          label={ui("shell.language")}
+          cookieDomain=".haruhime.moe"
+        />
       }
+      finePrint={t("footer.finePrint")}
       parentHref={SITE.parentUrl}
       githubHref={SITE.githubOrg}
       discordHref={SITE.discordUrl}

@@ -14,7 +14,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Footer } from "@/components/layout/Footer";
-import { FOOTER_COLUMNS, SITE } from "@/constants/site";
+import { SITE } from "@/constants/site";
 
 const EXPECTED: [string, [string, string][]][] = [
   [
@@ -64,10 +64,6 @@ const EXPECTED: [string, [string, string][]][] = [
 
 describe("Footer", () => {
   it("has the pools, Data, haruhime tools, About and Legal columns, in order", () => {
-    // The site's own columns; ui's SiteFooter puts "haruhime tools" third.
-    expect(FOOTER_COLUMNS.map((column) => column.title)).toEqual(
-      EXPECTED.map(([title]) => title).filter((title) => title !== "haruhime tools"),
-    );
     render(<Footer />);
     const footer = screen.getByRole("contentinfo");
     // One Footer nav; each column is a region named by its heading (ui 0.7.0).

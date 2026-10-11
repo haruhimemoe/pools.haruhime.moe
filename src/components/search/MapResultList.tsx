@@ -5,7 +5,7 @@
  *       with no cover (a MapResult has no set id).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { MapCard, Text } from "@haruhimemoe/ui";

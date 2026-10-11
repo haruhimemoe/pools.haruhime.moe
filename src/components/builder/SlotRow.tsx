@@ -11,7 +11,7 @@
  *       editor decides what each button does and where focus goes after.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -30,6 +30,7 @@ import {
   SortableMoveButtons,
   Text,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type ReactNode, useState } from "react";
 import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
 import { SlotNote } from "@/components/builder/SlotNote";
@@ -72,6 +73,7 @@ type SlotRowProps = {
  * @returns {JSX.Element} one slot: label, preview, map text, note, and its move and remove controls
  */
 export function SlotRow(props: SlotRowProps) {
+  const t = useTranslations("pools.slotRow");
   const { slot, map, values, badge, note, sortable, position, targets, children, ...on } = props;
   const [target, setTarget] = useState("");
   const label = slotLabel(slot);
@@ -120,12 +122,12 @@ export function SlotRow(props: SlotRowProps) {
               <div className="w-36">
                 <select
                   data-control="target"
-                  aria-label={`Move ${label} to`}
+                  aria-label={t("moveLabelTo", { label })}
                   value={target}
                   onChange={(event) => setTarget(event.target.value)}
                   className={fieldClasses()}
                 >
-                  <option value="">Move to…</option>
+                  <option value="">{t("moveTo")}</option>
                   {targets.map((option) => (
                     <option key={option.code} value={option.code}>
                       {option.label}
@@ -136,7 +138,11 @@ export function SlotRow(props: SlotRowProps) {
               <Button
                 variant="secondary"
                 disabled={!chosen}
-                aria-label={chosen ? `Move ${label} to ${chosen.code}` : `Move ${label}`}
+                aria-label={
+                  chosen
+                    ? t("moveLabelToCode", { label, code: chosen.code })
+                    : t("moveLabel", { label })
+                }
                 onClick={() => {
                   sortable.moveTo(id, {
                     container: bucketListId(target),
@@ -145,7 +151,7 @@ export function SlotRow(props: SlotRowProps) {
                   setTarget("");
                 }}
               >
-                Move
+                {t("move")}
               </Button>
             </>
           ) : null}
@@ -153,20 +159,20 @@ export function SlotRow(props: SlotRowProps) {
             <Button
               variant="ghost"
               data-control="demote"
-              aria-label={`Demote ${label}'s pick to a candidate`}
+              aria-label={t("demoteLabelSPick", { label })}
               onClick={on.onDemote}
             >
-              Demote
+              {t("demote")}
             </Button>
           ) : null}
           <FindSimilarButton beatmapId={slot.beatmapId} label={mapLabel(map, slot.beatmapId)} />
           <Button
             variant="ghost"
             data-control="remove"
-            aria-label={`Remove ${label}`}
+            aria-label={t("removeLabel", { label })}
             onClick={on.onRemove}
           >
-            Remove
+            {t("remove")}
           </Button>
         </>
       }

@@ -8,13 +8,14 @@
  *       where mod values come from. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { Button, cx, Notice, Pagination, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { BrowseSetCard } from "@/components/builder/BrowseSetCard";
 import { MOD_VALUES_NOTE } from "@/constants/browse";
 import { hiddenSetsText, MAX_SEARCH_PAGE, UNRANKED_WARNING } from "@/constants/search";
@@ -54,18 +55,19 @@ const leftOut = (data: BrowseResponse): string[] =>
  * @returns {JSX.Element} what the page left out, the sets, the pager and the note
  */
 export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) {
+  const t = useTranslations("pools.browseResults");
   const { status, data, error } = browse;
   if (status === "error") {
     return (
       <div className="flex flex-col gap-2">
         <Notice tone="error">{error}</Notice>
         <Button variant="secondary" onClick={browse.retry}>
-          Retry
+          {t("retry")}
         </Button>
       </div>
     );
   }
-  if (!data) return <Text tone="muted">Loading maps…</Text>;
+  if (!data) return <Text tone="muted">{t("loadingMaps")}</Text>;
   const lastPage = Math.min(
     data.pageCount ?? data.page + (data.sets.length > 0 ? 1 : 0),
     MAX_SEARCH_PAGE,
@@ -81,9 +83,7 @@ export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) 
         <Text tone="warning">{UNRANKED_WARNING}</Text>
       ) : null}
       {data.sets.length === 0 ? (
-        <p className="text-c2 text-sm">
-          No maps on this page match. Try fewer filters or another lens.
-        </p>
+        <p className="text-c2 text-sm">{t("noMapsOnThis")}</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {data.sets.map((set) => (
@@ -92,7 +92,7 @@ export function BrowseResults({ browse, onPage, ...cards }: BrowseResultsProps) 
         </ul>
       )}
       <Pagination
-        aria-label="Map pages"
+        aria-label={t("mapPages")}
         page={data.page}
         pageCount={data.pageCount === null ? null : Math.max(lastPage, 1)}
         hasNext={data.page < lastPage}

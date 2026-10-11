@@ -6,12 +6,13 @@
  *       so the link's name stays "pools" and screen readers hear "beta" once.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Badge, CommandPaletteButton, SiteHeader } from "@haruhimemoe/ui";
 import Link from "next/link";
-import { ACCOUNT_MENU_ITEMS, NAV_LINKS, SITE } from "@/constants/site";
+import { useTranslations } from "next-intl";
+import { accountMenuItems, navLinks, SITE } from "@/constants/site";
 import { AccountMenu } from "@/lib/account";
 
 type HeaderProps = {
@@ -25,6 +26,8 @@ type HeaderProps = {
  * @returns {JSX.Element} ui's SiteHeader with the wordmark, the nav and the account menu
  */
 export function Header({ beta = false }: HeaderProps) {
+  const t = useTranslations("pools");
+  const ui = useTranslations("ui");
   return (
     <SiteHeader
       brand={
@@ -38,11 +41,16 @@ export function Header({ beta = false }: HeaderProps) {
           {beta ? <Badge tone="muted">beta</Badge> : null}
         </div>
       }
-      links={NAV_LINKS}
+      links={navLinks(t)}
+      navLabel={ui("shell.mainNav")}
       actions={
         <div className="flex items-center gap-2">
-          <CommandPaletteButton />
-          <AccountMenu items={ACCOUNT_MENU_ITEMS} />
+          <CommandPaletteButton label={ui("palette.openLabel")} />
+          <AccountMenu
+            items={accountMenuItems(t)}
+            signInLabel={ui("account.signIn")}
+            signOutLabel={ui("account.signOut")}
+          />
         </div>
       }
     />

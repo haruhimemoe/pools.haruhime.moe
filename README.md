@@ -65,6 +65,7 @@ pools uses these shared haruhime.moe packages:
 - [`@haruhimemoe/vcs`](https://www.npmjs.com/package/@haruhimemoe/vcs): keyed-list JSON diffs and 3-way merges (`/json`) and canonical hashing (`/hash`), under built pools' revision store.
 - [`@haruhimemoe/ui`](https://www.npmjs.com/package/@haruhimemoe/ui): the theme, buttons, cards, form fields, filters, chips, radios, confirmations, badges, text links, tabs, tables, star ratings, beatmap stats, slot badges, pagination, the header menu, the visibility picker, and the site header, footer and page frame; the docs, legal and brand page frames, the content pages' MDX element overrides (`/mdx`) and the matching remark plugin (`/remark`).
 - [`@haruhimemoe/brand`](https://www.npmjs.com/package/@haruhimemoe/brand): the wordmark, icons and link preview image, each pool's preview card (drawn per request), and the /brand page's data (`/products`).
+- [`@haruhimemoe/messages`](https://www.npmjs.com/package/@haruhimemoe/messages): every word the site shows, through next-intl. The URL never carries a language: the shared `NEXT_LOCALE` cookie, then the browser's, picks it, and English fills any gap.
 
 ## License
 

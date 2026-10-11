@@ -5,12 +5,13 @@
  *       worked.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { AsyncButton } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 
 const refresh = async (): Promise<string> => {
   const response = await fetch("/api/admin/revalidate", {
@@ -28,14 +29,15 @@ const refresh = async (): Promise<string> => {
  * @returns {JSX.Element} "Refresh public pages" (ui's AsyncButton), with what happened beside it
  */
 export function RefreshPagesButton() {
+  const t = useTranslations("pools.refreshPagesButton");
   return (
     <AsyncButton
       action={refresh}
-      pendingLabel="Refreshing…"
-      failedMessage="The refresh didn't reach the server."
+      pendingLabel={t("refreshing")}
+      failedMessage={t("theRefreshDidnT")}
       wrapperClassName="flex-col items-start gap-2"
     >
-      Refresh public pages
+      {t("refreshPublicPages")}
     </AsyncButton>
   );
 }

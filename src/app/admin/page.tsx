@@ -9,12 +9,13 @@
  *       never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { ButtonLink, Card, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { AdminBuiltPoolTable } from "@/components/admin/AdminBuiltPoolTable";
 import { BuiltModerationArea } from "@/components/admin/BuiltModerationArea";
 import { ImportReportList } from "@/components/admin/ImportReportList";
@@ -42,6 +43,7 @@ export const metadata: Metadata = pageMetadata(SEO_SITE, {
  *          import reports
  */
 export default async function AdminPage() {
+  const t = await getTranslations("pools.pages.admin");
   const admin = await requireAdmin("/admin");
   const [reports, states, waiting, built] = await Promise.all([
     listImportReports(20),
@@ -52,28 +54,28 @@ export default async function AdminPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Admin"
-        meta={`Signed in as ${admin.username}`}
+        title={t("admin")}
+        meta={t("signedInAsUsername", { username: admin.username })}
         actions={
           <>
             <ButtonLink href="/admin/pools/new" variant="secondary">
-              Add a pool
+              {t("addAPool")}
             </ButtonLink>
             <ButtonLink href="/admin/pools" variant="secondary">
-              Every pool
+              {t("everyPool")}
             </ButtonLink>
             <SignOutButton />
           </>
         }
       />
-      <Card title="Packs sync">
+      <Card title={t("packsSync")}>
         <p className="mb-3 text-c2 text-sm">
           {Object.entries(states)
             .map(([state, count]) => `${count} ${state === "never" ? "never sent" : state}`)
             .join(" · ")}
         </p>
         <RetrySyncButtons />
-        <h3 className="mt-4 mb-1 font-bold text-c1">Pack cleanup</h3>
+        <h3 className="mt-4 mb-1 font-bold text-c1">{t("packCleanup")}</h3>
         <p className="mb-3 text-c2 text-sm">
           {waiting === 1
             ? "1 pack removal waits for packs."
@@ -83,7 +85,7 @@ export default async function AdminPage() {
         </p>
         <RetryPackCleanupButton />
       </Card>
-      <Card title="Built pools">
+      <Card title={t("builtPools")}>
         <p className="mb-3 text-c2 text-sm">
           The {ADMIN_BUILT_LIMIT} newest unlisted and public ones (a private pool stays between its
           owner and editors). Hiding one takes it off search, the sitemap and its public page (its
@@ -94,14 +96,11 @@ export default async function AdminPage() {
           <AdminBuiltPoolTable pools={built} />
         </BuiltModerationArea>
       </Card>
-      <Card title="Public pages">
-        <p className="mb-3 text-c2 text-sm">
-          After an import, refresh them so the home page, the sitemap and llms.txt show it now.
-          Otherwise the home page catches up within the hour and the other two within a day.
-        </p>
+      <Card title={t("publicPages")}>
+        <p className="mb-3 text-c2 text-sm">{t("afterAnImportRefresh")}</p>
         <RefreshPagesButton />
       </Card>
-      <Card title="Imports">
+      <Card title={t("imports")}>
         <ImportReportList reports={reports} />
       </Card>
     </div>

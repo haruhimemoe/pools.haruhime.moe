@@ -6,7 +6,7 @@
  *       the revealed key or the next button, and the outcome is announced in a polite live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Oct 3, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -23,6 +23,7 @@ import {
   TextLink,
   textClasses,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import { API_DOCS_PATH } from "@/constants/api";
 import { callPools, type Fetcher } from "@/lib/pool-client";
@@ -45,6 +46,7 @@ type FocusTarget = "reveal" | "existing" | "empty" | null;
  * @returns {JSX.Element} the API key card
  */
 export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) {
+  const t = useTranslations("pools.apiKeySection");
   const [apiKey, setApiKey] = useState<ApiKeyInfo | null>(initial);
   const [revealed, setRevealed] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -93,7 +95,7 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
       }
       setApiKey(result.body.apiKey);
       setRevealed(result.body.key);
-      setStatus("API key created. Copy it now; it won't be shown again.");
+      setStatus(t("apiKeyCreatedCopy"));
       setPendingFocus("reveal");
     });
 
@@ -105,36 +107,36 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
         throw new Error(result.message);
       }
       setApiKey(null);
-      setStatus("API key revoked.");
+      setStatus(t("apiKeyRevoked"));
       setPendingFocus("empty");
     });
 
   const saved = () => {
     setRevealed(null);
-    setStatus("Key saved.");
+    setStatus(t("keySaved"));
     setPendingFocus("existing");
   };
 
   return (
-    <Card title="API key">
+    <Card title={t("apiKey")}>
       <Text tone="muted">
         Scripts and bots can use a key to call the pools API as you. Keep it secret.{" "}
-        <TextLink href={API_DOCS_PATH}>Read the API docs</TextLink>
+        <TextLink href={API_DOCS_PATH}>{t("readTheApiDocs")}</TextLink>
       </Text>
       <div className="mt-3 flex flex-col gap-3">
         {revealed !== null ? (
           <>
-            <p className="font-bold text-c1 text-sm">Copy your key now. You won't see it again.</p>
+            <p className="font-bold text-c1 text-sm">{t("copyYourKeyNow")}</p>
             <CopyField
               id={keyFieldId}
               ref={revealedInputRef}
-              label="Your new API key"
+              label={t("yourNewApiKey")}
               value={revealed}
-              copiedMessage="Key copied."
-              failedMessage="Couldn't copy. Select the key and copy it by hand."
+              copiedMessage={t("keyCopied")}
+              failedMessage={t("couldnTCopySelect")}
             />
             <Button variant="ghost" onClick={saved}>
-              I've saved it
+              {t("iVeSavedIt")}
             </Button>
           </>
         ) : apiKey === null ? (
@@ -144,7 +146,7 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
             onClick={() => create().catch(() => undefined)}
             disabled={busy}
           >
-            Create API key
+            {t("createApiKey")}
           </Button>
         ) : (
           <>
@@ -152,25 +154,25 @@ export function ApiKeySection({ initial, fetcher = fetch }: ApiKeySectionProps) 
               <code className="font-mono text-c1">{apiKey.prefix}…</code> Created{" "}
               {formatShortDate(apiKey.createdAt)}.{" "}
               {apiKey.lastUsedAt
-                ? `Last used ${formatShortDate(apiKey.lastUsedAt)}.`
-                : "Not used yet."}
+                ? t("lastUsedLastusedat", { lastUsedAt: formatShortDate(apiKey.lastUsedAt) })
+                : t("notUsedYet")}
             </p>
             <div ref={regenerateRef} className="flex flex-wrap items-center gap-2">
               <InlineConfirm
-                trigger="Regenerate"
+                trigger={t("regenerate")}
                 triggerProps={{ disabled: busy }}
-                question="Your current key stops working right away."
-                cancelLabel="Keep it"
-                confirmLabel="Yes, regenerate"
+                question={t("yourCurrentKeyStops")}
+                cancelLabel={t("keepIt")}
+                confirmLabel={t("yesRegenerate")}
                 confirmVariant="danger"
                 onConfirm={create}
               />
               <InlineConfirm
-                trigger="Revoke"
+                trigger={t("revoke")}
                 triggerProps={{ variant: "ghost", disabled: busy }}
-                question="Revoke this key? Anything using it stops working right away."
-                cancelLabel="Keep it"
-                confirmLabel="Yes, revoke"
+                question={t("revokeThisKeyAnything")}
+                cancelLabel={t("keepIt")}
+                confirmLabel={t("yesRevoke")}
                 confirmVariant="danger"
                 onConfirm={revoke}
               />

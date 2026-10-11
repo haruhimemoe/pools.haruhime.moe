@@ -5,7 +5,7 @@
  *       pool editor shows it under its own heading, so the title and heading level can change.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Card, Text, type TextTone } from "@haruhimemoe/ui";

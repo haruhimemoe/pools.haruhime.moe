@@ -7,12 +7,13 @@
  *       clears it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { MAX_SLOT_NOTE_LENGTH } from "@/constants/targets";
 import { slotNoteSchema } from "@/schemas/built-plan";
@@ -31,6 +32,7 @@ type SlotNoteProps = {
  * @returns {JSX.Element} the note under a slot, with Add note or Edit
  */
 export function SlotNote({ beatmapId, label, note, onSave }: SlotNoteProps) {
+  const t = useTranslations("pools.slotNote");
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(note ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export function SlotNote({ beatmapId, label, note, onSave }: SlotNoteProps) {
     event.preventDefault();
     const parsed = slotNoteSchema.safeParse(text);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "That note can't be saved.");
+      setError(parsed.error.issues[0]?.message ?? t("thatNoteCanT"));
       return;
     }
     if (parsed.data !== (note ?? "")) onSave(parsed.data);
@@ -70,8 +72,8 @@ export function SlotNote({ beatmapId, label, note, onSave }: SlotNoteProps) {
       >
         <TextInput
           id={`note-${beatmapId}`}
-          label={`Note for ${label}`}
-          hint={`Up to ${MAX_SLOT_NOTE_LENGTH} characters, like "jump aim check".`}
+          label={t("noteForLabel", { label })}
+          hint={t("upToLengthCharacters", { LENGTH: MAX_SLOT_NOTE_LENGTH })}
           autoComplete="off"
           autoFocus
           value={text}
@@ -79,11 +81,11 @@ export function SlotNote({ beatmapId, label, note, onSave }: SlotNoteProps) {
           onChange={(event) => setText(event.target.value)}
         />
         <div className="flex gap-2">
-          <Button type="submit" variant="secondary" aria-label={`Save note for ${label}`}>
-            Save
+          <Button type="submit" variant="secondary" aria-label={t("saveNoteForLabel", { label })}>
+            {t("save")}
           </Button>
           <Button type="button" variant="ghost" onClick={close}>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </form>
@@ -95,13 +97,13 @@ export function SlotNote({ beatmapId, label, note, onSave }: SlotNoteProps) {
       <Button
         ref={toggle}
         variant="ghost"
-        aria-label={note ? `Edit note for ${label}` : `Add note to ${label}`}
+        aria-label={note ? t("editNoteForLabel", { label }) : t("addNoteToLabel", { label })}
         onClick={() => {
           setText(note ?? "");
           setEditing(true);
         }}
       >
-        {note ? "Edit note" : "Add note"}
+        {note ? t("editNote") : t("addNote")}
       </Button>
     </div>
   );

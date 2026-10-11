@@ -4,7 +4,7 @@
  *       linking its repository. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { TextLink } from "@haruhimemoe/ui";

@@ -9,7 +9,7 @@
  *       preview card (/pools/<id>/og.png); a superseded pool isn't indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { notFoundMetadata, pageMetadata } from "@haruhimemoe/next-kit/seo";

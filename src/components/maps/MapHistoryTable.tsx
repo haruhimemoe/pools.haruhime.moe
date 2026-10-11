@@ -4,11 +4,12 @@
  *       and a Badged column only when some row knows it. Scrolls sideways on phones.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Table, TBody, Td, THead, Th } from "@haruhimemoe/ui";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { HistoryRow } from "@/utils/history";
 import { yearText } from "@/utils/pool-text";
 
@@ -18,15 +19,16 @@ import { yearText } from "@/utils/pool-text";
  * @returns {JSX.Element} a table of pool, year, slot and (when known) badged
  */
 export function MapHistoryTable({ rows }: { rows: readonly HistoryRow[] }) {
+  const t = useTranslations("pools.mapHistoryTable");
   const showBadged = rows.some((row) => row.badged !== null);
   return (
-    <Table caption="Pools that used this map, newest first" hideCaption>
+    <Table caption={t("poolsThatUsedThis")} hideCaption>
       <THead>
         <tr>
-          <Th>Pool</Th>
-          <Th>Year</Th>
-          <Th>Slot</Th>
-          {showBadged ? <Th>Badged</Th> : null}
+          <Th>{t("pool")}</Th>
+          <Th>{t("year")}</Th>
+          <Th>{t("slot")}</Th>
+          {showBadged ? <Th>{t("badged")}</Th> : null}
         </tr>
       </THead>
       <TBody>
@@ -40,7 +42,7 @@ export function MapHistoryTable({ rows }: { rows: readonly HistoryRow[] }) {
             <Td numeric>{yearText(row.year)}</Td>
             <Td className="font-bold text-c1">{row.slot}</Td>
             {showBadged ? (
-              <Td>{row.badged === null ? "Not known" : row.badged ? "Yes" : "No"}</Td>
+              <Td>{row.badged === null ? t("notKnown") : row.badged ? "Yes" : "No"}</Td>
             ) : null}
           </tr>
         ))}

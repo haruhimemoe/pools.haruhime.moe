@@ -6,7 +6,7 @@
  *       under its field. An empty custom bucket is removed from its own section.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -21,6 +21,7 @@ import {
 } from "@haruhimemoe/pool";
 import { hasBlockedLanguage } from "@haruhimemoe/pool/content-filter";
 import { Button, ChipGroup, Select, Text, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import type { PoolOp } from "@/schemas/built-pool-ops";
 import type { ClientPool } from "@/schemas/built-pool-view";
@@ -37,6 +38,7 @@ type CustomBucketFormProps = { pool: ClientPool; change: (ops: PoolOp[]) => bool
  * @returns {JSX.Element} the form that adds a custom slot with forced mods or freemod
  */
 export function CustomBucketForm({ pool, change }: CustomBucketFormProps) {
+  const t = useTranslations("pools.customBucketForm");
   const [code, setCode] = useState("");
   const [kind, setKind] = useState<Kind>("forced");
   const [set, setSet] = useState<ModAcronym[]>([]);
@@ -49,7 +51,7 @@ export function CustomBucketForm({ pool, change }: CustomBucketFormProps) {
     const codeProblem = problem
       ? BUCKET_CODE_MESSAGES[problem]
       : hasBlockedLanguage(trimmed)
-        ? "That fails the content filter."
+        ? t("thatFailsTheContent")
         : null;
     const setProblem = kind === "forced" ? modSetProblem(set) : null;
     setCodeError(codeProblem);
@@ -67,8 +69,8 @@ export function CustomBucketForm({ pool, change }: CustomBucketFormProps) {
       <div className="grid gap-3 sm:grid-cols-2">
         <TextInput
           id="bucket-code"
-          label="Slot code"
-          hint="1 to 12 letters and digits, like EX or HDHR."
+          label={t("slotCode")}
+          hint={t("n1To12Letters")}
           value={code}
           autoComplete="off"
           error={codeError ?? undefined}
@@ -76,19 +78,19 @@ export function CustomBucketForm({ pool, change }: CustomBucketFormProps) {
         />
         <Select
           id="bucket-kind"
-          label="Played with"
+          label={t("playedWith")}
           value={kind}
           onChange={(event) => setKind(event.target.value as Kind)}
         >
-          <option value="forced">Forced mods</option>
-          <option value="free">Freemod</option>
-          <option value="none">No mods</option>
+          <option value="forced">{t("forcedMods")}</option>
+          <option value="free">{t("freemod")}</option>
+          <option value="none">{t("noMods")}</option>
         </Select>
       </div>
       {kind === "forced" ? (
         <div className="flex flex-col gap-1">
           <ChipGroup
-            label="Forced mods"
+            label={t("forcedMods")}
             options={MOD_OPTIONS}
             value={set}
             onChange={(next) => setSet(next as ModAcronym[])}
@@ -101,7 +103,7 @@ export function CustomBucketForm({ pool, change }: CustomBucketFormProps) {
         </div>
       ) : null}
       <Button type="submit" variant="secondary">
-        Add slot
+        {t("addSlot")}
       </Button>
     </form>
   );

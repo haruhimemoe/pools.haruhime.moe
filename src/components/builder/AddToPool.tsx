@@ -10,13 +10,14 @@
  *       finds it by what it shows.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { type BucketEntry, bucketOptionLabel } from "@haruhimemoe/pool";
 import { Button, Select } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
 type AddToPoolProps = {
@@ -38,6 +39,7 @@ const NO_SLOT = "";
  * @returns {JSX.Element} Add to <slot>, or Choose slot with an inline picker, or "In this pool"
  */
 export function AddToPool(props: AddToPoolProps) {
+  const t = useTranslations("pools.addToPool");
   const { beatmapId, version, buckets, defaultBucket, inPool, onAdd } = props;
   const selectId = useId();
   const addButton = useRef<HTMLButtonElement>(null);
@@ -65,10 +67,10 @@ export function AddToPool(props: AddToPoolProps) {
   };
   // Each name starts with the words on the button (WCAG 2.5.3), then says which difficulty.
   const addName = inPool
-    ? `In this pool: ${version}`
+    ? t("inThisPoolVersion", { version })
     : defaultBucket === null
-      ? `Add ${version}: choose a slot`
-      : `Add to ${defaultBucket}: ${version}`;
+      ? t("addVersionChooseA", { version })
+      : t("addToDefaultbucketVersion", { defaultBucket, version });
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
@@ -79,16 +81,20 @@ export function AddToPool(props: AddToPoolProps) {
           aria-disabled={inPool || undefined}
           onClick={add}
         >
-          {inPool ? "In this pool" : defaultBucket === null ? "Add" : `Add to ${defaultBucket}`}
+          {inPool
+            ? t("inThisPool")
+            : defaultBucket === null
+              ? "Add"
+              : t("addToDefaultbucket", { defaultBucket })}
         </Button>
         {inPool ? null : (
           <Button
             variant="ghost"
-            aria-label={`Choose slot for ${version}`}
+            aria-label={t("chooseSlotForVersion", { version })}
             aria-expanded={open}
             onClick={() => (open ? close() : setOpen(true))}
           >
-            Choose slot
+            {t("chooseSlot")}
           </Button>
         )}
       </div>
@@ -98,7 +104,7 @@ export function AddToPool(props: AddToPoolProps) {
           <Select
             ref={select}
             id={selectId}
-            label="Slot"
+            label={t("slot")}
             value={picked}
             onChange={(event) => setPicked(event.target.value)}
           >
@@ -107,11 +113,11 @@ export function AddToPool(props: AddToPoolProps) {
                 {bucketOptionLabel(entry)}
               </option>
             ))}
-            <option value={NO_SLOT}>No slot</option>
+            <option value={NO_SLOT}>{t("noSlot")}</option>
           </Select>
-          <Button onClick={addPicked}>Add</Button>
+          <Button onClick={addPicked}>{t("add")}</Button>
           <Button variant="ghost" onClick={close}>
-            Cancel
+            {t("cancel")}
           </Button>
         </fieldset>
       ) : null}

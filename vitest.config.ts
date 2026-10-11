@@ -42,6 +42,7 @@ export default defineConfig({
           name: "unit",
           environment: "node",
           include: ["tests/unit/**/*.test.ts"],
+          setupFiles: ["tests/setup/intl.ts"],
           // A timezone west of UTC so date formatting bugs surface in tests.
           env: { TZ: "America/Los_Angeles" },
         },
@@ -52,7 +53,7 @@ export default defineConfig({
           name: "components",
           environment: "jsdom",
           include: ["tests/components/**/*.test.tsx"],
-          setupFiles: ["tests/setup/components.ts"],
+          setupFiles: ["tests/setup/intl.ts", "tests/setup/components.ts"],
           // The editor's tests click through many renders; a busy full run needs the room.
           testTimeout: 20_000,
         },
@@ -64,7 +65,7 @@ export default defineConfig({
           environment: "node",
           include: ["tests/integration/**/*.test.ts"],
           globalSetup: ["tests/setup/integration-global.ts"],
-          setupFiles: ["tests/setup/integration.ts"],
+          setupFiles: ["tests/setup/intl.ts", "tests/setup/integration.ts"],
           // One in-memory server and one "pools" database: files take turns.
           fileParallelism: false,
           hookTimeout: 60_000,

@@ -9,13 +9,14 @@
  *       table's live region.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, ConfirmDialog } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useContext, useState } from "react";
 import { ModerationNotice } from "@/components/admin/BuiltModerationArea";
 
@@ -27,6 +28,7 @@ type Props = { id: string; name: string; hidden: boolean };
  * @returns {JSX.Element | null} Hide or Unhide and Delete; nothing once the pool is deleted
  */
 export function BuiltPoolModeration({ id, name, hidden }: Props) {
+  const t = useTranslations("pools.builtPoolModeration");
   const router = useRouter();
   const say = useContext(ModerationNotice);
   const [pending, setPending] = useState(false);
@@ -80,13 +82,13 @@ export function BuiltPoolModeration({ id, name, hidden }: Props) {
         {hidden ? "Unhide" : "Hide"}
       </Button>
       <ConfirmDialog
-        trigger="Delete"
+        trigger={t("delete")}
         triggerProps={{ "aria-label": `Delete ${name}`, disabled: pending }}
-        title={`Delete ${name} for good?`}
-        description="It goes for its owner and editors too, with its pack on packs. This can't be undone."
+        title={t("deleteNameForGood", { name })}
+        description={t("itGoesForIts")}
         tone="destructive"
-        confirmLabel="Delete for good"
-        pendingLabel="Deleting…"
+        confirmLabel={t("deleteForGood")}
+        pendingLabel={t("deleting")}
         failedMessage={(error) => (error as Error).message}
         returnFocus={() => document.querySelector<HTMLElement>("[data-moderation-region]")}
         onConfirm={remove}

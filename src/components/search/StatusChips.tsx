@@ -4,12 +4,13 @@
  *       (ui's ChoiceChips), named by the Status row around it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { ChoiceChips } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { MAP_STATUS_LABELS, MAP_STATUSES, type MapStatus } from "@/constants/search";
 
 type Props = { value: MapStatus; onChange: (status: MapStatus) => void };
@@ -25,9 +26,10 @@ const STATUS_OPTIONS = MAP_STATUSES.map((status) => ({
  * @returns {JSX.Element} one status at a time as ui's ChoiceChips
  */
 export function StatusChips({ value, onChange }: Props) {
+  const t = useTranslations("pools.statusChips");
   return (
     <ChoiceChips
-      label="Status"
+      label={t("status")}
       hideLabel
       options={STATUS_OPTIONS}
       value={value}

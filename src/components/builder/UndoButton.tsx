@@ -5,12 +5,13 @@
  *       (those keep their own undo). Disabled with nothing to undo.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { isUndoKey, typesText } from "@/utils/undo-keys";
 
@@ -22,6 +23,7 @@ type UndoButtonProps = { steps: number; onUndo: () => void };
  * @returns {JSX.Element} Undo, with Ctrl/Cmd+Z outside text fields
  */
 export function UndoButton({ steps, onUndo }: UndoButtonProps) {
+  const t = useTranslations("pools.undoButton");
   const latest = useRef(onUndo);
   latest.current = onUndo;
   useEffect(() => {
@@ -43,7 +45,7 @@ export function UndoButton({ steps, onUndo }: UndoButtonProps) {
       }
       onClick={onUndo}
     >
-      Undo
+      {t("undo")}
     </Button>
   );
 }

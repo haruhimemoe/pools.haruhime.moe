@@ -5,10 +5,11 @@
  *       stars under their slot's mods sit outside it. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { formatStars } from "@haruhimemoe/osu/format";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 import type { BucketTargets } from "@/schemas/built-plan";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
@@ -33,6 +34,7 @@ const maps = (n: number) => `${n} ${n === 1 ? "map" : "maps"}`;
  *          range
  */
 export function TargetSummary({ groups, targets, maps: details, values }: TargetSummaryProps) {
+  const t = useTranslations("pools.targetSummary");
   const shortId = useId();
   const rangeId = useId();
   const gaps = targetGaps(groups, targets);
@@ -42,10 +44,10 @@ export function TargetSummary({ groups, targets, maps: details, values }: Target
     <>
       <section aria-labelledby={shortId} className="flex flex-col gap-1">
         <h3 id={shortId} className={H3}>
-          Targets short of maps
+          {t("targetsShortOfMaps")}
         </h3>
         {gaps.length === 0 ? (
-          <p className="text-c3">Every slot has the maps its target asks for.</p>
+          <p className="text-c3">{t("everySlotHasThe")}</p>
         ) : (
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
             {gaps.map((gap) => (
@@ -62,10 +64,10 @@ export function TargetSummary({ groups, targets, maps: details, values }: Target
       {ranged ? (
         <section aria-labelledby={rangeId} className="flex flex-col gap-1">
           <h3 id={rangeId} className={H3}>
-            Maps outside their star range
+            {t("mapsOutsideTheirStar")}
           </h3>
           {outside.length === 0 ? (
-            <p className="text-c3">Every map with known stars is in its slot's range.</p>
+            <p className="text-c3">{t("everyMapWithKnown")}</p>
           ) : (
             <ul className="flex flex-col gap-1">
               {outside.map((map) => (

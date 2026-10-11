@@ -7,12 +7,13 @@
  *       beside it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { formatRange, formatStars } from "@haruhimemoe/osu/format";
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { TargetSummary } from "@/components/builder/TargetSummary";
 import { MAX_SLOTS } from "@/constants/built-pools";
 import type { BucketTargets } from "@/schemas/built-plan";
@@ -42,6 +43,7 @@ const H3 = "font-bold text-c1";
  * @returns {JSX.Element} each bucket's map count and star range, and the targets
  */
 export function PoolSummary({ pool, maps, values = {} }: PoolSummaryProps) {
+  const t = useTranslations("pools.poolSummary");
   const groups = groupSlots(pool);
   const ordered = groups.flatMap((group) => group.slots);
   const ranges = starRanges(groups, maps, values);
@@ -54,9 +56,9 @@ export function PoolSummary({ pool, maps, values = {} }: PoolSummaryProps) {
         {count} {count === 1 ? "map" : "maps"} of {MAX_SLOTS}
       </p>
       <section className="flex flex-col gap-1">
-        <h3 className={H3}>Star range per slot (with its mods)</h3>
+        <h3 className={H3}>{t("starRangePerSlot")}</h3>
         {ranges.length === 0 ? (
-          <p className="text-c3">No maps yet.</p>
+          <p className="text-c3">{t("noMapsYet")}</p>
         ) : (
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
             {ranges.map((range) => (
@@ -72,9 +74,9 @@ export function PoolSummary({ pool, maps, values = {} }: PoolSummaryProps) {
         <TargetSummary groups={groups} targets={pool.targets} maps={maps} values={values} />
       ) : null}
       <section className="flex flex-col gap-1">
-        <h3 className={H3}>Same beatmapset twice</h3>
+        <h3 className={H3}>{t("sameBeatmapsetTwice")}</h3>
         {repeats.length === 0 ? (
-          <p className="text-c3">No beatmapset is in two slots.</p>
+          <p className="text-c3">{t("noBeatmapsetIsIn")}</p>
         ) : (
           <ul className="flex flex-col gap-1">
             {repeats.map((repeat) => (
@@ -86,9 +88,9 @@ export function PoolSummary({ pool, maps, values = {} }: PoolSummaryProps) {
         )}
       </section>
       <section className="flex flex-col gap-1">
-        <h3 className={H3}>Played in past pools</h3>
+        <h3 className={H3}>{t("playedInPastPools")}</h3>
         {played.length === 0 ? (
-          <p className="text-c3">None of these maps were in a past pool.</p>
+          <p className="text-c3">{t("noneOfTheseMaps")}</p>
         ) : (
           <ul className="flex flex-col gap-1">
             {played.map((map) => (

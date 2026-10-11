@@ -5,12 +5,13 @@
  *       sync state, the edit form, and badged for the whole tournament. 404 for an unknown id.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Card, Text } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { BadgedForm } from "@/components/admin/BadgedForm";
 import { PoolEditForm } from "@/components/admin/PoolEditForm";
 import { PoolView } from "@/components/pools/PoolView";
@@ -30,6 +31,7 @@ export const metadata: Metadata = { title: "Pool (admin)", robots: { index: fals
  *          edit form
  */
 export default async function AdminPoolPage({ params }: PageProps<"/admin/pools/[id]">) {
+  const t = await getTranslations("pools.pages.adminPoolsId");
   const { id } = await params;
   await requireAdmin(`/admin/pools/${id}`);
   const pool = await getPoolById(id);
@@ -45,7 +47,7 @@ export default async function AdminPoolPage({ params }: PageProps<"/admin/pools/
         openInPacks={openInPacksHref(pool)}
         preview
       />
-      <Card title="Pack sync">
+      <Card title={t("packSync")}>
         <p className="text-sm">
           {pool.pack.state ?? "Never sent"}
           {pool.pack.slug ? ` · packs slug ${pool.pack.slug}` : ""}
@@ -55,7 +57,7 @@ export default async function AdminPoolPage({ params }: PageProps<"/admin/pools/
         </p>
         {pool.pack.error ? <Text tone="error">{pool.pack.error}</Text> : null}
       </Card>
-      <Card title="Edit">
+      <Card title={t("edit")}>
         <PoolEditForm
           poolId={pool._id}
           initial={{
@@ -68,7 +70,7 @@ export default async function AdminPoolPage({ params }: PageProps<"/admin/pools/
           }}
         />
       </Card>
-      <Card title="Badged, for the whole tournament">
+      <Card title={t("badgedForTheWhole")}>
         <BadgedForm tournamentKey={pool.tournamentKey} year={pool.year} />
       </Card>
     </div>

@@ -4,10 +4,11 @@
  *       superseded marks, and the pack's sync state.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Table, TBody, Td, Text, TextLink, THead, Th } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { AdminPoolRow } from "@/services/admin-pools";
 import { poolHeadline } from "@/utils/pool-text";
 
@@ -17,14 +18,15 @@ import { poolHeadline } from "@/utils/pool-text";
  * @returns {JSX.Element} the table of pools with their state and sync
  */
 export function AdminPoolTable({ rows }: { rows: readonly AdminPoolRow[] }) {
+  const t = useTranslations("pools.adminPoolTable");
   return (
     <Table>
       <THead>
         <tr>
-          <Th>Pool</Th>
-          <Th>Tournament</Th>
-          <Th>Marks</Th>
-          <Th>Pack</Th>
+          <Th>{t("pool")}</Th>
+          <Th>{t("tournament")}</Th>
+          <Th>{t("marks")}</Th>
+          <Th>{t("pack")}</Th>
         </tr>
       </THead>
       <TBody>

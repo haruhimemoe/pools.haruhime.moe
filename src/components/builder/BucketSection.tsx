@@ -8,13 +8,14 @@
  *       NM maps"). Its rows, candidates included, are BucketRows. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { isCustomBucket } from "@haruhimemoe/pool";
 import { Button, cx, MapGroup, SORTABLE_CONTAINER, type Sortable } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { BucketRows, type SlotActions } from "@/components/builder/BucketRows";
 import type { MoveTarget } from "@/components/builder/SlotRow";
 import type { BucketTarget, SlotNotes } from "@/schemas/built-plan";
@@ -51,6 +52,7 @@ type BucketSectionProps = Pick<SlotActions, "onNote" | "onRemove"> & {
  * @returns {JSX.Element} one bucket's heading, target, Find maps and rows, as a drop target
  */
 export function BucketSection(props: BucketSectionProps) {
+  const t = useTranslations("pools.bucketSection");
   const { group, maps, values, targets, plan, notes, sortable, candidates, ...on } = props;
   const { title, detail } = groupHeading(group.entry);
   const { code, entry, slots } = group;
@@ -77,19 +79,19 @@ export function BucketSection(props: BucketSectionProps) {
             {entry && isCustomBucket(entry) && slots.length === 0 ? (
               <Button
                 variant="ghost"
-                aria-label={`Remove slot ${code}`}
+                aria-label={t("removeSlotCode", { code })}
                 onClick={() => on.onRemoveBucket(code)}
               >
-                Remove slot
+                {t("removeSlot")}
               </Button>
             ) : null}
             <Button
               variant="secondary"
               data-control="find"
-              aria-label={`Find maps for ${code}`}
+              aria-label={t("findMapsForCode", { code })}
               onClick={() => on.onFind(code)}
             >
-              Find maps
+              {t("findMaps")}
             </Button>
           </>
         ) : undefined

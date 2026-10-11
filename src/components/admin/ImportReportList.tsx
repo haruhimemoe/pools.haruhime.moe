@@ -4,10 +4,11 @@
  *       report behind a disclosure.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { StoredImportReport } from "@/models/ImportReport";
 
 /**
@@ -16,7 +17,8 @@ import type { StoredImportReport } from "@/models/ImportReport";
  * @returns {JSX.Element} each report's time, counts and whether it finished
  */
 export function ImportReportList({ reports }: { reports: readonly StoredImportReport[] }) {
-  if (reports.length === 0) return <Text tone="muted">No imports yet.</Text>;
+  const t = useTranslations("pools.importReportList");
+  if (reports.length === 0) return <Text tone="muted">{t("noImportsYet")}</Text>;
   return (
     <ul className="flex flex-col gap-3">
       {reports.map((report) => (

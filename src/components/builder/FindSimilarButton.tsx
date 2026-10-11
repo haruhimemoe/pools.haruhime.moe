@@ -6,12 +6,13 @@
  *       name starts with the visible words, then names the map.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useFindSimilar } from "@/hooks/useFindSimilar";
 
 type FindSimilarButtonProps = {
@@ -26,15 +27,16 @@ type FindSimilarButtonProps = {
  * @returns {JSX.Element | null} the button, or nothing with no handler above it
  */
 export function FindSimilarButton({ beatmapId, label }: FindSimilarButtonProps) {
+  const t = useTranslations("pools.findSimilarButton");
   const onFindSimilar = useFindSimilar();
   if (!onFindSimilar) return null;
   return (
     <Button
       variant="ghost"
-      aria-label={`Find similar: ${label}`}
+      aria-label={t("findSimilarLabel", { label })}
       onClick={() => onFindSimilar({ id: beatmapId, label })}
     >
-      Find similar
+      {t("findSimilar")}
     </Button>
   );
 }

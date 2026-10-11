@@ -4,12 +4,13 @@
  *       page, filtered by text and by hidden, superseded or failed syncs.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { Button, ButtonLink, PageHeader, Select, TextInput } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { AdminPoolTable } from "@/components/admin/AdminPoolTable";
 import { MAX_QUERY_LENGTH } from "@/constants/search";
 import { SEO_SITE } from "@/constants/seo";
@@ -40,6 +41,7 @@ const SHOW_LABELS: Readonly<Record<AdminShow, string>> = {
  * @returns {Promise<JSX.Element>} every pool, 50 a page, with its state
  */
 export default async function AdminPoolsPage({ searchParams }: PageProps<"/admin/pools">) {
+  const t = await getTranslations("pools.pages.adminPools");
   await requireAdmin("/admin/pools");
   const params = await searchParams;
   const q = first(params.q).trim().slice(0, MAX_QUERY_LENGTH);
@@ -53,28 +55,28 @@ export default async function AdminPoolsPage({ searchParams }: PageProps<"/admin
     `/admin/pools?${new URLSearchParams({ q, show, page: String(to) }).toString()}`;
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Every pool" meta={`${result.total} pools`} />
+      <PageHeader title={t("everyPool")} meta={t("totalPools", { total: result.total })} />
       <form method="get" className="flex flex-wrap items-end gap-3">
-        <TextInput id="admin-q" name="q" label="Search" defaultValue={q} />
-        <Select id="admin-show" name="show" label="Show" defaultValue={show}>
+        <TextInput id="admin-q" name="q" label={t("search")} defaultValue={q} />
+        <Select id="admin-show" name="show" label={t("show")} defaultValue={show}>
           {ADMIN_SHOWS.map((value) => (
             <option key={value} value={value}>
               {SHOW_LABELS[value]}
             </option>
           ))}
         </Select>
-        <Button type="submit">Filter</Button>
+        <Button type="submit">{t("filter")}</Button>
       </form>
       <AdminPoolTable rows={result.rows} />
-      <nav aria-label="Pages" className="flex gap-3">
+      <nav aria-label={t("pages")} className="flex gap-3">
         {page > 1 ? (
           <ButtonLink href={href(page - 1)} variant="secondary">
-            Previous
+            {t("previous")}
           </ButtonLink>
         ) : null}
         {page < result.pageCount ? (
           <ButtonLink href={href(page + 1)} variant="secondary">
-            Next
+            {t("next")}
           </ButtonLink>
         ) : null}
       </nav>

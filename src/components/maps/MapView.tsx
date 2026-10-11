@@ -7,7 +7,7 @@
  *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { setDownloadUrl } from "@haruhimemoe/mirror/hinai";
@@ -22,6 +22,7 @@ import {
   StatList,
   Text,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { MapHistoryTable } from "@/components/maps/MapHistoryTable";
 import type { StoredMap } from "@/schemas/map";
@@ -44,9 +45,10 @@ export function MapView({
   history: readonly HistoryRow[];
   sentence?: string;
 }) {
+  const t = useTranslations("pools.mapView");
   const details: [string, ReactNode][] = [
-    ["Set host", map.setHost ?? "Not known"],
-    ["Stars (no mod)", map.stars === null ? "–" : <StarRating key="stars" value={map.stars} />],
+    [t("setHost"), map.setHost ?? t("notKnown")],
+    [t("starsNoMod"), map.stars === null ? "–" : <StarRating key="stars" value={map.stars} />],
   ];
   return (
     <article className="flex flex-col gap-6">
@@ -54,28 +56,28 @@ export function MapView({
         <MapCover
           beatmapsetId={map.setId}
           size="cover@2x"
-          alt={map.title ? `${map.artist ?? "Unknown artist"} - ${map.title} cover` : ""}
+          alt={map.title ? `${map.artist ?? t("unknownArtist")} - ${map.title} cover` : ""}
           className="h-auto w-full rounded-lg"
         />
       ) : null}
       <PageHeader
         title={mapLabel(map, map._id)}
         lead={usageSummary(map.usage)}
-        meta={`Beatmap ${map._id}`}
+        meta={t("beatmapId", { id: map._id })}
         actions={
           <>
             <ButtonLink href={beatmapUrl(map._id)} variant="secondary">
-              Open on osu!
+              {t("openOnOsu")}
             </ButtonLink>
             {map.setId !== null ? (
               <ButtonLink href={setDownloadUrl(map.setId)} variant="secondary">
-                Download from the mirror
+                {t("downloadFromTheMirror")}
               </ButtonLink>
             ) : null}
           </>
         }
       />
-      <Card title="Details">
+      <Card title={t("details")}>
         <StatList
           variant="grid"
           items={details.map(([label, value]) => ({ label, value }))}
@@ -91,10 +93,10 @@ export function MapView({
           className="mt-3 text-sm"
         />
       </Card>
-      <Card title="Tournament history">
+      <Card title={t("tournamentHistory")}>
         {sentence ? <p className="mb-3 text-c2">{sentence}</p> : null}
         {history.length === 0 ? (
-          <Text tone="muted">No current pool uses this map.</Text>
+          <Text tone="muted">{t("noCurrentPoolUses")}</Text>
         ) : (
           <MapHistoryTable rows={history} />
         )}

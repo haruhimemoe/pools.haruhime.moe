@@ -4,13 +4,14 @@
  *       50 a click) and says what was removed, kept and still failing, or why nothing was tried.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { AsyncButton } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cleanupSummaryText, type PackCleanupSummary } from "@/utils/pack-cleanup";
 
 /**
@@ -19,6 +20,7 @@ import { cleanupSummaryText, type PackCleanupSummary } from "@/utils/pack-cleanu
  *          did said beside it, then the page refreshes
  */
 export function RetryPackCleanupButton() {
+  const t = useTranslations("pools.retryPackCleanupButton");
   const router = useRouter();
   const retry = async (): Promise<string> => {
     const response = await fetch("/api/admin/pack-cleanup", {
@@ -36,11 +38,11 @@ export function RetryPackCleanupButton() {
     <AsyncButton
       variant="secondary"
       action={retry}
-      pendingLabel="Retrying…"
-      failedMessage="The retry didn't reach the server."
+      pendingLabel={t("retrying")}
+      failedMessage={t("theRetryDidnT")}
       wrapperClassName="flex-col items-start gap-2"
     >
-      Retry pack cleanup
+      {t("retryPackCleanup")}
     </AsyncButton>
   );
 }

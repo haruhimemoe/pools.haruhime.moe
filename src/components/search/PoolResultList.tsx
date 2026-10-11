@@ -5,13 +5,17 @@
  *       for a pool built here "Built by <owner>".
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { formatRange, formatStars } from "@haruhimemoe/osu/format";
 import { Surface, Text, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { PoolResult } from "@/schemas/search-response";
 import { badgedText, builtHeadline, poolHeadline } from "@/utils/pool-text";
+
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
 
 const starsOf = ({ srMin, srMax, complete }: PoolResult["stats"]): string =>
   complete && srMin !== null && srMax !== null
@@ -22,8 +26,8 @@ const starsOf = ({ srMin, srMax, complete }: PoolResult["stats"]): string =>
 const headlineOf = (pool: PoolResult): string =>
   pool.kind === "built" ? builtHeadline({ ...pool, round: pool.round ?? "" }) : poolHeadline(pool);
 
-const builtByText = (owner: string | null): string =>
-  owner ? `Built by ${owner}` : "Built on pools";
+const builtByText = (t: T, owner: string | null): string =>
+  owner ? t("builtByOwner", { owner }) : t("builtOnPools");
 
 /**
  * @function PoolResultList
@@ -31,6 +35,7 @@ const builtByText = (owner: string | null): string =>
  * @returns {JSX.Element} each pool with its round, year, maps and star range
  */
 export function PoolResultList({ results }: { results: readonly PoolResult[] }) {
+  const t = useTranslations("pools.poolResultList");
   return (
     <ul className="flex flex-col gap-3">
       {results.map((pool) => {
@@ -44,7 +49,7 @@ export function PoolResultList({ results }: { results: readonly PoolResult[] }) 
             <Text tone="muted">
               {[
                 `${pool.stats.count} ${pool.stats.count === 1 ? "map" : "maps"}`,
-                pool.kind === "built" ? builtByText(pool.builtBy) : starsOf(pool.stats),
+                pool.kind === "built" ? builtByText(t, pool.builtBy) : starsOf(pool.stats),
                 badged,
               ]
                 .filter(Boolean)

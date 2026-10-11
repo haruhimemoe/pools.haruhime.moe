@@ -11,15 +11,17 @@
  *       store, then goes home.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
+import { uiLabels } from "@haruhimemoe/next-kit/i18n";
 import type { Command, Provider } from "@haruhimemoe/ui";
 import { CommandPalette, siteCommands } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
-import { NAV_LINKS, SITE } from "@/constants/site";
+import { navLinks, SITE } from "@/constants/site";
 import { accountStore, signOutHere, useAccount } from "@/lib/account";
 import type { SearchResponse } from "@/schemas/search-response";
 
@@ -27,9 +29,9 @@ import type { SearchResponse } from "@/schemas/search-response";
 const MAX_RESULTS = 8;
 
 /** Searches public pools by name (GET /api/search, cookie-free, 5 minutes cached by the CDN). */
-const poolsProvider: Provider = {
+const poolsProvider = (group: string): Provider => ({
   id: "pools.search",
-  group: "Pools",
+  group,
   search: async (query, signal) => {
     const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal });
     if (!response.ok) return [];
@@ -40,20 +42,23 @@ const poolsProvider: Provider = {
         id: `pools.search.${pool.id}`,
         title: pool.name,
         subtitle: [pool.tournament, pool.round].filter(Boolean).join(" · ") || undefined,
-        group: "Pools",
+        group,
         // Built pool ids carry their own "b-" prefix; next.config.ts rewrites /pools/<id>
         // for both kinds, so one href covers past and built pools.
         run: (ctx) => ctx.navigate(`/pools/${pool.id}`),
       }),
     );
   },
-};
+});
 
 /**
  * @function AppPalette
  * @returns {JSX.Element} the mounted CommandPalette, empty until opened
  */
 export function AppPalette() {
+  const t = useTranslations("pools");
+  const tUi = useTranslations("ui");
+  const ui = useMemo(() => uiLabels(tUi), [tUi]);
   const account = useAccount();
   const signedIn = account.status === "signed-in";
 
@@ -61,29 +66,29 @@ export function AppPalette() {
     () => [
       {
         id: "pools.new",
-        title: "New pool",
-        subtitle: "Start one from scratch, or copy a pool to build on",
-        group: "Pools",
+        title: t("palette.new"),
+        subtitle: t("palette.newSub"),
+        group: t("palette.pools"),
         run: (ctx) => ctx.navigate("/new"),
       },
       {
         id: "pools.search-maps",
-        title: "Search maps",
-        subtitle: "Every osu! map played in a pool, or all of them",
-        group: "Pools",
+        title: t("palette.searchMaps"),
+        subtitle: t("palette.searchMapsSub"),
+        group: t("palette.pools"),
         run: (ctx) => ctx.navigate("/search?tab=maps"),
       },
       {
         id: "pools.my-pools",
-        title: "My pools",
-        group: "Pools",
+        title: t("palette.myPools"),
+        group: t("palette.pools"),
         when: () => signedIn,
         run: (ctx) => ctx.navigate("/account#pools"),
       },
       {
         id: "pools.sign-out",
-        title: "Sign out",
-        group: "Account",
+        title: ui.account.signOut,
+        group: ui.siteCommands.account,
         when: () => signedIn,
         run: async (ctx) => {
           await signOutHere();
@@ -92,14 +97,25 @@ export function AppPalette() {
         },
       },
       ...siteCommands({
-        pages: NAV_LINKS,
+        pages: navLinks(t),
         tools: "pools",
         repo: SITE.repoUrl,
         account: { signedIn, signInHref: "/signin", accountHref: "/account" },
+        labels: ui.siteCommands,
       }),
     ],
-    [signedIn],
+    [signedIn, t, ui],
   );
 
-  return <CommandPalette storageKey="pools" commands={commands} providers={[poolsProvider]} />;
+  const providers = useMemo(() => [poolsProvider(t("palette.pools"))], [t]);
+  return (
+    <CommandPalette
+      storageKey="pools"
+      commands={commands}
+      providers={providers}
+      labels={ui.palette}
+      placeholder={ui.paletteProps.placeholder}
+      label={ui.paletteProps.label}
+    />
+  );
 }

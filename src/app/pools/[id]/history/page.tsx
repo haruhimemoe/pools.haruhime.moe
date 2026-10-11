@@ -8,12 +8,13 @@
  *       rendered per request; never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { EmptyState, LinkRow, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { ChangeList } from "@/components/history/ChangeList";
 import { HistoryTable } from "@/components/history/HistoryTable";
 import { HistoryVisibilityForm } from "@/components/history/HistoryVisibilityForm";
@@ -39,6 +40,7 @@ export default async function PoolHistoryPage({
   params,
   searchParams,
 }: PageProps<"/pools/[id]/history">) {
+  const t = await getTranslations("pools.pages.poolsIdHistory");
   const { id } = await params;
   if (!BUILT_POOL_ID_PATTERN.test(id)) notFound();
   const query = await searchParams;
@@ -57,7 +59,7 @@ export default async function PoolHistoryPage({
   const shown = selected ? await loadPoolRevision(id, caller, selected) : null;
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={`History of ${pool.name}`} />
+      <PageHeader title={t("historyOfName", { name: pool.name })} />
       <LinkRow
         items={[
           { href: `/pools/${id}`, label: "Back to the pool" },

@@ -5,17 +5,19 @@
  *       holds and a link to its editor; "Make a pool" goes to /new. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { ButtonLink, TextLink, textClasses } from "@haruhimemoe/ui";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { VISIBILITY_TEXT } from "@/constants/built-pools";
 import type { PoolListItem, YourPools as Pools } from "@/services/built-pools";
 
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 function PoolList({ title, pools }: { title: string; pools: PoolListItem[] }) {
+  const t = useTranslations("pools.yourPools");
   if (pools.length === 0) return null;
   return (
     <div className="flex flex-col gap-2">
@@ -36,10 +38,10 @@ function PoolList({ title, pools }: { title: string; pools: PoolListItem[] }) {
               </span>
               <Link
                 href={`/pools/${pool.id}/edit`}
-                aria-label={`Edit ${pool.name}`}
+                aria-label={t("editName", { name: pool.name })}
                 className="font-bold text-c2 hover:text-c1"
               >
-                Edit
+                {t("edit")}
               </Link>
             </span>
           </li>
@@ -55,11 +57,12 @@ function PoolList({ title, pools }: { title: string; pools: PoolListItem[] }) {
  * @returns {JSX.Element} Your pools: each pool with its page and editor links, and Make a pool
  */
 export function YourPools({ owned, editing }: Pools) {
-  const make = <ButtonLink href="/new">Make a pool</ButtonLink>;
+  const t = useTranslations("pools.yourPools");
+  const make = <ButtonLink href="/new">{t("makeAPool")}</ButtonLink>;
   if (owned.length === 0 && editing.length === 0) {
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-c2 text-sm">You haven't made a pool yet.</p>
+        <p className="text-c2 text-sm">{t("youHavenTMade")}</p>
         {make}
       </div>
     );
@@ -70,8 +73,8 @@ export function YourPools({ owned, editing }: Pools) {
         You own {count(owned.length, "pool", "pools")} and edit {editing.length}.
       </p>
       {make}
-      <PoolList title="Yours" pools={owned} />
-      <PoolList title="You edit" pools={editing} />
+      <PoolList title={t("yours")} pools={owned} />
+      <PoolList title={t("youEdit")} pools={editing} />
     </div>
   );
 }

@@ -7,12 +7,13 @@
  *       version history page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { LinkRow, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { ClientActivity } from "@/schemas/activity";
@@ -26,6 +27,7 @@ type RecentChangesProps = { poolId: string; version: number; fetcher: Fetcher };
  * @returns {JSX.Element} the last 20 changes, asked again whenever the version moves
  */
 export function RecentChanges({ poolId, version, fetcher }: RecentChangesProps) {
+  const t = useTranslations("pools.recentChanges");
   const [entries, setEntries] = useState<ClientActivity[] | null>(null);
   const [failed, setFailed] = useState(false);
   // biome-ignore lint/correctness/useExhaustiveDependencies: asked again on each new version.
@@ -43,16 +45,14 @@ export function RecentChanges({ poolId, version, fetcher }: RecentChangesProps) 
     };
   }, [poolId, version, fetcher]);
   if (entries === null) {
-    return <Text tone="muted">{failed ? "Recent changes didn't load." : "Loading…"}</Text>;
+    return <Text tone="muted">{failed ? t("recentChangesDidnT2") : t("loading")}</Text>;
   }
   const now = new Date();
   return (
     <div className="flex flex-col gap-2 text-sm">
-      {failed ? (
-        <p className="text-c3">Recent changes didn't load; this is the last list.</p>
-      ) : null}
+      {failed ? <p className="text-c3">{t("recentChangesDidnT")}</p> : null}
       {entries.length === 0 ? (
-        <p className="text-c3">No changes yet.</p>
+        <p className="text-c3">{t("noChangesYet")}</p>
       ) : (
         <ol className="flex flex-col gap-2">
           {entries.map((entry) => (
@@ -65,7 +65,7 @@ export function RecentChanges({ poolId, version, fetcher }: RecentChangesProps) 
           ))}
         </ol>
       )}
-      <LinkRow items={[{ href: `/pools/${poolId}/history`, label: "Full history" }]} />
+      <LinkRow items={[{ href: `/pools/${poolId}/history`, label: t("fullHistory") }]} />
     </div>
   );
 }
