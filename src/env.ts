@@ -12,7 +12,7 @@
  *       request. Errors name variables and never print values.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Thu Oct 8, 2026
  */
 
 import "server-only";
@@ -60,6 +60,8 @@ export const HUB_URL_KEY = "HUB_URL";
 export const ACCOUNT_FANOUT_SECRET_KEY = "ACCOUNT_FANOUT_SECRET";
 /** harumin's bearer secret for the similar-maps route /practice calls. */
 export const HARUMIN_SERVICE_SECRET_KEY = "HARUMIN_SERVICE_SECRET";
+/** tourney.haruhime.moe's bearer secret for reading pools by id. */
+export const TOURNEY_SERVICE_SECRET_KEY = "TOURNEY_SERVICE_SECRET";
 /** The variables read on every call, for .env.example's test. */
 export const OPTIONAL_ENV_KEYS = [
   ADMIN_OSU_IDS_KEY,
@@ -69,6 +71,7 @@ export const OPTIONAL_ENV_KEYS = [
   HUB_URL_KEY,
   ACCOUNT_FANOUT_SECRET_KEY,
   HARUMIN_SERVICE_SECRET_KEY,
+  TOURNEY_SERVICE_SECRET_KEY,
 ] as const;
 
 /** packs' origin when PACKS_URL isn't set. */
@@ -151,3 +154,11 @@ export const getAccountFanoutSecret = (): string | undefined =>
  */
 export const getHaruminServiceSecret = (): string | undefined =>
   readOptional(HARUMIN_SERVICE_SECRET_KEY);
+
+/**
+ * @function getTourneyServiceSecret
+ * @returns {string | undefined} TOURNEY_SERVICE_SECRET read now; undefined when unset (the
+ *          /api/internal/pools route then answers 503 to every call)
+ */
+export const getTourneyServiceSecret = (): string | undefined =>
+  readOptional(TOURNEY_SERVICE_SECRET_KEY);
