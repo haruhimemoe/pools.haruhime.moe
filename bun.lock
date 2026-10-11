@@ -7,8 +7,7 @@
       "dependencies": {
         "@haruhimemoe/brand": "0.10.0",
         "@haruhimemoe/compliance": "0.1.1",
-        "@haruhimemoe/messages": "/private/tmp/claude-501/-Users-david-Documents-obsidian-vault/48be55d9-fccc-4299-b087-5331dd6e4515/scratchpad/messages-1791722417317844000.tgz",
-        "@haruhimemoe/messages": "/private/tmp/claude-501/-Users-david-Documents-obsidian-vault/48be55d9-fccc-4299-b087-5331dd6e4515/scratchpad/messages-1791722072930103000.tgz",
+        "@haruhimemoe/messages": "0.1.0",
         "@haruhimemoe/mirror": "0.2.0",
         "@haruhimemoe/next-kit": "0.19.1",
         "@haruhimemoe/osu": "0.7.0",
@@ -147,7 +146,7 @@
 
     "@haruhimemoe/compliance": ["@haruhimemoe/compliance@0.1.1", "", {}, "sha512-a6beDNLA7M3mX5nb5yz1XHNexBt9cc3o56c4kL3Th+NgK9QQGVcykLpDkasqz8VyUbrsvIsUkd55ndIMwSeTrg=="],
 
-    "@haruhimemoe/messages": ["@haruhimemoe/messages@/private/tmp/claude-501/-Users-david-Documents-obsidian-vault/48be55d9-fccc-4299-b087-5331dd6e4515/scratchpad/messages-1791722417317844000.tgz", { "bin": { "messages-check-keys": "./bin/check-keys.mjs" } }, "sha512-/DKKl+Qe2V+QoevYudIhP1n+AlGocHDYhLx6DpTH1FiC6S16Va3aj8NrLI08zQ/+vRJRIEss6qZg/b1pR8dGrA=="],
+    "@haruhimemoe/messages": ["@haruhimemoe/messages@0.1.0", "", { "bin": { "messages-check-keys": "bin/check-keys.mjs" } }, "sha512-FOeJ7ILApIfPIw+fLA7Re1M8Pcd/2pull7mCSvi0042U2XZxGPK/3Uh/1rTYmb0chH2ZaSPsxHjVrhRVNLPgpA=="],
 
     "@haruhimemoe/mirror": ["@haruhimemoe/mirror@0.2.0", "", { "dependencies": { "@haruhimemoe/osu": "^0.7.0" }, "peerDependencies": { "msw": "^2.0.0 || ^3.0.0", "zod": "^4.0.16" }, "optionalPeers": ["msw"] }, "sha512-bT/FIY6m1vWaXLQBbJISCifTrsnkzYk2Pr+s8Iu4ikDS9KNllj3JOHgk0DgKHcWIV/o/khXz6SDZR8oxRbzlqA=="],
 
