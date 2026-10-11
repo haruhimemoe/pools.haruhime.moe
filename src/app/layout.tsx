@@ -8,7 +8,7 @@
  *       mounts the site's one command palette here, so Ctrl K (Cmd K) works from every page.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { pwaMetadata, pwaViewport, ServiceWorkerRegister } from "@haruhimemoe/next-kit/pwa";
@@ -24,6 +24,7 @@ import { PWA } from "@/constants/pwa";
 import { SEO_SITE } from "@/constants/seo";
 import { isBeta } from "@/lib/beta";
 import "./globals.css";
+import { NextIntlClientProvider, useLocale, useTranslations } from "next-intl";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", display: "swap" });
 
@@ -40,13 +41,21 @@ export const viewport: Viewport = pwaViewport(PWA);
  *          footer
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const locale = useLocale();
+  const ui = useTranslations("ui");
   return (
-    <html lang="en" className={nunito.variable}>
+    <html lang={locale} className={nunito.variable}>
       <body className="bg-b5 font-sans text-c2 antialiased">
-        <AppPalette />
-        <PageShell header={<Header beta={isBeta()} />} footer={<Footer />}>
-          {children}
-        </PageShell>
+        <NextIntlClientProvider>
+          <AppPalette />
+          <PageShell
+            header={<Header beta={isBeta()} />}
+            footer={<Footer />}
+            skipLabel={ui("shell.skip")}
+          >
+            {children}
+          </PageShell>
+        </NextIntlClientProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

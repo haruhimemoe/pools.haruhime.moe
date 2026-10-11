@@ -8,7 +8,7 @@
  *       Catches the header up when its store missed the session.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { osuAvatarSrc } from "@haruhimemoe/next-kit/auth-react";
@@ -17,6 +17,7 @@ import { userUrl } from "@haruhimemoe/osu/shapes";
 import { ButtonLink, Card, PageHeader, TextLink } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { ApiKeySection } from "@/components/account/ApiKeySection";
 import { DeletePoolsDataForm } from "@/components/account/DeletePoolsDataForm";
 import { YourPools } from "@/components/account/YourPools";
@@ -41,6 +42,7 @@ export const metadata: Metadata = pageMetadata(SEO_SITE, {
  *          delete-my-pools-data form (a visitor goes to sign in)
  */
 export default async function AccountPage() {
+  const t = await getTranslations("pools.pages.account");
   const user = await requireUser("/account");
   const avatar = osuAvatarSrc(user.avatarUrl);
   const [pools, apiKey] = await Promise.all([listBuiltPoolsFor(user), apiKeys.info(user.id)]);
@@ -48,19 +50,19 @@ export default async function AccountPage() {
     <div className="flex flex-col gap-6">
       <RestoreSignedIn />
       <PageHeader
-        title="pools settings"
+        title={t("poolsSettings")}
         actions={
           <>
             {user.isAdmin ? (
               <ButtonLink href="/admin" variant="secondary">
-                Admin
+                {t("admin")}
               </ButtonLink>
             ) : null}
             <SignOutButton />
           </>
         }
       />
-      <Card title="Your osu! account">
+      <Card title={t("yourOsuAccount")}>
         <div className="flex items-center gap-3">
           {avatar ? (
             <Image src={avatar} alt="" width={48} height={48} className="rounded-full" />
@@ -71,14 +73,14 @@ export default async function AccountPage() {
         </div>
         <p className="mt-3 text-c3 text-sm">
           Your sessions and deleting your haruhime account are on{" "}
-          <TextLink href={HUB_ACCOUNT_URL}>haruhime.moe/account</TextLink>.
+          <TextLink href={HUB_ACCOUNT_URL}>{t("haruhimeMoeAccount")}</TextLink>.
         </p>
       </Card>
-      <Card id="pools" title="Your pools">
+      <Card id="pools" title={t("yourPools")}>
         <YourPools {...pools} />
       </Card>
       <ApiKeySection initial={apiKey} />
-      <Card title="Delete my pools data">
+      <Card title={t("deleteMyPoolsData")}>
         <DeletePoolsDataForm username={user.username} deletes={DELETES_POOLS_DATA} />
       </Card>
     </div>

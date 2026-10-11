@@ -8,7 +8,7 @@
  *       packages it's built with, and the affiliation notice. Static.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { RULE_LINKS, UPSTREAM } from "@haruhimemoe/compliance";
@@ -16,6 +16,7 @@ import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { PageHeader, Prose } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PAGE_SEO, SEO_SITE } from "@/constants/seo";
 import { BOBERT_CREDIT } from "@/constants/similar";
 import { SITE } from "@/constants/site";
@@ -33,14 +34,12 @@ const PACKAGES = ["pool", "osu", "hinai", "compliance", "ui", "brand"] as const;
  * @returns {JSX.Element} who the data and code come from
  */
 export default function CreditsPage() {
+  const t = useTranslations("pools.pages.credits");
   return (
     <article>
-      <PageHeader
-        title="Credits"
-        lead="pools is built on other people's work. This is where everything comes from."
-      />
+      <PageHeader title={t("credits")} lead={t("poolsIsBuiltOn")} />
       <Prose className="mt-6">
-        <h2>Pool data</h2>
+        <h2>{t("poolData")}</h2>
         <p>
           Some past pools come from <a href="https://otdb.sheppsu.me">otdb</a>, by Sheppsu, through
           its public export, used with his permission. Their pool pages link the pool on otdb.
@@ -50,14 +49,14 @@ export default function CreditsPage() {
           each pool page credits who sent it, unless they asked not to be named. To send one, see{" "}
           <Link href="/submit">Submit a pool</Link>.
         </p>
-        <h2>Map details</h2>
+        <h2>{t("mapDetails")}</h2>
         <p>
           Map details and star ratings come from the{" "}
           <a href="https://mirror.hinamizawa.ai">hinai mirror</a>, which serves osu! API data. A map
           the mirror doesn't have keeps what its source gave. Star ratings with mods come from the
           mirror too, and can differ slightly from osu!'s.
         </p>
-        <h2>Similar maps</h2>
+        <h2>{t("similarMaps")}</h2>
         <p>
           Find similar in the map browser uses <a href={BOBERT_CREDIT.url}>BoBERT</a>, by{" "}
           {BOBERT_CREDIT.author} ({BOBERT_CREDIT.license}), with his permission. BoBERT reads each
@@ -66,7 +65,7 @@ export default function CreditsPage() {
           Its matches leave out AR, OD and CS. Maps it doesn't cover get a plain difficulty match
           instead, and the browser says which one you're looking at.
         </p>
-        <h2>Content rules</h2>
+        <h2>{t("contentRules")}</h2>
         <p>
           The check follows the osu! wiki's{" "}
           <a href={RULE_LINKS.contentUsage}>content usage permissions</a> and{" "}
@@ -75,7 +74,7 @@ export default function CreditsPage() {
           from the osu! API. Its results are guidance, not rulings: the osu! Tournament Committee
           decides.
         </p>
-        <h2>Built with</h2>
+        <h2>{t("builtWith")}</h2>
         <ul>
           {PACKAGES.map((name) => (
             <li key={name}>

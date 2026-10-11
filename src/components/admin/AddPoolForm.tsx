@@ -10,12 +10,13 @@
  *       field.
  * @author David @dvhsh (https://dvh.sh)
  * @created Fri Sep 25, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Select, Textarea, TextInput, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { type AddPoolAnswer as Answer, outcomeText } from "@/utils/add-pool-text";
 
@@ -30,6 +31,7 @@ const YEAR_FORMAT = "Type the year as four digits, like 2024, or leave it empty.
  * @returns {JSX.Element} the add-a-pool form, with what happened (or each refusal) beside it
  */
 export function AddPoolForm() {
+  const t = useTranslations("pools.addPoolForm");
   const [kind, setKind] = useState<"host" | "community">("host");
   const [creditName, setCreditName] = useState("");
   const [creditUrl, setCreditUrl] = useState("");
@@ -62,7 +64,7 @@ export function AddPoolForm() {
     setAnswer(null);
     if (year.trim() !== "" && !/^\d{4}$/u.test(year.trim())) {
       setErrors({ year: YEAR_FORMAT });
-      setMessage("Fix the fields marked above.");
+      setMessage(t("fixTheFieldsMarked"));
       return;
     }
     setPending(true);
@@ -98,7 +100,7 @@ export function AddPoolForm() {
         );
       }
     } catch {
-      setMessage("The pool wasn't added: the request didn't reach the server.");
+      setMessage(t("thePoolWasnT"));
     } finally {
       setPending(false);
     }
@@ -108,17 +110,17 @@ export function AddPoolForm() {
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <Select
         id="add-kind"
-        label="Sent by"
+        label={t("sentBy")}
         value={kind}
         error={errors.kind}
         onChange={(event) => setKind(event.target.value as "host" | "community")}
       >
-        <option value="host">The tournament's hosts</option>
-        <option value="community">A community member</option>
+        <option value="host">{t("theTournamentSHosts")}</option>
+        <option value="community">{t("aCommunityMember")}</option>
       </Select>
       <TextInput
         id="add-credit-name"
-        label="Name to credit"
+        label={t("nameToCredit")}
         hint='The hosts or the sender, as the pool page should name them. Write "a community member" when the sender would rather not be named.'
         value={creditName}
         error={errors.creditName}
@@ -126,8 +128,8 @@ export function AddPoolForm() {
       />
       <TextInput
         id="add-credit-url"
-        label="Credit link"
-        hint="Optional, https only: the forum post, sheet or site they gave."
+        label={t("creditLink")}
+        hint={t("optionalHttpsOnlyThe")}
         inputMode="url"
         value={creditUrl}
         error={errors.creditUrl}
@@ -135,23 +137,23 @@ export function AddPoolForm() {
       />
       <TextInput
         id="add-tournament"
-        label="Tournament"
+        label={t("tournament")}
         value={tournament}
         error={errors.tournament}
         onChange={(event) => setTournament(event.target.value)}
       />
       <TextInput
         id="add-round"
-        label="Round"
-        hint="Empty for none."
+        label={t("round")}
+        hint={t("emptyForNone")}
         value={round}
         error={errors.round}
         onChange={(event) => setRound(event.target.value)}
       />
       <TextInput
         id="add-year"
-        label="Year"
-        hint="Empty when it isn't known."
+        label={t("year")}
+        hint={t("emptyWhenItIsn")}
         inputMode="numeric"
         value={year}
         error={errors.year}
@@ -159,33 +161,33 @@ export function AddPoolForm() {
       />
       <Select
         id="add-badged"
-        label="Badged tournament"
+        label={t("badgedTournament")}
         value={badged}
         error={errors.badged}
         onChange={(event) => setBadged(event.target.value as keyof typeof BADGED_VALUES)}
       >
-        <option value="unknown">Not known</option>
-        <option value="yes">Badged</option>
-        <option value="no">Not badged</option>
+        <option value="unknown">{t("notKnown")}</option>
+        <option value="yes">{t("badged")}</option>
+        <option value="no">{t("notBadged")}</option>
       </Select>
       <Textarea
         id="add-notes"
-        label="Notes"
+        label={t("notes")}
         value={notes}
         error={errors.notes}
         onChange={(event) => setNotes(event.target.value)}
       />
       <Textarea
         id="add-maps"
-        label="Maps"
-        hint="A packs link or pack key, or one map per line with its slot (NM1 129891, HD1 https://osu.ppy.sh/b/75), or bare beatmap IDs. A pack's /p/ link doesn't work: use its key or /k link."
+        label={t("maps")}
+        hint={t("aPacksLinkOr")}
         rows={8}
         value={maps}
         error={errors.maps ?? errors.form}
         onChange={(event) => setMaps(event.target.value)}
       />
       <Button type="submit" disabled={pending}>
-        Add pool
+        {t("addPool")}
       </Button>
       <output className="text-c2 text-sm" aria-live="polite">
         {answer ? (

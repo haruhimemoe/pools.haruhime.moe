@@ -8,12 +8,13 @@
  *       settings go and onDone says who owns it. A refusal is said in the dialog.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { ConfirmDialog, RadioGroup, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { NO_HANDOVER } from "@/constants/built-pools";
 import { callPools, type Fetcher } from "@/lib/pool-client";
@@ -36,6 +37,7 @@ type TransferOwnerFormProps = {
  *          can take the pool over yet
  */
 export function TransferOwnerForm(props: TransferOwnerFormProps) {
+  const t = useTranslations("pools.transferOwnerForm");
   const { pool, editor, onDone, fetcher = fetch } = props;
   const [picked, setPicked] = useState<number | null>(null);
   const target = pool.editors.find((person) => person.osuId === picked && person.signedIn);
@@ -58,7 +60,7 @@ export function TransferOwnerForm(props: TransferOwnerFormProps) {
   return (
     <div className="flex flex-col gap-3 text-sm">
       <RadioGroup
-        label="New owner"
+        label={t("newOwner")}
         name="new-owner"
         value={picked === null ? "" : String(picked)}
         onChange={pick}
@@ -70,13 +72,13 @@ export function TransferOwnerForm(props: TransferOwnerFormProps) {
         }))}
       />
       <ConfirmDialog
-        trigger="Hand the pool over"
+        trigger={t("handThePoolOver")}
         triggerProps={{ disabled: !target }}
-        title={`Hand this pool to ${target?.username ?? "an editor"}?`}
-        description="They get every owner setting, and you stay on as an editor. Only they can give it back."
-        typeToConfirm={{ expected: pool.name, label: `Type ${pool.name} to hand it over` }}
-        confirmLabel="Hand it over"
-        pendingLabel="Handing over…"
+        title={t("handThisPoolTo", { editor: target?.username ?? "an editor" })}
+        description={t("theyGetEveryOwner")}
+        typeToConfirm={{ expected: pool.name, label: t("typeNameToHand", { name: pool.name }) }}
+        confirmLabel={t("handItOver")}
+        pendingLabel={t("handingOver")}
         failedMessage={(error) => (error as Error).message}
         returnFocus={() => document.querySelector<HTMLElement>("[data-handover]")}
         onConfirm={handOver}

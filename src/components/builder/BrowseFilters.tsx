@@ -8,12 +8,13 @@
  *       back to page 1. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Checkbox, FilterPanel, FilterRow, Select, Text, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { BrowseRanges } from "@/components/builder/BrowseRanges";
 import { StatusChips } from "@/components/search/StatusChips";
@@ -49,22 +50,23 @@ const isActive = (state: BrowseState): boolean => {
  * @returns {JSX.Element} the text, status, lens, sort and explicit filters
  */
 export function BrowseFilters(props: BrowseFiltersProps) {
+  const t = useTranslations("pools.browseFilters");
   const { state, lenses, valuesLens, onChange, resultCount } = props;
   const set = (patch: Partial<BrowseState>) => onChange({ ...state, ...patch, page: 1 });
   const withMods = isLensStatus(state.status);
   const lens = lensOf(state);
   return (
     <FilterPanel
-      title="Filters"
+      title={t("filters")}
       headingLevel={3}
       resultCount={resultCount}
       active={isActive(state)}
       onClear={() => onChange({ ...DEFAULT_BROWSE_STATE, q: state.q, lens: state.lens })}
     >
-      <FilterRow label="Mod lens">
+      <FilterRow label={t("modLens")}>
         <Select
           id="browse-lens"
-          label="Values under"
+          label={t("valuesUnder")}
           value={lens}
           disabled={!withMods}
           hint={withMods ? undefined : NO_MOD_VALUES}
@@ -77,23 +79,23 @@ export function BrowseFilters(props: BrowseFiltersProps) {
           ))}
         </Select>
       </FilterRow>
-      <FilterRow label="Search">
+      <FilterRow label={t("search")}>
         <TextInput
           id="browse-q"
-          label="Title, artist or mapper"
+          label={t("titleArtistOrMapper")}
           value={state.q}
           maxLength={MAX_QUERY_LENGTH}
           onChange={(event) => set({ q: event.target.value })}
         />
       </FilterRow>
-      <FilterRow label="Status">
+      <FilterRow label={t("status")}>
         <StatusChips value={state.status} onChange={(status) => set({ status })} />
       </FilterRow>
       {withMods ? (
-        <FilterRow label="Sort">
+        <FilterRow label={t("sort")}>
           <Select
             id="browse-sort"
-            label="Order"
+            label={t("order")}
             value={state.sort}
             onChange={(event) => set({ sort: event.target.value as BrowseSort })}
           >
@@ -110,29 +112,29 @@ export function BrowseFilters(props: BrowseFiltersProps) {
         lens={valuesLens}
         onChange={(key, value) => set({ [key]: value })}
       />
-      <FilterRow label="Hide">
+      <FilterRow label={t("hide")}>
         <div className="flex flex-col gap-2">
           <Checkbox
             id="browse-hide-in-pool"
-            label="Hide maps in this pool"
+            label={t("hideMapsInThis")}
             checked={state.hideInPool}
             onChange={(event) => set({ hideInPool: event.target.checked })}
           />
           <Checkbox
             id="browse-hide-played"
-            label="Hide maps played in past pools"
+            label={t("hideMapsPlayedIn")}
             checked={state.hidePlayed}
             onChange={(event) => set({ hidePlayed: event.target.checked })}
           />
         </div>
       </FilterRow>
-      <FilterRow label="Explicit">
+      <FilterRow label={t("explicit")}>
         {withMods ? (
           <Text tone="muted">{EXPLICIT_LINE}</Text>
         ) : (
           <Checkbox
             id="browse-explicit"
-            label="Show explicit maps"
+            label={t("showExplicitMaps")}
             checked={state.explicit}
             onChange={(event) => set({ explicit: event.target.checked })}
           />

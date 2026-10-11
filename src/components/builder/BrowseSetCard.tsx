@@ -12,7 +12,7 @@
  *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import type { BucketEntry } from "@haruhimemoe/pool";
@@ -23,6 +23,7 @@ import {
   type MapSetDifficulty,
   TextLink,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { AddAsCandidate } from "@/components/builder/AddAsCandidate";
 import { AddToPool } from "@/components/builder/AddToPool";
 import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
@@ -48,14 +49,12 @@ type BrowseSetCardProps = {
 const similarityOf = (diff: BrowseDiff): number | null =>
   "similarity" in diff && typeof diff.similarity === "number" ? diff.similarity : null;
 
-const played = ({ id, playedIn }: BrowseDiff) => {
-  if (playedIn === null) return <span>Pool history unavailable</span>;
-  if (playedIn === 0) return <span>Not played in a past pool</span>;
-  return (
-    <TextLink href={`/maps/${id}`}>
-      Played in {playedIn} past {playedIn === 1 ? "pool" : "pools"}
-    </TextLink>
-  );
+type T = ReturnType<typeof useTranslations>;
+
+const played = (t: T, { id, playedIn }: BrowseDiff) => {
+  if (playedIn === null) return <span>{t("poolHistoryUnavailable")}</span>;
+  if (playedIn === 0) return <span>{t("notPlayedInA")}</span>;
+  return <TextLink href={`/maps/${id}`}>{t("playedIn", { count: playedIn })}</TextLink>;
 };
 
 /**
@@ -64,6 +63,7 @@ const played = ({ id, playedIn }: BrowseDiff) => {
  * @returns {JSX.Element} one set with its tags and each difficulty's values, played count and Add
  */
 export function BrowseSetCard(props: BrowseSetCardProps) {
+  const t = useTranslations("pools.browseSetCard");
   const { set, lens, buckets, defaultBucket, poolIds, onAdd, candidate } = props;
   return (
     <MapSetCard
@@ -75,8 +75,8 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
       status={set.status}
       badges={
         <>
-          {set.unranked ? <Badge tone="warning">Unranked</Badge> : null}
-          {set.check ? <Badge tone="warning">Check first</Badge> : null}
+          {set.unranked ? <Badge tone="warning">{t("unranked")}</Badge> : null}
+          {set.check ? <Badge tone="warning">{t("checkFirst")}</Badge> : null}
         </>
       }
       note={set.check?.text}
@@ -106,9 +106,9 @@ export function BrowseSetCard(props: BrowseSetCardProps) {
           details: (
             <>
               {diff.source === "math" && lens !== "NM" ? (
-                <span className="text-xs">(no mod data) </span>
+                <span className="text-xs">{t("noModData")}</span>
               ) : null}
-              {played(diff)}
+              {played(t, diff)}
             </>
           ),
           actions: (

@@ -5,13 +5,14 @@
  *       submits to /search?tab=maps.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, TextInput } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { mapSearchTarget } from "@/utils/search-links";
 
@@ -20,6 +21,7 @@ import { mapSearchTarget } from "@/utils/search-links";
  * @returns {JSX.Element} a search box that opens /search on the maps tab
  */
 export function MapSearchForm() {
+  const t = useTranslations("pools.mapSearchForm");
   const router = useRouter();
   const [query, setQuery] = useState("");
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -33,19 +35,19 @@ export function MapSearchForm() {
       method="get"
       onSubmit={onSubmit}
       role="search"
-      aria-label="Maps"
+      aria-label={t("maps")}
       className="flex flex-col gap-3"
     >
       <input type="hidden" name="tab" value="maps" />
       <TextInput
         id="home-maps"
         name="q"
-        label="Any osu! map: title, artist, mapper, or a beatmap ID or link"
+        label={t("anyOsuMapTitle")}
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         autoComplete="off"
       />
-      <Button type="submit">Search maps</Button>
+      <Button type="submit">{t("searchMaps")}</Button>
     </form>
   );
 }

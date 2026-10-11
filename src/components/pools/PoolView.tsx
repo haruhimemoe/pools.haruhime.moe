@@ -7,11 +7,12 @@
  *       loads the data and builds the packs link.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PoolSlotTable } from "@/components/pools/PoolSlotTable";
 import { PoolSources } from "@/components/pools/PoolSources";
 import type { StoredPool } from "@/schemas/pool";
@@ -38,6 +39,7 @@ type PoolViewProps = {
  * @returns {JSX.Element} a past pool's page: header, maps, notes, sources, export and history
  */
 export function PoolView({ pool, maps, values, openInPacks, preview = false }: PoolViewProps) {
+  const t = useTranslations("pools.poolView");
   const notes = shownNotes(pool.notes, pool.edited);
   const count = `${pool.slots.length} ${pool.slots.length === 1 ? "map" : "maps"}`;
   const badged = badgedText(pool.badged);
@@ -49,18 +51,16 @@ export function PoolView({ pool, maps, values, openInPacks, preview = false }: P
         meta={badged ? `${count} · ${badged}` : count}
         actions={
           <>
-            <ButtonLink href={openInPacks}>Open in packs</ButtonLink>
+            <ButtonLink href={openInPacks}>{t("openInPacks")}</ButtonLink>
             {pool.hidden ? null : (
               <ButtonLink href={startFromHref(pool._id)} variant="secondary">
-                Start from this pool
+                {t("startFromThisPool")}
               </ButtonLink>
             )}
           </>
         }
       />
-      {preview && pool.hidden ? (
-        <Notice tone="warning">This pool is hidden. Only admins see this preview.</Notice>
-      ) : null}
+      {preview && pool.hidden ? <Notice tone="warning">{t("thisPoolIsHidden")}</Notice> : null}
       {pool.supersededBy ? (
         <Notice tone="warning">
           This pool changed at its source.{" "}
@@ -71,14 +71,14 @@ export function PoolView({ pool, maps, values, openInPacks, preview = false }: P
         </Notice>
       ) : null}
       {notes ? (
-        <Card title="Notes">
+        <Card title={t("notes")}>
           <p className="whitespace-pre-line">{notes}</p>
         </Card>
       ) : null}
-      <Card title="Maps">
+      <Card title={t("maps")}>
         <PoolSlotTable slots={pool.sourceSlots} maps={maps} values={values} />
       </Card>
-      <Card title="Sources">
+      <Card title={t("sources")}>
         <PoolSources sources={pool.sources} formerSources={pool.formerSources} />
       </Card>
     </article>

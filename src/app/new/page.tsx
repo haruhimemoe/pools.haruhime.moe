@@ -11,13 +11,14 @@
  *       session, so it's rendered per request; never indexed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Thu Oct 8, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { pageMetadata } from "@haruhimemoe/next-kit/seo";
 import { signInHref } from "@haruhimemoe/next-kit/server";
 import { ButtonLink, Card, Notice, PageHeader } from "@haruhimemoe/ui";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { KeepDraftHash } from "@/components/builder/KeepDraftHash";
 import { NewPoolForm } from "@/components/builder/NewPoolForm";
 import { MAX_POOLS_PER_OWNER } from "@/constants/built-pools";
@@ -39,6 +40,7 @@ export const metadata: Metadata = pageMetadata(SEO_SITE, {
  * @returns {Promise<JSX.Element>} the new pool form, or a sign-in prompt that comes back here
  */
 export default async function NewPoolPage({ searchParams }: PageProps<"/new">) {
+  const t = await getTranslations("pools.pages.new");
   const raw = (await searchParams).from;
   const from = typeof raw === "string" && raw !== "" ? raw.slice(0, 80) : null;
   const user = await getCurrentUser();
@@ -53,22 +55,18 @@ export default async function NewPoolPage({ searchParams }: PageProps<"/new">) {
             : "Start with a name. The pool is private until you share it, and you add maps next."
         }
       />
-      {user && from && !start ? (
-        <Notice tone="warning">That pool isn't there to start from.</Notice>
-      ) : null}
+      {user && from && !start ? <Notice tone="warning">{t("thatPoolIsnT")}</Notice> : null}
       {user ? (
         <Card>
           <NewPoolForm {...(start ? { startFrom: start } : {})} />
           <p className="mt-4 text-c3 text-xs">You can own up to {MAX_POOLS_PER_OWNER} pools.</p>
         </Card>
       ) : (
-        <Card title="Sign in first" className="flex flex-col items-center gap-4 text-center">
+        <Card title={t("signInFirst")} className="flex flex-col items-center gap-4 text-center">
           <KeepDraftHash />
-          <p className="text-c2 text-sm">
-            Making a pool needs your osu! account. You'll come back here after signing in.
-          </p>
+          <p className="text-c2 text-sm">{t("makingAPoolNeeds")}</p>
           <ButtonLink href={signInHref(from ? startFromHref(from) : "/new")}>
-            Sign in with osu!
+            {t("signInWithOsu")}
           </ButtonLink>
         </Card>
       )}

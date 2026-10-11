@@ -6,12 +6,13 @@
  *       with packs' notice when going private couldn't remove the pack there yet.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Text, VisibilitySelect } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { PACK_NOTE, VISIBILITY_TEXT, type Visibility } from "@/constants/built-pools";
 import { useStoredField } from "@/hooks/useStoredField";
@@ -31,6 +32,7 @@ type VisibilityFormProps = {
  * @returns {JSX.Element} the owner's private, unlisted or public picker, saved on its own
  */
 export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityFormProps) {
+  const t = useTranslations("pools.visibilityForm");
   const [picked, setPicked] = useStoredField<Visibility>(pool.visibility);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
@@ -45,7 +47,7 @@ export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityForm
       ),
     );
     if (answer.ok) editor.adopt(answer.body.pool);
-    const saved = `Saved: ${VISIBILITY_TEXT[picked].label.toLowerCase()}.`;
+    const saved = t("savedLabel", { label: VISIBILITY_TEXT[picked].label.toLowerCase() });
     const notice = answer.ok && answer.body.notice ? ` ${answer.body.notice}` : "";
     setMessage(answer.ok ? `${saved}${notice}` : answer.message);
     setPending(false);
@@ -53,7 +55,7 @@ export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityForm
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
       <VisibilitySelect
-        label="Who can see this pool"
+        label={t("whoCanSeeThis")}
         id="visibility"
         text={VISIBILITY_TEXT}
         value={picked}
@@ -61,7 +63,7 @@ export function VisibilityForm({ pool, editor, fetcher = fetch }: VisibilityForm
       />
       {picked !== "private" ? <Text tone="muted">{PACK_NOTE}</Text> : null}
       <Button type="submit" variant="secondary" disabled={pending || picked === pool.visibility}>
-        Save who can see it
+        {t("saveWhoCanSee")}
       </Button>
       <output aria-live="polite" className="text-c2 text-sm">
         {message}

@@ -6,10 +6,11 @@
  *       Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Button, Notice, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { MERGED_NOTICE } from "@/constants/built-pools";
 import { CONFLICT, GONE } from "@/constants/editor";
@@ -33,12 +34,13 @@ type SaveStateProps = {
  * @returns {JSX.Element} what's happening to the changes, with Dismiss
  */
 export function SaveState(props: SaveStateProps) {
+  const t = useTranslations("pools.saveState");
   const { saving, failure, conflict, merged, gone, onDismiss, actions } = props;
   return (
     <div className="sticky top-0 z-10 flex flex-col gap-2 rounded-lg bg-b5 px-4 py-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Text role="status" tone="muted" bold>
-          {saving ? "Saving…" : "All changes saved."}
+          {saving ? t("saving") : t("allChangesSaved")}
         </Text>
         {actions}
       </div>
@@ -64,7 +66,7 @@ export function SaveState(props: SaveStateProps) {
       ) : null}
       {conflict || failure ? (
         <Button variant="ghost" onClick={onDismiss}>
-          Dismiss
+          {t("dismiss")}
         </Button>
       ) : null}
     </div>

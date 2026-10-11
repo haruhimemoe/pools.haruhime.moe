@@ -9,23 +9,27 @@
  *       promise more than pools can delete.
  * @author David @dvhsh (https://dvh.sh)
  * @created Tue Oct 6, 2026
- * @modified Tue Oct 6, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { ConfirmDialog, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
-const UNREACHABLE = "Couldn't reach pools. Nothing was deleted.";
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
+const UNREACHABLE = (t: T) => t("couldnTReachPools");
 
 /**
  * @function messageOf
  * @param response {Response} a refusal
  * @returns {Promise<string>} the server's message, or the status
  */
-const messageOf = async (response: Response): Promise<string> => {
-  const fallback = `Deleting failed (${response.status}).`;
+const messageOf = async (t: T, response: Response): Promise<string> => {
+  const fallback = t("deletingFailedStatus", { status: response.status });
   try {
     const body = (await response.json()) as { error?: { message?: string } };
     return body.error?.message ?? fallback;
@@ -55,6 +59,7 @@ const noticeOf = async (response: Response): Promise<string | null> => {
  * @returns {JSX.Element} the trigger and its confirm dialog, or the line saying it's done
  */
 export function DeletePoolsDataForm({ username, deletes }: { username: string; deletes: string }) {
+  const t = useTranslations("pools.deletePoolsDataForm");
   const doneId = `${useId()}-done`;
   const [done, setDone] = useState<{ notice: string | null } | null>(null);
 
@@ -67,9 +72,9 @@ export function DeletePoolsDataForm({ username, deletes }: { username: string; d
         body: JSON.stringify({ username }),
       });
     } catch {
-      throw new Error(UNREACHABLE);
+      throw new Error(UNREACHABLE(t));
     }
-    if (!response.ok) throw new Error(await messageOf(response));
+    if (!response.ok) throw new Error(await messageOf(t, response));
     setDone({ notice: await noticeOf(response) });
   };
 
@@ -82,15 +87,15 @@ export function DeletePoolsDataForm({ username, deletes }: { username: string; d
   }
   return (
     <ConfirmDialog
-      trigger="Delete my pools data"
+      trigger={t("deleteMyPoolsData")}
       triggerProps={{ variant: "danger" }}
-      title="Delete your pools data?"
+      title={t("deleteYourPoolsData")}
       description={deletes}
       tone="destructive"
       typeToConfirm={username}
-      confirmLabel="Delete for good"
-      pendingLabel="Deleting…"
-      failedMessage={(error) => (error instanceof Error ? error.message : UNREACHABLE)}
+      confirmLabel={t("deleteForGood")}
+      pendingLabel={t("deleting")}
+      failedMessage={(error) => (error instanceof Error ? error.message : UNREACHABLE(t))}
       returnFocus={() => document.getElementById(doneId)}
       onConfirm={remove}
     />

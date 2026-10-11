@@ -6,10 +6,11 @@
  *       a credit line for each source with a fixed author (otdb by Sheppsu).
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { SOURCE_CREDITS } from "@/constants/pools";
 import type { FormerSource, PoolSource } from "@/schemas/pool";
 
@@ -54,6 +55,7 @@ export function PoolSources({
   sources: readonly PoolSource[];
   formerSources: readonly FormerSource[];
 }) {
+  const t = useTranslations("pools.poolSources");
   const otdb = [...sources, ...formerSources].some((source) => source.kind === "otdb");
   const credit = SOURCE_CREDITS.otdb;
   return (
@@ -69,7 +71,7 @@ export function PoolSources({
       ) : null}
       {formerSources.length > 0 ? (
         <div>
-          <p className="text-c3">Earlier versions of this pool came from:</p>
+          <p className="text-c3">{t("earlierVersionsOfThis")}</p>
           <ul className="flex flex-col gap-1">
             {formerSources.map((source) => (
               <li key={keyOf(source)}>

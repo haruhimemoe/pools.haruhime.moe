@@ -5,10 +5,11 @@
  *       questions go out as FAQPage JSON-LD. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Card, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { HomeFaq } from "@/constants/home";
 
 /**
@@ -17,12 +18,13 @@ import type { HomeFaq } from "@/constants/home";
  * @returns {JSX.Element} What pools is, then the questions and answers
  */
 export function HomeAbout({ intro, faq }: { intro: string; faq: readonly HomeFaq[] }) {
+  const t = useTranslations("pools.homeAbout");
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      <Card title="What pools is">
+      <Card title={t("whatPoolsIs")}>
         <p className="text-c2">{intro}</p>
       </Card>
-      <Card title="Questions">
+      <Card title={t("questions")}>
         <div className="flex flex-col gap-4">
           {faq.map(({ q, a }) => (
             <div key={q}>

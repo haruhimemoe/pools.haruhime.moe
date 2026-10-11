@@ -5,10 +5,11 @@
  *       BPM) and starts at page 1.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { LinkTabs } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { MAP_SCOPE_LABELS, MAP_SCOPES, type MapScope } from "@/constants/search";
 import type { AllMapFilters, MapFilters } from "@/utils/search-filters";
 import { scopeHref } from "@/utils/search-links";
@@ -25,9 +26,10 @@ export function MapScopeSwitch({
   scope: MapScope;
   filters: AllMapFilters | MapFilters;
 }) {
+  const t = useTranslations("pools.mapScopeSwitch");
   return (
     <LinkTabs
-      label="Which maps"
+      label={t("whichMaps")}
       items={MAP_SCOPES.map((value) => ({
         href: scopeHref(value, filters),
         label: MAP_SCOPE_LABELS[value],

@@ -9,13 +9,14 @@
  *       didn't change keep what the admin typed.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Checkbox, Select, Textarea, TextInput } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import type { SyncState } from "@/schemas/pool";
 
@@ -73,6 +74,7 @@ function useStoredField<T>(stored: T): [T, (value: T) => void] {
  *          /api/admin/pools/<id>
  */
 export function PoolEditForm({ poolId, initial }: { poolId: string; initial: Fields }) {
+  const t = useTranslations("pools.poolEditForm");
   const router = useRouter();
   const [tournament, setTournament] = useStoredField(initial.tournament);
   const [round, setRound] = useStoredField(initial.round ?? "");
@@ -110,7 +112,7 @@ export function PoolEditForm({ poolId, initial }: { poolId: string; initial: Fie
       );
       if (response.ok) router.refresh();
     } catch {
-      setMessage("The save didn't reach the server.");
+      setMessage(t("theSaveDidnT"));
     } finally {
       setPending(false);
     }
@@ -120,50 +122,50 @@ export function PoolEditForm({ poolId, initial }: { poolId: string; initial: Fie
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <TextInput
         id="edit-tournament"
-        label="Tournament"
+        label={t("tournament")}
         value={tournament}
         onChange={(event) => setTournament(event.target.value)}
       />
       <TextInput
         id="edit-round"
-        label="Round"
-        hint="Empty for none."
+        label={t("round")}
+        hint={t("emptyForNone")}
         value={round}
         onChange={(event) => setRound(event.target.value)}
       />
       <TextInput
         id="edit-year"
-        label="Year"
-        hint="Empty when it isn't known."
+        label={t("year")}
+        hint={t("emptyWhenItIsn")}
         inputMode="numeric"
         value={year}
         onChange={(event) => setYear(event.target.value)}
       />
       <Textarea
         id="edit-notes"
-        label="Notes"
+        label={t("notes")}
         value={notes}
         onChange={(event) => setNotes(event.target.value)}
       />
       <Checkbox
         id="edit-hidden"
-        label="Hidden"
-        hint="Off every public page, and unlisted on packs."
+        label={t("hidden")}
+        hint={t("offEveryPublicPage")}
         checked={hidden}
         onChange={(event) => setHidden(event.target.checked)}
       />
       <Select
         id="edit-badged"
-        label="Badged tournament"
+        label={t("badgedTournament")}
         value={badged}
         onChange={(event) => setBadged(event.target.value as keyof typeof BADGED_VALUES)}
       >
-        <option value="unknown">Not known</option>
-        <option value="yes">Badged</option>
-        <option value="no">Not badged</option>
+        <option value="unknown">{t("notKnown")}</option>
+        <option value="yes">{t("badged")}</option>
+        <option value="no">{t("notBadged")}</option>
       </Select>
       <Button type="submit" disabled={pending}>
-        Save
+        {t("save")}
       </Button>
       <output className="text-c2 text-sm" aria-live="polite">
         {message}

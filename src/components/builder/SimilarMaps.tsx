@@ -9,13 +9,14 @@
  *       search as it was. A failure says so with Retry.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { Badge, Button, Checkbox, cx, Notice, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { BrowseSetCard } from "@/components/builder/BrowseSetCard";
 import { SimilarCredit } from "@/components/builder/SimilarCredit";
 import { hiddenSetsText, UNRANKED_WARNING } from "@/constants/search";
@@ -70,6 +71,7 @@ const leftOut = (data: SimilarResponse): string[] =>
  * @returns {JSX.Element} the method, the credit, the sets and Back to search
  */
 export function SimilarMaps(props: SimilarMapsProps) {
+  const t = useTranslations("pools.similarMaps");
   const { target, query, onBack, onLeaderboardOnly, fetcher, ...cards } = props;
   const similar = useSimilarMaps(target.id, query, fetcher);
   const { status, data } = similar;
@@ -79,7 +81,7 @@ export function SimilarMaps(props: SimilarMapsProps) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="min-w-0 break-words font-bold text-c1">{`Similar to ${target.label}`}</h3>
         <Button variant="secondary" onClick={onBack}>
-          Back to search
+          {t("backToSearch")}
         </Button>
       </div>
       {method ? (
@@ -87,7 +89,7 @@ export function SimilarMaps(props: SimilarMapsProps) {
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={data?.method === "pattern" ? "accent" : "neutral"}>{method.label}</Badge>
             <Text as="span" tone="muted">
-              {`Under ${data?.lens === "NM" ? "no mod" : data?.lens}`}
+              {t("underLens", { lens: data?.lens === "NM" ? t("noMod") : (data?.lens ?? "") })}
             </Text>
           </div>
           <p className="text-c2 text-sm">{method.about}</p>
@@ -104,12 +106,12 @@ export function SimilarMaps(props: SimilarMapsProps) {
         <div className="flex flex-col gap-2">
           <Notice tone="error">{similar.message}</Notice>
           <Button variant="secondary" onClick={similar.retry}>
-            Retry
+            {t("retry")}
           </Button>
         </div>
       ) : !data ? (
         <Text tone="muted" aria-live="polite">
-          Finding similar maps…
+          {t("findingSimilarMaps")}
         </Text>
       ) : (
         <div className={cx("flex flex-col gap-3", status === "loading" && "opacity-60")}>

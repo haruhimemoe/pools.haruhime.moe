@@ -7,7 +7,7 @@
  *       map browser on maps like it.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -22,6 +22,7 @@ import {
   SortableHandle,
   Text,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { FindSimilarButton } from "@/components/builder/FindSimilarButton";
 import { SlotNote } from "@/components/builder/SlotNote";
 import type { Candidate } from "@/schemas/built-candidates";
@@ -60,6 +61,7 @@ type CandidateRowProps = CandidateActions & {
  * @returns {JSX.Element} one candidate as a list item
  */
 export function CandidateRow(props: CandidateRowProps) {
+  const t = useTranslations("pools.candidateRow");
   const { entry, label, place, map, values, addedBy, votes, voted, position, sortable, ...on } =
     props;
   const name = `${mapLabel(map, entry.beatmapId)} (${label} candidate)`;
@@ -107,7 +109,7 @@ export function CandidateRow(props: CandidateRowProps) {
           <Button
             variant={voted ? "primary" : "secondary"}
             aria-pressed={voted}
-            aria-label={`${voted ? "Take back your vote for" : "Vote for"} ${name}: ${votes}`}
+            aria-label={`${voted ? t("takeBackYourVote") : t("voteFor")} ${name}: ${votes}`}
             onClick={() => on.onVote(entry, !voted)}
           >
             {voted ? "Voted" : "Vote"} · {votes}
@@ -115,19 +117,19 @@ export function CandidateRow(props: CandidateRowProps) {
           <Button
             variant="secondary"
             data-control="promote"
-            aria-label={`Promote ${name} to pick`}
+            aria-label={t("promoteNameToPick", { name })}
             onClick={() => on.onPromote(entry)}
           >
-            Promote
+            {t("promote")}
           </Button>
           <FindSimilarButton beatmapId={entry.beatmapId} label={mapLabel(map, entry.beatmapId)} />
           <Button
             variant="ghost"
             data-control="remove-candidate"
-            aria-label={`Remove ${name}`}
+            aria-label={t("removeName", { name })}
             onClick={() => on.onRemove(entry)}
           >
-            Remove
+            {t("remove")}
           </Button>
         </>
       }

@@ -21,13 +21,14 @@
  *       Back to search returns to the search as it was.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { Card, ChoiceChips } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import { BrowseFilters } from "@/components/builder/BrowseFilters";
 import { BrowseResults } from "@/components/builder/BrowseResults";
@@ -82,6 +83,7 @@ export type MapBrowserProps = {
  * @returns {JSX.Element} the map browser: filters, ranges, results and paging
  */
 export function MapBrowserPane(props: MapBrowserProps) {
+  const t = useTranslations("pools.mapBrowserPane");
   const { buckets, poolIds, openedFor, openCount, onAdd, fetcher, targets, candidate } = props;
   const { similar } = props;
   const headingId = useId();
@@ -146,7 +148,7 @@ export function MapBrowserPane(props: MapBrowserProps) {
     browse.status === "error"
       ? SEARCH_FAILED_COUNT
       : browse.status === "loading" || !browse.data
-        ? "Searching…"
+        ? t("searching")
         : `${browse.data.sets.length} ${browse.data.sets.length === 1 ? "set" : "sets"} on this page`;
   const defaultBucket = defaultBucketFor(lens, buckets, opened);
   const cards = { buckets, defaultBucket, poolIds: new Set(poolIds), onAdd, candidate };
@@ -155,11 +157,16 @@ export function MapBrowserPane(props: MapBrowserProps) {
     <FindSimilarContext value={openSimilar}>
       <Card aria-labelledby={headingId} id="map-browser">
         <h2 id={headingId} ref={heading} tabIndex={-1} className="mb-3 font-bold text-c1 text-lg">
-          Find maps
+          {t("findMaps")}
         </h2>
         <div className="flex flex-col gap-4">
           {sources.length > 1 ? (
-            <ChoiceChips label="Source" options={sources} value={source} onChange={setSource} />
+            <ChoiceChips
+              label={t("source")}
+              options={sources}
+              value={source}
+              onChange={setSource}
+            />
           ) : null}
           {similarTo && source === "similar" ? (
             <SimilarMaps

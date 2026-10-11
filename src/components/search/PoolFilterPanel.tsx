@@ -8,7 +8,7 @@
  *       and the sort.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
@@ -22,6 +22,7 @@ import {
   Select,
   TextInput,
 } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type ReactNode, useState } from "react";
 import {
   BADGED_FILTERS,
@@ -59,6 +60,7 @@ type Props = {
  *          sort
  */
 export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, mapError }: Props) {
+  const t = useTranslations("pools.poolFilterPanel");
   const set = <K extends keyof PoolFilters>(key: K, value: PoolFilters[K]) =>
     onChange({ ...filters, [key]: value });
   const [cleared, setCleared] = useState(false);
@@ -73,17 +75,17 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
   const builtOnly = filters.type === "built";
   return (
     <FilterPanel
-      title="Filter pools"
+      title={t("filterPools")}
       resultCount={resultCount}
       active={hasPoolFilters(filters)}
       onClear={() =>
         onChange({ ...EMPTY_POOL_FILTERS, type: filters.type, q: filters.q, sort: filters.sort })
       }
     >
-      <FilterRow label="Pools">
+      <FilterRow label={t("pools")}>
         <div className="flex flex-col gap-2">
           <ChoiceChips
-            label="Pools"
+            label={t("pools")}
             hideLabel
             options={POOL_TYPES.map((type) => ({ value: type, label: POOL_TYPE_LABELS[type] }))}
             value={filters.type}
@@ -94,18 +96,18 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
           </output>
         </div>
       </FilterRow>
-      <FilterRow label="Search">
+      <FilterRow label={t("search")}>
         <TextInput
           id="pools-q"
-          label="Tournament, round or pool name"
+          label={t("tournamentRoundOrPool")}
           value={filters.q}
           maxLength={MAX_QUERY_LENGTH}
           onChange={(event) => set("q", event.target.value)}
         />
       </FilterRow>
-      <FilterRow label="Year">
+      <FilterRow label={t("year")}>
         <RangeSlider
-          label="Year"
+          label={t("year")}
           hideLabel
           min={YEAR_RANGE.min}
           max={YEAR_RANGE.max}
@@ -116,10 +118,10 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
         />
       </FilterRow>
       {badgedKnown && !builtOnly ? (
-        <FilterRow label="Badged">
+        <FilterRow label={t("badged")}>
           <Select
             id="pools-badged"
-            label="Badged"
+            label={t("badged")}
             value={filters.badged}
             onChange={(event) => set("badged", event.target.value as BadgedFilter)}
           >
@@ -132,9 +134,9 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
         </FilterRow>
       ) : null}
       {builtOnly ? null : (
-        <FilterRow label="Stars (no mod)">
+        <FilterRow label={t("starsNoMod")}>
           <RangeSlider
-            label="Star rating without mods"
+            label={t("starRatingWithoutMods")}
             hideLabel
             min={STAR_RANGE.min}
             max={STAR_RANGE.max}
@@ -146,9 +148,9 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
           />
         </FilterRow>
       )}
-      <FilterRow label="Maps">
+      <FilterRow label={t("maps")}>
         <RangeSlider
-          label="Number of maps"
+          label={t("numberOfMaps")}
           hideLabel
           min={MAP_COUNT_RANGE.min}
           max={MAP_COUNT_RANGE.max}
@@ -158,20 +160,20 @@ export function PoolFilterPanel({ filters, onChange, badgedKnown, resultCount, m
           onChange={(value) => set("maps", normalizeRange(value, MAP_COUNT_RANGE))}
         />
       </FilterRow>
-      <FilterRow label="Has map">
+      <FilterRow label={t("hasMap")}>
         <TextInput
           id="pools-map"
-          label="Beatmap ID or link"
+          label={t("beatmapIdOrLink")}
           value={filters.map}
           maxLength={MAX_MAP_REF_LENGTH}
           error={mapError ?? undefined}
           onChange={(event) => set("map", event.target.value)}
         />
       </FilterRow>
-      <FilterRow label="Sort">
+      <FilterRow label={t("sort")}>
         <Select
           id="pools-sort"
-          label="Sort pools"
+          label={t("sortPools")}
           value={filters.sort}
           onChange={(event) => set("sort", event.target.value as PoolSort)}
         >

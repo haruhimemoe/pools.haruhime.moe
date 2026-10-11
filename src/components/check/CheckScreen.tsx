@@ -7,12 +7,13 @@
  *       answer. Never blocks anything, and always says it's a guide, not a ruling.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Notice, PageHeader, Text, Textarea } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useMemo, useState } from "react";
 import { CheckResults } from "@/components/check/CheckResults";
 import { ComplianceSummary } from "@/components/check/ComplianceSummary";
@@ -28,6 +29,7 @@ type Rules = { contentUsage: string; officialSupport: string; project: string };
  * @returns {JSX.Element} /check: paste maps, run the check, see the summary and each map
  */
 export function CheckScreen({ rules }: { rules: Rules }) {
+  const t = useTranslations("pools.checkScreen");
   const [text, setText] = useState("");
   const [input, setInput] = useState<CheckInput | null>(null);
   const ids = useMemo(() => (input ? checkIds(input) : []), [input]);
@@ -39,20 +41,17 @@ export function CheckScreen({ rules }: { rules: Rules }) {
   };
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Check a pool"
-        lead="Paste beatmap IDs or links, a pool (a slot and a map on each line), or a pack key. Each map is checked against the content rules for officially supported tournaments."
-      />
+      <PageHeader title={t("checkAPool")} lead={t("pasteBeatmapIdsOr")} />
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
         <Textarea
           id="check-input"
-          label="Maps to check"
-          hint="A pack key is read first, then slot lines like NM1 129891, then bare IDs and links. Up to 64 maps."
+          label={t("mapsToCheck")}
+          hint={t("aPackKeyIs")}
           value={text}
           onChange={(event) => setText(event.target.value)}
           rows={8}
         />
-        <Button type="submit">Check</Button>
+        <Button type="submit">{t("check")}</Button>
       </form>
       {input?.problems.map((problem) => (
         <Notice key={problem} tone="warning">
@@ -62,14 +61,14 @@ export function CheckScreen({ rules }: { rules: Rules }) {
       {input?.kind === "key" && input.name ? (
         <Text tone="muted">Pack key: {input.name}</Text>
       ) : null}
-      {check.status === "loading" ? <Text tone="muted">Checking…</Text> : null}
+      {check.status === "loading" ? <Text tone="muted">{t("checking")}</Text> : null}
       {check.status === "error" ? (
         <>
           <Notice tone="error" live>
             {check.message}
           </Notice>
           <Button variant="secondary" onClick={retry}>
-            Check again
+            {t("checkAgain")}
           </Button>
         </>
       ) : null}
@@ -78,7 +77,7 @@ export function CheckScreen({ rules }: { rules: Rules }) {
           <ComplianceSummary summary={summarizeCheck(check.result, ids)} />
           {check.result.unchecked.length > 0 ? (
             <Button variant="secondary" onClick={retry}>
-              Check again
+              {t("checkAgain")}
             </Button>
           ) : null}
           <CheckResults rows={input.rows} result={check.result} />
@@ -88,15 +87,15 @@ export function CheckScreen({ rules }: { rules: Rules }) {
         This is a guide, not a ruling: the osu! Tournament Committee decides. It follows the osu!
         wiki's{" "}
         <a href={rules.contentUsage} className="underline">
-          content usage permissions
+          {t("contentUsagePermissions")}
         </a>{" "}
         and{" "}
         <a href={rules.officialSupport} className="underline">
-          official support
+          {t("officialSupport")}
         </a>{" "}
         pages, through the rules of the{" "}
         <a href={rules.project} className="underline">
-          osu! Mappool Compliance project
+          {t("osuMappoolComplianceProject")}
         </a>
         . Nothing here stops you from using a map.
       </Text>

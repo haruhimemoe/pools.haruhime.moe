@@ -6,12 +6,13 @@
  *       packs): only picks do. Presentational.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { cx, ModBadge, SORTABLE_ITEM, type Sortable, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { bucketListId, emptySlotId } from "@/utils/sortable-ids";
 
@@ -32,6 +33,7 @@ type EmptySlotRowProps = {
  * @returns {JSX.Element} the slot as a list item, as a drop target
  */
 export function EmptySlotRow({ place, label, position, sortable, children }: EmptySlotRowProps) {
+  const t = useTranslations("pools.emptySlotRow");
   const id = emptySlotId(place);
   return (
     <li
@@ -49,7 +51,7 @@ export function EmptySlotRow({ place, label, position, sortable, children }: Emp
         <span className="w-14 shrink-0">
           <ModBadge mod={label} />
         </span>
-        <Text tone="muted">No pick yet. Promote a candidate or drop one here.</Text>
+        <Text tone="muted">{t("noPickYetPromote")}</Text>
       </div>
       {children}
     </li>

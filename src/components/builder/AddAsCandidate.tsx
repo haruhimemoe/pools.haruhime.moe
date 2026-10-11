@@ -7,12 +7,13 @@
  *       and says which difficulty.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Select } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import type { CandidateAdder } from "@/schemas/candidate-editor";
 
@@ -35,6 +36,7 @@ type AddAsCandidateProps = {
  * @returns {JSX.Element} the button and, while open, the slot picker
  */
 export function AddAsCandidate(props: AddAsCandidateProps) {
+  const t = useTranslations("pools.addAsCandidate");
   const { beatmapId, beatmapsetId, version, defaultBucket, note, adder } = props;
   const selectId = useId();
   const button = useRef<HTMLButtonElement>(null);
@@ -64,7 +66,7 @@ export function AddAsCandidate(props: AddAsCandidateProps) {
       <Button
         ref={button}
         variant="ghost"
-        aria-label={`Add as candidate: ${version}`}
+        aria-label={t("addAsCandidateVersion", { version })}
         aria-expanded={open}
         onClick={() => {
           if (open) close();
@@ -74,7 +76,7 @@ export function AddAsCandidate(props: AddAsCandidateProps) {
           }
         }}
       >
-        Add as candidate
+        {t("addAsCandidate")}
       </Button>
       {open ? (
         <fieldset onKeyDown={onKeyDown} className="flex flex-wrap items-end gap-2">
@@ -82,7 +84,7 @@ export function AddAsCandidate(props: AddAsCandidateProps) {
           <Select
             ref={select}
             id={selectId}
-            label="Candidate for"
+            label={t("candidateFor")}
             value={picked}
             onChange={(event) => setPicked(event.target.value)}
           >
@@ -92,11 +94,11 @@ export function AddAsCandidate(props: AddAsCandidateProps) {
               </option>
             ))}
           </Select>
-          <Button onClick={add} aria-label={`Add ${version} as a candidate`}>
-            Add
+          <Button onClick={add} aria-label={t("addVersionAsA", { version })}>
+            {t("add")}
           </Button>
           <Button variant="ghost" onClick={close}>
-            Cancel
+            {t("cancel")}
           </Button>
         </fieldset>
       ) : null}

@@ -7,13 +7,14 @@
  *       editors only (it's in the editor).
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import type { BucketEntry } from "@haruhimemoe/pool";
 import { Checkbox, Notice, Pagination, Select, Text, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { YourCandidateRow } from "@/components/builder/YourCandidateRow";
 import { YOUR_CANDIDATES, YOUR_CANDIDATES_TEXT } from "@/constants/candidates";
@@ -43,6 +44,7 @@ const ANY = "";
  * @returns {JSX.Element} the filters, the list and its pages
  */
 export function YourCandidates(props: YourCandidatesProps) {
+  const t = useTranslations("pools.yourCandidates");
   const { poolId, buckets, under, defaultBucket, poolIds, onAdd, adder, refresh, fetcher } = props;
   const ids = { q: useId(), bucket: useId(), picks: useId() };
   const [filters, setFilters] = useState<YourCandidatesFilters>({
@@ -55,14 +57,14 @@ export function YourCandidates(props: YourCandidatesProps) {
     setFilters((was) => ({ ...was, page: 1, ...change }));
   const list = useYourCandidates(poolId, under, filters, refresh, fetcher);
   const data = list.data;
-  const count = data ? `${data.total} ${data.total === 1 ? "map" : "maps"}` : "Loading…";
+  const count = data ? `${data.total} ${data.total === 1 ? "map" : "maps"}` : t("loading");
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_10rem]">
         <TextInput
           id={ids.q}
-          label="Search your candidates"
-          hint="Map, mapper, pool or note."
+          label={t("searchYourCandidates")}
+          hint={t("mapMapperPoolOr")}
           value={filters.q}
           maxLength={YOUR_CANDIDATES.maxQuery}
           autoComplete="off"
@@ -70,11 +72,11 @@ export function YourCandidates(props: YourCandidatesProps) {
         />
         <Select
           id={ids.bucket}
-          label="From slot"
+          label={t("fromSlot")}
           value={filters.bucket ?? ANY}
           onChange={(event) => set({ bucket: event.target.value || null })}
         >
-          <option value={ANY}>Any slot</option>
+          <option value={ANY}>{t("anySlot")}</option>
           {buckets.map((entry) => (
             <option key={entry.code} value={entry.code}>
               {entry.code}
@@ -89,7 +91,7 @@ export function YourCandidates(props: YourCandidatesProps) {
         onChange={(event) => set({ picks: event.target.checked })}
       />
       <Text tone="muted" aria-live="polite">
-        {list.status === "loading" ? "Loading…" : count}
+        {list.status === "loading" ? t("loading") : count}
         {data ? ` · stars under ${data.under === "NM" ? "no mod" : data.under}` : ""}
       </Text>
       {list.status === "error" ? (
@@ -114,7 +116,7 @@ export function YourCandidates(props: YourCandidatesProps) {
       ) : null}
       {data ? (
         <Pagination
-          aria-label="Candidate pages"
+          aria-label={t("candidatePages")}
           page={data.page}
           pageCount={data.pages}
           hasNext={data.page < data.pages}

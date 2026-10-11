@@ -5,7 +5,7 @@
  *       every star rating on pools says what it's under.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { StarRating } from "@haruhimemoe/ui";

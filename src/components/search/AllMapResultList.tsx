@@ -8,20 +8,19 @@
  *       set on osu!. The set and its difficulties are @haruhimemoe/ui's shared MapSetCard.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Badge, MapSetCard, type MapSetDifficulty, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { AllMapDifficulty, AllMapSet } from "@/schemas/search-response";
 
-const playedText = (map: AllMapDifficulty) => {
-  if (map.playedIn === null) return <span>Pool history unavailable</span>;
-  if (map.playedIn === 0) return <span>Not played in a pool yet</span>;
-  return (
-    <TextLink href={`/maps/${map.id}`}>
-      Played in {map.playedIn} {map.playedIn === 1 ? "pool" : "pools"}
-    </TextLink>
-  );
+type T = ReturnType<typeof useTranslations>;
+
+const playedText = (t: T, map: AllMapDifficulty) => {
+  if (map.playedIn === null) return <span>{t("poolHistoryUnavailable")}</span>;
+  if (map.playedIn === 0) return <span>{t("notPlayedInA")}</span>;
+  return <TextLink href={`/maps/${map.id}`}>{t("playedIn", { count: map.playedIn })}</TextLink>;
 };
 
 /**
@@ -30,6 +29,7 @@ const playedText = (map: AllMapDifficulty) => {
  * @returns {JSX.Element} each set with its tags and difficulties
  */
 export function AllMapResultList({ results }: { results: readonly AllMapSet[] }) {
+  const t = useTranslations("pools.allMapResultList");
   return (
     <ul className="flex flex-col gap-3">
       {results.map((set) => (
@@ -43,8 +43,8 @@ export function AllMapResultList({ results }: { results: readonly AllMapSet[] })
           status={set.status}
           badges={
             <>
-              {set.unranked ? <Badge tone="warning">Unranked</Badge> : null}
-              {set.check ? <Badge tone="warning">Check first</Badge> : null}
+              {set.unranked ? <Badge tone="warning">{t("unranked")}</Badge> : null}
+              {set.check ? <Badge tone="warning">{t("checkFirst")}</Badge> : null}
             </>
           }
           note={set.check?.text}
@@ -55,7 +55,7 @@ export function AllMapResultList({ results }: { results: readonly AllMapSet[] })
               stars: map.stars,
               starsNote: "no mod",
               stats: { bpm: map.bpm, lengthSeconds: map.length },
-              details: playedText(map),
+              details: playedText(t, map),
             }),
           )}
         />

@@ -5,12 +5,13 @@
  *       Only the owner gets this card.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Card } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { DeletePoolForm } from "@/components/builder/DeletePoolForm";
 import { TransferOwnerForm } from "@/components/builder/TransferOwnerForm";
 import { VisibilityForm } from "@/components/builder/VisibilityForm";
@@ -35,8 +36,9 @@ type OwnerSettingsProps = {
  * @returns {JSX.Element} the owner's visibility, editors, handover and delete
  */
 export function OwnerSettings({ pool, editor, fetcher, ...on }: OwnerSettingsProps) {
+  const t = useTranslations("pools.ownerSettings");
   return (
-    <Card title="Owner settings">
+    <Card title={t("ownerSettings")}>
       <div className="flex flex-col gap-6">
         <VisibilityForm pool={pool} editor={editor} fetcher={fetcher} />
         <HistoryVisibilityForm
@@ -44,9 +46,9 @@ export function OwnerSettings({ pool, editor, fetcher, ...on }: OwnerSettingsPro
           historyPublic={pool.historyPublic === true}
           fetcher={fetcher}
         />
-        <h3 className="font-bold text-c1">Hand this pool to an editor</h3>
+        <h3 className="font-bold text-c1">{t("handThisPoolTo")}</h3>
         <TransferOwnerForm pool={pool} editor={editor} fetcher={fetcher} onDone={on.onHandedOver} />
-        <h3 className="font-bold text-c1">Delete this pool</h3>
+        <h3 className="font-bold text-c1">{t("deleteThisPool")}</h3>
         <DeletePoolForm
           poolId={pool.id}
           name={pool.name}

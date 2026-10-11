@@ -4,13 +4,14 @@
  *       no year, when this one has none) or every year's.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Select } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 
 const VALUES = { unknown: null, yes: true, no: false } as const;
@@ -27,6 +28,7 @@ export function BadgedForm({
   tournamentKey: string;
   year: number | null;
 }) {
+  const t = useTranslations("pools.badgedForm");
   const router = useRouter();
   const [scope, setScope] = useState<"year" | "all">("year");
   const [value, setValue] = useState<keyof typeof VALUES>("unknown");
@@ -54,7 +56,7 @@ export function BadgedForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
       <Select
         id="badged-scope"
-        label="Which pools"
+        label={t("whichPools")}
         value={scope}
         onChange={(event) => setScope(event.target.value as "year" | "all")}
       >
@@ -63,19 +65,19 @@ export function BadgedForm({
             ? "This tournament's pools with no year"
             : `This tournament's ${year} pools`}
         </option>
-        <option value="all">Every year of this tournament</option>
+        <option value="all">{t("everyYearOfThis")}</option>
       </Select>
       <Select
         id="badged-value"
-        label="Badged"
+        label={t("badged")}
         value={value}
         onChange={(event) => setValue(event.target.value as keyof typeof VALUES)}
       >
-        <option value="unknown">Not known</option>
-        <option value="yes">Badged</option>
-        <option value="no">Not badged</option>
+        <option value="unknown">{t("notKnown")}</option>
+        <option value="yes">{t("badged")}</option>
+        <option value="no">{t("notBadged")}</option>
       </Select>
-      <Button type="submit">Set badged</Button>
+      <Button type="submit">{t("setBadged")}</Button>
       <output className="text-c2 text-sm" aria-live="polite">
         {message}
       </output>

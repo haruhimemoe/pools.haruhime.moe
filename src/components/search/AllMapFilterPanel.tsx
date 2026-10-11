@@ -6,13 +6,14 @@
  *       (no mod), length and BPM ranges, and Show explicit maps (hidden unless ticked).
  * @author David @dvhsh (https://dvh.sh)
  * @created Sat Sep 26, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { formatDuration, formatStars } from "@haruhimemoe/osu/format";
 import { Checkbox, FilterPanel, FilterRow, RangeSlider, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { StatusChips } from "@/components/search/StatusChips";
 import {
@@ -30,6 +31,9 @@ import {
 } from "@/utils/search-filters";
 import { normalizeRange, parseLengthText } from "@/utils/search-ranges";
 
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
 type Props = {
   filters: AllMapFilters;
   onChange: (next: AllMapFilters) => void;
@@ -38,18 +42,20 @@ type Props = {
 
 type RangeKey = "sr" | "len" | "bpm";
 
-const RANGES: readonly {
+type RangeRow = {
   key: RangeKey;
   row: string;
   label: string;
   bounds: FilterBounds;
   format?: (n: number) => string;
   parse?: (text: string) => number | null;
-}[] = [
+};
+
+const RANGES = (t: T): readonly RangeRow[] => [
   {
     key: "sr",
-    row: "Stars (no mod)",
-    label: "Star rating without mods",
+    row: t("starsNoMod"),
+    label: t("starRatingWithoutMods"),
     bounds: STAR_RANGE,
     format: formatStars,
   },
@@ -70,30 +76,31 @@ const RANGES: readonly {
  * @returns {JSX.Element} the all-maps filters: text, status, stars, length and BPM
  */
 export function AllMapFilterPanel({ filters, onChange, resultCount }: Props) {
+  const t = useTranslations("pools.allMapFilterPanel");
   const setRange = (key: RangeKey, value: Range | null) => onChange({ ...filters, [key]: value });
   return (
     <FilterPanel
-      title="Filter maps"
+      title={t("filterMaps")}
       resultCount={resultCount}
       active={hasAllMapFilters(filters)}
       onClear={() => onChange({ ...EMPTY_ALL_MAP_FILTERS, q: filters.q })}
     >
-      <FilterRow label="Search">
+      <FilterRow label={t("search")}>
         <TextInput
           id="all-maps-q"
-          label="Title, artist or mapper"
+          label={t("titleArtistOrMapper")}
           value={filters.q}
           maxLength={MAX_QUERY_LENGTH}
           onChange={(event) => onChange({ ...filters, q: event.target.value })}
         />
       </FilterRow>
-      <FilterRow label="Status">
+      <FilterRow label={t("status")}>
         <StatusChips
           value={filters.status}
           onChange={(status) => onChange({ ...filters, status })}
         />
       </FilterRow>
-      {RANGES.map(({ key, row, label, bounds, format, parse }) => (
+      {RANGES(t).map(({ key, row, label, bounds, format, parse }) => (
         <FilterRow key={key} label={row}>
           <RangeSlider
             label={label}
@@ -109,10 +116,10 @@ export function AllMapFilterPanel({ filters, onChange, resultCount }: Props) {
           />
         </FilterRow>
       ))}
-      <FilterRow label="Explicit">
+      <FilterRow label={t("explicit")}>
         <Checkbox
           id="all-maps-explicit"
-          label="Show explicit maps"
+          label={t("showExplicitMaps")}
           checked={filters.explicit}
           onChange={(event) => onChange({ ...filters, explicit: event.target.checked })}
         />

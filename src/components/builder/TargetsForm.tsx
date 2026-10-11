@@ -7,13 +7,14 @@
  *       Lists the targets the pool has.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { bucketOptionLabel } from "@haruhimemoe/pool";
 import { Button, Select, Text, TextInput } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { MAX_TARGET_COUNT } from "@/constants/targets";
 import type { BucketTarget } from "@/schemas/built-plan";
@@ -35,6 +36,7 @@ const inputOf = (target: BucketTarget | undefined): TargetInput => ({
  * @returns {JSX.Element} each bucket's map count and star range
  */
 export function TargetsForm({ pool, change }: TargetsFormProps) {
+  const t = useTranslations("pools.targetsForm");
   const [picked, setCode] = useState(pool.buckets[0]?.code ?? "NM");
   // A custom slot removed meanwhile falls back to the first one.
   const code = pool.buckets.some((entry) => entry.code === picked)
@@ -67,12 +69,14 @@ export function TargetsForm({ pool, change }: TargetsFormProps) {
   });
   return (
     <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
-      <Text tone="muted">
-        How many maps each slot should hold, and the star range they should sit in (under the slot's
-        mods). The maps pane shows the gaps.
-      </Text>
+      <Text tone="muted">{t("howManyMapsEach")}</Text>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Select id="target-slot" label="Slot" value={code} onChange={(e) => pick(e.target.value)}>
+        <Select
+          id="target-slot"
+          label={t("slot")}
+          value={code}
+          onChange={(e) => pick(e.target.value)}
+        >
           {pool.buckets.map((entry) => (
             <option key={entry.code} value={entry.code}>
               {bucketOptionLabel(entry)}
@@ -81,7 +85,7 @@ export function TargetsForm({ pool, change }: TargetsFormProps) {
         </Select>
         <TextInput
           id="target-count"
-          label="Maps"
+          label={t("maps")}
           hint={`0 to ${MAX_TARGET_COUNT}.`}
           inputMode="numeric"
           autoComplete="off"
@@ -91,8 +95,8 @@ export function TargetsForm({ pool, change }: TargetsFormProps) {
         />
         <TextInput
           id="target-min"
-          label="Lowest stars"
-          hint="Optional, like 5.8."
+          label={t("lowestStars")}
+          hint={t("optionalLike58")}
           inputMode="decimal"
           autoComplete="off"
           value={input.min}
@@ -101,8 +105,8 @@ export function TargetsForm({ pool, change }: TargetsFormProps) {
         />
         <TextInput
           id="target-max"
-          label="Highest stars"
-          hint="Optional, like 6.3."
+          label={t("highestStars")}
+          hint={t("optionalLike63")}
           inputMode="decimal"
           autoComplete="off"
           value={input.max}
@@ -110,7 +114,7 @@ export function TargetsForm({ pool, change }: TargetsFormProps) {
         />
       </div>
       <Button type="submit" variant="secondary">
-        Save target
+        {t("saveTarget")}
       </Button>
       {listed.length > 0 ? (
         <ul className="flex flex-col gap-1 text-sm">

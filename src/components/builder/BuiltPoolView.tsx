@@ -10,11 +10,12 @@
  *       the visitor.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
 import { ButtonLink, Card, Notice, PageHeader, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { BuiltSlotList } from "@/components/builder/BuiltSlotList";
 import { type CheckRules, ContentRulesCheck } from "@/components/builder/ContentRulesCheck";
 import { ExportPanel } from "@/components/builder/ExportPanel";
@@ -42,6 +43,7 @@ type BuiltPoolViewProps = {
  * @returns {JSX.Element} a built pool's page: header, maps, notes, summary, check and export
  */
 export function BuiltPoolView({ pool, maps, values, rules, historyHref }: BuiltPoolViewProps) {
+  const t = useTranslations("pools.builtPoolView");
   const count = `${pool.slots.length} ${pool.slots.length === 1 ? "map" : "maps"}`;
   const people = [
     ...(pool.owner ? [{ ...pool.owner, role: "owner" }] : []),
@@ -49,17 +51,17 @@ export function BuiltPoolView({ pool, maps, values, rules, historyHref }: BuiltP
   ];
   const download = pool.pack.href ? (
     <ButtonLink key="download" href={pool.pack.href}>
-      Download on packs
+      {t("downloadOnPacks")}
     </ButtonLink>
   ) : null;
   const edit = pool.access.canEdit ? (
     <ButtonLink key="edit" href={`/pools/${pool.id}/edit`} variant="secondary">
-      Edit
+      {t("edit")}
     </ButtonLink>
   ) : null;
   const history = historyHref ? (
     <ButtonLink key="history" href={historyHref} variant="secondary">
-      History
+      {t("history")}
     </ButtonLink>
   ) : null;
   return (
@@ -73,17 +75,17 @@ export function BuiltPoolView({ pool, maps, values, rules, historyHref }: BuiltP
           edit,
           history,
           <ButtonLink key="start" href={startFromHref(pool.id)} variant="secondary">
-            Start from this pool
+            {t("startFromThisPool")}
           </ButtonLink>,
         ]}
       />
       {pool.hidden ? <Notice tone="warning">{HIDDEN_BY_MODERATION[pool.visibility]}</Notice> : null}
       {pool.notes ? (
-        <Card title="Notes">
+        <Card title={t("notes")}>
           <p className="whitespace-pre-line">{pool.notes}</p>
         </Card>
       ) : null}
-      <Card title="Built by">
+      <Card title={t("builtBy")}>
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {people.map((person) => (
             <li key={person.osuId}>
@@ -95,15 +97,15 @@ export function BuiltPoolView({ pool, maps, values, rules, historyHref }: BuiltP
           ))}
         </ul>
       </Card>
-      <Card title="Maps">
+      <Card title={t("maps")}>
         <BuiltSlotList pool={pool} maps={maps} values={values} />
       </Card>
-      <Card title="Summary">
+      <Card title={t("summary")}>
         <PoolSummary pool={pool} maps={maps} values={values} />
-        <h3 className="mt-4 mb-2 font-bold text-c1">Check against the content rules</h3>
+        <h3 className="mt-4 mb-2 font-bold text-c1">{t("checkAgainstTheContent")}</h3>
         <ContentRulesCheck slots={pool.slots} rules={rules} />
       </Card>
-      <Card title="Export">
+      <Card title={t("export")}>
         <ExportPanel pool={pool} maps={maps} values={values} />
       </Card>
     </article>

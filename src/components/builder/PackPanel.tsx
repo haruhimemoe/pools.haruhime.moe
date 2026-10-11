@@ -9,12 +9,13 @@
  *       taken as the new state and announced; a refusal is said.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, textClasses } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { PACK_STATUS_TEXT } from "@/constants/built-pools";
 import { callPools, type Fetcher } from "@/lib/pool-client";
@@ -49,6 +50,7 @@ type Note = { text: string; error: boolean };
  * @returns {JSX.Element} the pack's state, its link, and Update pack now
  */
 export function PackPanel({ pool, editor, fetcher = fetch }: PackPanelProps) {
+  const t = useTranslations("pools.packPanel");
   const [pending, setPending] = useState(false);
   // One live region: a refusal is shown, what came back is only announced (the line above shows it).
   const [note, setNote] = useState<Note>({ text: "", error: false });
@@ -73,12 +75,12 @@ export function PackPanel({ pool, editor, fetcher = fetch }: PackPanelProps) {
       <p className="text-c2">{statusOf(pool)}</p>
       {pack.href ? (
         <a href={pack.href} rel="noopener" className="font-bold text-h1 underline">
-          Open the pack on packs
+          {t("openThePackOn")}
         </a>
       ) : null}
       {canUpdate ? (
         <Button variant="secondary" disabled={pending} onClick={update}>
-          {pending ? "Updating…" : "Update pack now"}
+          {pending ? t("updating") : t("updatePackNow")}
         </Button>
       ) : null}
       <output

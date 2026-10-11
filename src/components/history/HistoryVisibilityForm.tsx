@@ -5,12 +5,13 @@
  *       and says so in a live Notice.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Oct 5, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Notice, SegmentedControl } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { HISTORY_COPY } from "@/constants/history";
 import { callPools, type Fetcher } from "@/lib/pool-client";
@@ -34,6 +35,7 @@ export function HistoryVisibilityForm({
   historyPublic,
   fetcher = fetch,
 }: HistoryVisibilityFormProps) {
+  const t = useTranslations("pools.historyVisibilityForm");
   const [value, setValue] = useState<Choice>(historyPublic ? "public" : "private");
   const [message, setMessage] = useState("");
   const onChange = async (next: Choice) => {
@@ -43,7 +45,7 @@ export function HistoryVisibilityForm({
       body: { historyPublic: next === "public" },
     });
     if (answer.ok) {
-      setMessage("Saved.");
+      setMessage(t("saved"));
     } else {
       setValue(next === "public" ? "private" : "public");
       setMessage(answer.message);
@@ -56,11 +58,11 @@ export function HistoryVisibilityForm({
         value={value}
         onChange={onChange}
         options={[
-          { value: "private", label: "Owner and editors" },
-          { value: "public", label: "Anyone who can see the pool" },
+          { value: "private", label: t("ownerAndEditors") },
+          { value: "public", label: t("anyoneWhoCanSee") },
         ]}
       />
-      <Notice tone={message !== "" && message !== "Saved." ? "error" : "info"} live>
+      <Notice tone={message !== "" && message !== t("saved") ? "error" : "info"} live>
         {message}
       </Notice>
     </div>

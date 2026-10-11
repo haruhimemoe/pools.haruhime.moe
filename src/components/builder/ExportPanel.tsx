@@ -7,13 +7,14 @@
  *       once the download has had time to start). Nothing is fetched.
  * @author David @dvhsh (https://dvh.sh)
  * @created Mon Sep 28, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import type { BucketEntry, PoolSlot } from "@haruhimemoe/pool";
 import { Button, CopyButton, Text } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import type { BuiltMaps } from "@/schemas/built-pool-view";
 import { csvFileName, csvOf, exportRows, idLines, mpLines } from "@/utils/pool-export";
 import type { SlotValueMap } from "@/utils/slot-values";
@@ -49,21 +50,19 @@ const download = (name: string, text: string) => {
  * @returns {JSX.Element} copy IDs, copy !mp lines and download a CSV, all made in the browser
  */
 export function ExportPanel({ pool, maps, values }: ExportPanelProps) {
-  if (pool.slots.length === 0) return <Text tone="muted">Add maps to export them.</Text>;
+  const t = useTranslations("pools.exportPanel");
+  if (pool.slots.length === 0) return <Text tone="muted">{t("addMapsToExport")}</Text>;
   return (
     <div className="flex flex-col gap-3 text-sm">
-      <p className="text-c3">
-        The !mp lines set each map for osu!standard, then its slot's mods (None, the forced mods, or
-        Freemod), ready to paste into a tournament room one at a time.
-      </p>
+      <p className="text-c3">{t("theMpLinesSet")}</p>
       <div className="flex flex-wrap gap-2">
-        <CopyButton text={idLines(pool)} label="Copy beatmap IDs" />
-        <CopyButton text={mpLines(pool)} label="Copy !mp lines" />
+        <CopyButton text={idLines(pool)} label={t("copyBeatmapIds")} />
+        <CopyButton text={mpLines(pool)} label={t("copyMpLines")} />
         <Button
           variant="secondary"
           onClick={() => download(csvFileName(pool.name), csvOf(exportRows(pool, maps, values)))}
         >
-          Download CSV
+          {t("downloadCsv")}
         </Button>
       </div>
     </div>

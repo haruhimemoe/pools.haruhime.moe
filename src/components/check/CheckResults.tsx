@@ -5,12 +5,13 @@
  *       pool usage linking the map's history. Scrolls sideways on phones.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { beatmapUrl } from "@haruhimemoe/osu/shapes";
 import { Table, TBody, Td, type TextTone, THead, Th, textClasses } from "@haruhimemoe/ui";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { CheckResponse } from "@/schemas/compliance";
 import type { CheckRow } from "@/utils/check-input";
 import { noteParts, type RowTone, rowVerdict } from "@/utils/compliance-view";
@@ -37,14 +38,15 @@ export function CheckResults({
   rows: readonly CheckRow[];
   result: CheckResponse;
 }) {
+  const t = useTranslations("pools.checkResults");
   return (
-    <Table caption="Each map's verdict and where pools used it" hideCaption>
+    <Table caption={t("eachMapSVerdict")} hideCaption>
       <THead>
         <tr>
-          <Th>Slot</Th>
-          <Th>Map</Th>
-          <Th>Verdict</Th>
-          <Th>In pools</Th>
+          <Th>{t("slot")}</Th>
+          <Th>{t("map")}</Th>
+          <Th>{t("verdict")}</Th>
+          <Th>{t("inPools")}</Th>
         </tr>
       </THead>
       <TBody>
@@ -57,14 +59,14 @@ export function CheckResults({
               key={`${row.label ?? ""}:${row.beatmapId}`}
               className="border-b4 border-t align-top"
             >
-              <Th scope="row">{row.label ?? `Map ${i + 1}`}</Th>
+              <Th scope="row">{row.label ?? t("mapI", { i: i + 1 })}</Th>
               <Td>
                 <a
                   href={beatmapUrl(row.beatmapId)}
                   rel="noreferrer"
                   className="hover:text-c1 hover:underline"
                 >
-                  {map?.label ?? `Beatmap ${row.beatmapId}`}
+                  {map?.label ?? t("beatmapBeatmapid", { beatmapId: row.beatmapId })}
                 </a>
               </Td>
               <Td>

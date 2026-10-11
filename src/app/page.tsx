@@ -9,7 +9,7 @@
  *       FAQ the page shows.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { homeMetadata, ld } from "@haruhimemoe/next-kit/seo";

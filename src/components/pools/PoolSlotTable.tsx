@@ -6,12 +6,13 @@
  *       Scrolls sideways on phones.
  * @author David @dvhsh (https://dvh.sh)
  * @created Thu Sep 24, 2026
- * @modified Mon Sep 28, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { formatBpm, formatDuration, formatStat } from "@haruhimemoe/osu/format";
 import { CopyButton, ModBadge, Table, TBody, Td, THead, Th } from "@haruhimemoe/ui";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { StarsUnder } from "@/components/maps/StarsUnder";
 import type { SourceSlotRecord } from "@/schemas/pool";
 import type { MapSummary } from "@/services/pools";
@@ -23,12 +24,20 @@ const orDash = (value: number | null, format: (n: number) => string) =>
   value === null ? "–" : format(value);
 
 /** The stars cell: the rating, what it's under, and "no mod data" when the mirror had none. */
-const Stars = ({ values }: { values: SlotValueAnswer }) => (
-  <>
-    <StarsUnder stars={values.stars} under={values.source === "mirror" ? values.mods : "no mod"} />
-    {values.source === "math" ? <span className="block text-c3 text-xs">no mod data</span> : null}
-  </>
-);
+const Stars = ({ values }: { values: SlotValueAnswer }) => {
+  const t = useTranslations("pools.poolSlotTable");
+  return (
+    <>
+      <StarsUnder
+        stars={values.stars}
+        under={values.source === "mirror" ? values.mods : "no mod"}
+      />
+      {values.source === "math" ? (
+        <span className="block text-c3 text-xs">{t("noModData")}</span>
+      ) : null}
+    </>
+  );
+};
 
 /**
  * @function PoolSlotTable
@@ -46,17 +55,18 @@ export function PoolSlotTable({
   /** Each source slot's values under its mods, in order. */
   values: readonly SlotValueAnswer[];
 }) {
+  const t = useTranslations("pools.poolSlotTable");
   return (
-    <Table caption="The pool's maps, with values under each slot's mods" hideCaption>
+    <Table caption={t("thePoolSMaps")} hideCaption>
       <THead>
         <tr>
-          <Th>Slot</Th>
-          <Th>Map</Th>
+          <Th>{t("slot")}</Th>
+          <Th>{t("map")}</Th>
           {HEADS.map((head) => (
             <Th key={head}>{head}</Th>
           ))}
           <Th>
-            <span className="sr-only">Copy ID</span>
+            <span className="sr-only">{t("copyId")}</span>
           </Th>
         </tr>
       </THead>
@@ -85,8 +95,8 @@ export function PoolSlotTable({
               <Td>
                 <CopyButton
                   text={String(slot.beatmapId)}
-                  label="Copy ID"
-                  aria-label={`Copy beatmap ID ${slot.beatmapId}`}
+                  label={t("copyId")}
+                  aria-label={t("copyBeatmapIdBeatmapid", { beatmapId: slot.beatmapId })}
                 />
               </Td>
             </tr>

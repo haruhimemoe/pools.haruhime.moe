@@ -8,12 +8,13 @@
  *       removal waits and links back to your pools.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { ButtonLink, ConfirmDialog } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { callPools, type Fetcher } from "@/lib/pool-client";
 import type { PoolEditor } from "@/schemas/pool-editor";
@@ -43,6 +44,7 @@ export function DeletePoolForm({
   onDeleted,
   fetcher = fetch,
 }: DeletePoolFormProps) {
+  const t = useTranslations("pools.deletePoolForm");
   // Once it's gone: what to say (packs' removal waiting, or nothing more).
   const [done, setDone] = useState<string | null>(null);
   // Throws to keep the dialog open with what went wrong.
@@ -62,24 +64,24 @@ export function DeletePoolForm({
     return (
       <div className="flex flex-col gap-3">
         <p id={DONE_ID} role="status" tabIndex={-1} className="text-c2 text-sm outline-none">
-          {`The pool is deleted. ${done}`.trim()}
+          {t("thePoolIsDeleted", { done }).trim()}
         </p>
         <ButtonLink href="/account#pools" variant="secondary">
-          Back to your pools
+          {t("backToYourPools")}
         </ButtonLink>
       </div>
     );
   }
   return (
     <ConfirmDialog
-      trigger="Delete this pool"
+      trigger={t("deleteThisPool")}
       triggerProps={{ variant: "danger" }}
-      title={`Delete ${name}?`}
-      description="This deletes the pool for you and everyone who edits it. It can't be undone."
+      title={t("deleteName", { name })}
+      description={t("thisDeletesThePool")}
       tone="destructive"
       typeToConfirm={name}
-      confirmLabel="Delete for good"
-      pendingLabel="Deleting…"
+      confirmLabel={t("deleteForGood")}
+      pendingLabel={t("deleting")}
       failedMessage={(error) => (error as Error).message}
       returnFocus={() => document.getElementById(DONE_ID)}
       onConfirm={remove}

@@ -6,10 +6,11 @@
  *       Hide or Unhide and Delete.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Sun Oct 4, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 import { Table, TBody, Td, Text, TextLink, THead, Th } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { BuiltPoolModeration } from "@/components/admin/BuiltPoolModeration";
 import { VISIBILITY_TEXT } from "@/constants/built-pools";
 import type { AdminBuiltPool } from "@/services/built-moderation";
@@ -23,8 +24,9 @@ const HEADINGS = ["Pool", "Owner", "Seen by", "Maps", "Pack", "Made", "Moderatio
  *          buttons
  */
 export function AdminBuiltPoolTable({ pools }: { pools: readonly AdminBuiltPool[] }) {
+  const t = useTranslations("pools.adminBuiltPoolTable");
   if (pools.length === 0) {
-    return <Text tone="muted">No unlisted or public pool has been built yet.</Text>;
+    return <Text tone="muted">{t("noUnlistedOrPublic")}</Text>;
   }
   return (
     <Table>
@@ -53,7 +55,7 @@ export function AdminBuiltPoolTable({ pools }: { pools: readonly AdminBuiltPool[
               {VISIBILITY_TEXT[pool.visibility].label}
               {pool.hidden ? (
                 <Text as="div" tone="error" bold size="xs">
-                  hidden
+                  {t("hidden")}
                 </Text>
               ) : null}
             </Td>

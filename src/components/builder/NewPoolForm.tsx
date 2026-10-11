@@ -13,13 +13,14 @@
  *       before sign-in counts too, and one that doesn't read is said over the plain form.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Thu Oct 8, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { Button, Select, Text, TextInput } from "@haruhimemoe/ui";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useEffect, useState } from "react";
 import { POOL_TEMPLATES, type TemplateId } from "@/constants/targets";
 import { callPools, type Fetcher } from "@/lib/pool-client";
@@ -28,13 +29,16 @@ import type { StartFrom } from "@/schemas/built-pool-view";
 import { templateLabel } from "@/utils/bucket-targets";
 import { type Draft, draftFromHash, takeDraftHash } from "@/utils/draft-key";
 
+/** A translator: next-intl's t for this file's catalog keys. */
+type T = (key: string, values?: Record<string, string | number>) => string;
+
 type Field = "name" | "tournament" | "round" | "year";
 
-const FIELDS: readonly { key: Field; label: string; hint?: string }[] = [
-  { key: "name", label: "Name", hint: "Like Spring Cup 2026 Qualifiers. You can change it later." },
-  { key: "tournament", label: "Tournament", hint: "Optional." },
-  { key: "round", label: "Round", hint: "Optional." },
-  { key: "year", label: "Year", hint: "Optional." },
+const FIELDS = (t: T): readonly { key: Field; label: string; hint?: string }[] => [
+  { key: "name", label: "Name", hint: t("likeSpringCup2026") },
+  { key: "tournament", label: "Tournament", hint: t("optional") },
+  { key: "round", label: "Round", hint: t("optional") },
+  { key: "year", label: "Year", hint: t("optional") },
 ];
 
 const readYear = (text: string) =>
@@ -49,6 +53,7 @@ type NewPoolFormProps = { startFrom?: StartFrom; fetcher?: Fetcher };
  *          editor
  */
 export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
+  const t = useTranslations("pools.newPoolForm");
   const router = useRouter();
   const [values, setValues] = useState<Record<Field, string>>({
     name: startFrom?.name ?? "",
@@ -78,7 +83,7 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
     event.preventDefault();
     const body: Record<string, unknown> = {};
     const found: Partial<Record<Field, string>> = {};
-    for (const { key } of FIELDS) {
+    for (const { key } of FIELDS(t)) {
       const text = values[key].trim();
       // An empty detail goes as empty: the server would otherwise take the source pool's.
       if (key !== "name" && text === "") {
@@ -88,10 +93,10 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
       const parsed =
         key === "year" ? readYear(text) : builtDetailsFields[key].safeParse(values[key]);
       if (parsed?.success) body[key] = parsed.data;
-      else found[key] = parsed?.error.issues[0]?.message ?? "A year is a whole number.";
+      else found[key] = parsed?.error.issues[0]?.message ?? t("aYearIsA");
     }
     setErrors(found);
-    const first = FIELDS.find(({ key }) => found[key]);
+    const first = FIELDS(t).find(({ key }) => found[key]);
     if (first) {
       document.getElementById(`new-${first.key}`)?.focus();
       return;
@@ -125,11 +130,11 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
       ) : null}
       {badDraft ? (
         <Text role="status" tone="error">
-          That draft link didn't open.
+          {t("thatDraftLinkDidn")}
         </Text>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
-        {FIELDS.map(({ key, label, hint }) => (
+        {FIELDS(t).map(({ key, label, hint }) => (
           <TextInput
             key={key}
             id={`new-${key}`}
@@ -146,8 +151,8 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
       {startFrom ? null : (
         <Select
           id="new-template"
-          label="Template"
-          hint="Sets how many maps each slot should hold. It adds no maps, and you can change the counts."
+          label={t("template")}
+          hint={t("setsHowManyMaps")}
           value={template}
           onChange={(event) => setTemplate(event.target.value as TemplateId)}
         >
@@ -159,7 +164,7 @@ export function NewPoolForm({ startFrom, fetcher = fetch }: NewPoolFormProps) {
         </Select>
       )}
       <Button type="submit" disabled={pending}>
-        {pending ? "Making it…" : "Make the pool"}
+        {pending ? t("makingIt") : t("makeThePool")}
       </Button>
       {failure ? (
         <Text role="alert" tone="error" bold>

@@ -7,13 +7,14 @@
  *       again after it. Results are announced.
  * @author David @dvhsh (https://dvh.sh)
  * @created Sun Sep 27, 2026
- * @modified Mon Oct 5, 2026
+ * @modified Sun Oct 11, 2026
  */
 
 "use client";
 
 import { userUrl } from "@haruhimemoe/osu/shapes";
 import { Button, InlineConfirm, TextLink } from "@haruhimemoe/ui";
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { AddEditorForm } from "@/components/builder/AddEditorForm";
 import { callPools, type Fetcher } from "@/lib/pool-client";
@@ -45,6 +46,7 @@ function Person({ person }: { person: PoolPerson }) {
  * @returns {JSX.Element} the editors list with Remove (owner) or Leave (an editor)
  */
 export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: EditorsPanelProps) {
+  const t = useTranslations("pools.editorsPanel");
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const said = useRef<HTMLOutputElement>(null);
@@ -80,16 +82,16 @@ export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: Edit
             <Person person={person} /> <span className="text-c3">editor</span>
             {pool.access.canManage ? (
               <InlineConfirm
-                trigger="Remove"
+                trigger={t("remove")}
                 triggerProps={{
                   variant: "ghost",
                   disabled: pending,
-                  "aria-label": `Remove ${person.username} as an editor`,
+                  "aria-label": t("removeUsernameAsAn2", { username: person.username }),
                 }}
-                question={`Remove ${person.username} as an editor?`}
-                confirmLabel="Remove"
+                question={t("removeUsernameAsAn", { username: person.username })}
+                confirmLabel={t("remove")}
                 confirmVariant="danger"
-                pendingLabel="Removing…"
+                pendingLabel={t("removing")}
                 onConfirm={async () => {
                   // Throwing keeps the confirm open; the reason shows below the list.
                   if (!(await remove(person))) throw new Error("not removed");
@@ -99,7 +101,7 @@ export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: Edit
           </li>
         ))}
       </ul>
-      {pool.editors.length === 0 ? <p className="text-c3">No editors yet.</p> : null}
+      {pool.editors.length === 0 ? <p className="text-c3">{t("noEditorsYet")}</p> : null}
       {pool.access.canManage ? (
         <AddEditorForm pool={pool} editor={editor} fetcher={fetcher} onDone={setMessage} />
       ) : null}
@@ -111,7 +113,7 @@ export function EditorsPanel({ pool, editor, me, onLeft, fetcher = fetch }: Edit
             remove({ osuId: me, username: "you" });
           }}
         >
-          Leave this pool
+          {t("leaveThisPool")}
         </Button>
       ) : null}
       <output ref={said} tabIndex={-1} aria-live="polite" className="text-c2 outline-none">
